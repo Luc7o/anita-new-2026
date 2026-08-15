@@ -1,0 +1,91 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  font-family: "Manrope", sans-serif;
+  color: #2b1e29;
+  background: linear-gradient(160deg, #fbf7f3 0%, #f6eef6 45%, #f1e9f7 100%);
+  background-attachment: fixed;
+}
+
+::selection {
+  background: rgba(140, 47, 91, 0.2);
+}
+
+/* Vidrio esmerilado base, reutilizado en tarjetas, navbar, drawer, modales */
+.glass {
+  background: rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(18px) saturate(160%);
+  -webkit-backdrop-filter: blur(18px) saturate(160%);
+  border: 1px solid rgba(255, 255, 255, 0.65);
+}
+
+.glass-strong {
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(22px) saturate(160%);
+  -webkit-backdrop-filter: blur(22px) saturate(160%);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+}
+
+.glass-berry {
+  background: linear-gradient(135deg, rgba(140, 47, 91, 0.85), rgba(108, 33, 69, 0.9));
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+/* Blobs de color flotantes: firma visual de la marca en el fondo del hero */
+.blob {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(60px);
+  opacity: 0.45;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.blob-berry {
+  background: radial-gradient(circle, #c98caf 0%, transparent 70%);
+}
+
+.blob-gold {
+  background: radial-gradient(circle, #e4c765 0%, transparent 70%);
+}
+
+/* Scrollbar discreto */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(140, 47, 91, 0.25);
+  border-radius: 999px;
+}
+
+/* Foco visible por accesibilidad */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid #8c2f5b;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
+}

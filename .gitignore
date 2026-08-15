@@ -1,0 +1,19 @@
+# Backend
+backend/venv/
+backend/.env
+backend/__pycache__/
+backend/**/__pycache__/
+backend/*.pyc
+backend/app/static/uploads/productos/*
+!backend/app/static/uploads/productos/.gitkeep
+backend/app/static/uploads/comprobantes/*
+!backend/app/static/uploads/comprobantes/.gitkeep
+backend/app/static/uploads/pagos/*
+!backend/app/static/uploads/pagos/.gitkeep
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.env
+
+.DS_Store
