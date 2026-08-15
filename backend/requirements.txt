@@ -11,3 +11,4 @@ Pillow>=11.0
 cryptography==43.0.0
 resend==2.7.0
 requests==2.32.3
+vercel_blob

@@ -1,8 +1,8 @@
-import os
 import uuid
 from flask import current_app
 from werkzeug.utils import secure_filename
 from PIL import Image, UnidentifiedImageError
+import vercel_blob
 
 
 class ImagenInvalida(Exception):
@@ -18,8 +18,8 @@ def _extension_permitida(nombre_archivo):
 
 def guardar_imagen(archivo_flask, subcarpeta):
     """
-    Valida y guarda un archivo de imagen subido, dentro de
-    app/static/uploads/<subcarpeta>/, y devuelve su URL absoluta.
+    Valida y sube un archivo de imagen a Vercel Blob, dentro de
+    uploads/<subcarpeta>/, y devuelve su URL pública.
     """
     if archivo_flask is None or archivo_flask.filename == "":
         raise ImagenInvalida("No se seleccionó ningún archivo")
@@ -35,12 +35,16 @@ def guardar_imagen(archivo_flask, subcarpeta):
     except (UnidentifiedImageError, Exception):
         raise ImagenInvalida("El archivo no es una imagen válida")
 
-    base_uploads = os.path.join(current_app.static_folder, "uploads", subcarpeta)
-    os.makedirs(base_uploads, exist_ok=True)
-
     extension = secure_filename(archivo_flask.filename).rsplit(".", 1)[1].lower()
     nombre_unico = f"{uuid.uuid4().hex}.{extension}"
-    archivo_flask.save(os.path.join(base_uploads, nombre_unico))
+    pathname = f"uploads/{subcarpeta}/{nombre_unico}"
 
-    from flask import request
-    return f"{request.host_url.rstrip('/')}/static/uploads/{subcarpeta}/{nombre_unico}"
+    contenido = archivo_flask.stream.read()
+
+    resultado = vercel_blob.put(
+        pathname,
+        contenido,
+        {"access": "public", "addRandomSuffix": "false"},
+    )
+
+    return resultado["url"]
