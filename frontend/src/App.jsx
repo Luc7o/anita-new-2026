@@ -23,6 +23,7 @@ import AdminCategorias from "./pages/admin/AdminCategorias.jsx";
 import AdminPedidos from "./pages/admin/AdminPedidos.jsx";
 import AdminPedidoDetalle from "./pages/admin/AdminPedidoDetalle.jsx";
 import AdminProveedores from "./pages/admin/AdminProveedores.jsx";
+import AdminProveedorDetalle from "./pages/admin/AdminProveedorDetalle.jsx";
 import AdminUsuarios from "./pages/admin/AdminUsuarios.jsx";
 import AdminConfiguracion from "./pages/admin/AdminConfiguracion.jsx";
 
@@ -71,6 +72,7 @@ export default function App() {
             <Route path="pedidos" element={<AdminPedidos />} />
             <Route path="pedidos/:id" element={<AdminPedidoDetalle />} />
             <Route path="proveedores" element={<AdminProveedores />} />
+            <Route path="proveedores/:id" element={<AdminProveedorDetalle />} />
             <Route path="usuarios" element={<AdminUsuarios />} />
             <Route path="configuracion" element={<AdminConfiguracion />} />
           </Route>

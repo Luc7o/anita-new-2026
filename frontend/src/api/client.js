@@ -213,6 +213,20 @@ export const api = {
     request(`/admin/proveedores/${id}`, { method: "PUT", body: payload, auth: true }),
   adminEliminarProveedor: (id) =>
     request(`/admin/proveedores/${id}`, { method: "DELETE", auth: true }),
+  adminProveedor: (id) => request(`/admin/proveedores/${id}`, { auth: true }),
+  adminAgregarProductoProveedor: (proveedorId, payload) =>
+    request(`/admin/proveedores/${proveedorId}/productos`, { method: "POST", body: payload, auth: true }),
+  adminActualizarProductoProveedor: (proveedorId, relacionId, payload) =>
+    request(`/admin/proveedores/${proveedorId}/productos/${relacionId}`, {
+      method: "PUT",
+      body: payload,
+      auth: true,
+    }),
+  adminQuitarProductoProveedor: (proveedorId, relacionId) =>
+    request(`/admin/proveedores/${proveedorId}/productos/${relacionId}`, {
+      method: "DELETE",
+      auth: true,
+    }),
 
   // Admin — usuarios y roles (solo superadmin)
   adminRolesDisponibles: () => request("/admin/usuarios/roles", { auth: true }),
