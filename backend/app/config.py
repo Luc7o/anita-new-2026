@@ -52,22 +52,13 @@ class Config:
     API_PERU_TOKEN = os.getenv("API_PERU_TOKEN", "")
     API_PERU_BASE_URL = os.getenv("API_PERU_BASE_URL", "https://api.decolecta.com")
 
-    # Pasarela de pago TuPay (Tu Multipay) — tarjeta (XACC) y Yape (XAYP).
-    # Credenciales en Panel Tupay -> Settings -> API Access -> Deposit credentials.
-    # Mientras TUPAY_API_KEY / TUPAY_API_SIGNATURE estén vacíos, iniciar un
-    # pago devuelve un error claro en vez de romper el checkout.
-    TUPAY_API_KEY = os.getenv("TUPAY_API_KEY", "")
-    TUPAY_API_SIGNATURE = os.getenv("TUPAY_API_SIGNATURE", "")
-    TUPAY_BASE_URL = os.getenv("TUPAY_BASE_URL", "https://api-stg.tupayonline.com")
-    # URL pública (debe ser HTTPS y accesible desde internet) donde TuPay avisa
-    # los cambios de estado del depósito. En desarrollo local usa un túnel
-    # (ngrok/cloudflared) y pégalo aquí.
-    TUPAY_NOTIFICATION_URL = os.getenv(
-        "TUPAY_NOTIFICATION_URL", "http://localhost:5000/api/pedidos/tupay/notificacion"
-    )
-    # True mientras se prueba en STG: las transacciones "test" no afectan el
-    # balance real del comercio. Poner en "false" recién al pasar a Producción.
-    TUPAY_MODO_PRUEBA = os.getenv("TUPAY_MODO_PRUEBA", "true").lower() == "true"
+    # Pasarela de pago Culqi — tarjeta y Yape se cobran en el momento
+    # (síncrono: no hay redirección ni webhook, a diferencia de TuPay).
+    # Llave secreta: Panel Culqi -> Desarrollo -> API Keys -> Llave privada.
+    # Mientras CULQI_SECRET_KEY esté vacío, cobrar devuelve un error claro en
+    # vez de romper el checkout.
+    CULQI_SECRET_KEY = os.getenv("CULQI_SECRET_KEY", "")
+    CULQI_BASE_URL = os.getenv("CULQI_BASE_URL", "https://api.culqi.com")
 
     # Subida de imágenes de producto
     UPLOAD_FOLDER = os.path.join(BASE_DIR, "static", "uploads", "productos")

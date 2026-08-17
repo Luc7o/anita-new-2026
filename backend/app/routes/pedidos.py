@@ -1,40 +1,24 @@
-import json
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from app.extensions import db
-from app.models import ItemCarrito, Pedido, DetallePedido, Producto, ConfiguracionPago
-from app.utils.imagenes import guardar_imagen, ImagenInvalida
+from app.models import ItemCarrito, Pedido, DetallePedido, Producto, Usuario
 from app.utils.stock import agrupar_por_producto, validar_stock_disponible, descontar_stock, restaurar_stock_de_pedido
 from app.utils.decorators import requiere_activo
+from app.utils.culqi import culqi_configurado, crear_cargo
 
 bp = Blueprint("pedidos", __name__, url_prefix="/api/pedidos")
 
 COSTO_ENVIO_DELIVERY = 10.00
 
-# Métodos que exigen comprobante de pago subido por el cliente para completar la compra
-METODOS_CON_COMPROBANTE = {"yape"}
-
-# Métodos que quedan con estado_pago "pendiente" para seguimiento manual del admin
-# (tarjeta hasta que haya una pasarela de pago real conectada)
-METODOS_PAGO_MANUAL = {"tarjeta"}
+# Tarjeta y Yape se cobran por la pasarela Culqi (cargo único, síncrono).
+METODOS_PAGO_PASARELA = {"tarjeta", "yape"}
 
 
 @bp.post("/checkout")
 @requiere_activo
 def checkout():
     usuario_id = int(get_jwt_identity())
-
-    # El checkout llega como multipart/form-data cuando incluye un comprobante
-    # (campo "datos" con el JSON del pedido + campo "comprobante" con el archivo).
-    # Si no hay archivo, también aceptamos JSON normal (tarjeta / contra entrega).
-    archivo_comprobante = request.files.get("comprobante")
-    if request.content_type and request.content_type.startswith("multipart/form-data"):
-        try:
-            data = json.loads(request.form.get("datos", "{}"))
-        except ValueError:
-            return jsonify({"error": "Datos del pedido inválidos"}), 400
-    else:
-        data = request.get_json(force=True) or {}
+    data = request.get_json(force=True) or {}
 
     # Idempotencia: si el cliente ya mandó este mismo checkout antes (doble
     # clic, reintento de red), devolvemos el pedido que ya se creó en vez de
@@ -73,23 +57,12 @@ def checkout():
     if tipo_entrega == "delivery" and (not envio_direccion or not envio_distrito):
         return jsonify({"error": "Falta la dirección o el distrito de entrega"}), 400
 
-    # El comprobante es obligatorio para completar la compra con Yape
-    if metodo_pago in METODOS_CON_COMPROBANTE and not archivo_comprobante:
-        return jsonify({
-            "error": "Debes subir tu comprobante de pago de Yape para completar la compra"
-        }), 400
-
-    # Tarjeta: solo coordinamos el cobro manualmente. NUNCA se pide ni se
-    # acepta número de tarjeta ni CVV — solo un nombre de contacto opcional.
+    # Tarjeta: solo referencia visual, NUNCA se pide ni se acepta número de
+    # tarjeta ni CVV — Culqi tokeniza esos datos directamente en el navegador
+    # del cliente, nunca tocan nuestro servidor.
     tarjeta_titular = None
     if metodo_pago == "tarjeta":
         tarjeta_titular = (data.get("tarjeta_titular") or "").strip()[:160] or None
-
-    if archivo_comprobante:
-        # Validamos que sea una imagen válida antes de crear el pedido, para no
-        # dejar pedidos a medio hacer si el archivo subido está corrupto.
-        if archivo_comprobante.filename == "":
-            return jsonify({"error": "El comprobante que enviaste está vacío"}), 400
 
     # Validar stock antes de confirmar — respeta el stock por variante (talla/color)
     # cuando el producto lo usa, o el stock total del producto si no.
@@ -107,7 +80,10 @@ def checkout():
         usuario_id=usuario_id,
         idempotency_key=idempotency_key,
         metodo_pago=metodo_pago,
-        estado_pago="pendiente" if metodo_pago in METODOS_PAGO_MANUAL else "no_aplica",
+        # Tarjeta y Yape se cobran por Culqi: el frontend abre el widget de
+        # Culqi justo después de crear el pedido y manda el token a
+        # /pagar, así que arrancan "pendiente" hasta que se confirme el cobro.
+        estado_pago="pendiente" if metodo_pago in METODOS_PAGO_PASARELA else "no_aplica",
         tipo_entrega=tipo_entrega,
         subtotal=subtotal,
         costo_envio=costo_envio,
@@ -122,14 +98,6 @@ def checkout():
         nota=(data.get("nota") or "").strip()[:500] or None,
         tarjeta_titular=tarjeta_titular,
     )
-
-    if archivo_comprobante:
-        try:
-            url = guardar_imagen(archivo_comprobante, "comprobantes")
-        except ImagenInvalida as e:
-            return jsonify({"error": str(e)}), 400
-        pedido.comprobante_url = url
-        pedido.estado_pago = "en_revision"
 
     db.session.add(pedido)
     db.session.flush()  # para obtener pedido.id
@@ -185,29 +153,6 @@ def detalle_pedido(pedido_id):
     return jsonify(pedido.to_dict())
 
 
-@bp.post("/<int:pedido_id>/comprobante")
-@requiere_activo
-def subir_comprobante(pedido_id):
-    usuario_id = int(get_jwt_identity())
-    pedido = Pedido.query.filter_by(id=pedido_id, usuario_id=usuario_id).first_or_404()
-
-    if pedido.metodo_pago not in METODOS_CON_COMPROBANTE:
-        return jsonify({"error": "Este pedido no requiere comprobante"}), 400
-
-    if pedido.estado == "cancelado":
-        return jsonify({"error": "Este pedido está cancelado, ya no se puede modificar"}), 400
-
-    try:
-        url = guardar_imagen(request.files.get("comprobante"), "comprobantes")
-    except ImagenInvalida as e:
-        return jsonify({"error": str(e)}), 400
-
-    pedido.comprobante_url = url
-    pedido.estado_pago = "en_revision"
-    db.session.commit()
-    return jsonify(pedido.to_dict())
-
-
 @bp.post("/<int:pedido_id>/cancelar")
 @requiere_activo
 def cancelar_pedido(pedido_id):
@@ -228,8 +173,44 @@ def cancelar_pedido(pedido_id):
     return jsonify(pedido.to_dict())
 
 
-@bp.get("/config/pago")
-def configuracion_pago_publica():
-    """Datos públicos para mostrar el QR/número de Yape en el checkout."""
-    config = ConfiguracionPago.obtener()
-    return jsonify(config.to_dict())
+@bp.post("/<int:pedido_id>/pagar")
+@requiere_activo
+def pagar_pedido(pedido_id):
+    """
+    Cobra el pedido con Culqi usando el token que ya generó el widget en el
+    frontend (tarjeta o Yape). A diferencia de TuPay, esto es SÍNCRONO: la
+    respuesta de esta misma petición ya trae el resultado final (aprobado o
+    rechazado) — no hay redirección ni webhook que esperar.
+    """
+    usuario_id = int(get_jwt_identity())
+    usuario = Usuario.query.get(usuario_id)
+    pedido = Pedido.query.filter_by(id=pedido_id, usuario_id=usuario_id).first_or_404()
+
+    if pedido.metodo_pago not in METODOS_PAGO_PASARELA:
+        return jsonify({"error": "Este pedido no se paga por pasarela"}), 400
+    if pedido.estado == "cancelado":
+        return jsonify({"error": "Este pedido está cancelado"}), 400
+    if pedido.estado_pago != "pendiente":
+        return jsonify({"error": "Este pedido ya no necesita pago por pasarela"}), 400
+
+    data = request.get_json(force=True) or {}
+    token_id = (data.get("token_id") or "").strip()
+    if not token_id:
+        return jsonify({"error": "Falta el token de pago generado por el checkout"}), 400
+
+    if not culqi_configurado():
+        return jsonify({"error": "El cobro automático todavía no está disponible, inténtalo más tarde"}), 503
+
+    ok, cargo_id, error = crear_cargo(pedido, usuario, token_id, data.get("email"))
+    if not ok:
+        # Rechazo del banco o de Culqi — el pedido queda "pendiente" tal
+        # cual, así el cliente puede intentar de nuevo (otra tarjeta, etc.)
+        # sin que quede un pedido fantasma marcado como rechazado.
+        return jsonify({"error": error}), 402
+
+    pedido.culqi_cargo_id = cargo_id
+    pedido.estado_pago = "verificado"
+    if pedido.estado == "pendiente":
+        pedido.estado = "confirmado"
+    db.session.commit()
+    return jsonify(pedido.to_dict())

@@ -158,24 +158,12 @@ export const api = {
     request(`/carrito/${itemId}`, { method: "DELETE", auth: true }),
 
   // Pedidos
-  checkout: (payload, archivoComprobante) => {
-    const formData = new FormData();
-    formData.append("datos", JSON.stringify(payload));
-    if (archivoComprobante) {
-      formData.append("comprobante", archivoComprobante);
-    }
-    return subirArchivo("/pedidos/checkout", formData, "No se pudo completar la compra");
-  },
+  checkout: (payload) => request("/pedidos/checkout", { method: "POST", body: payload, auth: true }),
   misPedidos: () => request("/pedidos", { auth: true }),
   pedido: (id) => request(`/pedidos/${id}`, { auth: true }),
-  configPagoPublica: () => request("/pedidos/config/pago"),
-  iniciarPago: (pedidoId) => request(`/pedidos/${pedidoId}/iniciar-pago`, { method: "POST", auth: true }),
+  pagarPedido: (pedidoId, payload) =>
+    request(`/pedidos/${pedidoId}/pagar`, { method: "POST", body: payload, auth: true }),
   cancelarPedido: (id) => request(`/pedidos/${id}/cancelar`, { method: "POST", auth: true }),
-  subirComprobante: (pedidoId, archivo) => {
-    const formData = new FormData();
-    formData.append("comprobante", archivo);
-    return subirArchivo(`/pedidos/${pedidoId}/comprobante`, formData, "No se pudo subir el comprobante");
-  },
 
   // Admin — productos
   adminProductos: (params = {}) => {
@@ -213,15 +201,7 @@ export const api = {
     request(`/admin/pedidos/${id}/pago`, { method: "PUT", body: { estado_pago }, auth: true }),
   adminEstadisticas: () => request("/admin/pedidos/resumen/estadisticas", { auth: true }),
 
-  // Admin — configuración de pagos (Yape)
-  adminConfigPagos: () => request("/admin/configuracion/pagos", { auth: true }),
-  adminActualizarConfigPagos: (payload) =>
-    request("/admin/configuracion/pagos", { method: "PUT", body: payload, auth: true }),
-  adminSubirQrPago: (archivo) => {
-    const formData = new FormData();
-    formData.append("imagen", archivo);
-    return subirArchivo("/admin/uploads/qr-pago", formData, "No se pudo subir el QR");
-  },
+  // Admin — configuración
   adminProbarCorreo: (email) =>
     request("/admin/configuracion/probar-correo", { method: "POST", body: { email }, auth: true }),
 

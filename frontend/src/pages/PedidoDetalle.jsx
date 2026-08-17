@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { useParams, useSearchParams, Link } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import { api } from "../api/client.js";
-import { IconUpload } from "../components/Icons.jsx";
+import { useAuth } from "../context/AuthContext.jsx";
+import { abrirCulqiCheckout } from "../culqi.js";
 import SeguimientoPedido from "../components/SeguimientoPedido.jsx";
 
 const ESTADO_PAGO_ESTILOS = {
@@ -14,17 +15,14 @@ const ESTADO_PAGO_ESTILOS = {
   reembolsado: "bg-plum/10 text-plum-soft",
 };
 
-// Métodos que se cobran automáticamente a través de TuPay (ver
-// app/utils/tupay.py en el backend). Yape también puede completarse a mano
-// subiendo un comprobante, por eso mantiene su propio flujo abajo.
-const METODOS_TUPAY = new Set(["tarjeta", "yape"]);
+// Métodos que se cobran por la pasarela Culqi (ver app/utils/culqi.py en
+// el backend). Tarjeta y Yape se pagan SIEMPRE por acá.
+const METODOS_PASARELA = new Set(["tarjeta", "yape"]);
 
 export default function PedidoDetalle() {
   const { id } = useParams();
-  const [searchParams] = useSearchParams();
+  const { usuario } = useAuth();
   const [pedido, setPedido] = useState(null);
-  const [subiendo, setSubiendo] = useState(false);
-  const [error, setError] = useState("");
   const [cancelando, setCancelando] = useState(false);
   const [errorCancelar, setErrorCancelar] = useState("");
   const [pagando, setPagando] = useState(false);
@@ -36,46 +34,21 @@ export default function PedidoDetalle() {
     cargar();
   }, [id]);
 
-  // Cuando TuPay redirige de vuelta (success_url/back_url/error_url llevan
-  // a esta misma página con ?pago=...), la notificación real puede tardar
-  // unos segundos en llegar por el webhook — reconsultamos el pedido una
-  // vez más después de un momento para reflejar el estado ya actualizado.
-  useEffect(() => {
-    if (searchParams.get("pago")) {
-      const t = setTimeout(cargar, 3000);
-      return () => clearTimeout(t);
-    }
-  }, [searchParams]);
-
-  const iniciarPago = async () => {
+  const pagar = async () => {
     setPagando(true);
     setErrorPago("");
     try {
-      const pago = await api.iniciarPago(id);
-      if (pago.redirect_url) {
-        window.location.href = pago.redirect_url;
-        return;
-      }
-      setErrorPago("No se recibió un enlace de pago. Intenta de nuevo en unos minutos.");
+      const { tokenId, email } = await abrirCulqiCheckout({
+        amountCentavos: Math.round(pedido.total * 100),
+        email: usuario?.email,
+        metodoPago: pedido.metodo_pago,
+      });
+      const actualizado = await api.pagarPedido(id, { token_id: tokenId, email });
+      setPedido(actualizado);
     } catch (err) {
       setErrorPago(err.message);
     } finally {
       setPagando(false);
-    }
-  };
-
-  const subirComprobante = async (e) => {
-    const archivo = e.target.files?.[0];
-    if (!archivo) return;
-    setSubiendo(true);
-    setError("");
-    try {
-      await api.subirComprobante(id, archivo);
-      cargar();
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setSubiendo(false);
     }
   };
 
@@ -101,13 +74,12 @@ export default function PedidoDetalle() {
     return <p className="mx-auto max-w-2xl px-4 py-16 text-plum-soft">Cargando pedido...</p>;
   }
 
-  const necesitaComprobante = pedido.metodo_pago === "yape";
   const mostrarEstadoPago = pedido.estado_pago !== "no_aplica";
   const sePuedeCancelar = !["enviado", "entregado", "cancelado"].includes(pedido.estado);
   const puedePagarConPasarela =
-    METODOS_TUPAY.has(pedido.metodo_pago) &&
+    METODOS_PASARELA.has(pedido.metodo_pago) &&
     pedido.estado !== "cancelado" &&
-    (pedido.estado_pago === "pendiente" || pedido.estado_pago === "rechazado");
+    pedido.estado_pago === "pendiente";
 
   return (
     <div className="mx-auto max-w-2xl px-4 pb-16">
@@ -121,17 +93,6 @@ export default function PedidoDetalle() {
         <p className="mt-1 text-sm text-plum-soft">
           Pedido {pedido.numero_pedido} · Pago con {pedido.metodo_pago_label}
         </p>
-
-        {searchParams.get("pago") === "error" && (
-          <p className="mt-3 rounded-2xl bg-red-100 px-4 py-2.5 text-sm text-red-700">
-            Hubo un problema al procesar tu pago. Puedes intentarlo de nuevo abajo.
-          </p>
-        )}
-        {searchParams.get("pago") === "cancelado" && (
-          <p className="mt-3 rounded-2xl bg-gold/20 px-4 py-2.5 text-sm text-plum">
-            Cancelaste el pago. Puedes retomarlo cuando quieras desde aquí.
-          </p>
-        )}
 
         <div className="mt-6">
           <SeguimientoPedido pedido={pedido} />
@@ -148,25 +109,18 @@ export default function PedidoDetalle() {
 
             {puedePagarConPasarela && (
               <div className="mt-3">
-                {pedido.estado_pago === "rechazado" && (
-                  <p className="mb-2 text-sm text-berry-dark">
-                    Tu pago anterior no pudo completarse. Intenta de nuevo.
-                  </p>
-                )}
                 <button
-                  onClick={iniciarPago}
+                  onClick={pagar}
                   disabled={pagando}
                   className="w-full rounded-full bg-berry py-3 text-center font-semibold text-white shadow-glass transition hover:bg-berry-dark disabled:opacity-60"
                 >
-                  {pagando
-                    ? "Conectando con la pasarela..."
-                    : `Pagar con ${pedido.metodo_pago_label}`}
+                  {pagando ? "Conectando con la pasarela..." : `Pagar con ${pedido.metodo_pago_label}`}
                 </button>
                 {errorPago && <p className="mt-2 text-sm text-berry-dark">{errorPago}</p>}
               </div>
             )}
 
-            {necesitaComprobante && pedido.comprobante_url && (
+            {pedido.comprobante_url && (
               <img
                 src={pedido.comprobante_url}
                 alt="Comprobante de pago"
@@ -174,30 +128,9 @@ export default function PedidoDetalle() {
               />
             )}
 
-            {necesitaComprobante && pedido.estado !== "cancelado" &&
-              (pedido.estado_pago === "pendiente" || pedido.estado_pago === "rechazado") && (
-              <div className="mt-3">
-                <p className="mb-2 text-sm text-plum-soft">
-                  ¿Prefieres que revisemos tu comprobante manualmente en vez de pagar arriba?
-                </p>
-                <label className="glass flex cursor-pointer items-center justify-center gap-2 rounded-2xl px-4 py-2.5 text-sm font-medium text-plum shadow-glass hover:bg-white">
-                  <IconUpload size={16} />
-                  {subiendo ? "Subiendo..." : "Subir comprobante de pago"}
-                  <input
-                    type="file"
-                    accept="image/png,image/jpeg,image/webp,image/gif"
-                    onChange={subirComprobante}
-                    disabled={subiendo}
-                    className="hidden"
-                  />
-                </label>
-                {error && <p className="mt-2 text-sm text-berry-dark">{error}</p>}
-              </div>
-            )}
-
-            {necesitaComprobante && pedido.estado_pago === "en_revision" && (
+            {pedido.estado_pago === "en_revision" && (
               <p className="mt-3 text-sm text-plum-soft">
-                Recibimos tu comprobante, lo estamos revisando. Te avisaremos apenas se confirme.
+                Tu pago está en revisión. Te avisaremos apenas se confirme.
               </p>
             )}
 

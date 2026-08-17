@@ -79,6 +79,10 @@ class Pedido(db.Model):
     tarjeta_titular = db.Column(db.String(160))
     tarjeta_ultimos4 = db.Column(db.String(4))
 
+    # Identificador del cargo en Culqi ("chr_..."), cuando el pago se hizo
+    # por la pasarela — sirve para conciliar y consultar el cargo después.
+    culqi_cargo_id = db.Column(db.String(40))
+
     nota = db.Column(db.Text)
     fecha_creacion = db.Column(db.DateTime, default=datetime.utcnow)
 
@@ -131,6 +135,7 @@ class Pedido(db.Model):
             "nota": self.nota,
             "tarjeta_titular": self.tarjeta_titular,
             "tarjeta_ultimos4": self.tarjeta_ultimos4,
+            "culqi_cargo_id": self.culqi_cargo_id,
             "empresa_envio": self.empresa_envio,
             "numero_seguimiento": self.numero_seguimiento,
             "fecha_creacion": self.fecha_creacion.isoformat(),

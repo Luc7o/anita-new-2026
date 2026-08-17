@@ -1,0 +1,12 @@
+-- Se reemplaza TuPay por Culqi como pasarela de pago. A diferencia de
+-- TuPay, Culqi es síncrono (cargo único vía token), así que no necesita un
+-- "deposit_id" para hacerle seguimiento después — basta con el id del cargo.
+--
+-- OJO: esta migración NO borra la columna tupay_deposit_id (016) a
+-- propósito. No sabemos con certeza si esa migración llegó a aplicarse en
+-- tu base real, y un DROP COLUMN sobre una columna que no existe rompería
+-- esta migración. tupay_deposit_id queda como columna muerta, sin uso, es
+-- inofensiva, y la puedes borrar tú mismo mas adelante si quieres (ALTER
+-- TABLE pedidos DROP COLUMN tupay_deposit_id) una vez confirmes que
+-- existe en tu base.
+ALTER TABLE pedidos ADD COLUMN culqi_cargo_id VARCHAR(40);

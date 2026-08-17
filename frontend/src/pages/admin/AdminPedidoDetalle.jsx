@@ -164,18 +164,14 @@ export default function AdminPedidoDetalle() {
               </p>
             )}
 
-            {pedido.metodo_pago === "yape" && (
-              pedido.comprobante_url ? (
-                <a href={pedido.comprobante_url} target="_blank" rel="noreferrer">
-                  <img
-                    src={pedido.comprobante_url}
-                    alt="Comprobante de pago"
-                    className="mt-3 h-40 w-40 rounded-xl object-cover shadow-glass transition hover:opacity-90"
-                  />
-                </a>
-              ) : (
-                <p className="mt-2 text-sm text-plum-soft">El cliente todavía no sube su comprobante.</p>
-              )
+            {pedido.comprobante_url && (
+              <a href={pedido.comprobante_url} target="_blank" rel="noreferrer">
+                <img
+                  src={pedido.comprobante_url}
+                  alt="Comprobante de pago"
+                  className="mt-3 h-40 w-40 rounded-xl object-cover shadow-glass transition hover:opacity-90"
+                />
+              </a>
             )}
 
             {pedido.estado !== "cancelado" &&

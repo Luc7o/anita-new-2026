@@ -15,7 +15,7 @@ const TODOS_LOS_ITEMS = [
   { to: "/admin/proveedores", label: "Proveedores", Icon: IconTruck, roles: PUEDE_VER_PROVEEDORES },
   { to: "/admin/pedidos", label: "Pedidos", Icon: IconPackage, roles: PUEDE_VER_PEDIDOS },
   { to: "/admin/usuarios", label: "Usuarios y roles", Icon: IconUsers, roles: PUEDE_GESTIONAR_USUARIOS },
-  { to: "/admin/pagos", label: "Config. de pagos", Icon: IconSettings, roles: PUEDE_GESTIONAR_USUARIOS },
+  { to: "/admin/configuracion", label: "Configuración", Icon: IconSettings, roles: PUEDE_GESTIONAR_USUARIOS },
 ];
 
 export default function AdminLayout() {

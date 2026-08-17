@@ -24,7 +24,7 @@ import AdminPedidos from "./pages/admin/AdminPedidos.jsx";
 import AdminPedidoDetalle from "./pages/admin/AdminPedidoDetalle.jsx";
 import AdminProveedores from "./pages/admin/AdminProveedores.jsx";
 import AdminUsuarios from "./pages/admin/AdminUsuarios.jsx";
-import AdminConfiguracionPagos from "./pages/admin/AdminConfiguracionPagos.jsx";
+import AdminConfiguracion from "./pages/admin/AdminConfiguracion.jsx";
 
 export default function App() {
   const { usuario, sesionExpirada, setSesionExpirada } = useAuth();
@@ -72,7 +72,7 @@ export default function App() {
             <Route path="pedidos/:id" element={<AdminPedidoDetalle />} />
             <Route path="proveedores" element={<AdminProveedores />} />
             <Route path="usuarios" element={<AdminUsuarios />} />
-            <Route path="pagos" element={<AdminConfiguracionPagos />} />
+            <Route path="configuracion" element={<AdminConfiguracion />} />
           </Route>
         </Routes>
       </div>

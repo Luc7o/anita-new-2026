@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { api } from "../api/client.js";
 import { useCarrito } from "../context/CarritoContext.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
-import { IconUpload } from "../components/Icons.jsx";
 import { soloTexto, soloNumeros } from "../validacion.js";
+import { abrirCulqiCheckout } from "../culqi.js";
 
 const METODOS = [
   { id: "yape", label: "Yape" },
@@ -15,11 +15,6 @@ export default function Checkout() {
   const { items, total, vaciarLocal } = useCarrito();
   const { usuario } = useAuth();
   const navigate = useNavigate();
-  const [configYape, setConfigYape] = useState(null);
-
-  useEffect(() => {
-    api.configPagoPublica().then(setConfigYape).catch(() => {});
-  }, []);
 
   const [form, setForm] = useState({
     envio_nombre: usuario?.nombre_completo || "",
@@ -35,8 +30,6 @@ export default function Checkout() {
   });
   const [enviando, setEnviando] = useState(false);
   const [error, setError] = useState("");
-  const [comprobante, setComprobante] = useState(null);
-  const [previewComprobante, setPreviewComprobante] = useState(null);
 
   // Clave de idempotencia: se genera UNA vez por intento de compra y se
   // reutiliza en reintentos (doble clic, reintento de red tras timeout,
@@ -58,14 +51,6 @@ export default function Checkout() {
     }
   });
 
-  const elegirComprobante = (e) => {
-    const archivo = e.target.files?.[0];
-    if (!archivo) return;
-    setComprobante(archivo);
-    setPreviewComprobante(URL.createObjectURL(archivo));
-    setError("");
-  };
-
   const actualizar = (campo) => (e) => setForm({ ...form, [campo]: e.target.value });
   const actualizarTexto = (campo) => (e) => setForm({ ...form, [campo]: soloTexto(e.target.value) });
   const actualizarTelefonoEnvio = (e) => setForm({ ...form, envio_telefono: soloNumeros(e.target.value) });
@@ -79,12 +64,8 @@ export default function Checkout() {
 
     try {
       // 1) Se crea el pedido (reserva el stock, calcula el total) con
-      //    estado_pago "pendiente". El comprobante es opcional acá: solo se
-      //    manda si el cliente prefiere ese camino manual desde el inicio.
-      const pedido = await api.checkout(
-        { ...form, idempotency_key: idempotencyKey },
-        comprobante
-      );
+      //    estado_pago "pendiente".
+      const pedido = await api.checkout({ ...form, idempotency_key: idempotencyKey });
       try {
         sessionStorage.removeItem("ans_checkout_idempotency_key");
       } catch {
@@ -92,22 +73,21 @@ export default function Checkout() {
       }
       vaciarLocal();
 
-      // 2) Si ya se pagó (por ejemplo, subió comprobante y quedó en
-      //    revisión) o el pago se coordina de otra forma, no hace falta ir
-      //    a la pasarela. Si no, intentamos iniciar el cobro automático con
-      //    TuPay y redirigimos al cliente a completarlo ahí.
+      // 2) Si el pedido necesita pago por pasarela, abrimos el widget de
+      //    Culqi ahí mismo (sin salir de la página) y, apenas nos da un
+      //    token, se lo mandamos al backend para cobrar de verdad.
       if (pedido.estado_pago === "pendiente") {
         try {
-          const pago = await api.iniciarPago(pedido.id);
-          if (pago.redirect_url) {
-            window.location.href = pago.redirect_url;
-            return;
-          }
+          const { tokenId, email } = await abrirCulqiCheckout({
+            amountCentavos: Math.round(pedido.total * 100),
+            email: usuario?.email,
+            metodoPago: pedido.metodo_pago,
+          });
+          await api.pagarPedido(pedido.id, { token_id: tokenId, email });
         } catch {
-          // El cobro automático no está disponible todavía (por ejemplo,
-          // TuPay sin configurar en el backend). El pedido ya quedó
-          // creado — lo mandamos al detalle, donde puede completar el
-          // pago manualmente (comprobante de Yape) o esperar contacto.
+          // El cliente cerró el widget, Culqi rechazó el pago, o el cobro
+          // automático no está disponible todavía. El pedido ya quedó
+          // creado — lo mandamos al detalle, donde puede reintentar el pago.
         }
       }
 
@@ -234,73 +214,17 @@ export default function Checkout() {
           <div className="glass mt-3 rounded-2xl p-4 text-sm text-plum-soft">
             {form.metodo_pago === "yape" ? (
               <p>
-                Al confirmar tu pedido te llevaremos a Yape para que ingreses tu número y el
-                código de aprobación. El pago se verifica al instante.
+                Al confirmar tu pedido se abrirá una ventana para que ingreses tu número de Yape
+                y el código de aprobación de 6 dígitos que te llega en la app. El pago se
+                verifica al instante.
               </p>
             ) : (
               <p>
-                Al confirmar tu pedido te llevaremos a un formulario seguro para pagar con
-                tarjeta Visa o Mastercard. Nunca guardamos tu número de tarjeta ni el CVV.
+                Al confirmar tu pedido se abrirá un formulario seguro para pagar con tarjeta
+                Visa o Mastercard. Nunca guardamos tu número de tarjeta ni el CVV.
               </p>
             )}
           </div>
-
-          {form.metodo_pago === "yape" && (
-            <details className="glass mt-3 rounded-2xl p-4">
-              <summary className="cursor-pointer text-sm font-medium text-plum">
-                ¿Prefieres yapear directamente y enviar tu captura? (opcional)
-              </summary>
-              <div className="mt-4 space-y-4">
-                <div className="flex flex-col items-center gap-3 sm:flex-row sm:items-start">
-                  {configYape?.yape_qr_url ? (
-                    <div className="rounded-2xl bg-white p-3 shadow-glass">
-                      <img
-                        src={configYape.yape_qr_url}
-                        alt="QR de Yape para escanear"
-                        className="h-56 w-56 object-contain"
-                      />
-                    </div>
-                  ) : (
-                    <div className="flex h-56 w-56 items-center justify-center rounded-2xl bg-white/60 text-center text-xs text-plum-soft">
-                      QR no configurado
-                    </div>
-                  )}
-                  <div className="text-sm text-plum-soft">
-                    <p>
-                      Yapea a: <strong className="text-plum">{configYape?.yape_numero || "—"}</strong>
-                    </p>
-                    <p>A nombre de: {configYape?.yape_titular || "—"}</p>
-                  </div>
-                </div>
-
-                <div>
-                  <p className="mb-2 text-sm font-medium text-plum">Sube la captura de tu pago</p>
-                  <div className="flex items-center gap-3">
-                    {previewComprobante ? (
-                      <img
-                        src={previewComprobante}
-                        alt="Vista previa del comprobante"
-                        className="h-16 w-16 rounded-xl object-cover shadow-glass"
-                      />
-                    ) : (
-                      <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-white/60 text-plum-soft shadow-glass">
-                        <IconUpload size={20} />
-                      </div>
-                    )}
-                    <label className="glass flex-1 cursor-pointer rounded-2xl px-4 py-2.5 text-center text-sm text-plum shadow-glass hover:bg-white">
-                      {comprobante ? "Cambiar captura" : "Elegir captura"}
-                      <input
-                        type="file"
-                        accept="image/png,image/jpeg,image/webp,image/gif"
-                        onChange={elegirComprobante}
-                        className="hidden"
-                      />
-                    </label>
-                  </div>
-                </div>
-              </div>
-            </details>
-          )}
         </div>
 
         <textarea
