@@ -47,17 +47,27 @@ class Pedido(db.Model):
         "reembolso_pendiente": "Reembolso pendiente",
         "reembolsado": "Reembolsado",
     }
+    # De dónde vino el pedido: compra normal del checkout público, o venta
+    # registrada por un admin en el mostrador de la tienda física.
+    ORIGENES = {
+        "online": "Compra en línea",
+        "presencial": "Venta en tienda",
+    }
 
     id = db.Column(db.Integer, primary_key=True)
     numero_pedido = db.Column(db.String(30), unique=True, nullable=False)
     idempotency_key = db.Column(db.String(64), unique=True)
-    usuario_id = db.Column(db.Integer, db.ForeignKey("usuarios.id", ondelete="CASCADE"), nullable=False)
+    # Nullable: una venta presencial (mostrador) puede no tener una cuenta de
+    # cliente asociada — en ese caso el nombre/teléfono del cliente se guardan
+    # igual en envio_nombre/envio_telefono, solo que sin cuenta detrás.
+    usuario_id = db.Column(db.Integer, db.ForeignKey("usuarios.id", ondelete="CASCADE"), nullable=True)
 
     estado = db.Column(db.String(20), default="pendiente")
     estado_pago = db.Column(db.String(20), default="pendiente")
     comprobante_url = db.Column(db.String(400))
     metodo_pago = db.Column(db.String(20), nullable=False)
     tipo_entrega = db.Column(db.String(20), default="delivery")
+    origen = db.Column(db.String(20), nullable=False, default="online")
 
     subtotal = db.Column(db.Numeric(10, 2), nullable=False)
     costo_envio = db.Column(db.Numeric(10, 2), default=0)
@@ -110,6 +120,10 @@ class Pedido(db.Model):
     def metodo_pago_label(self):
         return self.METODOS_PAGO.get(self.metodo_pago, self.metodo_pago)
 
+    @property
+    def origen_label(self):
+        return self.ORIGENES.get(self.origen, self.origen)
+
     def to_dict(self, con_detalles=True):
         data = {
             "id": self.id,
@@ -122,6 +136,8 @@ class Pedido(db.Model):
             "metodo_pago": self.metodo_pago,
             "metodo_pago_label": self.metodo_pago_label,
             "tipo_entrega": self.tipo_entrega,
+            "origen": self.origen,
+            "origen_label": self.origen_label,
             "subtotal": float(self.subtotal),
             "costo_envio": float(self.costo_envio),
             "total": float(self.total),

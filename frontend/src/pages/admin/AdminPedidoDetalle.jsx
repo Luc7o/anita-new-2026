@@ -10,6 +10,8 @@ export default function AdminPedidoDetalle() {
   const [envio, setEnvio] = useState({ empresa_envio: "", numero_seguimiento: "" });
   const [guardandoEnvio, setGuardandoEnvio] = useState(false);
   const [mensajeEnvio, setMensajeEnvio] = useState("");
+  const [descargandoBoleta, setDescargandoBoleta] = useState(false);
+  const [errorBoleta, setErrorBoleta] = useState("");
 
   const cargar = () =>
     api.adminPedido(id).then((data) => {
@@ -67,6 +69,18 @@ export default function AdminPedidoDetalle() {
     }
   };
 
+  const descargarBoleta = async () => {
+    setDescargandoBoleta(true);
+    setErrorBoleta("");
+    try {
+      await api.adminBoletaPedido(pedido.id, pedido.numero_pedido);
+    } catch (err) {
+      setErrorBoleta(err.message);
+    } finally {
+      setDescargandoBoleta(false);
+    }
+  };
+
   if (!pedido) {
     return <p className="text-plum-soft">Cargando pedido...</p>;
   }
@@ -83,6 +97,11 @@ export default function AdminPedidoDetalle() {
             <h1 className="font-display text-2xl font-semibold text-plum">{pedido.numero_pedido}</h1>
             <p className="text-sm text-plum-soft">
               {new Date(pedido.fecha_creacion).toLocaleString("es-PE")}
+              {pedido.origen === "presencial" && (
+                <span className="ml-2 rounded-full bg-plum/10 px-2 py-0.5 text-xs font-semibold text-plum-soft">
+                  {pedido.origen_label}
+                </span>
+              )}
             </p>
           </div>
           {pedido.estado === "cancelado" ? (
@@ -274,6 +293,19 @@ export default function AdminPedidoDetalle() {
             <span>S/ {pedido.total.toFixed(2)}</span>
           </div>
         </div>
+
+        {pedido.estado_pago === "verificado" && (
+          <div className="mt-4">
+            <button
+              onClick={descargarBoleta}
+              disabled={descargandoBoleta}
+              className="rounded-full bg-white/70 px-4 py-2 text-sm font-semibold text-berry-dark shadow-glass transition hover:bg-white disabled:opacity-60"
+            >
+              {descargandoBoleta ? "Generando boleta..." : "Descargar boleta"}
+            </button>
+            {errorBoleta && <p className="mt-2 text-sm text-berry-dark">{errorBoleta}</p>}
+          </div>
+        )}
       </div>
     </div>
   );

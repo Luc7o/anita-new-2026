@@ -25,7 +25,16 @@ def listar_productos():
 
     categoria_slug = request.args.get("categoria")
     if categoria_slug:
-        query = query.join(Categoria).filter(Categoria.slug == categoria_slug)
+        slugs = [s.strip() for s in categoria_slug.split(",") if s.strip()]
+        if slugs:
+            query = query.join(Categoria).filter(Categoria.slug.in_(slugs))
+
+    tallas_param = request.args.get("tallas")
+    if tallas_param:
+        tallas_pedidas = [t.strip() for t in tallas_param.split(",") if t.strip()]
+        if tallas_pedidas:
+            condiciones = [Producto.tallas.ilike(f'%"{t}"%') for t in tallas_pedidas]
+            query = query.filter(db.or_(*condiciones))
 
     busqueda = (request.args.get("q") or "")[:100] or None
     if busqueda:
@@ -35,6 +44,8 @@ def listar_productos():
         query = query.filter_by(destacado=True)
     if request.args.get("nuevo") == "true":
         query = query.filter_by(es_nuevo=True)
+    if request.args.get("oferta") == "true":
+        query = query.filter(Producto.precio_oferta.isnot(None))
 
     orden = request.args.get("orden")
     if orden == "precio_asc":

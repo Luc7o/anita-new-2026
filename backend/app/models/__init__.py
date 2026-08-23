@@ -8,6 +8,8 @@ from app.models.pedido import Pedido, DetallePedido
 from app.models.proveedor import Proveedor, ProveedorProducto
 from app.models.configuracion_pago import ConfiguracionPago
 from app.models.token_recuperacion import TokenRecuperacion
+from app.models.favorito import Favorito
+from app.models.promocion import Promocion
 
 __all__ = [
     "Usuario",
@@ -23,4 +25,6 @@ __all__ = [
     "ProveedorProducto",
     "ConfiguracionPago",
     "TokenRecuperacion",
+    "Favorito",
+    "Promocion",
 ]

@@ -1,10 +1,11 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, Response
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from app.extensions import db
 from app.models import ItemCarrito, Pedido, DetallePedido, Producto, Usuario
 from app.utils.stock import agrupar_por_producto, validar_stock_disponible, descontar_stock, restaurar_stock_de_pedido
 from app.utils.decorators import requiere_activo
 from app.utils.culqi import culqi_configurado, crear_cargo
+from app.utils.boleta import generar_pdf_boleta
 
 bp = Blueprint("pedidos", __name__, url_prefix="/api/pedidos")
 
@@ -214,3 +215,19 @@ def pagar_pedido(pedido_id):
         pedido.estado = "confirmado"
     db.session.commit()
     return jsonify(pedido.to_dict())
+
+@bp.get("/<int:pedido_id>/boleta")
+@requiere_activo
+def boleta_pedido(pedido_id):
+    usuario_id = int(get_jwt_identity())
+    pedido = Pedido.query.filter_by(id=pedido_id, usuario_id=usuario_id).first_or_404()
+
+    if pedido.estado_pago != "verificado":
+        return jsonify({"error": "Este pedido todavía no tiene el pago verificado"}), 400
+
+    pdf_bytes = generar_pdf_boleta(pedido)
+    return Response(
+        pdf_bytes,
+        mimetype="application/pdf",
+        headers={"Content-Disposition": f"inline; filename=boleta-{pedido.numero_pedido}.pdf"},
+    )

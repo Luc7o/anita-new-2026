@@ -125,15 +125,27 @@ def listar():
     if categoria_slug:
         query = query.join(Categoria).filter(Categoria.slug == categoria_slug)
 
+    activo_param = request.args.get("activo")
+    if activo_param in ("true", "false"):
+        query = query.filter(Producto.activo == (activo_param == "true"))
+
     busqueda = (request.args.get("q") or "")[:100] or None
     if busqueda:
         query = query.filter(Producto.nombre.ilike(f"%{busqueda}%"))
 
+    orden = request.args.get("orden")
+    if orden == "precio_asc":
+        query = query.order_by(Producto.precio.asc())
+    elif orden == "precio_desc":
+        query = query.order_by(Producto.precio.desc())
+    elif orden == "nombre":
+        query = query.order_by(Producto.nombre.asc())
+    else:
+        query = query.order_by(Producto.fecha_creacion.desc())
+
     pagina = max(request.args.get("pagina", 1, type=int) or 1, 1)
     por_pagina = min(max(request.args.get("por_pagina", 20, type=int) or 20, 1), 100)
-    paginado = query.order_by(Producto.fecha_creacion.desc()).paginate(
-        page=pagina, per_page=por_pagina, error_out=False
-    )
+    paginado = query.paginate(page=pagina, per_page=por_pagina, error_out=False)
 
     return jsonify({
         "productos": [p.to_dict(resumen=True) for p in paginado.items],

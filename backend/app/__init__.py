@@ -29,21 +29,26 @@ def create_app(config_class=Config):
     def _token_faltante(motivo):
         return jsonify({"error": "Debes iniciar sesión", "code": "token_faltante"}), 401
 
-    from app.routes import auth, productos, carrito, pedidos, documentos
-    from app.routes import admin_productos, admin_categorias, admin_pedidos
+    from app.routes import auth, productos, carrito, pedidos, documentos, favoritos, promociones
+    from app.routes import admin_productos, admin_categorias, admin_pedidos, admin_reportes
     from app.routes import admin_proveedores, admin_usuarios, admin_uploads, admin_configuracion
+    from app.routes import admin_promociones
     app.register_blueprint(auth.bp)
     app.register_blueprint(productos.bp)
     app.register_blueprint(carrito.bp)
     app.register_blueprint(pedidos.bp)
     app.register_blueprint(documentos.bp)
+    app.register_blueprint(favoritos.bp)
+    app.register_blueprint(promociones.bp)
     app.register_blueprint(admin_productos.bp)
     app.register_blueprint(admin_categorias.bp)
     app.register_blueprint(admin_pedidos.bp)
+    app.register_blueprint(admin_reportes.bp)
     app.register_blueprint(admin_proveedores.bp)
     app.register_blueprint(admin_usuarios.bp)
     app.register_blueprint(admin_uploads.bp)
     app.register_blueprint(admin_configuracion.bp)
+    app.register_blueprint(admin_promociones.bp)
 
     @app.get("/api/salud")
     def salud():

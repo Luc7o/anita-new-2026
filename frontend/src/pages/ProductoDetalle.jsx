@@ -3,7 +3,8 @@ import { useParams, useNavigate } from "react-router-dom";
 import { api } from "../api/client.js";
 import { useAuth } from "../context/AuthContext.jsx";
 import { useCarrito } from "../context/CarritoContext.jsx";
-import { IconCart } from "../components/Icons.jsx";
+import { useFavoritos } from "../context/FavoritosContext.jsx";
+import { IconCart, IconHeart } from "../components/Icons.jsx";
 import Estrellas from "../components/Estrellas.jsx";
 
 export default function ProductoDetalle() {
@@ -11,6 +12,7 @@ export default function ProductoDetalle() {
   const navigate = useNavigate();
   const { usuario } = useAuth();
   const { agregar } = useCarrito();
+  const favoritos = useFavoritos();
 
   const [producto, setProducto] = useState(null);
   const [talla, setTalla] = useState("");
@@ -108,6 +110,15 @@ export default function ProductoDetalle() {
 
   const stockSeleccion = stockParaCombo(talla, color);
   const sinStockEnCombo = producto.usa_variantes && stockSeleccion <= 0;
+  const esFavorito = favoritos?.esFavorito(producto.id);
+
+  const handleFavorito = () => {
+    if (!usuario) {
+      navigate("/ingresar");
+      return;
+    }
+    favoritos?.alternar(producto.id);
+  };
 
   const handleAgregar = async () => {
     if (!usuario) {
@@ -161,11 +172,13 @@ export default function ProductoDetalle() {
           </div>
 
           {producto.imagenes?.length > 1 && (
-            <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
+            <div className="mt-3 flex gap-2 overflow-x-auto pb-1" role="group" aria-label="Otras fotos del producto">
               {producto.imagenes.map((img) => (
                 <button
                   key={img.id}
                   onClick={() => setImagenActiva(img.url)}
+                  aria-label={`Ver foto${img.color ? ` — color ${img.color}` : ""}`}
+                  aria-pressed={imagenActiva === img.url}
                   className={`h-16 w-16 shrink-0 overflow-hidden rounded-xl shadow-glass transition ${
                     imagenActiva === img.url ? "ring-2 ring-berry" : "opacity-80 hover:opacity-100"
                   }`}
@@ -178,10 +191,24 @@ export default function ProductoDetalle() {
         </div>
 
         <div className="glass rounded-3xl p-6 shadow-glass sm:p-8">
-          <span className="text-xs uppercase tracking-wide text-plum-soft">
-            {producto.categoria_nombre}
-          </span>
-          <h1 className="mt-1 font-display text-3xl font-semibold text-plum">{producto.nombre}</h1>
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <span className="text-xs uppercase tracking-wide text-plum-soft">
+                {producto.categoria_nombre}
+              </span>
+              <h1 className="mt-1 font-display text-3xl font-semibold text-plum">{producto.nombre}</h1>
+            </div>
+            <button
+              onClick={handleFavorito}
+              aria-label={esFavorito ? "Quitar de favoritos" : "Agregar a favoritos"}
+              aria-pressed={esFavorito}
+              className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full border shadow-glass transition hover:scale-110 ${
+                esFavorito ? "border-berry bg-berry text-white" : "border-plum/15 bg-white text-plum-soft hover:text-berry"
+              }`}
+            >
+              <IconHeart size={18} relleno={esFavorito} />
+            </button>
+          </div>
 
           {producto.total_resenas > 0 && (
             <div className="mt-1 flex items-center gap-2">
@@ -206,13 +233,15 @@ export default function ProductoDetalle() {
 
           {producto.tallas?.length > 0 && (
             <div className="mt-5">
-              <span className="mb-2 block text-sm font-medium text-plum">Talla</span>
-              <div className="flex flex-wrap gap-2">
+              <span id="talla-label" className="mb-2 block text-sm font-medium text-plum">Talla</span>
+              <div role="radiogroup" aria-labelledby="talla-label" className="flex flex-wrap gap-2">
                 {producto.tallas.map((t) => {
                   const sinStock = producto.usa_variantes && stockParaCombo(t, color) <= 0;
                   return (
                     <button
                       key={t}
+                      role="radio"
+                      aria-checked={talla === t}
                       onClick={() => setTalla(t)}
                       disabled={sinStock}
                       className={`rounded-full px-4 py-1.5 text-sm shadow-glass transition disabled:cursor-not-allowed disabled:opacity-40 ${
@@ -230,13 +259,15 @@ export default function ProductoDetalle() {
 
           {producto.colores?.length > 0 && (
             <div className="mt-4">
-              <span className="mb-2 block text-sm font-medium text-plum">Color</span>
-              <div className="flex flex-wrap gap-2">
+              <span id="color-label" className="mb-2 block text-sm font-medium text-plum">Color</span>
+              <div role="radiogroup" aria-labelledby="color-label" className="flex flex-wrap gap-2">
                 {producto.colores.map((c) => {
                   const sinStock = producto.usa_variantes && stockParaCombo(talla, c) <= 0;
                   return (
                     <button
                       key={c}
+                      role="radio"
+                      aria-checked={color === c}
                       onClick={() => setColor(c)}
                       disabled={sinStock}
                       className={`rounded-full px-4 py-1.5 text-sm shadow-glass transition disabled:cursor-not-allowed disabled:opacity-40 ${
@@ -253,15 +284,20 @@ export default function ProductoDetalle() {
           )}
 
           <div className="mt-5 flex items-center gap-3">
-            <span className="text-sm font-medium text-plum">Cantidad</span>
+            <span id="cantidad-label" className="text-sm font-medium text-plum">Cantidad</span>
             <div className="glass flex items-center gap-3 rounded-full px-3 py-1.5 shadow-glass">
-              <button onClick={() => setCantidad((c) => Math.max(1, c - 1))} className="text-plum">
+              <button
+                onClick={() => setCantidad((c) => Math.max(1, c - 1))}
+                aria-label="Restar una unidad"
+                className="text-plum"
+              >
                 −
               </button>
-              <span className="w-4 text-center">{cantidad}</span>
+              <span className="w-4 text-center" aria-live="polite" aria-labelledby="cantidad-label">{cantidad}</span>
               <button
                 onClick={() => setCantidad((c) => Math.min(stockSeleccion, c + 1))}
                 disabled={cantidad >= stockSeleccion}
+                aria-label="Sumar una unidad"
                 className="text-plum disabled:opacity-30"
               >
                 +
@@ -273,7 +309,7 @@ export default function ProductoDetalle() {
           </div>
 
           {sinStockEnCombo && (
-            <p className="mt-2 text-sm text-berry-dark">
+            <p className="mt-2 text-sm text-berry-dark" role="alert">
               Sin stock para esta combinación de talla/color.
             </p>
           )}

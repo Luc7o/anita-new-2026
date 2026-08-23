@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useCarrito } from "../context/CarritoContext.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
 import { IconClose } from "./Icons.jsx";
+import { useFocusTrap } from "../hooks/useFocusTrap.js";
 
 export default function CartDrawer() {
   const { drawerAbierto, setDrawerAbierto, items, total, actualizarCantidad, eliminar } =
@@ -19,6 +20,8 @@ export default function CartDrawer() {
     }
   };
 
+  const refDialogo = useFocusTrap(drawerAbierto, () => setDrawerAbierto(false));
+
   if (!drawerAbierto) return null;
 
   return (
@@ -30,9 +33,16 @@ export default function CartDrawer() {
         className="absolute inset-0 bg-plum/30 backdrop-blur-sm"
       />
 
-      <aside className="glass-strong relative flex h-full w-full max-w-md flex-col gap-4 rounded-l-3xl p-6 shadow-glass-lg">
+      <aside
+        ref={refDialogo}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="carrito-titulo"
+        tabIndex={-1}
+        className="glass-strong relative flex h-full w-full max-w-md flex-col gap-4 rounded-l-3xl p-6 shadow-glass-lg"
+      >
         <div className="flex items-center justify-between">
-          <h2 className="font-display text-xl font-semibold text-plum">Tu carrito</h2>
+          <h2 id="carrito-titulo" className="font-display text-xl font-semibold text-plum">Tu carrito</h2>
           <button
             onClick={() => setDrawerAbierto(false)}
             className="rounded-full p-2 text-plum-soft hover:bg-white/50"
@@ -75,13 +85,15 @@ export default function CartDrawer() {
                       <div className="flex items-center gap-2">
                         <button
                           onClick={() => cambiarCantidad(item.id, item.cantidad - 1)}
+                          aria-label={`Restar una unidad de ${item.producto.nombre}`}
                           className="h-6 w-6 rounded-full bg-white/70 text-sm leading-none text-plum hover:bg-white"
                         >
                           −
                         </button>
-                        <span className="w-4 text-center text-sm">{item.cantidad}</span>
+                        <span className="w-4 text-center text-sm" aria-live="polite">{item.cantidad}</span>
                         <button
                           onClick={() => cambiarCantidad(item.id, item.cantidad + 1)}
+                          aria-label={`Sumar una unidad de ${item.producto.nombre}`}
                           className="h-6 w-6 rounded-full bg-white/70 text-sm leading-none text-plum hover:bg-white"
                         >
                           +
@@ -92,7 +104,7 @@ export default function CartDrawer() {
                       </span>
                     </div>
                     {errorPorItem[item.id] && (
-                      <p className="mt-1 text-xs text-berry-dark">{errorPorItem[item.id]}</p>
+                      <p className="mt-1 text-xs text-berry-dark" role="alert">{errorPorItem[item.id]}</p>
                     )}
                   </div>
                   <button

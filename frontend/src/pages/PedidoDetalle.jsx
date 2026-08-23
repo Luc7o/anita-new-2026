@@ -27,6 +27,8 @@ export default function PedidoDetalle() {
   const [errorCancelar, setErrorCancelar] = useState("");
   const [pagando, setPagando] = useState(false);
   const [errorPago, setErrorPago] = useState("");
+  const [descargandoBoleta, setDescargandoBoleta] = useState(false);
+  const [errorBoleta, setErrorBoleta] = useState("");
 
   const cargar = () => api.pedido(id).then(setPedido);
 
@@ -67,6 +69,18 @@ export default function PedidoDetalle() {
       setErrorCancelar(err.message);
     } finally {
       setCancelando(false);
+    }
+  };
+
+  const descargarBoleta = async () => {
+    setDescargandoBoleta(true);
+    setErrorBoleta("");
+    try {
+      await api.boletaPedido(pedido.id, pedido.numero_pedido);
+    } catch (err) {
+      setErrorBoleta(err.message);
+    } finally {
+      setDescargandoBoleta(false);
     }
   };
 
@@ -187,6 +201,19 @@ export default function PedidoDetalle() {
             <span>S/ {pedido.total.toFixed(2)}</span>
           </div>
         </div>
+
+        {pedido.estado_pago === "verificado" && (
+          <div className="mt-4">
+            <button
+              onClick={descargarBoleta}
+              disabled={descargandoBoleta}
+              className="w-full rounded-full bg-white/70 py-3 text-center font-semibold text-berry-dark shadow-glass transition hover:bg-white disabled:opacity-60"
+            >
+              {descargandoBoleta ? "Generando boleta..." : "Descargar boleta"}
+            </button>
+            {errorBoleta && <p className="mt-2 text-center text-sm text-berry-dark">{errorBoleta}</p>}
+          </div>
+        )}
 
         {sePuedeCancelar && (
           <div className="mt-4">

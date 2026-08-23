@@ -11,9 +11,9 @@ export default {
           soft: "#5A4756",
         },
         berry: {
-          DEFAULT: "#8C2F5B",
-          dark: "#6C2145",
-          light: "#B85C86",
+          DEFAULT: "#A53694",
+          dark: "#76266A",
+          light: "#CA8AC0",
         },
         gold: {
           DEFAULT: "#C9A227",

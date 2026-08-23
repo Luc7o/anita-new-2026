@@ -45,63 +45,115 @@ export default function AdminPedidos() {
       {cargando ? (
         <p className="text-plum-soft">Cargando pedidos...</p>
       ) : (
-        <div className="glass overflow-hidden rounded-3xl shadow-glass">
-          <table className="w-full text-left text-sm">
-            <thead className="bg-white/50 text-xs uppercase tracking-wide text-plum-soft">
-              <tr>
-                <th className="px-4 py-3">N° Pedido</th>
-                <th className="px-4 py-3">Cliente</th>
-                <th className="px-4 py-3">Fecha</th>
-                <th className="px-4 py-3">Total</th>
-                <th className="px-4 py-3">Estado</th>
-                <th className="px-4 py-3">Pago</th>
-                <th className="px-4 py-3"></th>
-              </tr>
-            </thead>
-            <tbody>
-              {pedidos.map((p) => (
-                <tr key={p.id} className="border-t border-white/40">
-                  <td className="px-4 py-3 font-medium text-plum">{p.numero_pedido}</td>
-                  <td className="px-4 py-3 text-plum-soft">{p.cliente}</td>
-                  <td className="px-4 py-3 text-plum-soft">
-                    {new Date(p.fecha_creacion).toLocaleDateString("es-PE")}
-                  </td>
-                  <td className="px-4 py-3 text-plum-soft">S/ {p.total.toFixed(2)}</td>
-                  <td className="px-4 py-3">
-                    <span className="rounded-full bg-berry/10 px-2.5 py-1 text-xs font-semibold text-berry-dark">
-                      {p.estado_label}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3">
-                    {p.estado_pago !== "no_aplica" && (
-                      <span
-                        className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
-                          p.estado_pago === "en_revision" || p.estado_pago === "reembolso_pendiente"
-                            ? "bg-gold/30 text-plum"
-                            : p.estado_pago === "verificado"
-                            ? "bg-berry/10 text-berry-dark"
-                            : p.estado_pago === "rechazado"
-                            ? "bg-red-100 text-red-700"
-                            : "bg-plum/10 text-plum-soft"
-                        }`}
-                      >
-                        {p.estado_pago_label}
-                      </span>
-                    )}
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    <Link to={`/admin/pedidos/${p.id}`} className="text-berry hover:underline">
-                      Ver
-                    </Link>
-                  </td>
+        <>
+          {/* Tabla — solo desktop */}
+          <div className="glass hidden overflow-hidden rounded-3xl shadow-glass md:block">
+            <table className="w-full text-left text-sm">
+              <thead className="bg-white/50 text-xs uppercase tracking-wide text-plum-soft">
+                <tr>
+                  <th className="px-4 py-3">N° Pedido</th>
+                  <th className="px-4 py-3">Cliente</th>
+                  <th className="px-4 py-3">Fecha</th>
+                  <th className="px-4 py-3">Total</th>
+                  <th className="px-4 py-3">Estado</th>
+                  <th className="px-4 py-3">Pago</th>
+                  <th className="px-4 py-3"></th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-          {pedidos.length === 0 && (
-            <p className="p-6 text-center text-plum-soft">No hay pedidos con ese filtro.</p>
-          )}
-        </div>
+              </thead>
+              <tbody>
+                {pedidos.map((p) => (
+                  <tr key={p.id} className="border-t border-white/40">
+                    <td className="px-4 py-3 font-medium text-plum">{p.numero_pedido}</td>
+                    <td className="px-4 py-3 text-plum-soft">{p.cliente}</td>
+                    <td className="px-4 py-3 text-plum-soft">
+                      {new Date(p.fecha_creacion).toLocaleDateString("es-PE")}
+                    </td>
+                    <td className="px-4 py-3 text-plum-soft">S/ {p.total.toFixed(2)}</td>
+                    <td className="px-4 py-3">
+                      <span className="rounded-full bg-berry/10 px-2.5 py-1 text-xs font-semibold text-berry-dark">
+                        {p.estado_label}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      {p.estado_pago !== "no_aplica" && (
+                        <span
+                          className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
+                            p.estado_pago === "en_revision" || p.estado_pago === "reembolso_pendiente"
+                              ? "bg-gold/30 text-plum"
+                              : p.estado_pago === "verificado"
+                              ? "bg-berry/10 text-berry-dark"
+                              : p.estado_pago === "rechazado"
+                              ? "bg-red-100 text-red-700"
+                              : "bg-plum/10 text-plum-soft"
+                          }`}
+                        >
+                          {p.estado_pago_label}
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <Link to={`/admin/pedidos/${p.id}`} className="text-berry hover:underline">
+                        Ver
+                      </Link>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {pedidos.length === 0 && (
+              <p className="p-6 text-center text-plum-soft">No hay pedidos con ese filtro.</p>
+            )}
+          </div>
+
+          {/* Tarjetas — solo móvil/tablet */}
+          <div className="space-y-3 md:hidden">
+            {pedidos.map((p) => (
+              <Link
+                key={p.id}
+                to={`/admin/pedidos/${p.id}`}
+                className="glass block rounded-2xl p-4 shadow-glass"
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <p className="font-medium text-plum">{p.numero_pedido}</p>
+                    <p className="text-sm text-plum-soft">{p.cliente}</p>
+                  </div>
+                  <span className="shrink-0 text-sm font-semibold text-berry-dark">
+                    S/ {p.total.toFixed(2)}
+                  </span>
+                </div>
+                <div className="mt-2 flex flex-wrap items-center gap-2">
+                  <span className="text-xs text-plum-soft">
+                    {new Date(p.fecha_creacion).toLocaleDateString("es-PE")}
+                  </span>
+                  <span className="rounded-full bg-berry/10 px-2.5 py-1 text-xs font-semibold text-berry-dark">
+                    {p.estado_label}
+                  </span>
+                  {p.estado_pago !== "no_aplica" && (
+                    <span
+                      className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
+                        p.estado_pago === "en_revision" || p.estado_pago === "reembolso_pendiente"
+                          ? "bg-gold/30 text-plum"
+                          : p.estado_pago === "verificado"
+                          ? "bg-berry/10 text-berry-dark"
+                          : p.estado_pago === "rechazado"
+                          ? "bg-red-100 text-red-700"
+                          : "bg-plum/10 text-plum-soft"
+                      }`}
+                    >
+                      {p.estado_pago_label}
+                    </span>
+                  )}
+                </div>
+              </Link>
+            ))}
+            {pedidos.length === 0 && (
+              <p className="glass rounded-2xl p-6 text-center text-plum-soft shadow-glass">
+                No hay pedidos con ese filtro.
+              </p>
+            )}
+          </div>
+        </>
       )}
     </div>
   );

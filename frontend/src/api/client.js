@@ -120,6 +120,39 @@ async function subirArchivo(path, formData, mensajeError) {
   return data;
 }
 
+// Para descargar PDFs (boletas, reportes) — a diferencia de request(), la
+// respuesta NO es JSON, así que arma su propio manejo de errores y dispara
+// la descarga del blob directamente en el navegador.
+async function descargarPdf(path, nombreArchivo) {
+  const construirInit = (token) => ({
+    method: "GET",
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  });
+
+  const res = await fetchAutenticado(`${BASE_URL}${path}`, construirInit);
+
+  if (!res.ok) {
+    let mensaje = "No se pudo generar el PDF";
+    try {
+      const data = await res.json();
+      mensaje = data?.error || mensaje;
+    } catch {
+      // La respuesta de error no vino en JSON — nos quedamos con el mensaje genérico.
+    }
+    throw new Error(mensaje);
+  }
+
+  const blob = await res.blob();
+  const url = window.URL.createObjectURL(blob);
+  const enlace = document.createElement("a");
+  enlace.href = url;
+  enlace.download = nombreArchivo;
+  document.body.appendChild(enlace);
+  enlace.click();
+  enlace.remove();
+  window.URL.revokeObjectURL(url);
+}
+
 export const api = {
   // Auth
   registro: (payload) => request("/auth/registro", { method: "POST", body: payload }),
@@ -148,6 +181,17 @@ export const api = {
   eliminarResena: (productoId) =>
     request(`/productos/${productoId}/resenas`, { method: "DELETE", auth: true }),
 
+  // Favoritos
+  favoritos: () => request("/favoritos", { auth: true }),
+  favoritosIds: () => request("/favoritos/ids", { auth: true }),
+  agregarFavorito: (productoId) =>
+    request(`/favoritos/${productoId}`, { method: "POST", auth: true }),
+  quitarFavorito: (productoId) =>
+    request(`/favoritos/${productoId}`, { method: "DELETE", auth: true }),
+
+  // Promociones (carrusel del inicio)
+  promocionesActivas: () => request("/promociones/activas"),
+
   // Carrito
   verCarrito: () => request("/carrito", { auth: true }),
   agregarAlCarrito: (payload) =>
@@ -164,6 +208,8 @@ export const api = {
   pagarPedido: (pedidoId, payload) =>
     request(`/pedidos/${pedidoId}/pagar`, { method: "POST", body: payload, auth: true }),
   cancelarPedido: (id) => request(`/pedidos/${id}/cancelar`, { method: "POST", auth: true }),
+  boletaPedido: (id, numeroPedido) =>
+    descargarPdf(`/pedidos/${id}/boleta`, `boleta-${numeroPedido}.pdf`),
 
   // Admin — productos
   adminProductos: (params = {}) => {
@@ -200,6 +246,17 @@ export const api = {
   adminRevisarPago: (id, estado_pago) =>
     request(`/admin/pedidos/${id}/pago`, { method: "PUT", body: { estado_pago }, auth: true }),
   adminEstadisticas: () => request("/admin/pedidos/resumen/estadisticas", { auth: true }),
+  adminBoletaPedido: (id, numeroPedido) =>
+    descargarPdf(`/admin/pedidos/${id}/boleta`, `boleta-${numeroPedido}.pdf`),
+  adminVentaPresencial: (payload) =>
+    request("/admin/pedidos/venta-presencial", { method: "POST", body: payload, auth: true }),
+
+  // Admin — reportes
+  adminReporteVentas: (desde, hasta) => {
+    const query = new URLSearchParams({ ...(desde && { desde }), ...(hasta && { hasta }) }).toString();
+    const nombre = `reporte-ventas${desde ? `-${desde}` : ""}${hasta ? `-a-${hasta}` : ""}.pdf`;
+    return descargarPdf(`/admin/reportes/ventas${query ? `?${query}` : ""}`, nombre);
+  },
 
   // Admin — configuración
   adminProbarCorreo: (email) =>
@@ -246,6 +303,20 @@ export const api = {
     const formData = new FormData();
     formData.append("imagen", archivo);
     return subirArchivo("/admin/uploads/producto-imagen", formData, "No se pudo subir la imagen");
+  },
+
+  // Admin — promociones de temporada
+  adminPromociones: () => request("/admin/promociones", { auth: true }),
+  adminCrearPromocion: (payload) =>
+    request("/admin/promociones", { method: "POST", body: payload, auth: true }),
+  adminActualizarPromocion: (id, payload) =>
+    request(`/admin/promociones/${id}`, { method: "PUT", body: payload, auth: true }),
+  adminEliminarPromocion: (id) =>
+    request(`/admin/promociones/${id}`, { method: "DELETE", auth: true }),
+  adminSubirImagenPromocion: (archivo) => {
+    const formData = new FormData();
+    formData.append("imagen", archivo);
+    return subirArchivo("/admin/uploads/promocion-imagen", formData, "No se pudo subir la imagen");
   },
 };
 

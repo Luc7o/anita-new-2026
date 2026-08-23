@@ -42,14 +42,14 @@ export default function UserMenu({ usuario, onLogout }) {
             onClick={cerrarYNavegar}
             className="flex items-center gap-2 px-4 py-2.5 text-sm text-plum hover:bg-white/60"
           >
-            <IconUser size={16} /> Mi perfil
+            <IconUser size={16} /> Perfil
           </Link>
           <Link
-            to="/pedidos"
+            to="/perfil/pedidos"
             onClick={cerrarYNavegar}
             className="flex items-center gap-2 px-4 py-2.5 text-sm text-plum hover:bg-white/60"
           >
-            <IconPackage size={16} /> Mis pedidos
+            <IconPackage size={16} /> Pedidos
           </Link>
           {usuario.es_admin && (
             <Link

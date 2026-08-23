@@ -112,9 +112,11 @@ export default function Checkout() {
       <form onSubmit={handleSubmit} className="glass space-y-4 rounded-3xl p-6 shadow-glass sm:p-8">
         <h1 className="font-display text-2xl font-semibold text-plum">Datos de entrega</h1>
 
-        <div className="grid grid-cols-2 gap-3">
+        <div role="radiogroup" aria-label="Tipo de entrega" className="grid grid-cols-2 gap-3">
           <button
             type="button"
+            role="radio"
+            aria-checked={form.tipo_entrega === "delivery"}
             onClick={() => setForm({ ...form, tipo_entrega: "delivery" })}
             className={`rounded-2xl px-4 py-3 text-sm font-medium shadow-glass ${
               form.tipo_entrega === "delivery" ? "bg-berry text-white" : "bg-white/60 text-plum"
@@ -124,6 +126,8 @@ export default function Checkout() {
           </button>
           <button
             type="button"
+            role="radio"
+            aria-checked={form.tipo_entrega === "recojo"}
             onClick={() => setForm({ ...form, tipo_entrega: "recojo" })}
             className={`rounded-2xl px-4 py-3 text-sm font-medium shadow-glass ${
               form.tipo_entrega === "recojo" ? "bg-berry text-white" : "bg-white/60 text-plum"
@@ -133,73 +137,103 @@ export default function Checkout() {
           </button>
         </div>
 
-        <input
-          placeholder="Nombre completo"
-          required
-          maxLength={160}
-          value={form.envio_nombre}
-          onChange={actualizarTexto("envio_nombre")}
-          className="w-full rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-none"
-        />
-        <input
-          placeholder="Teléfono"
-          required
-          inputMode="numeric"
-          maxLength={9}
-          value={form.envio_telefono}
-          onChange={actualizarTelefonoEnvio}
-          className="w-full rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-none"
-        />
+        <div>
+          <label htmlFor="chk-nombre" className="sr-only">Nombre completo</label>
+          <input
+            id="chk-nombre"
+            placeholder="Nombre completo"
+            required
+            maxLength={160}
+            value={form.envio_nombre}
+            onChange={actualizarTexto("envio_nombre")}
+            className="w-full rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-none"
+          />
+        </div>
+        <div>
+          <label htmlFor="chk-telefono" className="sr-only">Teléfono</label>
+          <input
+            id="chk-telefono"
+            placeholder="Teléfono"
+            required
+            inputMode="numeric"
+            maxLength={9}
+            value={form.envio_telefono}
+            onChange={actualizarTelefonoEnvio}
+            className="w-full rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-none"
+          />
+        </div>
 
         {form.tipo_entrega === "delivery" && (
           <>
-            <input
-              placeholder="Dirección"
-              required
-              maxLength={200}
-              value={form.envio_direccion}
-              onChange={actualizar("envio_direccion")}
-              className="w-full rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-none"
-            />
-            <div className="grid grid-cols-3 gap-3">
+            <div>
+              <label htmlFor="chk-direccion" className="sr-only">Dirección</label>
               <input
-                placeholder="Distrito"
-                maxLength={100}
-                value={form.envio_distrito}
-                onChange={actualizarTexto("envio_distrito")}
-                className="rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-none"
-              />
-              <input
-                placeholder="Provincia"
-                maxLength={100}
-                value={form.envio_provincia}
-                onChange={actualizarTexto("envio_provincia")}
-                className="rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-none"
-              />
-              <input
-                placeholder="Depto."
-                maxLength={100}
-                value={form.envio_dpto}
-                onChange={actualizarTexto("envio_dpto")}
-                className="rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-none"
+                id="chk-direccion"
+                placeholder="Dirección"
+                required
+                maxLength={200}
+                value={form.envio_direccion}
+                onChange={actualizar("envio_direccion")}
+                className="w-full rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-none"
               />
             </div>
-            <input
-              placeholder="Referencia (opcional)"
-              maxLength={200}
-              value={form.envio_referencia}
-              onChange={actualizar("envio_referencia")}
-              className="w-full rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-none"
-            />
+            <div className="grid grid-cols-3 gap-3">
+              <div>
+                <label htmlFor="chk-distrito" className="sr-only">Distrito</label>
+                <input
+                  id="chk-distrito"
+                  placeholder="Distrito"
+                  maxLength={100}
+                  value={form.envio_distrito}
+                  onChange={actualizarTexto("envio_distrito")}
+                  className="w-full rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-none"
+                />
+              </div>
+              <div>
+                <label htmlFor="chk-provincia" className="sr-only">Provincia</label>
+                <input
+                  id="chk-provincia"
+                  placeholder="Provincia"
+                  maxLength={100}
+                  value={form.envio_provincia}
+                  onChange={actualizarTexto("envio_provincia")}
+                  className="w-full rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-none"
+                />
+              </div>
+              <div>
+                <label htmlFor="chk-dpto" className="sr-only">Departamento</label>
+                <input
+                  id="chk-dpto"
+                  placeholder="Depto."
+                  maxLength={100}
+                  value={form.envio_dpto}
+                  onChange={actualizarTexto("envio_dpto")}
+                  className="w-full rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-none"
+                />
+              </div>
+            </div>
+            <div>
+              <label htmlFor="chk-referencia" className="sr-only">Referencia (opcional)</label>
+              <input
+                id="chk-referencia"
+                placeholder="Referencia (opcional)"
+                maxLength={200}
+                value={form.envio_referencia}
+                onChange={actualizar("envio_referencia")}
+                className="w-full rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-none"
+              />
+            </div>
           </>
         )}
 
         <div>
-          <span className="mb-2 block text-sm font-medium text-plum">Método de pago</span>
-          <div className="flex gap-2">
+          <span id="metodo-pago-label" className="mb-2 block text-sm font-medium text-plum">Método de pago</span>
+          <div role="radiogroup" aria-labelledby="metodo-pago-label" className="flex gap-2">
             {METODOS.map((m) => (
               <button
                 type="button"
+                role="radio"
+                aria-checked={form.metodo_pago === m.id}
                 key={m.id}
                 onClick={() => setForm({ ...form, metodo_pago: m.id })}
                 className={`rounded-full px-4 py-2 text-sm font-medium shadow-glass ${
@@ -211,7 +245,7 @@ export default function Checkout() {
             ))}
           </div>
 
-          <div className="glass mt-3 rounded-2xl p-4 text-sm text-plum-soft">
+          <div className="glass mt-3 rounded-2xl p-4 text-sm text-plum-soft" aria-live="polite">
             {form.metodo_pago === "yape" ? (
               <p>
                 Al confirmar tu pedido se abrirá una ventana para que ingreses tu número de Yape
@@ -227,16 +261,20 @@ export default function Checkout() {
           </div>
         </div>
 
-        <textarea
-          placeholder="Nota para tu pedido (opcional)"
-          maxLength={500}
-          value={form.nota}
-          onChange={actualizar("nota")}
-          rows={2}
-          className="w-full rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-none"
-        />
+        <div>
+          <label htmlFor="chk-nota" className="sr-only">Nota para tu pedido (opcional)</label>
+          <textarea
+            id="chk-nota"
+            placeholder="Nota para tu pedido (opcional)"
+            maxLength={500}
+            value={form.nota}
+            onChange={actualizar("nota")}
+            rows={2}
+            className="w-full rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-none"
+          />
+        </div>
 
-        {error && <p className="text-sm text-berry-dark">{error}</p>}
+        {error && <p className="text-sm text-berry-dark" role="alert">{error}</p>}
 
         <button
           type="submit"

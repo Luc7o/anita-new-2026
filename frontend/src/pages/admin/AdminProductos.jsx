@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { api } from "../../api/client.js";
-import { IconUpload, IconClose } from "../../components/Icons.jsx";
+import { IconUpload, IconClose, IconEdit, IconTrash, IconChevronLeft, IconChevronRight } from "../../components/Icons.jsx";
 import { soloCodigo } from "../../validacion.js";
+import { useFocusTrap } from "../../hooks/useFocusTrap.js";
 
 const MINIMO_IMAGENES = 4;
 
@@ -43,14 +44,31 @@ export default function AdminProductos() {
   const [guardando, setGuardando] = useState(false);
   const [subiendoImagen, setSubiendoImagen] = useState(false);
   const [busqueda, setBusqueda] = useState("");
+  const [filtroCategoria, setFiltroCategoria] = useState("");
+  const [filtroEstado, setFiltroEstado] = useState("");
+  const [orden, setOrden] = useState("");
+  const [pagina, setPagina] = useState(1);
+  const [meta, setMeta] = useState({ total: 0, paginas: 1 });
 
-  const cargarProductos = (q = "") =>
-    api.adminProductos(q ? { q } : {}).then((data) => setProductos(data.productos));
+  const refDialogo = useFocusTrap(mostrarForm, () => setMostrarForm(false));
+
+  const cargarProductos = () => {
+    const params = { pagina };
+    if (busqueda) params.q = busqueda;
+    if (filtroCategoria) params.categoria = filtroCategoria;
+    if (filtroEstado) params.activo = filtroEstado;
+    if (orden) params.orden = orden;
+    return api.adminProductos(params).then((data) => {
+      setProductos(data.productos);
+      setMeta({ total: data.total, paginas: data.paginas });
+    });
+  };
 
   useEffect(() => {
     cargarProductos();
     api.adminCategorias().then(setCategorias);
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [busqueda, filtroCategoria, filtroEstado, orden, pagina]);
 
   const actualizarCampo = (campo) => (e) => {
     const valor = e.target.type === "checkbox" ? e.target.checked : e.target.value;
@@ -168,7 +186,7 @@ export default function AdminProductos() {
         await api.adminCrearProducto(payload);
       }
       setMostrarForm(false);
-      cargarProductos(busqueda);
+      cargarProductos();
     } catch (err) {
       setError(err.message);
     } finally {
@@ -179,7 +197,7 @@ export default function AdminProductos() {
   const eliminar = async (p) => {
     if (!confirm(`¿Desactivar "${p.nombre}"? Ya no se mostrará en la tienda.`)) return;
     await api.adminEliminarProducto(p.id);
-    cargarProductos(busqueda);
+    cargarProductos();
   };
 
   return (
@@ -200,12 +218,56 @@ export default function AdminProductos() {
         maxLength={80}
         onChange={(e) => {
           setBusqueda(e.target.value);
-          cargarProductos(e.target.value);
+          setPagina(1);
         }}
         className="glass mb-4 w-full max-w-sm rounded-full px-4 py-2 text-sm text-plum shadow-glass focus:outline-none"
       />
 
-      <div className="glass overflow-hidden rounded-3xl shadow-glass">
+      {/* Barra de filtros */}
+      <div className="mb-4 flex flex-wrap gap-2">
+        <select
+          value={filtroCategoria}
+          onChange={(e) => {
+            setFiltroCategoria(e.target.value);
+            setPagina(1);
+          }}
+          className="glass rounded-full px-4 py-2 text-sm text-plum shadow-glass focus:outline-none"
+        >
+          <option value="">Categoría: Todas</option>
+          {categorias.map((c) => (
+            <option key={c.id} value={c.slug}>
+              {c.nombre}
+            </option>
+          ))}
+        </select>
+        <select
+          value={filtroEstado}
+          onChange={(e) => {
+            setFiltroEstado(e.target.value);
+            setPagina(1);
+          }}
+          className="glass rounded-full px-4 py-2 text-sm text-plum shadow-glass focus:outline-none"
+        >
+          <option value="">Estado: Todos</option>
+          <option value="true">Activo</option>
+          <option value="false">Inactivo</option>
+        </select>
+        <select
+          value={orden}
+          onChange={(e) => {
+            setOrden(e.target.value);
+            setPagina(1);
+          }}
+          className="glass rounded-full px-4 py-2 text-sm text-plum shadow-glass focus:outline-none"
+        >
+          <option value="">Ordenar: Más recientes</option>
+          <option value="nombre">Nombre (A-Z)</option>
+          <option value="precio_asc">Precio: menor a mayor</option>
+          <option value="precio_desc">Precio: mayor a menor</option>
+        </select>
+      </div>
+
+      <div className="glass hidden overflow-hidden rounded-3xl shadow-glass md:block">
         <table className="w-full text-left text-sm">
           <thead className="bg-white/50 text-xs uppercase tracking-wide text-plum-soft">
             <tr>
@@ -238,26 +300,136 @@ export default function AdminProductos() {
                 <td className="px-4 py-3">
                   <span
                     className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
-                      p.activo ? "bg-berry/10 text-berry-dark" : "bg-plum/10 text-plum-soft"
+                      p.activo ? "bg-green-100 text-green-700" : "bg-plum/10 text-plum-soft"
                     }`}
                   >
                     {p.activo ? "Activo" : "Inactivo"}
                   </span>
                 </td>
-                <td className="px-4 py-3 text-right">
-                  <button onClick={() => editar(p)} className="mr-2 text-berry hover:underline">
-                    Editar
-                  </button>
-                  <button onClick={() => eliminar(p)} className="text-plum-soft hover:text-berry">
-                    Desactivar
-                  </button>
+                <td className="px-4 py-3">
+                  <div className="flex items-center justify-end gap-3">
+                    <button onClick={() => editar(p)} aria-label={`Editar ${p.nombre}`} className="text-plum-soft hover:text-berry">
+                      <IconEdit size={16} />
+                    </button>
+                    <button onClick={() => eliminar(p)} aria-label={`Desactivar ${p.nombre}`} className="text-plum-soft hover:text-berry">
+                      <IconTrash size={16} />
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
+
+        {productos.length > 0 && (
+          <div className="flex items-center justify-between border-t border-white/40 px-4 py-3">
+            <p className="text-xs text-plum-soft">
+              Mostrando {productos.length} de {meta.total} productos
+            </p>
+            {meta.paginas > 1 && (
+              <div className="flex items-center gap-1.5">
+                <button
+                  onClick={() => setPagina((p) => Math.max(1, p - 1))}
+                  disabled={pagina <= 1}
+                  aria-label="Página anterior"
+                  className="flex h-8 w-8 items-center justify-center rounded-lg border border-plum/15 text-plum transition hover:border-berry/40 disabled:opacity-30"
+                >
+                  <IconChevronLeft size={14} />
+                </button>
+                {Array.from({ length: meta.paginas }, (_, i) => i + 1).map((n) => (
+                  <button
+                    key={n}
+                    onClick={() => setPagina(n)}
+                    aria-current={n === pagina ? "page" : undefined}
+                    className={`flex h-8 min-w-8 items-center justify-center rounded-lg px-2 text-xs font-semibold transition ${
+                      n === pagina
+                        ? "bg-berry/10 text-berry-dark"
+                        : "border border-plum/15 text-plum-soft hover:border-berry/40"
+                    }`}
+                  >
+                    {n}
+                  </button>
+                ))}
+                <button
+                  onClick={() => setPagina((p) => Math.min(meta.paginas, p + 1))}
+                  disabled={pagina >= meta.paginas}
+                  aria-label="Página siguiente"
+                  className="flex h-8 w-8 items-center justify-center rounded-lg border border-plum/15 text-plum transition hover:border-berry/40 disabled:opacity-30"
+                >
+                  <IconChevronRight size={14} />
+                </button>
+              </div>
+            )}
+          </div>
+        )}
         {productos.length === 0 && (
           <p className="p-6 text-center text-plum-soft">No hay productos todavía.</p>
+        )}
+      </div>
+
+      {/* Tarjetas — solo móvil/tablet */}
+      <div className="space-y-3 md:hidden">
+        {productos.map((p) => (
+          <div key={p.id} className="glass flex gap-3 rounded-2xl p-4 shadow-glass">
+            {p.imagen_url ? (
+              <img src={p.imagen_url} alt={p.nombre} className="h-14 w-14 shrink-0 rounded-xl object-cover" />
+            ) : (
+              <div className="h-14 w-14 shrink-0 rounded-xl bg-gradient-to-br from-lilac to-white" />
+            )}
+            <div className="min-w-0 flex-1">
+              <div className="flex items-start justify-between gap-2">
+                <p className="truncate font-medium text-plum">{p.nombre}</p>
+                <span
+                  className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold ${
+                    p.activo ? "bg-green-100 text-green-700" : "bg-plum/10 text-plum-soft"
+                  }`}
+                >
+                  {p.activo ? "Activo" : "Inactivo"}
+                </span>
+              </div>
+              <p className="text-xs text-plum-soft">{p.categoria_nombre}</p>
+              <div className="mt-1 flex items-center justify-between">
+                <span className="text-sm font-semibold text-berry-dark">S/ {p.precio_final.toFixed(2)}</span>
+                <span className="text-xs text-plum-soft">
+                  Stock: {p.stock}{p.usa_variantes && " (variante)"}
+                </span>
+              </div>
+              <div className="mt-2 flex gap-3 text-sm">
+                <button onClick={() => editar(p)} className="text-berry hover:underline">
+                  Editar
+                </button>
+                <button onClick={() => eliminar(p)} className="text-plum-soft hover:text-berry">
+                  Desactivar
+                </button>
+              </div>
+            </div>
+          </div>
+        ))}
+        {productos.length === 0 && (
+          <p className="glass rounded-2xl p-6 text-center text-plum-soft shadow-glass">
+            No hay productos todavía.
+          </p>
+        )}
+        {productos.length > 0 && meta.paginas > 1 && (
+          <div className="flex items-center justify-center gap-1.5 pt-2">
+            <button
+              onClick={() => setPagina((p) => Math.max(1, p - 1))}
+              disabled={pagina <= 1}
+              aria-label="Página anterior"
+              className="flex h-8 w-8 items-center justify-center rounded-lg border border-plum/15 text-plum disabled:opacity-30"
+            >
+              <IconChevronLeft size={14} />
+            </button>
+            <span className="text-xs text-plum-soft">Página {pagina} de {meta.paginas}</span>
+            <button
+              onClick={() => setPagina((p) => Math.min(meta.paginas, p + 1))}
+              disabled={pagina >= meta.paginas}
+              aria-label="Página siguiente"
+              className="flex h-8 w-8 items-center justify-center rounded-lg border border-plum/15 text-plum disabled:opacity-30"
+            >
+              <IconChevronRight size={14} />
+            </button>
+          </div>
         )}
       </div>
 
@@ -269,101 +441,150 @@ export default function AdminProductos() {
             aria-label="Cerrar"
           />
           <form
+            ref={refDialogo}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="producto-form-titulo"
+            tabIndex={-1}
             onSubmit={guardar}
             className="glass-strong relative max-h-[85vh] w-full max-w-lg overflow-y-auto rounded-3xl p-6 shadow-glass-lg sm:p-8"
           >
-            <h2 className="mb-4 font-display text-xl font-semibold text-plum">
+            <h2 id="producto-form-titulo" className="mb-4 font-display text-xl font-semibold text-plum">
               {editandoId ? "Editar producto" : "Nuevo producto"}
             </h2>
 
             <div className="space-y-3">
-              <input
-                placeholder="Nombre"
-                required
-                maxLength={150}
-                value={form.nombre}
-                onChange={actualizarCampo("nombre")}
-                className="w-full rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-none"
-              />
-              <textarea
-                placeholder="Descripción"
-                rows={2}
-                maxLength={1000}
-                value={form.descripcion}
-                onChange={actualizarCampo("descripcion")}
-                className="w-full rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-none"
-              />
+              <div>
+                <label htmlFor="prod-nombre" className="mb-1 block text-xs font-medium text-plum-soft">
+                  Nombre
+                </label>
+                <input
+                  id="prod-nombre"
+                  required
+                  maxLength={150}
+                  value={form.nombre}
+                  onChange={actualizarCampo("nombre")}
+                  className="w-full rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-none"
+                />
+              </div>
+              <div>
+                <label htmlFor="prod-descripcion" className="mb-1 block text-xs font-medium text-plum-soft">
+                  Descripción
+                </label>
+                <textarea
+                  id="prod-descripcion"
+                  rows={2}
+                  maxLength={1000}
+                  value={form.descripcion}
+                  onChange={actualizarCampo("descripcion")}
+                  className="w-full rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-none"
+                />
+              </div>
 
               <div className="grid grid-cols-2 gap-3">
-                <input
-                  type="number"
-                  step="0.01"
-                  placeholder="Precio"
-                  required
-                  value={form.precio}
-                  onChange={actualizarCampo("precio")}
-                  className="rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-none"
-                />
-                <input
-                  type="number"
-                  step="0.01"
-                  placeholder="Precio oferta (opcional)"
-                  value={form.precio_oferta}
-                  onChange={actualizarCampo("precio_oferta")}
-                  className="rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-none"
-                />
+                <div>
+                  <label htmlFor="prod-precio" className="mb-1 block text-xs font-medium text-plum-soft">
+                    Precio
+                  </label>
+                  <input
+                    id="prod-precio"
+                    type="number"
+                    step="0.01"
+                    required
+                    value={form.precio}
+                    onChange={actualizarCampo("precio")}
+                    className="w-full rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="prod-precio-oferta" className="mb-1 block text-xs font-medium text-plum-soft">
+                    Precio oferta (opcional)
+                  </label>
+                  <input
+                    id="prod-precio-oferta"
+                    type="number"
+                    step="0.01"
+                    value={form.precio_oferta}
+                    onChange={actualizarCampo("precio_oferta")}
+                    className="w-full rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-none"
+                  />
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 {!usaVariantes && (
-                  <input
-                    type="number"
-                    placeholder="Stock"
-                    required
-                    value={form.stock}
-                    onChange={actualizarCampo("stock")}
-                    className="rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-none"
-                  />
+                  <div>
+                    <label htmlFor="prod-stock" className="mb-1 block text-xs font-medium text-plum-soft">
+                      Stock
+                    </label>
+                    <input
+                      id="prod-stock"
+                      type="number"
+                      required
+                      value={form.stock}
+                      onChange={actualizarCampo("stock")}
+                      className="w-full rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-none"
+                    />
+                  </div>
                 )}
-                <input
-                  placeholder="SKU (opcional)"
-                  maxLength={60}
-                  value={form.sku}
-                  onChange={actualizarSku}
-                  className={`rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-none ${
-                    usaVariantes ? "col-span-2" : ""
-                  }`}
-                />
+                <div className={usaVariantes ? "col-span-2" : ""}>
+                  <label htmlFor="prod-sku" className="mb-1 block text-xs font-medium text-plum-soft">
+                    SKU (opcional)
+                  </label>
+                  <input
+                    id="prod-sku"
+                    maxLength={60}
+                    value={form.sku}
+                    onChange={actualizarSku}
+                    className="w-full rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-none"
+                  />
+                </div>
               </div>
 
-              <select
-                required
-                value={form.categoria_id}
-                onChange={actualizarCampo("categoria_id")}
-                className="w-full rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-none"
-              >
-                <option value="">Selecciona categoría</option>
-                {categorias.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.nombre}
-                  </option>
-                ))}
-              </select>
+              <div>
+                <label htmlFor="prod-categoria" className="mb-1 block text-xs font-medium text-plum-soft">
+                  Categoría
+                </label>
+                <select
+                  id="prod-categoria"
+                  required
+                  value={form.categoria_id}
+                  onChange={actualizarCampo("categoria_id")}
+                  className="w-full rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-none"
+                >
+                  <option value="">Selecciona categoría</option>
+                  {categorias.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.nombre}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-              <input
-                placeholder="Colores separados por coma (ej: Negro, Beige)"
-                maxLength={300}
-                value={form.colores}
-                onChange={actualizarCampo("colores")}
-                className="w-full rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-none"
-              />
-              <input
-                placeholder="Tallas separadas por coma (ej: S, M, L)"
-                maxLength={200}
-                value={form.tallas}
-                onChange={actualizarCampo("tallas")}
-                className="w-full rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-none"
-              />
+              <div>
+                <label htmlFor="prod-colores" className="mb-1 block text-xs font-medium text-plum-soft">
+                  Colores separados por coma (ej: Negro, Beige)
+                </label>
+                <input
+                  id="prod-colores"
+                  maxLength={300}
+                  value={form.colores}
+                  onChange={actualizarCampo("colores")}
+                  className="w-full rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-none"
+                />
+              </div>
+              <div>
+                <label htmlFor="prod-tallas" className="mb-1 block text-xs font-medium text-plum-soft">
+                  Tallas separadas por coma (ej: S, M, L)
+                </label>
+                <input
+                  id="prod-tallas"
+                  maxLength={200}
+                  value={form.tallas}
+                  onChange={actualizarCampo("tallas")}
+                  className="w-full rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-none"
+                />
+              </div>
 
               {usaVariantes && (
                 <div className="rounded-2xl bg-white/50 p-3">
@@ -417,6 +638,7 @@ export default function AdminProductos() {
                       <select
                         value={img.color}
                         onChange={(e) => asignarColorImagen(i, e.target.value)}
+                        aria-label={`Color asociado a la imagen ${i + 1}`}
                         className="w-full rounded-lg bg-white/80 px-1.5 py-1 text-xs text-plum focus:outline-none"
                       >
                         <option value="">Sin color específico</option>
@@ -465,7 +687,7 @@ export default function AdminProductos() {
               </div>
             </div>
 
-            {error && <p className="mt-3 text-sm text-berry-dark">{error}</p>}
+            {error && <p className="mt-3 text-sm text-berry-dark" role="alert">{error}</p>}
 
             <div className="mt-5 flex gap-2">
               <button
