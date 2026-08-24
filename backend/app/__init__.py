@@ -11,7 +11,18 @@ def create_app(config_class=Config):
     migrate.init_app(app, db)
     jwt.init_app(app)
     limiter.init_app(app)
-    cors.init_app(app, resources={r"/api/*": {"origins": app.config["FRONTEND_ORIGIN"]}})
+    cors.init_app(
+        app,
+        resources={r"/api/*": {"origins": app.config["FRONTEND_ORIGIN"], "supports_credentials": True}},
+    )
+
+    if not app.config.get("REDIS_URL"):
+        app.logger.warning(
+            "REDIS_URL no está configurado: el rate limiter está corriendo en "
+            "memoria. En Vercel esto NO protege de verdad contra fuerza bruta "
+            "(cada instancia serverless cuenta por su cuenta). Configura "
+            "REDIS_URL en producción."
+        )
 
     # Respuestas de error de JWT con un "code" distinguible, para que el
     # frontend sepa cuándo conviene intentar refrescar el token (token

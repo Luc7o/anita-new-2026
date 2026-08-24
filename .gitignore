@@ -4,6 +4,7 @@ backend/.env
 backend/__pycache__/
 backend/**/__pycache__/
 backend/*.pyc
+backend/instance/
 backend/app/static/uploads/productos/*
 !backend/app/static/uploads/productos/.gitkeep
 backend/app/static/uploads/comprobantes/*
@@ -15,5 +16,10 @@ backend/app/static/uploads/pagos/*
 frontend/node_modules/
 frontend/dist/
 frontend/.env
+frontend/.env.local
+frontend/.env.*.local
+
+# Vercel (se crea al correr `vercel link` / `vercel dev`)
+.vercel/
 
 .DS_Store

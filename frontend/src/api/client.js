@@ -1,25 +1,37 @@
 const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 
+// El access token YA NO se guarda en localStorage: vive solo en esta
+// variable, en memoria. Se pierde al recargar la página a propósito — para
+// recuperar la sesión al recargar, AuthContext llama a /auth/refrescar-token
+// apenas monta la app, que funciona gracias a la cookie httpOnly de refresh
+// (el navegador la manda solo, JS nunca la toca). Así, un XSS que lea
+// localStorage/sessionStorage ya no puede robarse ninguno de los dos tokens.
+let accessToken = null;
+
 function getToken() {
-  return localStorage.getItem("ans_token");
+  return accessToken;
 }
-function getRefreshToken() {
-  return localStorage.getItem("ans_refresh_token");
+function setAccessToken(token) {
+  accessToken = token;
 }
-function setTokens(token, refreshToken) {
-  localStorage.setItem("ans_token", token);
-  if (refreshToken) localStorage.setItem("ans_refresh_token", refreshToken);
+function clearAccessToken() {
+  accessToken = null;
 }
-function clearTokens() {
-  localStorage.removeItem("ans_token");
-  localStorage.removeItem("ans_refresh_token");
+
+// Lee el valor de la cookie no-httpOnly que Flask-JWT-Extended deja junto a
+// la cookie de refresh, para el patrón CSRF de doble envío. La cookie del
+// refresh token en sí es httpOnly — esta otra existe justamente para que el
+// frontend pueda probar "conozco el token" sin poder leerlo directamente.
+function leerCookie(nombre) {
+  const match = document.cookie.match(new RegExp(`(?:^|; )${nombre}=([^;]*)`));
+  return match ? decodeURIComponent(match[1]) : null;
 }
 
 // Cuando el refresh token también expiró (o no existe), no hay forma de
 // recuperar la sesión sola: hay que avisarle a la app para que mande al
 // usuario a loguearse de nuevo. AuthContext escucha este evento.
 function notificarSesionExpirada() {
-  clearTokens();
+  clearAccessToken();
   window.dispatchEvent(new Event("ans:sesion-expirada"));
 }
 
@@ -31,17 +43,15 @@ async function refrescarAccessToken() {
   if (refrescoEnCurso) return refrescoEnCurso;
 
   refrescoEnCurso = (async () => {
-    const refreshToken = getRefreshToken();
-    if (!refreshToken) throw new Error("Sin refresh token");
-
     const res = await fetch(`${BASE_URL}/auth/refrescar-token`, {
       method: "POST",
-      headers: { Authorization: `Bearer ${refreshToken}` },
+      credentials: "include", // manda la cookie httpOnly de refresh
+      headers: { "X-CSRF-Token": leerCookie("csrf_refresh_token") || "" },
     });
     if (!res.ok) throw new Error("El refresh token también expiró");
 
     const data = await res.json();
-    setTokens(data.token, null);
+    setAccessToken(data.token);
     return data.token;
   })();
 
@@ -156,6 +166,7 @@ async function descargarPdf(path, nombreArchivo) {
 export const api = {
   // Auth
   registro: (payload) => request("/auth/registro", { method: "POST", body: payload }),
+  refrescarToken: () => refrescarAccessToken(),
   consultarDocumento: (tipo, numero) =>
     request(`/documentos/consultar?tipo=${encodeURIComponent(tipo)}&numero=${encodeURIComponent(numero)}`),
   login: (payload) => request("/auth/login", { method: "POST", body: payload }),
@@ -167,6 +178,8 @@ export const api = {
   olvidePassword: (email) => request("/auth/olvide-password", { method: "POST", body: { email } }),
   restablecerPassword: (payload) =>
     request("/auth/restablecer-password", { method: "POST", body: payload }),
+  logout: () =>
+    fetch(`${BASE_URL}/auth/logout`, { method: "POST", credentials: "include" }),
 
   // Catálogo
   categorias: () => request("/categorias"),
@@ -320,4 +333,4 @@ export const api = {
   },
 };
 
-export { getToken, setTokens, clearTokens };
+export { getToken, setAccessToken, clearAccessToken };

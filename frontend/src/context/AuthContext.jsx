@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
-import { api, setTokens, clearTokens } from "../api/client.js";
+import { api, setAccessToken, clearAccessToken } from "../api/client.js";
 
 const AuthContext = createContext(null);
 
@@ -12,15 +12,15 @@ export function AuthProvider({ children }) {
   const [sesionExpirada, setSesionExpirada] = useState(false);
 
   useEffect(() => {
-    const token = localStorage.getItem("ans_token");
-    if (!token) {
-      setCargando(false);
-      return;
-    }
+    // El access token vive en memoria y se pierde al recargar la página, así
+    // que al montar la app intentamos recuperarlo pidiendo uno nuevo con la
+    // cookie httpOnly de refresh (si no existe o expiró, esto simplemente
+    // falla y el usuario queda como no logueado, sin error visible).
     api
-      .perfil()
+      .refrescarToken()
+      .then(() => api.perfil())
       .then(setUsuario)
-      .catch(() => clearTokens())
+      .catch(() => clearAccessToken())
       .finally(() => setCargando(false));
   }, []);
 
@@ -35,7 +35,7 @@ export function AuthProvider({ children }) {
 
   const login = async (email, password) => {
     const data = await api.login({ email, password });
-    setTokens(data.token, data.refresh_token);
+    setAccessToken(data.token);
     setUsuario(data.usuario);
     setSesionExpirada(false);
     return data.usuario;
@@ -43,14 +43,15 @@ export function AuthProvider({ children }) {
 
   const registro = async (payload) => {
     const data = await api.registro(payload);
-    setTokens(data.token, data.refresh_token);
+    setAccessToken(data.token);
     setUsuario(data.usuario);
     setSesionExpirada(false);
     return data.usuario;
   };
 
   const logout = () => {
-    clearTokens();
+    api.logout().catch(() => {}); // limpia la cookie en el servidor; si falla, igual limpiamos local
+    clearAccessToken();
     setUsuario(null);
   };
 

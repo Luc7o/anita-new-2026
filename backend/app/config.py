@@ -32,9 +32,41 @@ class Config:
     # token dura mucho más y solo se usa para pedir accesos nuevos.
     JWT_ACCESS_TOKEN_EXPIRES = timedelta(hours=1)
     JWT_REFRESH_TOKEN_EXPIRES = timedelta(days=30)
-    JWT_TOKEN_LOCATION = ["headers"]
+
+    # El access token sigue viajando por header Authorization (el frontend lo
+    # guarda solo en memoria, nunca en localStorage). El refresh token en
+    # cambio va en una cookie httpOnly: así, aunque haya un XSS en el
+    # frontend, JavaScript no puede leerlo ni robarlo — es el navegador quien
+    # lo adjunta solo, y solo al único endpoint que lo necesita.
+    JWT_TOKEN_LOCATION = ["headers", "cookies"]
+    JWT_REFRESH_COOKIE_NAME = "ans_refresh_token"
+    JWT_REFRESH_COOKIE_PATH = "/api/auth/refrescar-token"
+    # No usamos cookie para el access token: solo seteamos la de refresh.
+    JWT_COOKIE_CSRF_PROTECT = True
+    JWT_REFRESH_CSRF_HEADER_NAME = "X-CSRF-Token"
+
+    # Cross-site en producción (frontend y backend son dos apps distintas en
+    # Vercel, con dominios distintos) -> SameSite=None + Secure es
+    # obligatorio para que el navegador mande la cookie. En local (mismo
+    # "site" localhost, solo cambia el puerto) SameSite=Lax basta y no
+    # requiere HTTPS.
+    _es_produccion = os.getenv("VERCEL_ENV") == "production" or os.getenv("FLASK_ENV") == "production"
+    JWT_COOKIE_SECURE = _es_produccion
+    JWT_COOKIE_SAMESITE = "None" if _es_produccion else "Lax"
 
     FRONTEND_ORIGIN = os.getenv("FRONTEND_ORIGIN", "http://localhost:5173")
+
+    # Backend de almacenamiento para Flask-Limiter (cuenta los intentos de
+    # login, registro, recuperación de contraseña, etc.). En Vercel el
+    # backend corre como funciones serverless: cada invocación puede caer en
+    # una instancia distinta, así que guardar los contadores en memoria
+    # (el default de Flask-Limiter) NO funciona ahí — cada instancia cuenta
+    # por su cuenta y los límites dejan de cumplirse de verdad. Por eso en
+    # producción esto debe apuntar a un Redis compartido (ej. el add-on de
+    # Railway) vía REDIS_URL. Si REDIS_URL no está seteado, cae a memoria
+    # (memory://), que sigue sirviendo para desarrollo local.
+    REDIS_URL = os.getenv("REDIS_URL", "")
+    RATELIMIT_STORAGE_URI = REDIS_URL or "memory://"
 
     # Correo transaccional (registro, confirmación, recuperación de contraseña)
     # vía Resend (https://resend.com). Si dejas RESEND_API_KEY vacío, el

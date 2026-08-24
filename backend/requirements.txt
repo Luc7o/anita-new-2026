@@ -13,3 +13,4 @@ resend==2.7.0
 requests==2.32.3
 vercel_blob
 xhtml2pdf
+redis==5.0.8

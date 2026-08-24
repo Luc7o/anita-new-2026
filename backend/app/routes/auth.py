@@ -1,5 +1,12 @@
 from flask import Blueprint, request, jsonify, current_app
-from flask_jwt_extended import create_access_token, create_refresh_token, get_jwt_identity, jwt_required
+from flask_jwt_extended import (
+    create_access_token,
+    create_refresh_token,
+    get_jwt_identity,
+    jwt_required,
+    set_refresh_cookies,
+    unset_jwt_cookies,
+)
 from app.extensions import db, limiter
 from app.models import Usuario, TokenRecuperacion
 from app.utils.decorators import requiere_activo
@@ -59,7 +66,9 @@ def registro():
 
     token = create_access_token(identity=str(usuario.id))
     refresh_token = create_refresh_token(identity=str(usuario.id))
-    return jsonify({"token": token, "refresh_token": refresh_token, "usuario": usuario.to_dict()}), 201
+    respuesta = jsonify({"token": token, "usuario": usuario.to_dict()})
+    set_refresh_cookies(respuesta, refresh_token)
+    return respuesta, 201
 
 
 @bp.post("/login")
@@ -77,16 +86,22 @@ def login():
 
     token = create_access_token(identity=str(usuario.id))
     refresh_token = create_refresh_token(identity=str(usuario.id))
-    return jsonify({"token": token, "refresh_token": refresh_token, "usuario": usuario.to_dict()})
+    respuesta = jsonify({"token": token, "usuario": usuario.to_dict()})
+    set_refresh_cookies(respuesta, refresh_token)
+    return respuesta
 
 
 @bp.post("/refrescar-token")
 @jwt_required(refresh=True)
 def refrescar_token():
     """
-    El frontend llama a este endpoint con el refresh_token (que dura 30
-    días) cuando el access_token (que dura 1 hora) expira, para obtener uno
-    nuevo sin pedirle al usuario que vuelva a loguearse.
+    El frontend llama a este endpoint cuando el access_token (que dura 1
+    hora) expira, para obtener uno nuevo sin pedirle al usuario que vuelva a
+    loguearse. El refresh token (30 días) ya no viaja en el body ni en el
+    header: va en una cookie httpOnly que el navegador adjunta solo, y que
+    JavaScript no puede leer ni robar vía XSS. Por ser cookie, el request
+    también debe traer el header X-CSRF-Token con el valor de la cookie
+    legible "csrf_refresh_token" (patrón CSRF de doble envío).
     """
     usuario_id = get_jwt_identity()
     usuario = Usuario.query.get(int(usuario_id))
@@ -95,6 +110,15 @@ def refrescar_token():
 
     token = create_access_token(identity=usuario_id)
     return jsonify({"token": token})
+
+
+@bp.post("/logout")
+def logout():
+    """Limpia la cookie de refresh token. No requiere sesión válida: si ya
+    expiró o no existe, igual queremos que el navegador quede sin la cookie."""
+    respuesta = jsonify({"mensaje": "Sesión cerrada"})
+    unset_jwt_cookies(respuesta)
+    return respuesta
 
 
 @bp.get("/perfil")
