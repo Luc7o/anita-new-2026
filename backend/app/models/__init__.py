@@ -1,3 +1,5 @@
+from app.models.rol import Rol
+from app.models.ubicacion import UbigeoDepartamento, UbigeoProvincia, UbigeoDistrito
 from app.models.usuario import Usuario
 from app.models.producto import Categoria, Producto
 from app.models.imagen_producto import ImagenProducto
@@ -12,6 +14,10 @@ from app.models.favorito import Favorito
 from app.models.promocion import Promocion
 
 __all__ = [
+    "Rol",
+    "UbigeoDepartamento",
+    "UbigeoProvincia",
+    "UbigeoDistrito",
     "Usuario",
     "Categoria",
     "Producto",
