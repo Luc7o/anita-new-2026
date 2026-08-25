@@ -30,6 +30,8 @@ class Categoria(db.Model):
             "slug": self.slug,
             "descripcion": self.descripcion,
             "icono": self.icono,
+            "activo": self.activo,
+            "productos_count": self.productos.count(),
         }
 
     def __repr__(self):

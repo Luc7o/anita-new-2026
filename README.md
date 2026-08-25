@@ -176,3 +176,12 @@ python aplicar_migraciones.py
 
 - Módulo de almacén/inventario.
 - 2FA para cuentas.
+
+
+git status
+
+git add .
+git commit -m "Describe brevemente el cambio"
+git push origin main
+
+git pull origin main
