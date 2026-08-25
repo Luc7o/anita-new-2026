@@ -181,6 +181,12 @@ export const api = {
   logout: () =>
     fetch(`${BASE_URL}/auth/logout`, { method: "POST", credentials: "include" }),
 
+  // Ubicación (catálogo departamento -> provincia -> distrito, para los
+  // selects en cascada del formulario de dirección)
+  departamentos: () => request("/ubicaciones/departamentos"),
+  provincias: (departamentoId) => request(`/ubicaciones/provincias?departamento_id=${departamentoId}`),
+  distritos: (provinciaId) => request(`/ubicaciones/distritos?provincia_id=${provinciaId}`),
+
   // Catálogo
   categorias: () => request("/categorias"),
   productos: (params = {}) => {

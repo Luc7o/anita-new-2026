@@ -40,7 +40,7 @@ def create_app(config_class=Config):
     def _token_faltante(motivo):
         return jsonify({"error": "Debes iniciar sesión", "code": "token_faltante"}), 401
 
-    from app.routes import auth, productos, carrito, pedidos, documentos, favoritos, promociones
+    from app.routes import auth, productos, carrito, pedidos, documentos, favoritos, promociones, ubicaciones
     from app.routes import admin_productos, admin_categorias, admin_pedidos, admin_reportes
     from app.routes import admin_proveedores, admin_usuarios, admin_uploads, admin_configuracion
     from app.routes import admin_promociones
@@ -51,6 +51,7 @@ def create_app(config_class=Config):
     app.register_blueprint(documentos.bp)
     app.register_blueprint(favoritos.bp)
     app.register_blueprint(promociones.bp)
+    app.register_blueprint(ubicaciones.bp)
     app.register_blueprint(admin_productos.bp)
     app.register_blueprint(admin_categorias.bp)
     app.register_blueprint(admin_pedidos.bp)

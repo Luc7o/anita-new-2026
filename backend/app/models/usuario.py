@@ -3,6 +3,13 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from app.extensions import db
 
 
+def _rol_cliente_por_defecto(context):
+    """Valor por defecto de rol_id cuando se crea un Usuario sin indicar
+    rol explícitamente (igual que antes: default="cliente")."""
+    from app.models.rol import Rol
+    return Rol.query.filter_by(codigo="cliente").first().id
+
+
 class Usuario(db.Model):
     __tablename__ = "usuarios"
 
@@ -24,18 +31,28 @@ class Usuario(db.Model):
     tipo_documento = db.Column(db.String(10))
     numero_documento = db.Column(db.String(15), unique=True)
 
-
-    # Dirección de envío por defecto
+    # Dirección de envío por defecto. El departamento/provincia ya no se
+    # repiten como texto: se obtienen a través de distrito_id -> provincia
+    # -> departamento (normalización, ver migración 022).
     direccion = db.Column(db.String(200))
-    distrito = db.Column(db.String(100))
-    provincia = db.Column(db.String(100))
-    departamento = db.Column(db.String(100))
+    distrito_id = db.Column(db.Integer, db.ForeignKey("ubigeo_distritos.id"), nullable=True)
     referencia = db.Column(db.String(200))
+
+    # Respaldo de texto libre de antes de la migración 022, por si algún
+    # registro no calzó exacto con el catálogo oficial. Ya no se usa en la
+    # aplicación, solo queda como histórico.
+    distrito_legacy = db.Column(db.String(100))
+    provincia_legacy = db.Column(db.String(100))
+    departamento_legacy = db.Column(db.String(100))
+    rol_legacy = db.Column(db.String(20))
 
     activo = db.Column(db.Boolean, default=True)
     es_admin = db.Column(db.Boolean, default=False)  # legado, se mantiene por compatibilidad
-    rol = db.Column(db.String(20), default="cliente", nullable=False)
+    rol_id = db.Column(db.Integer, db.ForeignKey("roles.id"), nullable=False, default=_rol_cliente_por_defecto)
     fecha_registro = db.Column(db.DateTime, default=datetime.utcnow)
+
+    rol_obj = db.relationship("Rol", lazy="joined")
+    distrito_obj = db.relationship("UbigeoDistrito", lazy="joined")
 
     pedidos = db.relationship(
         "Pedido", backref="cliente", lazy="dynamic",
@@ -56,10 +73,42 @@ class Usuario(db.Model):
     def nombre_completo(self):
         return f"{self.nombre} {self.apellido}"
 
+    # --- Compatibilidad: el resto del código (decoradores, rutas, scripts)
+    # sigue usando `usuario.rol` como si fuera un string ("cliente",
+    # "superadmin", etc.), igual que antes de normalizar. Por dentro ahora
+    # es una referencia a la tabla `roles`, pero de afuera se ve y se usa
+    # exactamente igual.
+    @property
+    def rol(self):
+        return self.rol_obj.codigo if self.rol_obj else None
+
+    @rol.setter
+    def rol(self, codigo):
+        from app.models.rol import Rol
+        rol = Rol.query.filter_by(codigo=codigo).first()
+        if not rol:
+            raise ValueError(f"Rol inválido: {codigo}")
+        self.rol_obj = rol
+
     @property
     def rol_label(self):
         from app.roles import ROLES
         return ROLES.get(self.rol, self.rol)
+
+    # --- Igual para la ubicación: se puede seguir leyendo
+    # usuario.distrito / .provincia / .departamento como texto (por
+    # ejemplo en culqi.py), aunque ahora vienen de las tablas ubigeo_*.
+    @property
+    def distrito(self):
+        return self.distrito_obj.nombre if self.distrito_obj else None
+
+    @property
+    def provincia(self):
+        return self.distrito_obj.provincia.nombre if self.distrito_obj else None
+
+    @property
+    def departamento(self):
+        return self.distrito_obj.departamento.nombre if self.distrito_obj else None
 
     def to_dict(self, incluir_direccion=False):
         data = {
@@ -79,8 +128,11 @@ class Usuario(db.Model):
         if incluir_direccion:
             data.update({
                 "direccion": self.direccion,
+                "distrito_id": self.distrito_id,
                 "distrito": self.distrito,
+                "provincia_id": self.distrito_obj.provincia_id if self.distrito_obj else None,
                 "provincia": self.provincia,
+                "departamento_id": self.distrito_obj.departamento_id if self.distrito_obj else None,
                 "departamento": self.departamento,
                 "referencia": self.referencia,
             })

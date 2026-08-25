@@ -8,7 +8,7 @@ from flask_jwt_extended import (
     unset_jwt_cookies,
 )
 from app.extensions import db, limiter
-from app.models import Usuario, TokenRecuperacion
+from app.models import Usuario, TokenRecuperacion, UbigeoDistrito
 from app.utils.decorators import requiere_activo
 from app.utils.correo import enviar_correo
 
@@ -136,12 +136,25 @@ def actualizar_perfil():
 
     limites = {
         "nombre": 80, "apellido": 80, "telefono": 20, "direccion": 200,
-        "distrito": 100, "provincia": 100, "departamento": 100, "referencia": 200,
+        "referencia": 200,
     }
     for campo, maximo in limites.items():
         if campo in data:
             valor = data[campo]
             setattr(usuario, campo, (valor or "").strip()[:maximo] or None)
+
+    # La ubicación ahora se elige de las tablas normalizadas (departamento
+    # -> provincia -> distrito, ver GET /api/ubicaciones/*) y se guarda
+    # como una sola referencia: distrito_id.
+    if "distrito_id" in data:
+        distrito_id = data["distrito_id"]
+        if distrito_id in (None, ""):
+            usuario.distrito_id = None
+        else:
+            distrito = UbigeoDistrito.query.get(distrito_id)
+            if not distrito:
+                return jsonify({"error": "Distrito no válido"}), 400
+            usuario.distrito_id = distrito.id
 
     db.session.commit()
     return jsonify(usuario.to_dict(incluir_direccion=True))

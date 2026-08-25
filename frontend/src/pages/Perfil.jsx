@@ -3,13 +3,18 @@ import { Link } from "react-router-dom";
 import { api } from "../api/client.js";
 import { useAuth } from "../context/AuthContext.jsx";
 import CuentaLayout from "../components/CuentaLayout.jsx";
+import SelectorUbicacion from "../components/SelectorUbicacion.jsx";
 import { soloTexto, soloNumeros } from "../validacion.js";
 
 export default function Perfil() {
   const { usuario, setUsuario } = useAuth();
   const [form, setForm] = useState({
     nombre: "", apellido: "", telefono: "",
-    direccion: "", distrito: "", provincia: "", departamento: "", referencia: "",
+    direccion: "", distrito_id: "", referencia: "",
+  });
+  // ids iniciales solo para precargar los 3 selects en cascada
+  const [ubicacionInicial, setUbicacionInicial] = useState({
+    departamento_id: "", provincia_id: "", distrito_id: "",
   });
   const [editando, setEditando] = useState(false);
   const [guardandoDatos, setGuardandoDatos] = useState(false);
@@ -23,10 +28,13 @@ export default function Perfil() {
         apellido: data.apellido || "",
         telefono: data.telefono || "",
         direccion: data.direccion || "",
-        distrito: data.distrito || "",
-        provincia: data.provincia || "",
-        departamento: data.departamento || "",
+        distrito_id: data.distrito_id || "",
         referencia: data.referencia || "",
+      });
+      setUbicacionInicial({
+        departamento_id: data.departamento_id || "",
+        provincia_id: data.provincia_id || "",
+        distrito_id: data.distrito_id || "",
       });
     });
   }, []);
@@ -34,6 +42,7 @@ export default function Perfil() {
   const actualizarCampo = (campo) => (e) => setForm({ ...form, [campo]: e.target.value });
   const actualizarTexto = (campo) => (e) => setForm({ ...form, [campo]: soloTexto(e.target.value) });
   const actualizarTelefono = (e) => setForm({ ...form, telefono: soloNumeros(e.target.value) });
+  const actualizarDistrito = (distritoId) => setForm({ ...form, distrito_id: distritoId || null });
 
   const guardarDatos = async (e) => {
     e.preventDefault();
@@ -162,44 +171,12 @@ export default function Perfil() {
                 className="w-full rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-none"
               />
             </div>
-            <div className="grid grid-cols-3 gap-3">
-              <div>
-                <label htmlFor="perfil-distrito" className="sr-only">Distrito</label>
-                <input
-                  id="perfil-distrito"
-                  placeholder="Distrito"
-                  required
-                  maxLength={100}
-                  value={form.distrito}
-                  onChange={actualizarTexto("distrito")}
-                  className="w-full rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-none"
-                />
-              </div>
-              <div>
-                <label htmlFor="perfil-provincia" className="sr-only">Provincia</label>
-                <input
-                  id="perfil-provincia"
-                  placeholder="Provincia"
-                  required
-                  maxLength={100}
-                  value={form.provincia}
-                  onChange={actualizarTexto("provincia")}
-                  className="w-full rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-none"
-                />
-              </div>
-              <div>
-                <label htmlFor="perfil-departamento" className="sr-only">Departamento</label>
-                <input
-                  id="perfil-departamento"
-                  placeholder="Departamento"
-                  required
-                  maxLength={100}
-                  value={form.departamento}
-                  onChange={actualizarTexto("departamento")}
-                  className="w-full rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-none"
-                />
-              </div>
-            </div>
+            <SelectorUbicacion
+              departamentoId={ubicacionInicial.departamento_id}
+              provinciaId={ubicacionInicial.provincia_id}
+              distritoId={ubicacionInicial.distrito_id}
+              onChange={actualizarDistrito}
+            />
             <div>
               <label htmlFor="perfil-referencia" className="sr-only">Referencia</label>
               <input

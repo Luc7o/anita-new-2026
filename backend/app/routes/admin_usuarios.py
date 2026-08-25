@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 from app.extensions import db
-from app.models import Usuario
+from app.models import Usuario, Rol
 from app.utils.decorators import requiere_roles
 from app.roles import PUEDE_GESTIONAR_USUARIOS, ROLES
 
@@ -19,7 +19,9 @@ def listar():
     rol = request.args.get("rol")
     query = Usuario.query
     if rol:
-        query = query.filter_by(rol=rol)
+        # `rol` ahora es una FK (rol_id -> roles.id), se filtra por el
+        # código del rol vía join en vez de comparar texto directo.
+        query = query.join(Rol, Usuario.rol_id == Rol.id).filter(Rol.codigo == rol)
     usuarios = query.order_by(Usuario.fecha_registro.desc()).all()
     return jsonify([u.to_dict() for u in usuarios])
 
