@@ -196,8 +196,6 @@ def crear():
         precio_oferta=data.get("precio_oferta") or None,
         stock=data.get("stock", 0),
         sku=data.get("sku") or None,
-        tallas=",".join(tallas) if tallas else None,
-        colores=",".join(colores) if colores else None,
         categoria_id=data["categoria_id"],
         destacado=bool(data.get("destacado", False)),
         es_nuevo=bool(data.get("es_nuevo", True)),
@@ -247,11 +245,9 @@ def actualizar(producto_id):
     tallas = data["tallas"] if "tallas" in data else producto.tallas_lista
     colores = data["colores"] if "colores" in data else producto.colores_lista
 
-    if "tallas" in data:
-        producto.tallas = ",".join(tallas) if tallas else None
-    if "colores" in data:
-        producto.colores = ",".join(colores) if colores else None
-
+    # tallas/colores ya no se guardan en producto (columna redundante):
+    # se derivan de las variantes reales, que es lo que _guardar_variantes
+    # de abajo va a crear/actualizar.
     # Si cambian tallas/colores, o si mandan variantes explícitamente, revalidamos
     if "tallas" in data or "colores" in data or "variantes" in data:
         error_variantes = _validar_variantes(tallas, colores, data.get("variantes"))

@@ -6,28 +6,55 @@ class VarianteProducto(db.Model):
     Stock específico de una combinación de talla/color de un producto.
     Si un producto no tiene tallas ni colores, no usa variantes: su stock
     vive directamente en Producto.stock (comportamiento simple, sin cambios).
+
+    talla_id/color_id referencian el catálogo (tallas/colores) en vez de
+    repetir el texto en cada fila — antes "Rojo" se escribía una vez por
+    cada variante de cada producto que lo usara, sin ninguna garantía de
+    que estuviera escrito siempre igual.
     """
     __tablename__ = "variantes_producto"
     __table_args__ = (
-        db.UniqueConstraint("producto_id", "talla", "color", name="uq_variante_producto"),
+        db.UniqueConstraint("producto_id", "talla_id", "color_id", name="uq_variante_producto"),
     )
 
     id = db.Column(db.Integer, primary_key=True)
     producto_id = db.Column(db.Integer, db.ForeignKey("productos.id", ondelete="CASCADE"), nullable=False)
-    # '' (cadena vacía) significa "el producto no distingue por ese eje".
-    # Usamos '' en vez de NULL a propósito: en MySQL, NULL nunca es igual a
-    # otro NULL dentro de un UNIQUE, así que con NULL el UNIQUE de abajo NO
-    # evitaría duplicados cuando un producto solo varía por talla o por
-    # color. Con '' como valor real, el UNIQUE sí protege siempre.
-    talla = db.Column(db.String(20), nullable=False, default="")
-    color = db.Column(db.String(50), nullable=False, default="")
+    # Igual que antes con '' de texto: apuntan al registro placeholder
+    # (Talla/Color con nombre='') cuando el producto no varía por ese eje,
+    # nunca NULL — así el UNIQUE de arriba sigue protegiendo duplicados.
+    talla_id = db.Column(db.Integer, db.ForeignKey("tallas.id"), nullable=False)
+    color_id = db.Column(db.Integer, db.ForeignKey("colores.id"), nullable=False)
     stock = db.Column(db.Integer, nullable=False, default=0)
+
+    talla_obj = db.relationship("Talla", lazy="joined")
+    color_obj = db.relationship("Color", lazy="joined")
+
+    # --- Compatibilidad: el resto del código (Producto.variante_para,
+    # admin_productos.py, stock.py) sigue leyendo/escribiendo
+    # variante.talla / variante.color como texto, igual que antes.
+    @property
+    def talla(self):
+        return self.talla_obj.nombre if self.talla_obj and self.talla_obj.nombre else None
+
+    @talla.setter
+    def talla(self, nombre):
+        from app.models.catalogo import Talla
+        self.talla_obj = Talla.obtener_o_crear(nombre or "")
+
+    @property
+    def color(self):
+        return self.color_obj.nombre if self.color_obj and self.color_obj.nombre else None
+
+    @color.setter
+    def color(self, nombre):
+        from app.models.catalogo import Color
+        self.color_obj = Color.obtener_o_crear(nombre or "")
 
     def to_dict(self):
         return {
             "id": self.id,
-            "talla": self.talla or None,
-            "color": self.color or None,
+            "talla": self.talla,
+            "color": self.color,
             "stock": self.stock,
         }
 

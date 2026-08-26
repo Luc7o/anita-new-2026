@@ -17,6 +17,16 @@ def _resumen(usuario_id):
     }
 
 
+def _ids_talla_color(producto, variante):
+    """Los ids reales para filtrar ItemCarrito por esta variante — no se
+    puede usar `.filter_by(talla=..., color=...)` porque talla/color ya no
+    son columnas (son properties de compatibilidad), así que se resuelve a
+    talla_id/color_id explícitamente."""
+    talla_id = variante.talla_id if producto.tallas_lista else None
+    color_id = variante.color_id if producto.colores_lista else None
+    return talla_id, color_id
+
+
 def _disponibilidad(producto, talla=None, color=None, usuario_id=None, excluir_item_id=None):
     """
     Calcula cuánto stock hay disponible para lo que se quiere agregar/actualizar,
@@ -34,10 +44,10 @@ def _disponibilidad(producto, talla=None, color=None, usuario_id=None, excluir_i
         variante = producto.variante_para(talla, color)
         if not variante:
             return None, None
+        talla_id, color_id = _ids_talla_color(producto, variante)
         query = ItemCarrito.query.filter_by(
             usuario_id=usuario_id, producto_id=producto.id,
-            talla=talla if producto.tallas_lista else None,
-            color=color if producto.colores_lista else None,
+            talla_id=talla_id, color_id=color_id,
         )
         if excluir_item_id:
             query = query.filter(ItemCarrito.id != excluir_item_id)
@@ -93,17 +103,26 @@ def agregar_item():
                      f"Solo hay {stock_disponible} unidades disponibles."
         }), 400
 
-    item = ItemCarrito.query.filter_by(
-        usuario_id=usuario_id, producto_id=producto_id, talla=talla, color=color,
-    ).first()
+    item = None
+    if producto.usa_variantes:
+        variante_actual = producto.variante_para(talla, color)
+        talla_id, color_id = _ids_talla_color(producto, variante_actual)
+        item = ItemCarrito.query.filter_by(
+            usuario_id=usuario_id, producto_id=producto_id,
+            talla_id=talla_id, color_id=color_id,
+        ).first()
+    else:
+        item = ItemCarrito.query.filter_by(
+            usuario_id=usuario_id, producto_id=producto_id,
+        ).first()
 
     if item:
         item.cantidad += cantidad
     else:
-        item = ItemCarrito(
-            usuario_id=usuario_id, producto_id=producto_id,
-            cantidad=cantidad, talla=talla, color=color,
-        )
+        item = ItemCarrito(usuario_id=usuario_id, producto_id=producto_id, cantidad=cantidad)
+        if producto.usa_variantes:
+            item.talla = talla if producto.tallas_lista else None
+            item.color = color if producto.colores_lista else None
         db.session.add(item)
 
     db.session.commit()
