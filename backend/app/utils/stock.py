@@ -165,9 +165,12 @@ def descontar_stock(grupos, productos_cache):
         if producto and producto.usa_variantes:
             resultado = db.session.execute(
                 text(
-                    "UPDATE variantes_producto SET stock = stock - :cantidad "
-                    "WHERE producto_id = :pid AND talla = :talla AND color = :color "
-                    "AND stock >= :cantidad"
+                    "UPDATE variantes_producto vp "
+                    "JOIN tallas t ON t.id = vp.talla_id "
+                    "JOIN colores c ON c.id = vp.color_id "
+                    "SET vp.stock = vp.stock - :cantidad "
+                    "WHERE vp.producto_id = :pid AND t.nombre = :talla AND c.nombre = :color "
+                    "AND vp.stock >= :cantidad"
                 ),
                 {"cantidad": cantidad, "pid": producto_id, "talla": talla, "color": color},
             )
@@ -225,8 +228,11 @@ def restaurar_stock_de_pedido(pedido):
             if producto.usa_variantes:
                 db.session.execute(
                     text(
-                        "UPDATE variantes_producto SET stock = stock + :cantidad "
-                        "WHERE producto_id = :pid AND talla = :talla AND color = :color"
+                        "UPDATE variantes_producto vp "
+                        "JOIN tallas t ON t.id = vp.talla_id "
+                        "JOIN colores c ON c.id = vp.color_id "
+                        "SET vp.stock = vp.stock + :cantidad "
+                        "WHERE vp.producto_id = :pid AND t.nombre = :talla AND c.nombre = :color"
                     ),
                     {"cantidad": cantidad, "pid": producto_id, "talla": talla, "color": color},
                 )

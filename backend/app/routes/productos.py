@@ -2,7 +2,7 @@ from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from sqlalchemy.orm import joinedload, selectinload
 from app.extensions import db
-from app.models import Producto, Categoria, Resena, DetallePedido, Pedido
+from app.models import Producto, Categoria, Resena, DetallePedido, Pedido, VarianteProducto, Talla
 from app.utils.decorators import requiere_activo
 
 bp = Blueprint("productos", __name__, url_prefix="/api")
@@ -33,8 +33,15 @@ def listar_productos():
     if tallas_param:
         tallas_pedidas = [t.strip() for t in tallas_param.split(",") if t.strip()]
         if tallas_pedidas:
-            condiciones = [Producto.tallas.ilike(f'%"{t}"%') for t in tallas_pedidas]
-            query = query.filter(db.or_(*condiciones))
+            # Antes: Producto.tallas.ilike('%"talla"%') sobre una columna de
+            # texto/JSON redundante. Ahora se busca contra las variantes
+            # reales, uniendo por el catálogo de tallas (case-insensitive).
+            query = (
+                query.join(VarianteProducto, VarianteProducto.producto_id == Producto.id)
+                .join(Talla, Talla.id == VarianteProducto.talla_id)
+                .filter(db.func.lower(Talla.nombre).in_([t.lower() for t in tallas_pedidas]))
+                .distinct()
+            )
 
     busqueda = (request.args.get("q") or "")[:100] or None
     if busqueda:
