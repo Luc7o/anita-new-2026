@@ -2,7 +2,13 @@ from flask import Blueprint, request, jsonify, Response
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from app.extensions import db
 from app.models import ItemCarrito, Pedido, DetallePedido, Producto, Usuario
-from app.utils.stock import agrupar_por_producto, validar_stock_disponible, descontar_stock, restaurar_stock_de_pedido
+from app.utils.stock import (
+    agrupar_por_producto,
+    validar_stock_disponible,
+    validar_stock_disponible_items,
+    descontar_stock,
+    restaurar_stock_de_pedido,
+)
 from app.utils.decorators import requiere_activo
 from app.utils.culqi import culqi_configurado, crear_cargo
 from app.utils.boleta import generar_pdf_boleta
@@ -67,10 +73,18 @@ def checkout():
 
     # Validar stock antes de confirmar — respeta el stock por variante (talla/color)
     # cuando el producto lo usa, o el stock total del producto si no.
+    #
+    # Esto se hace ACÁ, al momento de pagar (justo antes de crear el pedido
+    # y descontar stock de verdad), no solo cuando se agregó al carrito —
+    # el carrito puede llevar minutos u horas armado, y mientras tanto otra
+    # persona pudo haberse llevado el último stock de alguna variante.
     grupos_stock, productos_cache = agrupar_por_producto(items)
-    error_stock = validar_stock_disponible(grupos_stock, productos_cache)
-    if error_stock:
-        return jsonify({"error": error_stock}), 400
+    problemas_stock = validar_stock_disponible_items(items, grupos_stock, productos_cache)
+    if problemas_stock:
+        return jsonify({
+            "error": "Algunos productos de tu carrito ya no tienen stock suficiente",
+            "items_sin_stock": problemas_stock,
+        }), 409
 
     subtotal = round(sum(item.subtotal for item in items), 2)
     costo_envio = COSTO_ENVIO_DELIVERY if tipo_entrega == "delivery" else 0
@@ -182,31 +196,72 @@ def pagar_pedido(pedido_id):
     frontend (tarjeta o Yape). A diferencia de TuPay, esto es SÍNCRONO: la
     respuesta de esta misma petición ya trae el resultado final (aprobado o
     rechazado) — no hay redirección ni webhook que esperar.
+
+    Protección contra doble cobro (dos partes):
+
+    1. `with_for_update()` bloquea la fila del pedido durante toda esta
+       transacción. Si dos peticiones de pago llegan casi al mismo tiempo
+       para el MISMO pedido (doble clic antes de que el botón se
+       deshabilite, dos pestañas, reintento de red superpuesto), la segunda
+       espera a que la primera termine de hacer commit antes de poder leer
+       el estado — así nunca las dos pasan el chequeo "sigue pendiente" a
+       la vez ni llaman a Culqi en paralelo por el mismo pedido.
+    2. `pago_idempotency_key`: cubre el caso en que el cobro en Culqi SÍ se
+       hizo pero la respuesta nunca le llegó al navegador (timeout, se
+       cerró la pestaña, etc.) y el frontend reintenta con la misma clave.
+       Como el lock de (1) ya se liberó para ese momento (la primera
+       petición ya hizo commit), acá no hace falta esperar nada: si la
+       clave coincide con la guardada y el pedido quedó "verificado",
+       devolvemos ese mismo resultado en vez de volver a cobrar.
     """
     usuario_id = int(get_jwt_identity())
     usuario = Usuario.query.get(usuario_id)
-    pedido = Pedido.query.filter_by(id=pedido_id, usuario_id=usuario_id).first_or_404()
-
-    if pedido.metodo_pago not in METODOS_PAGO_PASARELA:
-        return jsonify({"error": "Este pedido no se paga por pasarela"}), 400
-    if pedido.estado == "cancelado":
-        return jsonify({"error": "Este pedido está cancelado"}), 400
-    if pedido.estado_pago != "pendiente":
-        return jsonify({"error": "Este pedido ya no necesita pago por pasarela"}), 400
 
     data = request.get_json(force=True) or {}
     token_id = (data.get("token_id") or "").strip()
-    if not token_id:
-        return jsonify({"error": "Falta el token de pago generado por el checkout"}), 400
+    pago_idempotency_key = (data.get("idempotency_key") or "").strip()[:64] or None
 
+    pedido = (
+        Pedido.query.filter_by(id=pedido_id, usuario_id=usuario_id)
+        .with_for_update()
+        .first_or_404()
+    )
+
+    if (
+        pago_idempotency_key
+        and pedido.estado_pago == "verificado"
+        and pedido.pago_idempotency_key == pago_idempotency_key
+    ):
+        db.session.commit()  # libera el lock; no hubo cambios que guardar
+        return jsonify(pedido.to_dict())
+
+    if pedido.metodo_pago not in METODOS_PAGO_PASARELA:
+        db.session.rollback()
+        return jsonify({"error": "Este pedido no se paga por pasarela"}), 400
+    if pedido.estado == "cancelado":
+        db.session.rollback()
+        return jsonify({"error": "Este pedido está cancelado"}), 400
+    if pedido.estado_pago != "pendiente":
+        db.session.rollback()
+        return jsonify({"error": "Este pedido ya no necesita pago por pasarela"}), 400
+    if not token_id:
+        db.session.rollback()
+        return jsonify({"error": "Falta el token de pago generado por el checkout"}), 400
     if not culqi_configurado():
+        db.session.rollback()
         return jsonify({"error": "El cobro automático todavía no está disponible, inténtalo más tarde"}), 503
+
+    # Guardamos la clave ANTES de llamar a Culqi. No se persiste todavía
+    # (sigue en la misma transacción/lock), pero así queda lista para
+    # guardarse junto con el resultado del cobro en el mismo commit de abajo.
+    pedido.pago_idempotency_key = pago_idempotency_key
 
     ok, cargo_id, error = crear_cargo(pedido, usuario, token_id, data.get("email"))
     if not ok:
         # Rechazo del banco o de Culqi — el pedido queda "pendiente" tal
         # cual, así el cliente puede intentar de nuevo (otra tarjeta, etc.)
         # sin que quede un pedido fantasma marcado como rechazado.
+        db.session.rollback()
         return jsonify({"error": error}), 402
 
     pedido.culqi_cargo_id = cargo_id

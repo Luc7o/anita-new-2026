@@ -63,6 +63,94 @@ def validar_stock_disponible(grupos, productos_cache):
     return None
 
 
+def _describir_variante(talla, color):
+    partes = [p for p in (f"talla {talla}" if talla else None, color or None) if p]
+    return " en " + " y ".join(partes) if partes else ""
+
+
+def validar_stock_disponible_items(items, grupos=None, productos_cache=None):
+    """
+    Como validar_stock_disponible, pero pensada para el checkout: en vez de
+    devolver solo el primer error como un string genérico, revisa CADA
+    ítem del carrito por separado y devuelve una lista con el detalle de
+    todos los que se quedaron sin stock suficiente (puede haber más de
+    uno). Cada problema trae el id del ItemCarrito afectado, para que el
+    frontend pueda señalarlo junto al producto exacto en vez de mostrar un
+    error genérico de servidor.
+
+    grupos/productos_cache se pueden pasar ya calculados (de
+    agrupar_por_producto) para no repetir esa consulta; si no se pasan, se
+    calculan acá.
+
+    Devuelve una lista de dicts (vacía si todo está bien):
+      {item_id, producto_id, producto_nombre, talla, color,
+       disponible, pedido, mensaje}
+    """
+    if grupos is None or productos_cache is None:
+        grupos, productos_cache = agrupar_por_producto(items)
+
+    disponibilidad_por_grupo = {}
+    for (producto_id, talla, color) in grupos:
+        producto = productos_cache.get(producto_id)
+        if not producto:
+            disponibilidad_por_grupo[(producto_id, talla, color)] = 0
+            continue
+        if producto.usa_variantes:
+            variante = producto.variante_para(talla, color)
+            disponibilidad_por_grupo[(producto_id, talla, color)] = variante.stock if variante else 0
+        else:
+            disponibilidad_por_grupo[(producto_id, talla, color)] = producto.stock
+
+    problemas = []
+    for item in items:
+        producto = productos_cache.get(item.producto_id)
+
+        if not producto:
+            problemas.append({
+                "item_id": item.id,
+                "producto_id": item.producto_id,
+                "producto_nombre": None,
+                "talla": item.talla,
+                "color": item.color,
+                "disponible": 0,
+                "pedido": item.cantidad,
+                "mensaje": "Uno de los productos de tu carrito ya no existe.",
+            })
+            continue
+
+        if producto.usa_variantes:
+            talla = (item.talla or "") if producto.tallas_lista else ""
+            color = (item.color or "") if producto.colores_lista else ""
+        else:
+            talla, color = "", ""
+        clave = (item.producto_id, talla, color)
+
+        # Cuánto pide el GRUPO en total (normalmente coincide con este ítem
+        # solo, ya que agregar_item() fusiona cantidades repetidas de la
+        # misma combinación producto+talla+color en un único ItemCarrito).
+        cantidad_grupo = grupos.get(clave, item.cantidad)
+        disponible = disponibilidad_por_grupo.get(clave, 0)
+
+        if cantidad_grupo > disponible:
+            detalle_variante = _describir_variante(talla, color) if producto.usa_variantes else ""
+            if disponible <= 0:
+                mensaje = f"Ya no queda{detalle_variante} de {producto.nombre}."
+            else:
+                mensaje = f"Solo quedan {disponible} unidades{detalle_variante} de {producto.nombre}."
+            problemas.append({
+                "item_id": item.id,
+                "producto_id": item.producto_id,
+                "producto_nombre": producto.nombre,
+                "talla": item.talla,
+                "color": item.color,
+                "disponible": disponible,
+                "pedido": item.cantidad,
+                "mensaje": mensaje,
+            })
+
+    return problemas
+
+
 def descontar_stock(grupos, productos_cache):
     """
     Descuenta stock de forma ATÓMICA (a nivel de base de datos): cada UPDATE

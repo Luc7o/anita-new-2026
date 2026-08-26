@@ -1,0 +1,14 @@
+-- idempotency_key (014) cubre la CREACIÓN del pedido (evita crear el pedido
+-- duplicado si el checkout se reintenta). Esta columna es distinta: cubre el
+-- COBRO en sí (POST /pedidos/<id>/pagar), que es donde puede pasar el doble
+-- cobro real, porque cada clic en "Pagar" puede traer un token de Culqi
+-- diferente (el widget genera uno nuevo cada vez que se abre), así que la
+-- idempotency_key del pedido no sirve para detectar un segundo intento de
+-- pago sobre el mismo pedido.
+--
+-- El frontend genera esta clave una sola vez al entrar a la pantalla de
+-- pago (o al ver el botón "Pagar" en el detalle del pedido) y la reutiliza
+-- en reintentos del MISMO intento de pago. Si el backend ya procesó un
+-- cobro exitoso con esa clave para ese pedido, devuelve el resultado ya
+-- guardado en vez de volver a cobrar.
+ALTER TABLE pedidos ADD COLUMN pago_idempotency_key VARCHAR(64);
