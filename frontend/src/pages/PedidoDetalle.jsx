@@ -3,6 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import { api } from "../api/client.js";
 import { useAuth } from "../context/AuthContext.jsx";
 import { abrirCulqiCheckout } from "../culqi.js";
+import { obtenerPagoIdempotencyKey, limpiarPagoIdempotencyKey } from "../pagoIdempotencia.js";
 import SeguimientoPedido from "../components/SeguimientoPedido.jsx";
 
 const ESTADO_PAGO_ESTILOS = {
@@ -45,7 +46,13 @@ export default function PedidoDetalle() {
         email: usuario?.email,
         metodoPago: pedido.metodo_pago,
       });
-      const actualizado = await api.pagarPedido(id, { token_id: tokenId, email });
+      const idempotencyKeyPago = obtenerPagoIdempotencyKey(id);
+      const actualizado = await api.pagarPedido(id, {
+        token_id: tokenId,
+        email,
+        idempotency_key: idempotencyKeyPago,
+      });
+      limpiarPagoIdempotencyKey(id);
       setPedido(actualizado);
     } catch (err) {
       setErrorPago(err.message);

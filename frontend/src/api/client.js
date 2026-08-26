@@ -110,7 +110,14 @@ async function request(path, { method = "GET", body, auth = false } = {}) {
 
   if (!res.ok) {
     const mensaje = data?.error || "Ocurrió un error, intenta de nuevo.";
-    throw new Error(mensaje);
+    const err = new Error(mensaje);
+    // Algunos endpoints (ej. checkout con stock insuficiente) devuelven
+    // detalle estructurado además del mensaje genérico — lo dejamos colgado
+    // del error para que el componente que llama pueda usarlo si lo necesita,
+    // en vez de perderlo acá.
+    err.data = data;
+    err.status = res.status;
+    throw err;
   }
   return data;
 }
