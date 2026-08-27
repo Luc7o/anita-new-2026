@@ -5,14 +5,14 @@ from flask import Blueprint, request, jsonify, Response
 from app.extensions import db
 from app.models import Pedido
 from app.utils.decorators import requiere_roles
-from app.roles import PUEDE_VER_DASHBOARD
+from app.roles import PUEDE_VER_DASHBOARD_VENTAS
 from app.utils.reporte_ventas import generar_pdf_reporte_ventas
 
 bp = Blueprint("admin_reportes", __name__, url_prefix="/api/admin/reportes")
 
 
 @bp.get("/ventas")
-@requiere_roles(*PUEDE_VER_DASHBOARD)
+@requiere_roles(*PUEDE_VER_DASHBOARD_VENTAS)
 def reporte_ventas():
     desde_str = (request.args.get("desde") or "").strip() or None
     hasta_str = (request.args.get("hasta") or "").strip() or None

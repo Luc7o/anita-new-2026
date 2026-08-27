@@ -1,10 +1,16 @@
 from datetime import datetime
-from flask import Blueprint, request, jsonify, Response
+from flask import Blueprint, request, jsonify, Response, g
 from sqlalchemy.orm import selectinload, joinedload
 from app.extensions import db
 from app.models import Pedido, DetallePedido, Usuario, Producto, Categoria
 from app.utils.decorators import requiere_roles
-from app.roles import PUEDE_VER_PEDIDOS, PUEDE_GESTIONAR_PEDIDOS, PUEDE_VER_DASHBOARD
+from app.roles import (
+    PUEDE_VER_PEDIDOS,
+    PUEDE_GESTIONAR_PEDIDOS,
+    PUEDE_VER_DASHBOARD,
+    PUEDE_GESTIONAR_REEMBOLSOS,
+    PUEDE_REGISTRAR_VENTA,
+)
 from app.utils.stock import restaurar_stock_de_pedido, agrupar_por_producto, validar_stock_disponible, descontar_stock
 from app.utils.boleta import generar_pdf_boleta
 
@@ -62,6 +68,14 @@ def cambiar_estado(pedido_id):
     if nuevo_estado not in Pedido.ESTADOS:
         return jsonify({"error": "Estado no válido"}), 400
 
+    # PUEDE_GESTIONAR_PEDIDOS incluye a Almacén (para preparar/despachar),
+    # pero cancelar un pedido implica devolver stock y, si el pago ya estaba
+    # verificado, disparar un reembolso — eso es exclusivo de quien puede
+    # gestionar reembolsos (Ventas / Super admin). Por eso este chequeo extra
+    # aquí, además del que ya hace el decorador.
+    if nuevo_estado == "cancelado" and g.usuario.rol not in PUEDE_GESTIONAR_REEMBOLSOS:
+        return jsonify({"error": "No tienes permisos para cancelar pedidos"}), 403
+
     if not pedido.puede_pasar_a(nuevo_estado):
         return jsonify({
             "error": f"No se puede pasar de \"{pedido.estado_label}\" a \"{Pedido.ESTADOS[nuevo_estado]}\""
@@ -95,7 +109,7 @@ def actualizar_envio(pedido_id):
 
 
 @bp.put("/<int:pedido_id>/pago")
-@requiere_roles(*PUEDE_GESTIONAR_PEDIDOS)
+@requiere_roles(*PUEDE_GESTIONAR_REEMBOLSOS)
 def revisar_pago(pedido_id):
     """Aprueba/rechaza el comprobante subido, o marca un reembolso como completado."""
     pedido = Pedido.query.get_or_404(pedido_id)
@@ -159,10 +173,6 @@ def estadisticas():
     pagos_por_revisar = Pedido.query.filter_by(estado_pago="en_revision").count()
     reembolsos_pendientes = Pedido.query.filter_by(estado_pago="reembolso_pendiente").count()
 
-    # "Ventas confirmadas" = dinero que REALMENTE se cobró: pago verificado,
-    # o métodos que no requieren verificación (contra entrega histórico) pero
-    # solo una vez que el pedido efectivamente se entregó. NO incluye pagos
-    # pendientes, en revisión ni rechazados — eso no es plata cobrada todavía.
     ventas_confirmadas = db.session.query(db.func.coalesce(db.func.sum(Pedido.total), 0)).filter(
         db.or_(
             Pedido.estado_pago == "verificado",
@@ -193,7 +203,6 @@ def estadisticas():
         if p.stock_total <= 3
     )
 
-    # Ventas confirmadas por mes (últimos 6 meses) — para el gráfico de tendencia.
     hoy = datetime.utcnow()
     meses_es = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"]
     ventas_por_mes = []
@@ -212,7 +221,6 @@ def estadisticas():
         ).scalar()
         ventas_por_mes.append({"mes": meses_es[mes_idx], "total": float(total_mes or 0)})
 
-    # Top categorías por unidades vendidas.
     filas_categoria = (
         db.session.query(Categoria.nombre, db.func.coalesce(db.func.sum(DetallePedido.cantidad), 0))
         .join(Producto, Producto.categoria_id == Categoria.id)
@@ -228,7 +236,6 @@ def estadisticas():
         for nombre, cantidad in filas_categoria
     ]
 
-    # Pedidos más recientes.
     pedidos_recientes_query = (
         Pedido.query.options(joinedload(Pedido.cliente))
         .order_by(Pedido.fecha_creacion.desc())
@@ -251,7 +258,6 @@ def estadisticas():
             "estado_label": p.estado_label,
         })
 
-    # Productos más vendidos por ingresos.
     filas_top_productos = (
         db.session.query(
             Producto.id, Producto.nombre, Categoria.nombre,
@@ -278,8 +284,6 @@ def estadisticas():
         "pedidos_pendientes": pendientes,
         "pagos_por_revisar": pagos_por_revisar,
         "reembolsos_pendientes": reembolsos_pendientes,
-        # Ventas confirmadas (dinero efectivamente cobrado) — este es el número
-        # que debe mostrarse como "ventas" en el dashboard.
         "ventas_total": float(ventas_confirmadas or 0),
         "ventas_confirmadas": float(ventas_confirmadas or 0),
         "monto_pagos_pendientes": float(monto_pagos_pendientes or 0),
@@ -317,7 +321,7 @@ class _ItemVentaPresencial:
 
 
 @bp.post("/venta-presencial")
-@requiere_roles(*PUEDE_GESTIONAR_PEDIDOS)
+@requiere_roles(*PUEDE_REGISTRAR_VENTA)
 def venta_presencial():
     """
     Registra una venta hecha físicamente en la tienda (mostrador): el pago ya
@@ -366,8 +370,6 @@ def venta_presencial():
         usuario_id=None,
         origen="presencial",
         metodo_pago=metodo_pago,
-        # Se cobró ahí mismo, en el mostrador — no hay nada pendiente de
-        # verificar como en un pedido online.
         estado_pago="verificado",
         estado="confirmado",
         tipo_entrega="recojo",
@@ -399,7 +401,7 @@ def venta_presencial():
         return jsonify({"error": error_descuento}), 409
 
     db.session.commit()
-    return jsonify(pedido.to_dict()), 201
+    return jsonify(pedido.to_dict())
 
 
 @bp.get("/<int:pedido_id>/boleta")

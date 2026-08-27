@@ -1,5 +1,5 @@
 from functools import wraps
-from flask import jsonify
+from flask import jsonify, g
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from app.models import Usuario
 from app.roles import ROLES_ADMIN
@@ -11,6 +11,12 @@ def requiere_roles(*roles_permitidos):
     Una cuenta desactivada pierde acceso de inmediato aunque su JWT siga
     vigente, porque este chequeo se hace contra la base de datos en cada
     request (no solo contra lo que dice el token).
+
+    De paso deja el usuario autenticado en `flask.g.usuario`, para que la
+    función de la ruta pueda hacer una validación de rol más fina cuando el
+    permiso general del decorador no alcanza a distinguir (por ejemplo: un
+    endpoint donde varios roles pueden cambiar el estado del pedido, pero
+    solo uno de ellos puede cancelarlo).
     """
 
     def decorador(fn):
@@ -22,6 +28,7 @@ def requiere_roles(*roles_permitidos):
                 return jsonify({"error": "Tu cuenta está desactivada"}), 403
             if usuario.rol not in roles_permitidos:
                 return jsonify({"error": "No tienes permisos para realizar esta acción"}), 403
+            g.usuario = usuario
             return fn(*args, **kwargs)
 
         return wrapper
@@ -48,6 +55,7 @@ def requiere_activo(fn):
         usuario = Usuario.query.get(int(get_jwt_identity()))
         if not usuario or not usuario.activo:
             return jsonify({"error": "Tu cuenta está desactivada"}), 403
+        g.usuario = usuario
         return fn(*args, **kwargs)
 
     return wrapper
