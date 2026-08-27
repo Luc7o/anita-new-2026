@@ -61,13 +61,12 @@ export default function Login() {
         <div className="absolute inset-0 bg-plum/25" />
         <div className="glass relative z-10 rounded-2xl p-6 sm:p-8">
           <h1 className="text-4xl font-semibold leading-tight text-plum sm:text-5xl">
-            Bienvenida a
+            Bienvenido a
             <br />
             Anita New Style
           </h1>
           <p className="mt-4 max-w-sm text-sm text-plum-soft sm:text-base">
-            En Anita New Style curamos la mejor moda peruana en carteras, mochilas y calzado
-            para la mujer contemporánea.
+             Anita New Style, tienda de moda en Huancayo con envíos a todo el Perú. Compramos y seleccionamos lo mejor en carteras, mochilas, vestidos y accesorios.
           </p>
           <div className="mt-6 flex items-center gap-4">
             <a href="#" aria-label="Facebook" className="text-plum-soft transition hover:text-berry">
