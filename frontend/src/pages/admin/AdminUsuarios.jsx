@@ -2,16 +2,21 @@ import React, { useEffect, useState } from "react";
 import { api } from "../../api/client.js";
 import { soloTexto } from "../../validacion.js";
 import { useFocusTrap } from "../../hooks/useFocusTrap.js";
+import { useAuth } from "../../context/AuthContext.jsx";
 
 const VACIO = { nombre: "", apellido: "", email: "", password: "", rol: "editor" };
 
 export default function AdminUsuarios() {
+  const { usuario: usuarioActual } = useAuth();
+  const esRRHH = usuarioActual?.rol === "rrhh";
+
   const [usuarios, setUsuarios] = useState([]);
   const [roles, setRoles] = useState({});
   const [filtroRol, setFiltroRol] = useState("");
   const [form, setForm] = useState(VACIO);
   const [mostrarForm, setMostrarForm] = useState(false);
   const [error, setError] = useState("");
+  const [avisoRol, setAvisoRol] = useState("");
   const [guardando, setGuardando] = useState(false);
 
   const cargarUsuarios = (rol = "") =>
@@ -24,6 +29,23 @@ export default function AdminUsuarios() {
 
   const actualizarCampo = (campo) => (e) => setForm({ ...form, [campo]: e.target.value });
   const actualizarTexto = (campo) => (e) => setForm({ ...form, [campo]: soloTexto(e.target.value) });
+
+  // RRHH no ve "superadmin" como opción asignable, en ningún selector.
+  const rolesAsignables = esRRHH
+    ? Object.entries(roles).filter(([valor]) => valor !== "superadmin")
+    : Object.entries(roles);
+
+  const esSuperAdmin = (u) => u.rol === "superadmin";
+
+  // RRHH no puede cambiar su propio rol, ni el de nadie que ya sea Super administrador.
+  const puedeEditarRolDe = (u) =>
+    !(esRRHH && (u.id === usuarioActual.id || esSuperAdmin(u)));
+
+  const motivoBloqueo = (u) => {
+    if (puedeEditarRolDe(u)) return undefined;
+    if (u.id === usuarioActual.id) return "No puedes cambiar tu propio rol";
+    return "No puedes cambiar el rol de un Super administrador";
+  };
 
   const crear = async (e) => {
     e.preventDefault();
@@ -42,8 +64,13 @@ export default function AdminUsuarios() {
   };
 
   const cambiarRol = async (usuario, nuevoRol) => {
-    await api.adminCambiarRol(usuario.id, nuevoRol);
-    cargarUsuarios(filtroRol);
+    setAvisoRol("");
+    try {
+      await api.adminCambiarRol(usuario.id, nuevoRol);
+      cargarUsuarios(filtroRol);
+    } catch (err) {
+      setAvisoRol(err.message || "No se pudo cambiar el rol.");
+    }
   };
 
   const cambiarEstado = async (usuario) => {
@@ -64,6 +91,22 @@ export default function AdminUsuarios() {
           + Nuevo miembro del staff
         </button>
       </div>
+
+      {avisoRol && (
+        <div
+          role="alert"
+          className="glass mb-4 flex items-center justify-between gap-3 rounded-2xl border border-berry/30 px-4 py-3 text-sm text-berry-dark shadow-glass"
+        >
+          <span>{avisoRol}</span>
+          <button
+            onClick={() => setAvisoRol("")}
+            className="shrink-0 text-plum-soft hover:text-berry"
+            aria-label="Cerrar aviso"
+          >
+            ✕
+          </button>
+        </div>
+      )}
 
       <div className="mb-4 flex gap-2 overflow-x-auto pb-1">
         <button
@@ -113,10 +156,12 @@ export default function AdminUsuarios() {
                   <select
                     value={u.rol}
                     onChange={(e) => cambiarRol(u, e.target.value)}
+                    disabled={!puedeEditarRolDe(u)}
                     aria-label={`Rol de ${u.nombre_completo}`}
-                    className="rounded-full bg-white/70 px-3 py-1 text-xs text-plum shadow-glass focus:outline-none"
+                    title={motivoBloqueo(u)}
+                    className="rounded-full bg-white/70 px-3 py-1 text-xs text-plum shadow-glass focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
                   >
-                    {Object.entries(roles).map(([valor, label]) => (
+                    {(puedeEditarRolDe(u) ? rolesAsignables : Object.entries(roles)).map(([valor, label]) => (
                       <option key={valor} value={valor}>
                         {label}
                       </option>
@@ -169,9 +214,11 @@ export default function AdminUsuarios() {
                 id={`rol-movil-${u.id}`}
                 value={u.rol}
                 onChange={(e) => cambiarRol(u, e.target.value)}
-                className="rounded-full bg-white/70 px-3 py-1.5 text-xs text-plum shadow-glass focus:outline-none"
+                disabled={!puedeEditarRolDe(u)}
+                title={motivoBloqueo(u)}
+                className="rounded-full bg-white/70 px-3 py-1.5 text-xs text-plum shadow-glass focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
               >
-                {Object.entries(roles).map(([valor, label]) => (
+                {(puedeEditarRolDe(u) ? rolesAsignables : Object.entries(roles)).map(([valor, label]) => (
                   <option key={valor} value={valor}>
                     {label}
                   </option>
@@ -278,7 +325,7 @@ export default function AdminUsuarios() {
                   onChange={actualizarCampo("rol")}
                   className="w-full rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-none"
                 >
-                  {Object.entries(roles)
+                  {rolesAsignables
                     .filter(([valor]) => valor !== "cliente")
                     .map(([valor, label]) => (
                       <option key={valor} value={valor}>
