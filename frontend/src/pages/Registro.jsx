@@ -127,15 +127,18 @@ export default function Registro() {
         <div className="absolute inset-0 bg-plum/25" />
         <div className="glass relative z-10 rounded-2xl p-6 sm:p-8">
           <h1 className="text-4xl font-semibold leading-tight text-plum sm:text-5xl">
-            Únete a
+            Regístrate
             <br />
-            Anita New Style
+            para comprar
           </h1>
-          <p className="mt-4 max-w-sm text-sm text-plum-soft sm:text-base">
-            Somos una tienda de moda peruana con tienda física en Huancayo. 
-            Seleccionamos y ofrecemos lo mejor en carteras, mochilas, vestidos y accesorios para la mujer contemporánea.
-            <span className="block mt-2 text-berry font-medium">✨ Encuentra tu estilo con nosotros.</span>
-          </p>
+          <div className="mt-4 max-w-sm text-sm text-plum-soft sm:text-base">
+            <p className="font-semibold text-berry">Beneficios ANITA NEW STYLE</p>
+            <ul className="mt-2 space-y-1.5 list-disc pl-4">
+              <li>Recibir notificaciones en tiempo real de tus pedidos.</li>
+              <li>Revisar tus boletas online.</li>
+              <li>Guardar medios de pago y direcciones favoritas.</li>
+            </ul>
+          </div>
           <div className="mt-6 flex items-center gap-4">
             <a 
               href="https://www.facebook.com/anitanewstyle" 
