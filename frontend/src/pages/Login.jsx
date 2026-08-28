@@ -66,12 +66,12 @@ export default function Login() {
         <div className="absolute inset-0 bg-plum/25" />
         <div className="glass relative z-10 rounded-2xl p-6 sm:p-8">
           <h1 className="text-4xl font-semibold leading-tight text-plum sm:text-5xl">
-            Bienvenida a
+            Bienvenido a
             <br />
             Anita New Style
           </h1>
           <p className="mt-4 max-w-sm text-sm text-plum-soft sm:text-base">
-            Tu tienda de moda en Huancayo. Encuentra carteras, mochilas, vestidos y accesorios con estilo peruano.
+            Tu tienda de moda en Huancayo. Encuentra carteras, mochilas, vestidos y accesorios con estilo.
             <span className="block mt-2 text-berry font-medium">¡Envíos a todo el Perú!</span>
           </p>
           <div className="mt-6 flex items-center gap-4">
