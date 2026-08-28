@@ -149,7 +149,7 @@ export default function AdminProveedores() {
   return (
     <div>
       <div className="mb-6 flex items-center justify-between">
-        <h1 className="font-display text-2xl font-semibold text-plum">Proveedores</h1>
+        <h1 className="text-2xl font-semibold text-plum">Proveedores</h1>
         {puedeGestionar && (
           <button
             onClick={nuevo}
@@ -266,7 +266,7 @@ export default function AdminProveedores() {
             onSubmit={guardar}
             className="glass-strong relative max-h-[90vh] w-full max-w-md overflow-y-auto rounded-3xl p-6 shadow-glass-lg sm:p-8"
           >
-            <h2 id="proveedor-form-titulo" className="mb-4 font-display text-xl font-semibold text-plum">
+            <h2 id="proveedor-form-titulo" className="mb-4 text-xl font-semibold text-plum">
               {editandoId ? "Editar proveedor" : "Nuevo proveedor"}
             </h2>
 

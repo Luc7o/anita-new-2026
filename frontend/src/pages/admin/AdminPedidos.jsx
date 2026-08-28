@@ -18,7 +18,7 @@ export default function AdminPedidos() {
 
   return (
     <div>
-      <h1 className="mb-6 font-display text-2xl font-semibold text-plum">Pedidos</h1>
+      <h1 className="mb-6 text-2xl font-semibold text-plum">Pedidos</h1>
 
       <div className="mb-4 flex gap-2 overflow-x-auto pb-1">
         <button

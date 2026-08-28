@@ -69,7 +69,7 @@ export default function AdminProveedorDetalle() {
       <div className="glass mt-4 rounded-3xl p-6 shadow-glass sm:p-8">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <h1 className="font-display text-2xl font-semibold text-plum">{proveedor.nombre}</h1>
+            <h1 className="text-2xl font-semibold text-plum">{proveedor.nombre}</h1>
             <p className="text-sm text-plum-soft">
               {proveedor.contacto_nombre && `${proveedor.contacto_nombre} · `}
               {proveedor.telefono || "sin teléfono"} {proveedor.email && `· ${proveedor.email}`}
@@ -90,7 +90,7 @@ export default function AdminProveedorDetalle() {
 
         <div className="mt-6 border-t border-white/50 pt-4">
           <div className="mb-3 flex items-center justify-between">
-            <h2 className="font-display text-sm font-semibold uppercase tracking-wide text-plum-soft">
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-plum-soft">
               Productos que suministra
             </h2>
             {puedeGestionar && (
@@ -158,7 +158,7 @@ export default function AdminProveedorDetalle() {
             onSubmit={agregarProducto}
             className="glass-strong relative w-full max-w-md rounded-3xl p-6 shadow-glass-lg sm:p-8"
           >
-            <h2 className="mb-4 font-display text-xl font-semibold text-plum">Vincular producto</h2>
+            <h2 className="mb-4 text-xl font-semibold text-plum">Vincular producto</h2>
 
             <div className="space-y-3">
               <select
