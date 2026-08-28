@@ -45,12 +45,17 @@ export default function Login() {
 
   return (
     <div className="relative flex min-h-screen w-full flex-col lg:flex-row">
+      {/* Flecha de regreso con tooltip */}
       <Link
         to="/"
         aria-label="Volver al inicio"
-        className="absolute right-4 top-4 z-20 flex h-10 w-10 items-center justify-center rounded-full text-plum transition hover:text-berry sm:right-6 sm:top-6"
+        className="absolute right-4 top-4 z-20 flex h-10 w-10 items-center justify-center rounded-full text-plum transition hover:text-berry hover:bg-white/30 hover:shadow-glass sm:right-6 sm:top-6 group"
+        title="Regresar a la tienda"
       >
         <IconArrowRight size={18} />
+        <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 whitespace-nowrap rounded bg-plum/80 px-2 py-1 text-[10px] text-white opacity-0 transition-opacity group-hover:opacity-100 pointer-events-none">
+          Regresar a la tienda
+        </span>
       </Link>
 
       {/* Columna de marca */}
@@ -61,15 +66,22 @@ export default function Login() {
         <div className="absolute inset-0 bg-plum/25" />
         <div className="glass relative z-10 rounded-2xl p-6 sm:p-8">
           <h1 className="text-4xl font-semibold leading-tight text-plum sm:text-5xl">
-            Bienvenido a
+            Bienvenida a
             <br />
             Anita New Style
           </h1>
           <p className="mt-4 max-w-sm text-sm text-plum-soft sm:text-base">
-             Anita New Style, tienda de moda en Huancayo con envíos a todo el Perú. Compramos y seleccionamos lo mejor en carteras, mochilas, vestidos y accesorios.
+            Tu tienda de moda en Huancayo. Encuentra carteras, mochilas, vestidos y accesorios con estilo peruano.
+            <span className="block mt-2 text-berry font-medium">¡Envíos a todo el Perú!</span>
           </p>
           <div className="mt-6 flex items-center gap-4">
-            <a href="#" aria-label="Facebook" className="text-plum-soft transition hover:text-berry">
+            <a
+              href="https://www.facebook.com/anitanewstyle"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Facebook"
+              className="text-plum-soft transition hover:text-berry"
+            >
               <IconFacebook />
             </a>
             <a href="#" aria-label="Instagram" className="text-plum-soft transition hover:text-berry">
@@ -141,20 +153,13 @@ export default function Login() {
               </div>
             </div>
 
-            <label className="flex cursor-pointer items-center gap-2 text-sm text-plum">
+            <label className="flex cursor-pointer items-center gap-2 text-sm text-plum hover:text-berry transition-colors">
               <input
                 type="checkbox"
                 checked={recordar}
                 onChange={(e) => setRecordar(e.target.checked)}
-                className="sr-only"
+                className="w-4 h-4 accent-berry rounded border-plum/20"
               />
-              <span
-                className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-md border-2 transition ${
-                  recordar ? "border-berry bg-berry text-white" : "border-plum bg-white"
-                }`}
-              >
-                {recordar && <IconCheck size={12} />}
-              </span>
               Recordarme en este dispositivo
             </label>
 
@@ -167,9 +172,16 @@ export default function Login() {
             <button
               type="submit"
               disabled={enviando}
-              className="w-full rounded-lg bg-plum py-3.5 font-semibold text-white transition hover:bg-berry-dark disabled:opacity-60"
+              className="w-full rounded-lg bg-plum py-3.5 font-semibold text-white transition hover:bg-berry-dark disabled:opacity-60 flex items-center justify-center gap-2"
             >
-              {enviando ? "Ingresando..." : "Ingresar"}
+              {enviando ? (
+                <>
+                  <span className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
+                  Ingresando...
+                </>
+              ) : (
+                "Ingresar"
+              )}
             </button>
           </form>
 
