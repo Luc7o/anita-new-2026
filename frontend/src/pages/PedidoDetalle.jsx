@@ -108,7 +108,7 @@ export default function PedidoDetalle() {
         <span className="rounded-full bg-berry/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-berry-dark">
           {pedido.estado_label}
         </span>
-        <h1 className="mt-3 font-display text-2xl font-semibold text-plum">
+        <h1 className="mt-3 text-2xl font-semibold text-plum">
           ¡Gracias por tu compra!
         </h1>
         <p className="mt-1 text-sm text-plum-soft">
@@ -169,7 +169,7 @@ export default function PedidoDetalle() {
 
         {pedido.tipo_entrega && (
           <div className="mt-6 rounded-2xl bg-white/50 p-4 text-sm text-plum-soft">
-            <h2 className="mb-1 font-display text-sm font-semibold uppercase tracking-wide text-plum-soft">
+            <h2 className="mb-1 text-sm font-semibold uppercase tracking-wide text-plum-soft">
               Datos de entrega
             </h2>
             <p>{pedido.tipo_entrega === "delivery" ? "Delivery" : "Recojo en tienda"}</p>
@@ -203,7 +203,7 @@ export default function PedidoDetalle() {
             <span>Envío</span>
             <span>S/ {pedido.costo_envio.toFixed(2)}</span>
           </div>
-          <div className="flex justify-between font-display text-base font-semibold text-plum">
+          <div className="flex justify-between text-base font-semibold text-plum">
             <span>Total</span>
             <span>S/ {pedido.total.toFixed(2)}</span>
           </div>

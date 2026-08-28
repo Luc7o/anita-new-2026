@@ -110,7 +110,7 @@ export default function AdminCategorias() {
     <div>
       <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="font-display text-2xl font-semibold text-plum">Categorías</h1>
+          <h1 className="text-2xl font-semibold text-plum">Categorías</h1>
           <p className="text-sm text-plum-soft">Administra las categorías y subcategorías de productos.</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -186,7 +186,7 @@ export default function AdminCategorias() {
                   </div>
                 </td>
                 <td className="px-4 py-3">
-                  <p className="font-display font-medium text-plum">{cat.nombre}</p>
+                  <p className="font-medium text-plum">{cat.nombre}</p>
                   <p className="text-xs text-plum-soft">/{cat.slug}</p>
                 </td>
                 <td className="max-w-xs px-4 py-3 text-plum-soft">
@@ -273,7 +273,7 @@ export default function AdminCategorias() {
             </div>
             <div className="min-w-0 flex-1">
               <div className="flex items-start justify-between gap-2">
-                <p className="truncate font-display font-medium text-plum">{cat.nombre}</p>
+                <p className="truncate font-medium text-plum">{cat.nombre}</p>
                 <button
                   onClick={() => cambiarEstado(cat)}
                   className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold ${
@@ -344,7 +344,7 @@ export default function AdminCategorias() {
             onSubmit={guardar}
             className="glass-strong relative w-full max-w-md rounded-3xl p-6 shadow-glass-lg sm:p-8"
           >
-            <h2 id="categoria-form-titulo" className="mb-4 font-display text-xl font-semibold text-plum">
+            <h2 id="categoria-form-titulo" className="mb-4 text-xl font-semibold text-plum">
               {editandoId ? "Editar categoría" : "Nueva categoría"}
             </h2>
 
