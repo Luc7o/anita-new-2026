@@ -37,7 +37,7 @@ export default function OlvidePassword() {
         to="/ingresar"
         aria-label="Volver al inicio de sesión"
         className="absolute right-4 top-4 z-20 flex h-10 w-10 items-center justify-center rounded-full text-plum transition hover:text-berry hover:bg-white/30 hover:shadow-glass sm:right-6 sm:top-6 group"
-        title="Regresar a Iniciar Sesión"
+        
       >
         <svg 
           xmlns="http://www.w3.org/2000/svg" 
@@ -66,12 +66,12 @@ export default function OlvidePassword() {
         <div className="absolute inset-0 bg-plum/25" />
         <div className="glass relative z-10 rounded-2xl p-6 sm:p-8">
           <h1 className="text-4xl font-semibold leading-tight text-plum sm:text-5xl">
-            ¿Olvidaste tu
+            Recuperar tu
             <br />
-            Contraseña?
+            Contraseña
           </h1>
           <p className="mt-4 max-w-sm text-sm text-plum-soft sm:text-base">
-            No te preocupes. Ingresa el correo electrónico con el que te registraste y te enviaremos un enlace para crear una nueva contraseña.
+            No te preocupes. En Anita New Style cuidamos tu cuenta, te ayudamos a recuperar el acceso con unos simples pasos.
           </p>
           <div className="mt-6 flex items-center gap-4">
             <a 
