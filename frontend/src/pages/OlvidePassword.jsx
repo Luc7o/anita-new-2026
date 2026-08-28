@@ -31,7 +31,33 @@ export default function OlvidePassword() {
   };
 
   return (
-    <div className="flex min-h-screen w-full flex-col lg:flex-row">
+    <div className="relative flex min-h-screen w-full flex-col lg:flex-row">
+      {/* Botón "X" para regresar a login */}
+      <Link
+        to="/ingresar"
+        aria-label="Volver al inicio de sesión"
+        className="absolute right-4 top-4 z-20 flex h-10 w-10 items-center justify-center rounded-full text-plum transition hover:text-berry hover:bg-white/30 hover:shadow-glass sm:right-6 sm:top-6 group"
+        title="Regresar a Iniciar Sesión"
+      >
+        <svg 
+          xmlns="http://www.w3.org/2000/svg" 
+          width="18" 
+          height="18" 
+          viewBox="0 0 24 24" 
+          fill="none" 
+          stroke="currentColor" 
+          strokeWidth="2" 
+          strokeLinecap="round" 
+          strokeLinejoin="round"
+        >
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+        <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 whitespace-nowrap rounded bg-plum/80 px-2 py-1 text-[10px] text-white opacity-0 transition-opacity group-hover:opacity-100 pointer-events-none">
+          Regresar a Iniciar Sesión
+        </span>
+      </Link>
+
       {/* Columna de marca */}
       <div
         className="relative flex min-h-[320px] flex-col justify-end gap-6 overflow-hidden bg-cover p-6 sm:p-10 lg:w-1/2"
@@ -40,16 +66,21 @@ export default function OlvidePassword() {
         <div className="absolute inset-0 bg-plum/25" />
         <div className="glass relative z-10 rounded-2xl p-6 sm:p-8">
           <h1 className="text-4xl font-semibold leading-tight text-plum sm:text-5xl">
-            Recupera tu
+            ¿Olvidaste tu
             <br />
-            Cuenta
+            Contraseña?
           </h1>
           <p className="mt-4 max-w-sm text-sm text-plum-soft sm:text-base">
-            En Anita New Style cuidamos tu cuenta. Te ayudamos a recuperar el acceso
-            en unos simples pasos.
+            No te preocupes. Ingresa el correo electrónico con el que te registraste y te enviaremos un enlace para crear una nueva contraseña.
           </p>
           <div className="mt-6 flex items-center gap-4">
-            <a href="#" aria-label="Facebook" className="text-plum-soft transition hover:text-berry">
+            <a 
+              href="https://www.facebook.com/anitanewstyle" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              aria-label="Facebook" 
+              className="text-plum-soft transition hover:text-berry"
+            >
               <IconFacebook />
             </a>
             <a href="#" aria-label="Instagram" className="text-plum-soft transition hover:text-berry">
@@ -129,9 +160,16 @@ export default function OlvidePassword() {
                 <button
                   type="submit"
                   disabled={enviando}
-                  className="w-full rounded-lg bg-plum py-3.5 font-semibold text-white transition hover:bg-berry-dark disabled:opacity-60"
+                  className="w-full rounded-lg bg-plum py-3.5 font-semibold text-white transition hover:bg-berry-dark disabled:opacity-60 flex items-center justify-center gap-2"
                 >
-                  {enviando ? "Enviando..." : "Enviar Enlace de Recuperación"}
+                  {enviando ? (
+                    <>
+                      <span className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
+                      Enviando...
+                    </>
+                  ) : (
+                    "Enviar Enlace de Recuperación"
+                  )}
                 </button>
               </form>
 
