@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import { api } from "../api/client.js";
 import { useAuth } from "../context/AuthContext.jsx";
 import { useCarrito } from "../context/CarritoContext.jsx";
@@ -26,6 +26,9 @@ export default function ProductoDetalle() {
   const [miComentario, setMiComentario] = useState("");
   const [enviandoResena, setEnviandoResena] = useState(false);
   const [errorResena, setErrorResena] = useState("");
+  const [acordeonAbierto, setAcordeonAbierto] = useState(false);
+  const [acordeonPagoAbierto, setAcordeonPagoAbierto] = useState(false);
+  const [productosRelacionados, setProductosRelacionados] = useState([]);
 
   const cargarResenas = () => api.resenas(id).then((data) => setResenas(data.resenas));
 
@@ -67,22 +70,23 @@ export default function ProductoDetalle() {
   useEffect(() => {
     api.producto(id).then((data) => {
       setProducto(data);
-      // La talla no se preselecciona: el cliente debe elegirla a propósito.
-      // El color sí queda preseleccionado con el primero, porque es el que
-      // corresponde a la imagen que se muestra al entrar.
       setTalla("");
       setColor(data.colores?.[0] || "");
       const primera = data.imagenes?.[0]?.url || data.imagen_url;
       setImagenActiva(primera);
+
+      // Cargar productos relacionados (misma categoría)
+      if (data?.categoria_id) {
+        api.productos({ categoria_id: data.categoria_id, por_pagina: 8 })
+          .then((response) => {
+            const filtrados = response.productos.filter(p => p.id !== data.id);
+            setProductosRelacionados(filtrados);
+          })
+          .catch(() => {});
+      }
     });
   }, [id]);
 
-  // Disponibilidad de una talla/color para habilitar o no su botón.
-  // Si la OTRA dimensión ya está elegida, exige esa combinación exacta
-  // (como antes). Si la otra dimensión todavía no está elegida, alcanza con
-  // que exista AL MENOS una variante con esta talla/color (sin importar la
-  // otra) que tenga stock — así ningún botón queda bloqueado solo porque
-  // el cliente todavía no eligió el otro campo.
   const tallaDisponible = (t) => {
     if (!producto.usa_variantes) return true;
     if (color) return stockParaCombo(t, color) > 0;
@@ -95,8 +99,6 @@ export default function ProductoDetalle() {
     return (producto.variantes || []).some((v) => (v.color || null) === (c || null) && v.stock > 0);
   };
 
-  // Stock disponible para una combinación de talla/color. Si el producto no
-  // usa variantes, el stock es el mismo sin importar lo elegido.
   const stockParaCombo = (t, c) => {
     if (!producto || !producto.usa_variantes) return producto?.stock ?? 0;
     const tallaBuscada = producto.tallas?.length ? t : null;
@@ -107,7 +109,6 @@ export default function ProductoDetalle() {
     return variante ? variante.stock : 0;
   };
 
-  // Cuando el cliente cambia de color, mostramos la imagen asociada a ese color (si existe)
   useEffect(() => {
     if (!producto || !color) return;
     const imagenDelColor = producto.imagenes?.find((img) => img.color === color);
@@ -116,7 +117,6 @@ export default function ProductoDetalle() {
     }
   }, [color, producto]);
 
-  // Si la cantidad elegida ya no cabe en el stock de la combinación actual, la ajustamos
   useEffect(() => {
     if (!producto) return;
     const disponible = stockParaCombo(talla, color);
@@ -129,21 +129,16 @@ export default function ProductoDetalle() {
     return <p className="mx-auto max-w-6xl px-4 py-10 text-plum-soft">Cargando producto...</p>;
   }
 
-  // Falta elegir talla y/o color: solo aplica si el producto realmente
-  // ofrece esas opciones (algunos productos no tienen tallas ni colores).
   const faltaTalla = producto.tallas?.length > 0 && !talla;
   const faltaColor = producto.colores?.length > 0 && !color;
   const seleccionIncompleta = faltaTalla || faltaColor;
 
   const stockSeleccion = seleccionIncompleta ? 0 : stockParaCombo(talla, color);
-  // "Sin stock" solo se muestra cuando la selección YA está completa pero
-  // esa combinación específica no tiene stock — si todavía falta elegir,
-  // el mensaje correcto es pedir que elija, no decir que no hay stock.
   const sinStockEnCombo = !seleccionIncompleta && producto.usa_variantes && stockSeleccion <= 0;
   const esFavorito = favoritos?.esFavorito(producto.id);
 
   const textoBotonPendiente = () => {
-    if (faltaTalla && faltaColor) return "Elige talla y color";
+    if (faltaTalla && faltaColor) return "Escoge color y talla";
     if (faltaTalla) return "Elige una talla";
     if (faltaColor) return "Elige un color";
     return null;
@@ -193,10 +188,7 @@ export default function ProductoDetalle() {
   return (
     <div className="mx-auto max-w-6xl px-4 pb-16">
       <div className="grid gap-8 md:grid-cols-2">
-        {/* Galería: en mobile, la imagen grande arriba y las miniaturas debajo
-            en fila horizontal (flex-col-reverse muestra el último hijo del DOM
-            primero). Desde md hacia arriba, flex-row pone las miniaturas
-            (primer hijo del DOM) a la izquierda de la imagen grande. */}
+        {/* Galería */}
         <div className="flex flex-col-reverse gap-3 md:flex-row md:gap-4">
           {producto.imagenes?.length > 1 && (
             <div
@@ -278,6 +270,52 @@ export default function ProductoDetalle() {
           </div>
 
           <p className="mt-4 text-sm leading-relaxed text-plum-soft">{producto.descripcion}</p>
+
+          {/* Cuidados del producto */}
+          <div className="mt-6 rounded-xl border border-plum/10 bg-plum/5 p-4">
+            <h4 className="font-display text-sm font-semibold text-plum">Cuidados:</h4>
+            <ul className="mt-2 space-y-1 text-sm text-plum-soft">
+              <li>• Limpiar con paño suave y seco</li>
+              <li>• No exponer a humedad excesiva</li>
+              <li>• Aplicar crema protectora para cuero ecológico</li>
+            </ul>
+          </div>
+
+          {/* Envíos y Devoluciones */}
+          <div className="mt-4 border-b border-plum/10">
+            <button
+              onClick={() => setAcordeonAbierto(!acordeonAbierto)}
+              className="flex w-full items-center justify-between py-3 text-left font-display text-sm font-semibold text-plum"
+            >
+              <span>Envíos & Devoluciones</span>
+              <span className="text-berry">{acordeonAbierto ? "−" : "+"}</span>
+            </button>
+            {acordeonAbierto && (
+              <div className="pb-4 text-sm text-plum-soft">
+                <p>• Envíos a todo el Perú en 3-5 días hábiles.</p>
+                <p>• Cambios y devoluciones hasta 30 días después de la compra.</p>
+                <p>• Para más información, revisa nuestra <Link to="/cambios-devoluciones" className="text-berry hover:underline">política de cambios</Link>.</p>
+              </div>
+            )}
+          </div>
+
+          {/* Métodos de pago */}
+          <div className="mt-4 border-b border-plum/10">
+            <button
+              onClick={() => setAcordeonPagoAbierto(!acordeonPagoAbierto)}
+              className="flex w-full items-center justify-between py-3 text-left font-display text-sm font-semibold text-plum"
+            >
+              <span>Métodos de pago</span>
+              <span className="text-berry">{acordeonPagoAbierto ? "−" : "+"}</span>
+            </button>
+            {acordeonPagoAbierto && (
+              <div className="pb-4 text-sm text-plum-soft">
+                <p>• Tarjetas de crédito/débito (Visa, Mastercard, American Express).</p>
+                <p>• Yape, Plin y transferencias bancarias.</p>
+                <p>• Pago contraentrega en Huancayo (consulta disponibilidad).</p>
+              </div>
+            )}
+          </div>
 
           {producto.tallas?.length > 0 && (
             <div className="mt-5">
@@ -456,7 +494,7 @@ export default function ProductoDetalle() {
             Reseñas {resenas.length > 0 && `(${resenas.length})`}
           </h2>
           {resenas.length === 0 ? (
-            <p className="text-sm text-plum-soft">Este producto todavía no tiene reseñas.</p>
+            <p className="text-sm text-plum-soft">Sé la primera en reseñar este producto.</p>
           ) : (
             <div className="space-y-3">
               {resenas.map((r) => (
@@ -480,6 +518,36 @@ export default function ProductoDetalle() {
           )}
         </div>
       </div>
+
+      {/* Productos relacionados: También te puede interesar */}
+      {productosRelacionados.length > 0 && (
+        <section className="mt-16">
+          <h3 className="font-display text-xl font-semibold text-plum">
+            También te puede interesar
+          </h3>
+          <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+            {productosRelacionados.slice(0, 4).map((rel) => (
+              <Link
+                key={rel.id}
+                to={`/producto/${rel.id}`}
+                className="group rounded-xl border border-plum/10 p-3 transition hover:shadow-glass"
+              >
+                <img
+                  src={rel.imagen_url || "/placeholder.png"}
+                  alt={rel.nombre}
+                  className="h-40 w-full rounded-lg object-cover"
+                />
+                <p className="mt-2 text-sm font-medium text-plum group-hover:text-berry transition">
+                  {rel.nombre}
+                </p>
+                <p className="text-sm font-semibold text-plum">
+                  S/ {rel.precio_final?.toFixed(2) || rel.precio?.toFixed(2)}
+                </p>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   );
 }
