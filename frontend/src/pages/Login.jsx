@@ -1,6 +1,7 @@
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
+import { soloTexto } from "../validacion.js";
 import {
   IconEye,
   IconEyeOff,
@@ -15,14 +16,25 @@ import loginHero from "../assets/auth/login-hero.jpg";
 const CLAVE_RECORDAR = "ans_recordar_email";
 
 export default function Login() {
-  const { login } = useAuth();
+  const { login, continuarComoInvitado } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [email, setEmail] = useState(() => localStorage.getItem(CLAVE_RECORDAR) || "");
   const [password, setPassword] = useState("");
   const [recordar, setRecordar] = useState(() => Boolean(localStorage.getItem(CLAVE_RECORDAR)));
   const [verPassword, setVerPassword] = useState(false);
   const [error, setError] = useState("");
   const [enviando, setEnviando] = useState(false);
+
+  // Checkout como invitado: no exige contraseña, solo lo mínimo para poder
+  // armar el pedido y avisarle cuando esté listo. Se ofrece como alternativa
+  // al login/registro de siempre, no lo reemplaza.
+  const [invitadoAbierto, setInvitadoAbierto] = useState(false);
+  const [formInvitado, setFormInvitado] = useState({ nombre: "", apellido: "", email: "" });
+  const [errorInvitado, setErrorInvitado] = useState("");
+  const [enviandoInvitado, setEnviandoInvitado] = useState(false);
+
+  const destino = location.state?.from || "/";
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -35,11 +47,30 @@ export default function Login() {
       } else {
         localStorage.removeItem(CLAVE_RECORDAR);
       }
-      navigate("/");
+      navigate(destino);
     } catch (err) {
       setError(err.message);
     } finally {
       setEnviando(false);
+    }
+  };
+
+  const actualizarInvitado = (campo, filtro) => (e) => {
+    const valor = filtro ? filtro(e.target.value) : e.target.value;
+    setFormInvitado((prev) => ({ ...prev, [campo]: valor }));
+  };
+
+  const handleSubmitInvitado = async (e) => {
+    e.preventDefault();
+    setErrorInvitado("");
+    setEnviandoInvitado(true);
+    try {
+      await continuarComoInvitado(formInvitado);
+      navigate(destino);
+    } catch (err) {
+      setErrorInvitado(err.message);
+    } finally {
+      setEnviandoInvitado(false);
     }
   };
 
@@ -180,6 +211,87 @@ export default function Login() {
               Crear cuenta.
             </Link>
           </p>
+
+          <div className="my-6 flex items-center gap-3 text-xs font-medium uppercase tracking-wide text-plum-soft/70">
+            <span className="h-px flex-1 bg-plum/10" />
+            o
+            <span className="h-px flex-1 bg-plum/10" />
+          </div>
+
+          {!invitadoAbierto ? (
+            <button
+              type="button"
+              onClick={() => setInvitadoAbierto(true)}
+              className="glass w-full rounded-full py-3 text-center text-sm font-semibold text-plum shadow-glass transition hover:bg-white/60"
+            >
+              Comprar sin crear cuenta
+            </button>
+          ) : (
+            <form
+              onSubmit={handleSubmitInvitado}
+              className="glass space-y-3 rounded-3xl p-5 shadow-glass"
+            >
+              <div>
+                <p className="font-display text-base font-semibold text-plum">Comprar como invitada</p>
+                <p className="mt-0.5 text-xs text-plum-soft">
+                  Solo lo necesario para armar tu pedido. Si quieres, más adelante puedes ponerle
+                  contraseña a esta cuenta para volver a entrar.
+                </p>
+              </div>
+
+              <div>
+                <label htmlFor="inv-nombre" className="sr-only">Nombre</label>
+                <input
+                  id="inv-nombre"
+                  placeholder="Nombre"
+                  required
+                  maxLength={80}
+                  value={formInvitado.nombre}
+                  onChange={actualizarInvitado("nombre", soloTexto)}
+                  className="w-full rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-none"
+                />
+              </div>
+              <div>
+                <label htmlFor="inv-apellido" className="sr-only">Apellido</label>
+                <input
+                  id="inv-apellido"
+                  placeholder="Apellido"
+                  required
+                  maxLength={80}
+                  value={formInvitado.apellido}
+                  onChange={actualizarInvitado("apellido", soloTexto)}
+                  className="w-full rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-none"
+                />
+              </div>
+              <div>
+                <label htmlFor="inv-email" className="sr-only">Correo electrónico</label>
+                <input
+                  id="inv-email"
+                  type="email"
+                  placeholder="ejemplo@correo.com"
+                  required
+                  maxLength={120}
+                  value={formInvitado.email}
+                  onChange={actualizarInvitado("email")}
+                  className="w-full rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-none"
+                />
+              </div>
+
+              {errorInvitado && (
+                <p className="text-sm text-berry-dark" role="alert">
+                  {errorInvitado}
+                </p>
+              )}
+
+              <button
+                type="submit"
+                disabled={enviandoInvitado}
+                className="w-full rounded-full bg-berry py-3 font-semibold text-white shadow-glass-lg transition hover:bg-berry-dark disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {enviandoInvitado ? "Un momento..." : "Continuar"}
+              </button>
+            </form>
+          )}
         </div>
       </div>
     </div>

@@ -122,7 +122,9 @@ export default function ProductoDetalle() {
 
   const handleAgregar = async () => {
     if (!usuario) {
-      navigate("/ingresar");
+      // Guardamos desde dónde vino para que, si elige "Comprar sin crear
+      // cuenta", vuelva acá mismo en vez de al inicio.
+      navigate("/ingresar", { state: { from: `/producto/${producto.id}` } });
       return;
     }
     setAgregando(true);
@@ -139,7 +141,7 @@ export default function ProductoDetalle() {
 
   const handleComprar = async () => {
     if (!usuario) {
-      navigate("/ingresar");
+      navigate("/ingresar", { state: { from: `/producto/${producto.id}` } });
       return;
     }
     setAgregando(true);
