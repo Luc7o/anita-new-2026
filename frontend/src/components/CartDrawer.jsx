@@ -42,7 +42,7 @@ export default function CartDrawer() {
         className="glass-strong relative flex h-full w-full max-w-md flex-col gap-4 rounded-l-3xl p-6 shadow-glass-lg"
       >
         <div className="flex items-center justify-between">
-          <h2 id="carrito-titulo" className="font-display text-xl font-semibold text-plum">Tu carrito</h2>
+          <h2 id="carrito-titulo" className="text-xl font-semibold text-plum">Tu carrito</h2>
           <button
             onClick={() => setDrawerAbierto(false)}
             className="rounded-full p-2 text-plum-soft hover:bg-white/50"
@@ -74,7 +74,7 @@ export default function CartDrawer() {
                 <div key={item.id} className="glass flex gap-3 rounded-2xl p-3">
                   <div className="h-16 w-16 shrink-0 rounded-xl bg-gradient-to-br from-lilac to-white" />
                   <div className="flex flex-1 flex-col">
-                    <span className="font-display text-sm font-medium text-plum">
+                    <span className="text-sm font-medium text-plum">
                       {item.producto.nombre}
                     </span>
                     <span className="text-xs text-plum-soft">
@@ -99,7 +99,7 @@ export default function CartDrawer() {
                           +
                         </button>
                       </div>
-                      <span className="font-display text-sm font-semibold text-berry-dark">
+                      <span className="text-sm font-semibold text-berry-dark">
                         S/ {item.subtotal.toFixed(2)}
                       </span>
                     </div>
@@ -119,7 +119,7 @@ export default function CartDrawer() {
             </div>
 
             <div className="space-y-3 border-t border-white/50 pt-4">
-              <div className="flex items-center justify-between font-display text-lg font-semibold text-plum">
+              <div className="flex items-center justify-between text-lg font-semibold text-plum">
                 <span>Total</span>
                 <span>S/ {total.toFixed(2)}</span>
               </div>

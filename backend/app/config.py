@@ -54,7 +54,12 @@ class Config:
     JWT_COOKIE_SECURE = _es_produccion
     JWT_COOKIE_SAMESITE = "None" if _es_produccion else "Lax"
 
-    FRONTEND_ORIGIN = os.getenv("FRONTEND_ORIGIN", "http://localhost:5173")
+    # Acepta uno o varios orígenes separados por coma (útil durante la
+    # migración al dominio propio, mientras el frontend puede estar servido
+    # tanto desde *.vercel.app como desde el dominio custom). Ejemplo:
+    # "https://anita-new-2026.vercel.app,https://www.anita-new-style.xyz"
+    _frontend_origin_raw = os.getenv("FRONTEND_ORIGIN", "http://localhost:5173")
+    FRONTEND_ORIGIN = [origen.strip() for origen in _frontend_origin_raw.split(",") if origen.strip()]
 
     # Backend de almacenamiento para Flask-Limiter (cuenta los intentos de
     # login, registro, recuperación de contraseña, etc.). En Vercel el

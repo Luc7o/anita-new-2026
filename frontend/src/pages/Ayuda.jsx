@@ -6,7 +6,7 @@ export default function Ayuda() {
   return (
     <CuentaLayout>
       <div className="glass space-y-5 rounded-3xl p-6 shadow-glass sm:p-8">
-        <h2 className="font-display text-xl font-semibold text-plum">¿Necesitas ayuda?</h2>
+        <h2 className="text-xl font-semibold text-plum">¿Necesitas ayuda?</h2>
         <p className="text-sm text-plum-soft">
           Si tienes dudas sobre un pedido, un pago o tu cuenta, puedes escribirnos por estos medios.
         </p>

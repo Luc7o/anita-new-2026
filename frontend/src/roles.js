@@ -1,10 +1,43 @@
-export const ROLES_ADMIN = ["superadmin", "moderador", "editor", "soporte", "auditor"];
+export const SUPERADMIN = "superadmin";
+export const ADMINISTRATIVO = "administrativo";
+export const VENTAS = "ventas";
+export const ALMACEN = "almacen";
+export const RRHH = "rrhh";
+export const CLIENTE = "cliente";
+export const SOPORTE = "soporte";
+export const AUDITOR = "auditor";
 
-export const PUEDE_VER_PRODUCTOS = ["superadmin", "moderador", "editor", "auditor"];
-export const PUEDE_VER_PEDIDOS = ["superadmin", "moderador", "soporte", "auditor"];
-export const PUEDE_GESTIONAR_PEDIDOS = ["superadmin", "moderador", "soporte"];
-export const PUEDE_VER_PROVEEDORES = ["superadmin", "editor", "moderador", "auditor"];
-export const PUEDE_GESTIONAR_PROMOCIONES = ["superadmin", "moderador", "editor"];
-export const PUEDE_VER_PROMOCIONES = ["superadmin", "moderador", "editor", "auditor"];
-export const PUEDE_GESTIONAR_USUARIOS = ["superadmin"];
-export const PUEDE_VER_DASHBOARD = ROLES_ADMIN;
+export const ROLES_ADMIN = [SUPERADMIN, ADMINISTRATIVO, VENTAS, ALMACEN, RRHH, SOPORTE, AUDITOR];
+
+export const PUEDE_GESTIONAR_PRODUCTOS = [SUPERADMIN, ADMINISTRATIVO];
+export const PUEDE_GESTIONAR_STOCK = [SUPERADMIN, ADMINISTRATIVO, ALMACEN];
+export const PUEDE_VER_PRODUCTOS = [...PUEDE_GESTIONAR_STOCK, VENTAS, SOPORTE, AUDITOR];
+
+export const PUEDE_GESTIONAR_CATEGORIAS = [SUPERADMIN, ADMINISTRATIVO];
+export const PUEDE_VER_CATEGORIAS = [...PUEDE_GESTIONAR_CATEGORIAS, AUDITOR];
+
+export const PUEDE_GESTIONAR_PROMOCIONES = [SUPERADMIN, ADMINISTRATIVO];
+export const PUEDE_VER_PROMOCIONES = [...PUEDE_GESTIONAR_PROMOCIONES, AUDITOR];
+
+export const PUEDE_GESTIONAR_PROVEEDORES = [SUPERADMIN, ADMINISTRATIVO, ALMACEN];
+export const PUEDE_VER_PROVEEDORES = [...PUEDE_GESTIONAR_PROVEEDORES, AUDITOR];
+
+export const PUEDE_GESTIONAR_PEDIDOS = [SUPERADMIN, VENTAS, ALMACEN];
+export const PUEDE_VER_PEDIDOS = [...PUEDE_GESTIONAR_PEDIDOS, ADMINISTRATIVO, SOPORTE, AUDITOR];
+
+export const PUEDE_GESTIONAR_REEMBOLSOS = [SUPERADMIN, VENTAS];
+export const PUEDE_REGISTRAR_VENTA = [SUPERADMIN, VENTAS];
+
+export const PUEDE_GESTIONAR_RESENAS = [SUPERADMIN, VENTAS, SOPORTE];
+export const PUEDE_VER_RESENAS = [...PUEDE_GESTIONAR_RESENAS, AUDITOR];
+
+export const PUEDE_VER_DASHBOARD = [SUPERADMIN, ADMINISTRATIVO, AUDITOR];
+export const PUEDE_VER_DASHBOARD_VENTAS = [SUPERADMIN, ADMINISTRATIVO, VENTAS, AUDITOR];
+export const PUEDE_VER_DASHBOARD_STOCK = [SUPERADMIN, ADMINISTRATIVO, ALMACEN, AUDITOR];
+export const PUEDE_VER_REPORTES = [SUPERADMIN, ADMINISTRATIVO, VENTAS, ALMACEN, AUDITOR];
+
+export const PUEDE_GESTIONAR_USUARIOS = [SUPERADMIN, RRHH];
+export const PUEDE_VER_USUARIOS = [...PUEDE_GESTIONAR_USUARIOS, AUDITOR];
+
+export const PUEDE_GESTIONAR_CONFIGURACION = [SUPERADMIN];
+export const PUEDE_VER_CONFIGURACION = [...PUEDE_GESTIONAR_CONFIGURACION, AUDITOR];

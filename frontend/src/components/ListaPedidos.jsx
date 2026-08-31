@@ -30,12 +30,12 @@ export default function ListaPedidos({ pedidosBase = "/pedidos" }) {
           className="glass flex items-center justify-between rounded-2xl p-4 shadow-glass transition hover:-translate-y-0.5"
         >
           <div>
-            <p className="font-display font-medium text-plum">{p.numero_pedido}</p>
+            <p className="font-medium text-plum">{p.numero_pedido}</p>
             <p className="text-sm text-plum-soft">
               {new Date(p.fecha_creacion).toLocaleDateString("es-PE")} · {p.estado_label}
             </p>
           </div>
-          <span className="font-display font-semibold text-berry-dark">
+          <span className="font-semibold text-berry-dark">
             S/ {p.total.toFixed(2)}
           </span>
         </Link>

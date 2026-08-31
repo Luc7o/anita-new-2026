@@ -3,7 +3,7 @@ from flask import Blueprint, request, jsonify
 from app.extensions import db
 from app.models import Categoria
 from app.utils.decorators import requiere_roles
-from app.roles import PUEDE_VER_PRODUCTOS, PUEDE_GESTIONAR_PRODUCTOS
+from app.roles import PUEDE_VER_CATEGORIAS, PUEDE_GESTIONAR_CATEGORIAS
 
 bp = Blueprint("admin_categorias", __name__, url_prefix="/api/admin/categorias")
 
@@ -16,14 +16,14 @@ def _slugificar(texto):
 
 
 @bp.get("")
-@requiere_roles(*PUEDE_VER_PRODUCTOS)
+@requiere_roles(*PUEDE_VER_CATEGORIAS)
 def listar():
     categorias = Categoria.query.order_by(Categoria.nombre).all()
     return jsonify([c.to_dict() for c in categorias])
 
 
 @bp.post("")
-@requiere_roles(*PUEDE_GESTIONAR_PRODUCTOS)
+@requiere_roles(*PUEDE_GESTIONAR_CATEGORIAS)
 def crear():
     data = request.get_json(force=True) or {}
     nombre = (data.get("nombre") or "").strip()
@@ -46,7 +46,7 @@ def crear():
 
 
 @bp.put("/<int:categoria_id>")
-@requiere_roles(*PUEDE_GESTIONAR_PRODUCTOS)
+@requiere_roles(*PUEDE_GESTIONAR_CATEGORIAS)
 def actualizar(categoria_id):
     categoria = Categoria.query.get_or_404(categoria_id)
     data = request.get_json(force=True) or {}
@@ -66,7 +66,7 @@ def actualizar(categoria_id):
 
 
 @bp.delete("/<int:categoria_id>")
-@requiere_roles(*PUEDE_GESTIONAR_PRODUCTOS)
+@requiere_roles(*PUEDE_GESTIONAR_CATEGORIAS)
 def eliminar(categoria_id):
     categoria = Categoria.query.get_or_404(categoria_id)
     if categoria.productos.count() > 0:

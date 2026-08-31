@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
 from app.utils.decorators import requiere_roles
 from app.utils.imagenes import guardar_imagen, ImagenInvalida
-from app.roles import PUEDE_GESTIONAR_PRODUCTOS, PUEDE_GESTIONAR_USUARIOS, PUEDE_GESTIONAR_PROMOCIONES
+from app.roles import PUEDE_GESTIONAR_PRODUCTOS, PUEDE_GESTIONAR_CONFIGURACION, PUEDE_GESTIONAR_PROMOCIONES
 
 bp = Blueprint("admin_uploads", __name__, url_prefix="/api/admin/uploads")
 
@@ -27,7 +27,7 @@ def subir_imagen_promocion():
 
 
 @bp.post("/qr-pago")
-@requiere_roles(*PUEDE_GESTIONAR_USUARIOS)
+@requiere_roles(*PUEDE_GESTIONAR_CONFIGURACION)
 def subir_qr_pago():
     try:
         url = guardar_imagen(request.files.get("imagen"), "pagos")

@@ -107,7 +107,7 @@ export default function AdminPromociones() {
 
   return (
     <div>
-      <h1 className="mb-1 font-display text-2xl font-semibold text-plum">Promociones de Temporada</h1>
+      <h1 className="mb-1 text-2xl font-semibold text-plum">Promociones de Temporada</h1>
       <p className="mb-6 text-sm text-plum-soft">
         Los banners que se muestran en el carrusel del inicio. Puedes crear una para el Día de la Madre,
         el Día del Niño, Navidad, etc. y activarla solo mientras dure la campaña.
@@ -115,7 +115,7 @@ export default function AdminPromociones() {
 
       <div className="grid gap-6 md:grid-cols-[1.2fr_1fr]">
         <form onSubmit={guardar} className="glass h-fit space-y-3 rounded-3xl p-6 shadow-glass">
-          <h2 className="font-display text-lg font-semibold text-plum">
+          <h2 className="text-lg font-semibold text-plum">
             {editandoId ? "Editar promoción" : "Nueva promoción"}
           </h2>
 
@@ -249,7 +249,7 @@ export default function AdminPromociones() {
                       {promo.etiqueta}
                     </p>
                   )}
-                  <p className="truncate font-display font-medium text-plum">{promo.titulo}</p>
+                  <p className="truncate font-medium text-plum">{promo.titulo}</p>
                   <p className="text-xs text-plum-soft">
                     {promo.fecha_inicio || promo.fecha_fin
                       ? `${promo.fecha_inicio || "sin inicio"} — ${promo.fecha_fin || "sin fin"}`

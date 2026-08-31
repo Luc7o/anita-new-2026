@@ -228,7 +228,7 @@ export default function ProductoDetalle() {
                 className="h-full w-full object-cover transition"
               />
             ) : (
-              <div className="flex h-full items-center justify-center bg-gradient-to-br from-lilac to-white font-display text-5xl text-berry-light/60">
+              <div className="flex h-full items-center justify-center bg-gradient-to-br from-lilac to-white text-5xl text-berry-light/60">
                 {producto.nombre.slice(0, 1)}
               </div>
             )}
@@ -241,7 +241,7 @@ export default function ProductoDetalle() {
               <span className="text-xs uppercase tracking-wide text-plum-soft">
                 {producto.categoria_nombre}
               </span>
-              <h1 className="mt-1 font-display text-3xl font-semibold text-plum">
+              <h1 className="mt-1 text-3xl font-semibold text-plum">
                 {producto.nombre}
                 {talla && ` ${talla}`}
               </h1>
@@ -269,7 +269,7 @@ export default function ProductoDetalle() {
           )}
 
           <div className="mt-4 flex items-baseline gap-3">
-            <span className="font-display text-2xl font-semibold text-berry-dark">
+            <span className="text-2xl font-semibold text-berry-dark">
               S/ {producto.precio_final.toFixed(2)}
             </span>
             {producto.tiene_oferta && (
@@ -417,7 +417,7 @@ export default function ProductoDetalle() {
       {/* Calificación y reseñas */}
       <div className="mt-10 grid gap-8 md:grid-cols-2">
         <div className="glass rounded-3xl p-6 shadow-glass sm:p-8">
-          <h2 className="font-display text-xl font-semibold text-plum">Escribe tu reseña</h2>
+          <h2 className="text-xl font-semibold text-plum">Escribe tu reseña</h2>
           {usuario ? (
             <form onSubmit={enviarResena} className="mt-4 space-y-3">
               <Estrellas valor={miCalificacion} onChange={setMiCalificacion} size={24} />
@@ -452,7 +452,7 @@ export default function ProductoDetalle() {
         </div>
 
         <div>
-          <h2 className="mb-4 font-display text-xl font-semibold text-plum">
+          <h2 className="mb-4 text-xl font-semibold text-plum">
             Reseñas {resenas.length > 0 && `(${resenas.length})`}
           </h2>
           {resenas.length === 0 ? (

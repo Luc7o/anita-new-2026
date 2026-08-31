@@ -1,14 +1,19 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, g
 from sqlalchemy.orm import joinedload, selectinload
 from sqlalchemy.exc import IntegrityError
 from app.extensions import db
 from app.models import Producto, Categoria, ImagenProducto, VarianteProducto
 from app.utils.decorators import requiere_roles
-from app.roles import PUEDE_VER_PRODUCTOS, PUEDE_GESTIONAR_PRODUCTOS
+from app.roles import PUEDE_VER_PRODUCTOS, PUEDE_GESTIONAR_PRODUCTOS, PUEDE_GESTIONAR_STOCK
 
 bp = Blueprint("admin_productos", __name__, url_prefix="/api/admin/productos")
 
 MINIMO_IMAGENES = 4
+
+# Campos que Almacén SÍ puede tocar en el PUT de un producto (todo lo demás
+# — precio, nombre, categoría, imágenes, etc. — es exclusivo de quien
+# gestiona el producto completo, no solo su stock).
+CAMPOS_PERMITIDOS_SOLO_STOCK = {"stock", "tallas", "colores", "variantes"}
 
 
 def _validar_imagenes(imagenes):
@@ -222,10 +227,24 @@ def crear():
 
 
 @bp.put("/<int:producto_id>")
-@requiere_roles(*PUEDE_GESTIONAR_PRODUCTOS)
+@requiere_roles(*PUEDE_GESTIONAR_STOCK)
 def actualizar(producto_id):
     producto = Producto.query.get_or_404(producto_id)
     data = request.get_json(force=True) or {}
+
+    # Almacén (que no está en PUEDE_GESTIONAR_PRODUCTOS) solo puede tocar
+    # stock/variantes por esta vía — si manda cualquier otro campo (precio,
+    # nombre, categoría, imágenes, etc.), se rechaza la petición completa
+    # para no dejarle editar nada del producto en sí.
+    if g.usuario.rol not in PUEDE_GESTIONAR_PRODUCTOS:
+        campos_no_permitidos = set(data.keys()) - CAMPOS_PERMITIDOS_SOLO_STOCK
+        if campos_no_permitidos:
+            return jsonify({
+                "error": (
+                    "Tu rol solo puede actualizar el stock de este producto, no "
+                    f"estos campos: {', '.join(sorted(campos_no_permitidos))}"
+                )
+            }), 403
 
     if "categoria_id" in data and not Categoria.query.get(data["categoria_id"]):
         return jsonify({"error": "Categoría no válida"}), 400
