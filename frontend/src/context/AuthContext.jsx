@@ -49,6 +49,14 @@ export function AuthProvider({ children }) {
     return data.usuario;
   };
 
+  const continuarComoInvitado = async (payload) => {
+    const data = await api.continuarComoInvitado(payload);
+    setAccessToken(data.token);
+    setUsuario(data.usuario);
+    setSesionExpirada(false);
+    return data.usuario;
+  };
+
   const logout = () => {
     api.logout().catch(() => {}); // limpia la cookie en el servidor; si falla, igual limpiamos local
     clearAccessToken();
@@ -57,7 +65,17 @@ export function AuthProvider({ children }) {
 
   return (
     <AuthContext.Provider
-      value={{ usuario, cargando, sesionExpirada, setSesionExpirada, login, registro, logout, setUsuario }}
+      value={{
+        usuario,
+        cargando,
+        sesionExpirada,
+        setSesionExpirada,
+        login,
+        registro,
+        continuarComoInvitado,
+        logout,
+        setUsuario,
+      }}
     >
       {children}
     </AuthContext.Provider>

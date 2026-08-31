@@ -71,6 +71,80 @@ def registro():
     return respuesta, 201
 
 
+@bp.post("/invitado")
+@limiter.limit("10 per hour")
+def continuar_como_invitado():
+    """
+    Checkout como invitado (sprint 1, tarea 4): crea una cuenta SIN
+    contraseña para poder comprar sin pasar por el formulario de registro
+    completo. Le damos sesión (JWT) igual que en un login/registro normal,
+    así el resto del sitio — carrito, checkout — no necesita saber que es
+    una cuenta de invitado, funciona exactamente igual.
+
+    Le queda pendiente ponerle contraseña si quiere volver a entrar
+    después; eso se ofrece recién en la confirmación del pedido (ver
+    /auth/completar-cuenta más abajo), nunca se exige antes de comprar.
+    """
+    data = request.get_json(force=True) or {}
+    campos_requeridos = ["nombre", "apellido", "email"]
+    faltantes = [c for c in campos_requeridos if not data.get(c)]
+    if faltantes:
+        return jsonify({"error": f"Faltan campos: {', '.join(faltantes)}"}), 400
+
+    email = data["email"].lower().strip()[:120]
+    if Usuario.query.filter_by(email=email).first():
+        # No decimos si esa cuenta ya tiene contraseña o sigue siendo de
+        # invitado — en cualquier caso ya existe, así que la salida es la
+        # misma: que inicie sesión (o recupere su contraseña si nunca le
+        # puso una, desde "¿Olvidaste tu contraseña?").
+        return jsonify({
+            "error": "Ese correo ya tiene una cuenta. Inicia sesión para continuar con tu compra."
+        }), 409
+
+    usuario = Usuario(
+        nombre=data["nombre"].strip()[:80],
+        apellido=data["apellido"].strip()[:80],
+        email=email,
+        telefono=(data.get("telefono") or "").strip()[:20] or None,
+        password_hash=None,
+        es_invitado=True,
+    )
+    db.session.add(usuario)
+    db.session.commit()
+
+    token = create_access_token(identity=str(usuario.id))
+    refresh_token = create_refresh_token(identity=str(usuario.id))
+    respuesta = jsonify({"token": token, "usuario": usuario.to_dict()})
+    set_refresh_cookies(respuesta, refresh_token)
+    return respuesta, 201
+
+
+@bp.post("/completar-cuenta")
+@requiere_activo
+def completar_cuenta():
+    """
+    Convierte una cuenta de invitado (creada en /auth/invitado, sin
+    contraseña) en una cuenta completa, poniéndole una contraseña para que
+    la persona pueda volver a entrar más adelante y ver su historial. Se
+    ofrece en la pantalla de confirmación del pedido — si no la usa, la
+    cuenta sigue existiendo igual (con su pedido a salvo), solo que no va a
+    poder loguearse de nuevo sin pasar por "olvidé mi contraseña".
+    """
+    usuario = Usuario.query.get_or_404(int(get_jwt_identity()))
+    if not usuario.es_invitado:
+        return jsonify({"error": "Esta cuenta ya tiene contraseña"}), 400
+
+    data = request.get_json(force=True) or {}
+    password = data.get("password") or ""
+    if len(password) < 6:
+        return jsonify({"error": "La contraseña debe tener al menos 6 caracteres"}), 400
+
+    usuario.set_password(password)
+    usuario.es_invitado = False
+    db.session.commit()
+    return jsonify(usuario.to_dict())
+
+
 @bp.post("/login")
 @limiter.limit("10 per minute")
 def login():

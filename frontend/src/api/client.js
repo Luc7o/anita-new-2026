@@ -173,6 +173,9 @@ async function descargarPdf(path, nombreArchivo) {
 export const api = {
   // Auth
   registro: (payload) => request("/auth/registro", { method: "POST", body: payload }),
+  continuarComoInvitado: (payload) => request("/auth/invitado", { method: "POST", body: payload }),
+  completarCuenta: (payload) =>
+    request("/auth/completar-cuenta", { method: "POST", body: payload, auth: true }),
   refrescarToken: () => refrescarAccessToken(),
   consultarDocumento: (tipo, numero) =>
     request(`/documentos/consultar?tipo=${encodeURIComponent(tipo)}&numero=${encodeURIComponent(numero)}`),
