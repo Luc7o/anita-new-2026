@@ -26,8 +26,6 @@ export default function ProductoDetalle() {
   const [miComentario, setMiComentario] = useState("");
   const [enviandoResena, setEnviandoResena] = useState(false);
   const [errorResena, setErrorResena] = useState("");
-  const [acordeonAbierto, setAcordeonAbierto] = useState(false);
-  const [acordeonPagoAbierto, setAcordeonPagoAbierto] = useState(false);
   const [productosRelacionados, setProductosRelacionados] = useState([]);
 
   const cargarResenas = () => api.resenas(id).then((data) => setResenas(data.resenas));
@@ -186,7 +184,7 @@ export default function ProductoDetalle() {
   };
 
   return (
-    <div className="mx-auto max-w-6xl px-4 pb-16">
+    <div className="mx-auto max-w-7xl px-6 pb-16">
       <div className="grid gap-8 md:grid-cols-2">
         {/* Galería */}
         <div className="flex flex-col-reverse gap-3 md:flex-row md:gap-4">
@@ -270,52 +268,6 @@ export default function ProductoDetalle() {
           </div>
 
           <p className="mt-4 text-sm leading-relaxed text-plum-soft">{producto.descripcion}</p>
-
-          {/* Cuidados del producto */}
-          <div className="mt-6 rounded-xl border border-plum/10 bg-plum/5 p-4">
-            <h4 className="font-display text-sm font-semibold text-plum">Cuidados:</h4>
-            <ul className="mt-2 space-y-1 text-sm text-plum-soft">
-              <li>• Limpiar con paño suave y seco</li>
-              <li>• No exponer a humedad excesiva</li>
-              <li>• Aplicar crema protectora para cuero ecológico</li>
-            </ul>
-          </div>
-
-          {/* Envíos y Devoluciones */}
-          <div className="mt-4 border-b border-plum/10">
-            <button
-              onClick={() => setAcordeonAbierto(!acordeonAbierto)}
-              className="flex w-full items-center justify-between py-3 text-left font-display text-sm font-semibold text-plum"
-            >
-              <span>Envíos & Devoluciones</span>
-              <span className="text-berry">{acordeonAbierto ? "−" : "+"}</span>
-            </button>
-            {acordeonAbierto && (
-              <div className="pb-4 text-sm text-plum-soft">
-                <p>• Envíos a todo el Perú en 3-5 días hábiles.</p>
-                <p>• Cambios y devoluciones hasta 30 días después de la compra.</p>
-                <p>• Para más información, revisa nuestra <Link to="/cambios-devoluciones" className="text-berry hover:underline">política de cambios</Link>.</p>
-              </div>
-            )}
-          </div>
-
-          {/* Métodos de pago */}
-          <div className="mt-4 border-b border-plum/10">
-            <button
-              onClick={() => setAcordeonPagoAbierto(!acordeonPagoAbierto)}
-              className="flex w-full items-center justify-between py-3 text-left font-display text-sm font-semibold text-plum"
-            >
-              <span>Métodos de pago</span>
-              <span className="text-berry">{acordeonPagoAbierto ? "−" : "+"}</span>
-            </button>
-            {acordeonPagoAbierto && (
-              <div className="pb-4 text-sm text-plum-soft">
-                <p>• Tarjetas de crédito/débito (Visa, Mastercard, American Express).</p>
-                <p>• Yape, Plin y transferencias bancarias.</p>
-                <p>• Pago contraentrega en Huancayo (consulta disponibilidad).</p>
-              </div>
-            )}
-          </div>
 
           {producto.tallas?.length > 0 && (
             <div className="mt-5">
@@ -548,6 +500,44 @@ export default function ProductoDetalle() {
           </div>
         </section>
       )}
+
+      {/* Cuidados, Envíos y Métodos de Pago - AL FINAL DE TODO */}
+      <section className="mt-16 grid gap-6 sm:grid-cols-3 border-t border-plum/10 pt-10">
+        {/* Cuidados */}
+        <div className="rounded-xl border border-plum/10 bg-plum/5 p-5">
+          <h4 className="font-display text-lg font-semibold text-plum">Cuidados:</h4>
+          <ul className="mt-3 space-y-1.5 text-sm text-plum-soft">
+            <li>• Limpiar con paño suave y seco</li>
+            <li>• No exponer a humedad excesiva</li>
+            <li>• Aplicar crema protectora para cuero ecológico</li>
+          </ul>
+        </div>
+
+        {/* Envíos y Devoluciones */}
+        <div className="rounded-xl border border-plum/10 bg-plum/5 p-5">
+          <h4 className="font-display text-lg font-semibold text-plum">Envíos & Devoluciones</h4>
+          <ul className="mt-3 space-y-1.5 text-sm text-plum-soft">
+            <li>• Envíos a todo el Perú en 3-5 días hábiles.</li>
+            <li>• Cambios y devoluciones hasta 30 días después de la compra.</li>
+            <li>
+              • Para más información, revisa nuestra{" "}
+              <Link to="/cambios-devoluciones" className="text-berry hover:underline">
+                política de cambios
+              </Link>.
+            </li>
+          </ul>
+        </div>
+
+        {/* Métodos de pago */}
+        <div className="rounded-xl border border-plum/10 bg-plum/5 p-5">
+          <h4 className="font-display text-lg font-semibold text-plum">Métodos de pago</h4>
+          <ul className="mt-3 space-y-1.5 text-sm text-plum-soft">
+            <li>• Tarjetas de crédito/débito (Visa, Mastercard, American Express).</li>
+            <li>• Yape, Plin y transferencias bancarias.</li>
+            <li>• Pago contraentrega en Huancayo (consulta disponibilidad).</li>
+          </ul>
+        </div>
+      </section>
     </div>
   );
 }
