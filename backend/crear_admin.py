@@ -58,3 +58,4 @@ if __name__ == "__main__":
     rol = sys.argv[5] if len(sys.argv) > 5 else "superadmin"
 
     crear_admin(email, password, nombre, apellido, rol)
+    
