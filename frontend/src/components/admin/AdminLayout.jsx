@@ -28,7 +28,7 @@ function ContenidoNav({ items, usuario, logout, alNavegar }) {
   return (
     <>
       <div className="mb-4 px-2">
-        <span className="font-display text-lg font-semibold text-berry-dark">Admin</span>
+        <span className="text-lg font-semibold text-berry-dark">Admin</span>
         <p className="truncate text-xs text-plum-soft">{usuario?.email}</p>
         <p className="text-xs font-medium text-berry">{usuario?.rol_label}</p>
       </div>

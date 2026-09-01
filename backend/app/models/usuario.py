@@ -23,7 +23,11 @@ class Usuario(db.Model):
     nombre = db.Column(db.String(80), nullable=False)
     apellido = db.Column(db.String(80), nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False, index=True)
-    password_hash = db.Column(db.String(255), nullable=False)
+    # Nullable: una cuenta de checkout como invitado (ver /auth/invitado) se
+    # crea SIN contraseña — la persona compra sin pasar por el registro
+    # completo, y puede ponerle contraseña después si quiere (ver
+    # es_invitado más abajo y /auth/completar-cuenta).
+    password_hash = db.Column(db.String(255), nullable=True)
     telefono = db.Column(db.String(20))
 
     # Documento de identidad (DNI / RUC / Carné de Extranjería), validado
@@ -48,6 +52,13 @@ class Usuario(db.Model):
 
     activo = db.Column(db.Boolean, default=True)
     es_admin = db.Column(db.Boolean, default=False)  # legado, se mantiene por compatibilidad
+    # Cuenta creada por /auth/invitado (checkout como invitado), sin
+    # contraseña todavía. No tiene ningún efecto en permisos — solo indica
+    # que le falta poner contraseña si quiere volver a entrar después. Se
+    # pone en False en cuanto la persona la completa (/auth/completar-cuenta)
+    # o si en algún momento hace login normal (lo cual no podría pasar sin
+    # password_hash, así que en la práctica solo cambia vía ese endpoint).
+    es_invitado = db.Column(db.Boolean, nullable=False, default=False)
     rol_id = db.Column(db.Integer, db.ForeignKey("roles.id"), nullable=False, default=_rol_cliente_por_defecto)
     fecha_registro = db.Column(db.DateTime, default=datetime.utcnow)
 
@@ -67,6 +78,10 @@ class Usuario(db.Model):
         self.password_hash = generate_password_hash(password, method="pbkdf2:sha256")
 
     def check_password(self, password):
+        # Cuenta de invitado sin contraseña todavía: nunca puede loguearse
+        # por email/password hasta que se le ponga una (completar-cuenta).
+        if not self.password_hash:
+            return False
         return check_password_hash(self.password_hash, password)
 
     @property
@@ -121,6 +136,7 @@ class Usuario(db.Model):
             "tipo_documento": self.tipo_documento,
             "numero_documento": self.numero_documento,
             "es_admin": self.es_admin,
+            "es_invitado": self.es_invitado,
             "rol": self.rol,
             "rol_label": self.rol_label,
             "activo": self.activo,

@@ -22,7 +22,7 @@ const METODOS_PASARELA = new Set(["tarjeta", "yape"]);
 
 export default function PedidoDetalle() {
   const { id } = useParams();
-  const { usuario } = useAuth();
+  const { usuario, setUsuario } = useAuth();
   const [pedido, setPedido] = useState(null);
   const [cancelando, setCancelando] = useState(false);
   const [errorCancelar, setErrorCancelar] = useState("");
@@ -30,6 +30,14 @@ export default function PedidoDetalle() {
   const [errorPago, setErrorPago] = useState("");
   const [descargandoBoleta, setDescargandoBoleta] = useState(false);
   const [errorBoleta, setErrorBoleta] = useState("");
+
+  // Checkout como invitado: se ofrece (nunca se exige) ponerle contraseña a
+  // la cuenta acá, en la confirmación, después de que la compra ya se hizo.
+  const [ofrecerCuentaVisible, setOfrecerCuentaVisible] = useState(true);
+  const [passwordCuenta, setPasswordCuenta] = useState("");
+  const [creandoCuenta, setCreandoCuenta] = useState(false);
+  const [errorCuenta, setErrorCuenta] = useState("");
+  const [cuentaCreada, setCuentaCreada] = useState(false);
 
   const cargar = () => api.pedido(id).then(setPedido);
 
@@ -79,6 +87,21 @@ export default function PedidoDetalle() {
     }
   };
 
+  const crearPasswordCuenta = async (e) => {
+    e.preventDefault();
+    setErrorCuenta("");
+    setCreandoCuenta(true);
+    try {
+      const actualizado = await api.completarCuenta({ password: passwordCuenta });
+      setUsuario(actualizado);
+      setCuentaCreada(true);
+    } catch (err) {
+      setErrorCuenta(err.message);
+    } finally {
+      setCreandoCuenta(false);
+    }
+  };
+
   const descargarBoleta = async () => {
     setDescargandoBoleta(true);
     setErrorBoleta("");
@@ -108,12 +131,67 @@ export default function PedidoDetalle() {
         <span className="rounded-full bg-berry/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-berry-dark">
           {pedido.estado_label}
         </span>
-        <h1 className="mt-3 font-display text-2xl font-semibold text-plum">
+        <h1 className="mt-3 text-2xl font-semibold text-plum">
           ¡Gracias por tu compra!
         </h1>
         <p className="mt-1 text-sm text-plum-soft">
           Pedido {pedido.numero_pedido} · Pago con {pedido.metodo_pago_label}
         </p>
+
+        {usuario?.es_invitado && ofrecerCuentaVisible && (
+          <div className="glass relative mt-5 rounded-2xl border border-berry/20 p-5 shadow-glass">
+            <button
+              type="button"
+              onClick={() => setOfrecerCuentaVisible(false)}
+              aria-label="Cerrar"
+              className="absolute right-3 top-3 text-plum-soft transition hover:text-plum"
+            >
+              ✕
+            </button>
+
+            {cuentaCreada ? (
+              <p className="pr-6 text-sm text-plum">
+                Listo, ya puedes ingresar con <span className="font-semibold">{usuario.email}</span> y
+                tu nueva contraseña cuando quieras.
+              </p>
+            ) : (
+              <form onSubmit={crearPasswordCuenta} className="pr-6">
+                <p className="font-display text-sm font-semibold text-plum">
+                  Guarda tu cuenta para la próxima
+                </p>
+                <p className="mt-0.5 text-xs text-plum-soft">
+                  Ponle una contraseña a <span className="font-medium">{usuario.email}</span> y podrás
+                  ver este y tus próximos pedidos sin volver a llenar tus datos. Es opcional.
+                </p>
+                <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+                  <label htmlFor="pwd-cuenta" className="sr-only">Nueva contraseña</label>
+                  <input
+                    id="pwd-cuenta"
+                    type="password"
+                    placeholder="Nueva contraseña"
+                    minLength={6}
+                    required
+                    value={passwordCuenta}
+                    onChange={(e) => setPasswordCuenta(e.target.value)}
+                    className="w-full flex-1 rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-none"
+                  />
+                  <button
+                    type="submit"
+                    disabled={creandoCuenta}
+                    className="shrink-0 rounded-full bg-berry px-5 py-2.5 text-sm font-semibold text-white shadow-glass transition hover:bg-berry-dark disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {creandoCuenta ? "Guardando..." : "Guardar"}
+                  </button>
+                </div>
+                {errorCuenta && (
+                  <p className="mt-2 text-sm text-berry-dark" role="alert">
+                    {errorCuenta}
+                  </p>
+                )}
+              </form>
+            )}
+          </div>
+        )}
 
         <div className="mt-6">
           <SeguimientoPedido pedido={pedido} />
@@ -169,7 +247,7 @@ export default function PedidoDetalle() {
 
         {pedido.tipo_entrega && (
           <div className="mt-6 rounded-2xl bg-white/50 p-4 text-sm text-plum-soft">
-            <h2 className="mb-1 font-display text-sm font-semibold uppercase tracking-wide text-plum-soft">
+            <h2 className="mb-1 text-sm font-semibold uppercase tracking-wide text-plum-soft">
               Datos de entrega
             </h2>
             <p>{pedido.tipo_entrega === "delivery" ? "Delivery" : "Recojo en tienda"}</p>
@@ -203,7 +281,7 @@ export default function PedidoDetalle() {
             <span>Envío</span>
             <span>S/ {pedido.costo_envio.toFixed(2)}</span>
           </div>
-          <div className="flex justify-between font-display text-base font-semibold text-plum">
+          <div className="flex justify-between text-base font-semibold text-plum">
             <span>Total</span>
             <span>S/ {pedido.total.toFixed(2)}</span>
           </div>

@@ -111,7 +111,7 @@ export default function Tienda() {
       {/* Encabezado */}
       <div className="mb-6 flex flex-wrap items-end justify-between gap-2">
         <div>
-          <h1 className="font-display text-3xl font-semibold text-plum">
+          <h1 className="text-3xl font-semibold text-plum">
             {busqueda ? (
               `Resultados para "${busqueda}"`
             ) : soloOfertas ? (

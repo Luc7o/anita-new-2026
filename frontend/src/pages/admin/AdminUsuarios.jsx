@@ -83,7 +83,7 @@ export default function AdminUsuarios() {
   return (
     <div>
       <div className="mb-6 flex items-center justify-between">
-        <h1 className="font-display text-2xl font-semibold text-plum">Usuarios y roles</h1>
+        <h1 className="text-2xl font-semibold text-plum">Usuarios y roles</h1>
         <button
           onClick={() => setMostrarForm(true)}
           className="rounded-full bg-berry px-5 py-2.5 text-sm font-semibold text-white shadow-glass transition hover:bg-berry-dark"
@@ -253,7 +253,7 @@ export default function AdminUsuarios() {
             onSubmit={crear}
             className="glass-strong relative w-full max-w-md rounded-3xl p-6 shadow-glass-lg sm:p-8"
           >
-            <h2 id="nuevo-staff-titulo" className="mb-4 font-display text-xl font-semibold text-plum">
+            <h2 id="nuevo-staff-titulo" className="mb-4 text-xl font-semibold text-plum">
               Nuevo miembro del staff
             </h2>
 
