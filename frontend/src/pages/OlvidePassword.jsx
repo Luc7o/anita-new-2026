@@ -31,7 +31,7 @@ export default function OlvidePassword() {
   };
 
   return (
-    <div className="flex min-h-screen w-full flex-col lg:flex-row">
+    <div className="relative flex min-h-screen w-full flex-col lg:flex-row">
       {/* Columna de marca */}
       <div
         className="relative flex min-h-[320px] flex-col justify-end gap-6 overflow-hidden bg-cover p-6 sm:p-10 lg:w-1/2"
@@ -42,14 +42,19 @@ export default function OlvidePassword() {
           <h1 className="text-4xl font-semibold leading-tight text-plum sm:text-5xl">
             Recupera tu
             <br />
-            Cuenta
+            Contraseña
           </h1>
           <p className="mt-4 max-w-sm text-sm text-plum-soft sm:text-base">
-            En Anita New Style cuidamos tu cuenta. Te ayudamos a recuperar el acceso
-            en unos simples pasos.
+            No te preocupes. En Anita New Style cuidamos tu cuenta, te ayudamos a recuperar el acceso con unos simples pasos.
           </p>
           <div className="mt-6 flex items-center gap-4">
-            <a href="#" aria-label="Facebook" className="text-plum-soft transition hover:text-berry">
+            <a 
+              href="https://www.facebook.com/anitanewstyle" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              aria-label="Facebook" 
+              className="text-plum-soft transition hover:text-berry"
+            >
               <IconFacebook />
             </a>
             <a href="#" aria-label="Instagram" className="text-plum-soft transition hover:text-berry">
@@ -129,9 +134,16 @@ export default function OlvidePassword() {
                 <button
                   type="submit"
                   disabled={enviando}
-                  className="w-full rounded-lg bg-plum py-3.5 font-semibold text-white transition hover:bg-berry-dark disabled:opacity-60"
+                  className="w-full rounded-lg bg-plum py-3.5 font-semibold text-white transition hover:bg-berry-dark disabled:opacity-60 flex items-center justify-center gap-2"
                 >
-                  {enviando ? "Enviando..." : "Enviar Enlace de Recuperación"}
+                  {enviando ? (
+                    <>
+                      <span className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
+                      Enviando...
+                    </>
+                  ) : (
+                    "Enviar Enlace de Recuperación"
+                  )}
                 </button>
               </form>
 

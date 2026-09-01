@@ -36,7 +36,7 @@ export default function Configuracion() {
     <CuentaLayout>
       <div className="space-y-8">
         <div>
-          <h2 className="mb-4 font-display text-xl font-semibold text-plum">Seguridad &amp; Privacidad</h2>
+          <h2 className="mb-4 text-xl font-semibold text-plum">Seguridad &amp; Privacidad</h2>
           <div className="grid gap-3 sm:grid-cols-2">
             <TarjetaConfig
               icono={<IconLock size={18} />}
@@ -79,7 +79,7 @@ export default function Configuracion() {
         </div>
 
         <div>
-          <h2 className="mb-4 font-display text-xl font-semibold text-plum">Preferencias del Sistema</h2>
+          <h2 className="mb-4 text-xl font-semibold text-plum">Preferencias del Sistema</h2>
           <div className="glass divide-y divide-plum/10 overflow-hidden rounded-2xl shadow-glass">
             <FilaPreferencia icono={<IconGlobe size={16} />} etiqueta="Idioma" valor="Español (PE)" />
             <FilaPreferencia
@@ -121,7 +121,7 @@ export default function Configuracion() {
             <span className="mb-3 inline-block rounded-full bg-berry px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-white">
               Nueva experiencia
             </span>
-            <h3 className="font-display text-xl font-semibold text-plum">
+            <h3 className="text-xl font-semibold text-plum">
               Lleva la moda peruana en tu bolsillo
             </h3>
             <p className="mt-2 max-w-sm text-sm text-plum-soft">
@@ -226,7 +226,7 @@ function FormularioContrasena() {
 
   return (
     <form onSubmit={enviar} className="glass mt-3 space-y-4 rounded-2xl p-5 shadow-glass sm:p-6">
-      <h3 className="font-display text-base font-semibold text-plum">Cambiar contraseña</h3>
+      <h3 className="text-base font-semibold text-plum">Cambiar contraseña</h3>
 
       <CampoPassword
         id="config-password-actual"

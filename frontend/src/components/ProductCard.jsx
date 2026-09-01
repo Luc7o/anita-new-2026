@@ -19,7 +19,7 @@ export default function ProductCard({ producto }) {
 
   const handleComprar = async () => {
     if (!usuario) {
-      navigate("/ingresar");
+      navigate("/ingresar", { state: { from: `/producto/${producto.id}` } });
       return;
     }
     if (necesitaOpciones) {

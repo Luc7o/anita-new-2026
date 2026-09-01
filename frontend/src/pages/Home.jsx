@@ -121,7 +121,7 @@ export default function Home() {
 
       {/* Categorías */}
       <section className="mt-6">
-        <h2 className="mb-4 font-display text-2xl font-semibold text-plum">Categorías</h2>
+        <h2 className="mb-4 text-2xl font-semibold text-plum">Categorías</h2>
         <div className="flex gap-3 overflow-x-auto pb-2">
           {categorias.map((cat) => (
             <CategoryPill key={cat.id} categoria={cat} />
