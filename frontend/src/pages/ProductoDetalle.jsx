@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { api } from "../api/client.js";
 import { useAuth } from "../context/AuthContext.jsx";
@@ -73,6 +73,7 @@ export default function ProductoDetalle() {
   const [enviandoResena, setEnviandoResena] = useState(false);
   const [errorResena, setErrorResena] = useState("");
   const [productosRelacionados, setProductosRelacionados] = useState([]);
+  const refCarrusel = useRef(null);
 
   const cargarResenas = () => api.resenas(id).then((data) => setResenas(data.resenas));
 
@@ -122,9 +123,11 @@ export default function ProductoDetalle() {
       const primera = data.imagenes?.[0]?.url || data.imagen_url;
       setImagenActiva(primera);
 
-      // Cargar productos relacionados (misma categoría)
+      // Cargar productos relacionados (misma categoría). Se piden más de
+      // los que caben en pantalla a propósito, para que el carrusel tenga
+      // sentido (si no, las flechas no tendrían nada más que mostrar).
       if (data?.categoria_id) {
-        api.productos({ categoria_id: data.categoria_id, por_pagina: 8 })
+        api.productos({ categoria_id: data.categoria_id, por_pagina: 12 })
           .then((response) => {
             const filtrados = response.productos.filter(p => p.id !== data.id);
             setProductosRelacionados(filtrados);
@@ -245,6 +248,14 @@ export default function ProductoDetalle() {
       setMensaje(err.message);
       setAgregando(false);
     }
+  };
+
+  // Mueve el carrusel de "También te puede interesar" hacia la izquierda
+  // (-1) o derecha (1), desplazando el 80% del ancho visible por clic.
+  const scrollCarrusel = (direccion) => {
+    if (!refCarrusel.current) return;
+    const ancho = refCarrusel.current.clientWidth * 0.8;
+    refCarrusel.current.scrollBy({ left: direccion * ancho, behavior: "smooth" });
   };
 
   return (
@@ -557,32 +568,57 @@ export default function ProductoDetalle() {
         </div>
       </div>
 
-      {/* Productos relacionados: También te puede interesar */}
+      {/* Productos relacionados: carrusel horizontal con flechas */}
       {productosRelacionados.length > 0 && (
         <section className="mt-16">
           <h3 className="font-display text-xl font-semibold text-plum">
             También te puede interesar
           </h3>
-          <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-            {productosRelacionados.slice(0, 4).map((rel) => (
-              <Link
-                key={rel.id}
-                to={`/producto/${rel.id}`}
-                className="group rounded-xl border border-plum/10 p-3 transition hover:shadow-glass"
+          <div className="relative mt-4">
+            {productosRelacionados.length > 4 && (
+              <button
+                onClick={() => scrollCarrusel(-1)}
+                aria-label="Ver productos anteriores"
+                className="absolute left-0 top-1/2 z-10 hidden h-9 w-9 -translate-x-3 -translate-y-1/2 items-center justify-center rounded-full bg-berry text-white shadow-glass-lg transition hover:bg-berry-dark sm:flex"
               >
-                <img
-                  src={rel.imagen_url || "/placeholder.png"}
-                  alt={rel.nombre}
-                  className="h-40 w-full rounded-lg object-cover"
-                />
-                <p className="mt-2 text-sm font-medium text-plum group-hover:text-berry transition">
-                  {rel.nombre}
-                </p>
-                <p className="text-sm font-semibold text-plum">
-                  S/ {rel.precio_final?.toFixed(2) || rel.precio?.toFixed(2)}
-                </p>
-              </Link>
-            ))}
+                ‹
+              </button>
+            )}
+
+            <div
+              ref={refCarrusel}
+              className="flex gap-4 overflow-x-auto scroll-smooth pb-2"
+            >
+              {productosRelacionados.map((rel) => (
+                <Link
+                  key={rel.id}
+                  to={`/producto/${rel.id}`}
+                  className="group w-40 shrink-0 rounded-xl border border-plum/10 p-3 transition hover:shadow-glass sm:w-48"
+                >
+                  <img
+                    src={rel.imagen_url || "/placeholder.png"}
+                    alt={rel.nombre}
+                    className="h-40 w-full rounded-lg object-cover sm:h-48"
+                  />
+                  <p className="mt-2 line-clamp-2 text-sm font-medium text-plum transition group-hover:text-berry">
+                    {rel.nombre}
+                  </p>
+                  <p className="text-sm font-semibold text-plum">
+                    S/ {rel.precio_final?.toFixed(2) || rel.precio?.toFixed(2)}
+                  </p>
+                </Link>
+              ))}
+            </div>
+
+            {productosRelacionados.length > 4 && (
+              <button
+                onClick={() => scrollCarrusel(1)}
+                aria-label="Ver más productos"
+                className="absolute right-0 top-1/2 z-10 hidden h-9 w-9 -translate-y-1/2 translate-x-3 items-center justify-center rounded-full bg-berry text-white shadow-glass-lg transition hover:bg-berry-dark sm:flex"
+              >
+                ›
+              </button>
+            )}
           </div>
         </section>
       )}
