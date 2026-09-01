@@ -7,6 +7,52 @@ import { useFavoritos } from "../context/FavoritosContext.jsx";
 import { IconCart, IconHeart } from "../components/Icons.jsx";
 import Estrellas from "../components/Estrellas.jsx";
 
+// Traduce el nombre del color (como se guarda en BD) a un hex real para
+// pintar el círculo. Si aparece un color que no está mapeado, cae a un
+// gris neutro en vez de romper la UI.
+const MAPA_COLORES = {
+  negro: "#171717",
+  blanco: "#FFFFFF",
+  rojo: "#DC2626",
+  guindo: "#7C1D2E",
+  vino: "#7C1D2E",
+  azul: "#2563EB",
+  "azul marino": "#1E3A8A",
+  "azul rey": "#1D4ED8",
+  verde: "#16A34A",
+  "verde militar": "#4D5C36",
+  "verde olivo": "#6B7A3A",
+  amarillo: "#EAB308",
+  mostaza: "#CA9A2E",
+  naranja: "#EA580C",
+  rosa: "#EC4899",
+  "rosa palo": "#D8A6A6",
+  morado: "#9333EA",
+  violeta: "#7C3AED",
+  gris: "#6B7280",
+  "gris claro": "#D1D5DB",
+  "gris oscuro": "#4B5563",
+  beige: "#D6C7A1",
+  marron: "#78350F",
+  marrón: "#78350F",
+  café: "#6F4E37",
+  camel: "#C19A6B",
+  chocolate: "#4B2E1E",
+  celeste: "#38BDF8",
+  turquesa: "#14B8A6",
+  dorado: "#CA8A04",
+  plateado: "#9CA3AF",
+  crema: "#FDF6E3",
+  fucsia: "#DB2777",
+  lila: "#C4B5FD",
+  coral: "#FF6F61",
+  khaki: "#8B8355",
+  caqui: "#8B8355",
+  ocre: "#B5651D",
+};
+
+const nombreColorAHex = (nombre) => MAPA_COLORES[(nombre || "").trim().toLowerCase()] || "#D4D4D8";
+
 export default function ProductoDetalle() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -67,12 +113,33 @@ export default function ProductoDetalle() {
   useEffect(() => {
     api.producto(id).then((data) => {
       setProducto(data);
-      setTalla(data.tallas?.[0] || "");
+      // La talla no se preselecciona: el cliente debe elegirla a propósito.
+      // El color sí queda preseleccionado con el primero, porque es el que
+      // corresponde a la imagen que se muestra al entrar.
+      setTalla("");
       setColor(data.colores?.[0] || "");
       const primera = data.imagenes?.[0]?.url || data.imagen_url;
       setImagenActiva(primera);
     });
   }, [id]);
+
+  // Disponibilidad de una talla/color para habilitar o no su botón.
+  // Si la OTRA dimensión ya está elegida, exige esa combinación exacta
+  // (como antes). Si la otra dimensión todavía no está elegida, alcanza con
+  // que exista AL MENOS una variante con esta talla/color (sin importar la
+  // otra) que tenga stock — así ningún botón queda bloqueado solo porque
+  // el cliente todavía no eligió el otro campo.
+  const tallaDisponible = (t) => {
+    if (!producto.usa_variantes) return true;
+    if (color) return stockParaCombo(t, color) > 0;
+    return (producto.variantes || []).some((v) => (v.talla || null) === (t || null) && v.stock > 0);
+  };
+
+  const colorDisponible = (c) => {
+    if (!producto.usa_variantes) return true;
+    if (talla) return stockParaCombo(talla, c) > 0;
+    return (producto.variantes || []).some((v) => (v.color || null) === (c || null) && v.stock > 0);
+  };
 
   // Stock disponible para una combinación de talla/color. Si el producto no
   // usa variantes, el stock es el mismo sin importar lo elegido.
@@ -108,9 +175,25 @@ export default function ProductoDetalle() {
     return <p className="mx-auto max-w-6xl px-4 py-10 text-plum-soft">Cargando producto...</p>;
   }
 
-  const stockSeleccion = stockParaCombo(talla, color);
-  const sinStockEnCombo = producto.usa_variantes && stockSeleccion <= 0;
+  // Falta elegir talla y/o color: solo aplica si el producto realmente
+  // ofrece esas opciones (algunos productos no tienen tallas ni colores).
+  const faltaTalla = producto.tallas?.length > 0 && !talla;
+  const faltaColor = producto.colores?.length > 0 && !color;
+  const seleccionIncompleta = faltaTalla || faltaColor;
+
+  const stockSeleccion = seleccionIncompleta ? 0 : stockParaCombo(talla, color);
+  // "Sin stock" solo se muestra cuando la selección YA está completa pero
+  // esa combinación específica no tiene stock — si todavía falta elegir,
+  // el mensaje correcto es pedir que elija, no decir que no hay stock.
+  const sinStockEnCombo = !seleccionIncompleta && producto.usa_variantes && stockSeleccion <= 0;
   const esFavorito = favoritos?.esFavorito(producto.id);
+
+  const textoBotonPendiente = () => {
+    if (faltaTalla && faltaColor) return "Elige talla y color";
+    if (faltaTalla) return "Elige una talla";
+    if (faltaColor) return "Elige un color";
+    return null;
+  };
 
   const handleFavorito = () => {
     if (!usuario) {
@@ -156,23 +239,17 @@ export default function ProductoDetalle() {
   return (
     <div className="mx-auto max-w-6xl px-4 pb-16">
       <div className="grid gap-8 md:grid-cols-2">
-        <div>
-          <div className="glass aspect-[4/5] overflow-hidden rounded-3xl shadow-glass">
-            {imagenActiva ? (
-              <img
-                src={imagenActiva}
-                alt={producto.nombre}
-                className="h-full w-full object-cover transition"
-              />
-            ) : (
-              <div className="flex h-full items-center justify-center bg-gradient-to-br from-lilac to-white font-display text-5xl text-berry-light/60">
-                {producto.nombre.slice(0, 1)}
-              </div>
-            )}
-          </div>
-
+        {/* Galería: en mobile, la imagen grande arriba y las miniaturas debajo
+            en fila horizontal (flex-col-reverse muestra el último hijo del DOM
+            primero). Desde md hacia arriba, flex-row pone las miniaturas
+            (primer hijo del DOM) a la izquierda de la imagen grande. */}
+        <div className="flex flex-col-reverse gap-3 md:flex-row md:gap-4">
           {producto.imagenes?.length > 1 && (
-            <div className="mt-3 flex gap-2 overflow-x-auto pb-1" role="group" aria-label="Otras fotos del producto">
+            <div
+              className="flex gap-2 overflow-x-auto pb-1 md:max-h-[560px] md:w-20 md:shrink-0 md:flex-col md:overflow-x-visible md:overflow-y-auto md:pb-0"
+              role="group"
+              aria-label="Otras fotos del producto"
+            >
               {producto.imagenes.map((img) => (
                 <button
                   key={img.id}
@@ -188,6 +265,20 @@ export default function ProductoDetalle() {
               ))}
             </div>
           )}
+
+          <div className="glass aspect-[4/5] flex-1 overflow-hidden rounded-3xl shadow-glass">
+            {imagenActiva ? (
+              <img
+                src={imagenActiva}
+                alt={producto.nombre}
+                className="h-full w-full object-cover transition"
+              />
+            ) : (
+              <div className="flex h-full items-center justify-center bg-gradient-to-br from-lilac to-white font-display text-5xl text-berry-light/60">
+                {producto.nombre.slice(0, 1)}
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="glass rounded-3xl p-6 shadow-glass sm:p-8">
@@ -196,7 +287,10 @@ export default function ProductoDetalle() {
               <span className="text-xs uppercase tracking-wide text-plum-soft">
                 {producto.categoria_nombre}
               </span>
-              <h1 className="mt-1 font-display text-3xl font-semibold text-plum">{producto.nombre}</h1>
+              <h1 className="mt-1 font-display text-3xl font-semibold text-plum">
+                {producto.nombre}
+                {talla && ` ${talla}`}
+              </h1>
             </div>
             <button
               onClick={handleFavorito}
@@ -236,7 +330,7 @@ export default function ProductoDetalle() {
               <span id="talla-label" className="mb-2 block text-sm font-medium text-plum">Talla</span>
               <div role="radiogroup" aria-labelledby="talla-label" className="flex flex-wrap gap-2">
                 {producto.tallas.map((t) => {
-                  const sinStock = producto.usa_variantes && stockParaCombo(t, color) <= 0;
+                  const sinStock = producto.usa_variantes && !tallaDisponible(t);
                   return (
                     <button
                       key={t}
@@ -244,10 +338,22 @@ export default function ProductoDetalle() {
                       aria-checked={talla === t}
                       onClick={() => setTalla(t)}
                       disabled={sinStock}
-                      className={`rounded-full px-4 py-1.5 text-sm shadow-glass transition disabled:cursor-not-allowed disabled:opacity-40 ${
-                        talla === t ? "bg-berry text-white" : "glass text-plum"
+                      style={
+                        sinStock
+                          ? {
+                              backgroundImage:
+                                "linear-gradient(to top right, transparent 46%, currentColor 48%, currentColor 52%, transparent 54%)",
+                            }
+                          : undefined
+                      }
+                      className={`rounded-full px-4 py-1.5 text-sm shadow-glass transition disabled:cursor-not-allowed ${
+                        sinStock
+                          ? "text-plum-soft/50 glass"
+                          : talla === t
+                          ? "bg-berry text-white"
+                          : "glass text-plum"
                       }`}
-                      title={sinStock ? "Sin stock en esta combinación" : undefined}
+                      title={sinStock ? "Talla no disponible" : undefined}
                     >
                       {t}
                     </button>
@@ -260,22 +366,41 @@ export default function ProductoDetalle() {
           {producto.colores?.length > 0 && (
             <div className="mt-4">
               <span id="color-label" className="mb-2 block text-sm font-medium text-plum">Color</span>
-              <div role="radiogroup" aria-labelledby="color-label" className="flex flex-wrap gap-2">
+              <div role="radiogroup" aria-labelledby="color-label" className="flex flex-wrap gap-3">
                 {producto.colores.map((c) => {
-                  const sinStock = producto.usa_variantes && stockParaCombo(talla, c) <= 0;
+                  const sinStock = producto.usa_variantes && !colorDisponible(c);
                   return (
                     <button
                       key={c}
                       role="radio"
                       aria-checked={color === c}
+                      aria-label={c}
                       onClick={() => setColor(c)}
                       disabled={sinStock}
-                      className={`rounded-full px-4 py-1.5 text-sm shadow-glass transition disabled:cursor-not-allowed disabled:opacity-40 ${
-                        color === c ? "bg-berry text-white" : "glass text-plum"
+                      title={sinStock ? "Sin stock en esta combinación" : c}
+                      className={`relative flex h-9 w-9 items-center justify-center rounded-full shadow-glass transition disabled:cursor-not-allowed ${
+                        sinStock
+                          ? "opacity-40"
+                          : color === c
+                          ? "ring-2 ring-berry ring-offset-2"
+                          : "ring-1 ring-plum/15"
                       }`}
-                      title={sinStock ? "Sin stock en esta combinación" : undefined}
                     >
-                      {c}
+                      <span
+                        className="h-6 w-6 rounded-full border border-plum/10"
+                        style={{ backgroundColor: nombreColorAHex(c) }}
+                        aria-hidden="true"
+                      />
+                      {sinStock && (
+                        <span
+                          className="pointer-events-none absolute inset-0 rounded-full"
+                          style={{
+                            backgroundImage:
+                              "linear-gradient(to top right, transparent 46%, #78350F 48%, #78350F 52%, transparent 54%)",
+                          }}
+                          aria-hidden="true"
+                        />
+                      )}
                     </button>
                   );
                 })}
@@ -308,6 +433,12 @@ export default function ProductoDetalle() {
             )}
           </div>
 
+          {seleccionIncompleta && (
+            <p className="mt-2 text-sm text-plum-soft" role="status">
+              {textoBotonPendiente()} para continuar.
+            </p>
+          )}
+
           {sinStockEnCombo && (
             <p className="mt-2 text-sm text-berry-dark" role="alert">
               Sin stock para esta combinación de talla/color.
@@ -317,18 +448,30 @@ export default function ProductoDetalle() {
           <div className="mt-6 flex gap-3">
             <button
               onClick={handleAgregar}
-              disabled={producto.sin_stock || sinStockEnCombo || agregando}
+              disabled={producto.sin_stock || sinStockEnCombo || seleccionIncompleta || agregando}
               className="glass flex flex-1 items-center justify-center gap-2 rounded-full py-3 font-semibold text-plum shadow-glass transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-50"
             >
               <IconCart size={16} />
-              {producto.sin_stock || sinStockEnCombo ? "Sin stock" : agregando ? "..." : "Agregar al carrito"}
+              {seleccionIncompleta
+                ? textoBotonPendiente()
+                : producto.sin_stock || sinStockEnCombo
+                ? "Sin stock"
+                : agregando
+                ? "..."
+                : "Agregar al carrito"}
             </button>
             <button
               onClick={handleComprar}
-              disabled={producto.sin_stock || sinStockEnCombo || agregando}
+              disabled={producto.sin_stock || sinStockEnCombo || seleccionIncompleta || agregando}
               className="flex-1 rounded-full bg-berry py-3 font-semibold text-white shadow-glass-lg transition hover:bg-berry-dark disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {producto.sin_stock || sinStockEnCombo ? "Sin stock" : agregando ? "..." : "Comprar ahora"}
+              {seleccionIncompleta
+                ? textoBotonPendiente()
+                : producto.sin_stock || sinStockEnCombo
+                ? "Sin stock"
+                : agregando
+                ? "..."
+                : "Comprar ahora"}
             </button>
           </div>
 
