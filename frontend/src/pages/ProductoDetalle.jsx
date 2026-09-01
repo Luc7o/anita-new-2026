@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import React, { useEffect, useRef, useState } from "react";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import { api } from "../api/client.js";
 import { useAuth } from "../context/AuthContext.jsx";
 import { useCarrito } from "../context/CarritoContext.jsx";
@@ -72,6 +72,8 @@ export default function ProductoDetalle() {
   const [miComentario, setMiComentario] = useState("");
   const [enviandoResena, setEnviandoResena] = useState(false);
   const [errorResena, setErrorResena] = useState("");
+  const [productosRelacionados, setProductosRelacionados] = useState([]);
+  const refCarrusel = useRef(null);
 
   const cargarResenas = () => api.resenas(id).then((data) => setResenas(data.resenas));
 
@@ -120,6 +122,18 @@ export default function ProductoDetalle() {
       setColor(data.colores?.[0] || "");
       const primera = data.imagenes?.[0]?.url || data.imagen_url;
       setImagenActiva(primera);
+
+      // Cargar productos relacionados (misma categoría). Se piden más de
+      // los que caben en pantalla a propósito, para que el carrusel tenga
+      // sentido (si no, las flechas no tendrían nada más que mostrar).
+      if (data?.categoria_id) {
+        api.productos({ categoria_id: data.categoria_id, por_pagina: 12 })
+          .then((response) => {
+            const filtrados = response.productos.filter(p => p.id !== data.id);
+            setProductosRelacionados(filtrados);
+          })
+          .catch(() => {});
+      }
     });
   }, [id]);
 
@@ -153,7 +167,6 @@ export default function ProductoDetalle() {
     return variante ? variante.stock : 0;
   };
 
-  // Cuando el cliente cambia de color, mostramos la imagen asociada a ese color (si existe)
   useEffect(() => {
     if (!producto || !color) return;
     const imagenDelColor = producto.imagenes?.find((img) => img.color === color);
@@ -162,7 +175,6 @@ export default function ProductoDetalle() {
     }
   }, [color, producto]);
 
-  // Si la cantidad elegida ya no cabe en el stock de la combinación actual, la ajustamos
   useEffect(() => {
     if (!producto) return;
     const disponible = stockParaCombo(talla, color);
@@ -205,7 +217,9 @@ export default function ProductoDetalle() {
 
   const handleAgregar = async () => {
     if (!usuario) {
-      navigate("/ingresar");
+      // Guardamos desde dónde vino para que, si elige "Comprar sin crear
+      // cuenta", vuelva acá mismo en vez de al inicio.
+      navigate("/ingresar", { state: { from: `/producto/${producto.id}` } });
       return;
     }
     setAgregando(true);
@@ -222,7 +236,7 @@ export default function ProductoDetalle() {
 
   const handleComprar = async () => {
     if (!usuario) {
-      navigate("/ingresar");
+      navigate("/ingresar", { state: { from: `/producto/${producto.id}` } });
       return;
     }
     setAgregando(true);
@@ -236,8 +250,16 @@ export default function ProductoDetalle() {
     }
   };
 
+  // Mueve el carrusel de "También te puede interesar" hacia la izquierda
+  // (-1) o derecha (1), desplazando el 80% del ancho visible por clic.
+  const scrollCarrusel = (direccion) => {
+    if (!refCarrusel.current) return;
+    const ancho = refCarrusel.current.clientWidth * 0.8;
+    refCarrusel.current.scrollBy({ left: direccion * ancho, behavior: "smooth" });
+  };
+
   return (
-    <div className="mx-auto max-w-6xl px-4 pb-16">
+    <div className="mx-auto max-w-7xl px-6 pb-16">
       <div className="grid gap-8 md:grid-cols-2">
         {/* Galería: en mobile, la imagen grande arriba y las miniaturas debajo
             en fila horizontal (flex-col-reverse muestra el último hijo del DOM
@@ -315,7 +337,7 @@ export default function ProductoDetalle() {
           )}
 
           <div className="mt-4 flex items-baseline gap-3">
-            <span className="font-display text-2xl font-semibold text-berry-dark">
+            <span className="text-2xl font-semibold text-berry-dark">
               S/ {producto.precio_final.toFixed(2)}
             </span>
             {producto.tiene_oferta && (
@@ -482,7 +504,7 @@ export default function ProductoDetalle() {
       {/* Calificación y reseñas */}
       <div className="mt-10 grid gap-8 md:grid-cols-2">
         <div className="glass rounded-3xl p-6 shadow-glass sm:p-8">
-          <h2 className="font-display text-xl font-semibold text-plum">Escribe tu reseña</h2>
+          <h2 className="text-xl font-semibold text-plum">Escribe tu reseña</h2>
           {usuario ? (
             <form onSubmit={enviarResena} className="mt-4 space-y-3">
               <Estrellas valor={miCalificacion} onChange={setMiCalificacion} size={24} />
@@ -517,11 +539,11 @@ export default function ProductoDetalle() {
         </div>
 
         <div>
-          <h2 className="mb-4 font-display text-xl font-semibold text-plum">
+          <h2 className="mb-4 text-xl font-semibold text-plum">
             Reseñas {resenas.length > 0 && `(${resenas.length})`}
           </h2>
           {resenas.length === 0 ? (
-            <p className="text-sm text-plum-soft">Este producto todavía no tiene reseñas.</p>
+            <p className="text-sm text-plum-soft">Sé la primera en reseñar este producto.</p>
           ) : (
             <div className="space-y-3">
               {resenas.map((r) => (
@@ -545,6 +567,99 @@ export default function ProductoDetalle() {
           )}
         </div>
       </div>
+
+      {/* Productos relacionados: carrusel horizontal con flechas */}
+      {productosRelacionados.length > 0 && (
+        <section className="mt-16">
+          <h3 className="font-display text-xl font-semibold text-plum">
+            También te puede interesar
+          </h3>
+          <div className="relative mt-4">
+            {productosRelacionados.length > 4 && (
+              <button
+                onClick={() => scrollCarrusel(-1)}
+                aria-label="Ver productos anteriores"
+                className="absolute left-0 top-1/2 z-10 hidden h-9 w-9 -translate-x-3 -translate-y-1/2 items-center justify-center rounded-full bg-berry text-white shadow-glass-lg transition hover:bg-berry-dark sm:flex"
+              >
+                ‹
+              </button>
+            )}
+
+            <div
+              ref={refCarrusel}
+              className="flex gap-4 overflow-x-auto scroll-smooth pb-2"
+            >
+              {productosRelacionados.map((rel) => (
+                <Link
+                  key={rel.id}
+                  to={`/producto/${rel.id}`}
+                  className="group w-40 shrink-0 rounded-xl border border-plum/10 p-3 transition hover:shadow-glass sm:w-48"
+                >
+                  <img
+                    src={rel.imagen_url || "/placeholder.png"}
+                    alt={rel.nombre}
+                    className="h-40 w-full rounded-lg object-cover sm:h-48"
+                  />
+                  <p className="mt-2 line-clamp-2 text-sm font-medium text-plum transition group-hover:text-berry">
+                    {rel.nombre}
+                  </p>
+                  <p className="text-sm font-semibold text-plum">
+                    S/ {rel.precio_final?.toFixed(2) || rel.precio?.toFixed(2)}
+                  </p>
+                </Link>
+              ))}
+            </div>
+
+            {productosRelacionados.length > 4 && (
+              <button
+                onClick={() => scrollCarrusel(1)}
+                aria-label="Ver más productos"
+                className="absolute right-0 top-1/2 z-10 hidden h-9 w-9 -translate-y-1/2 translate-x-3 items-center justify-center rounded-full bg-berry text-white shadow-glass-lg transition hover:bg-berry-dark sm:flex"
+              >
+                ›
+              </button>
+            )}
+          </div>
+        </section>
+      )}
+
+      {/* Cuidados, Envíos y Métodos de Pago - AL FINAL DE TODO */}
+      <section className="mt-16 grid gap-6 sm:grid-cols-3 border-t border-plum/10 pt-10">
+        {/* Cuidados */}
+        <div className="rounded-xl border border-plum/10 bg-plum/5 p-5">
+          <h4 className="font-display text-lg font-semibold text-plum">Cuidados:</h4>
+          <ul className="mt-3 space-y-1.5 text-sm text-plum-soft">
+            <li>• Limpiar con paño suave y seco</li>
+            <li>• No exponer a humedad excesiva</li>
+            <li>• Aplicar crema protectora para cuero ecológico</li>
+          </ul>
+        </div>
+
+        {/* Envíos y Devoluciones */}
+        <div className="rounded-xl border border-plum/10 bg-plum/5 p-5">
+          <h4 className="font-display text-lg font-semibold text-plum">Envíos & Devoluciones</h4>
+          <ul className="mt-3 space-y-1.5 text-sm text-plum-soft">
+            <li>• Envíos a todo el Perú en 3-5 días hábiles.</li>
+            <li>• Cambios y devoluciones hasta 30 días después de la compra.</li>
+            <li>
+              • Para más información, revisa nuestra{" "}
+              <Link to="/cambios-devoluciones" className="text-berry hover:underline">
+                política de cambios
+              </Link>.
+            </li>
+          </ul>
+        </div>
+
+        {/* Métodos de pago */}
+        <div className="rounded-xl border border-plum/10 bg-plum/5 p-5">
+          <h4 className="font-display text-lg font-semibold text-plum">Métodos de pago</h4>
+          <ul className="mt-3 space-y-1.5 text-sm text-plum-soft">
+            <li>• Tarjetas de crédito/débito (Visa, Mastercard, American Express).</li>
+            <li>• Yape, Plin y transferencias bancarias.</li>
+            <li>• Pago contraentrega en Huancayo (consulta disponibilidad).</li>
+          </ul>
+        </div>
+      </section>
     </div>
   );
 }
