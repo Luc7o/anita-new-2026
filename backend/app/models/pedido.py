@@ -95,6 +95,12 @@ class Pedido(db.Model):
 
     nota = db.Column(db.Text)
     fecha_creacion = db.Column(db.DateTime, default=datetime.utcnow)
+    # Solo se setea para pedidos que se pagan por pasarela (tarjeta/Yape):
+    # mientras estado_pago siga "pendiente" pasada esta fecha, el pedido se
+    # considera vencido y su stock puede liberarse (ver
+    # app/utils/pedidos_vencidos.py). None para pedidos que no aplican
+    # (efectivo, ya pagados, etc.).
+    fecha_limite_pago = db.Column(db.DateTime)
 
     detalles = db.relationship(
         "DetallePedido", backref="pedido", lazy="dynamic",
@@ -107,6 +113,16 @@ class Pedido(db.Model):
 
     def puede_pasar_a(self, nuevo_estado):
         return nuevo_estado in self.TRANSICIONES_VALIDAS.get(self.estado, set())
+
+    @property
+    def esta_vencido(self):
+        """True si este pedido reservó stock por pasarela y se pasó el
+        plazo de pago sin que el cliente completara el cobro."""
+        return (
+            self.estado_pago == "pendiente"
+            and self.fecha_limite_pago is not None
+            and datetime.utcnow() >= self.fecha_limite_pago
+        )
 
     @property
     def estado_label(self):
@@ -155,6 +171,7 @@ class Pedido(db.Model):
             "empresa_envio": self.empresa_envio,
             "numero_seguimiento": self.numero_seguimiento,
             "fecha_creacion": self.fecha_creacion.isoformat(),
+            "fecha_limite_pago": self.fecha_limite_pago.isoformat() if self.fecha_limite_pago else None,
         }
         if con_detalles:
             data["detalles"] = [d.to_dict() for d in self.detalles]

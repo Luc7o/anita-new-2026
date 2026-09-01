@@ -97,6 +97,16 @@ class Config:
     CULQI_SECRET_KEY = os.getenv("CULQI_SECRET_KEY", "")
     CULQI_BASE_URL = os.getenv("CULQI_BASE_URL", "https://api.culqi.com")
 
+    # Secret compartido para el job que libera stock de pedidos Culqi
+    # impagos vencidos. Vercel Cron (plan Pro) lo manda como
+    # Authorization: Bearer <CRON_SECRET> si la env var existe; también
+    # aceptamos el header X-Cron-Secret. Sin este valor el endpoint del
+    # job rechaza todo (fail closed).
+    CRON_SECRET = os.getenv("CRON_SECRET", "")
+
+    # Cuánto tiempo se reserva el stock de un checkout de pasarela sin pagar.
+    MINUTOS_LIMITE_PAGO = int(os.getenv("MINUTOS_LIMITE_PAGO", "20"))
+
     # Subida de imágenes de producto
     UPLOAD_FOLDER = os.path.join(BASE_DIR, "static", "uploads", "productos")
     EXTENSIONES_PERMITIDAS = {"png", "jpg", "jpeg", "webp", "gif"}
