@@ -2,7 +2,7 @@
   "crons": [
     {
       "path": "/api/jobs/cancelar-pedidos-vencidos",
-      "schedule": "*/30 * * * *"
+      "schedule": "0 8 * * *"
     }
   ]
 }
