@@ -1,6 +1,7 @@
-from flask import Blueprint, request, jsonify, Response
+from datetime import datetime, timedelta
+from flask import Blueprint, request, jsonify, Response, current_app
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from app.extensions import db
+from app.extensions import db, limiter
 from app.models import ItemCarrito, Pedido, DetallePedido, Producto, Usuario
 from app.utils.stock import (
     agrupar_por_producto,
@@ -12,6 +13,7 @@ from app.utils.stock import (
 from app.utils.decorators import requiere_activo
 from app.utils.culqi import culqi_configurado, crear_cargo
 from app.utils.boleta import generar_pdf_boleta
+from app.utils.pedidos_vencidos import cancelar_pedidos_vencidos_del_usuario
 
 bp = Blueprint("pedidos", __name__, url_prefix="/api/pedidos")
 
@@ -23,9 +25,18 @@ METODOS_PAGO_PASARELA = {"tarjeta", "yape"}
 
 @bp.post("/checkout")
 @requiere_activo
+@limiter.limit("5 per minute")
 def checkout():
     usuario_id = int(get_jwt_identity())
     data = request.get_json(force=True) or {}
+
+    # Lock a nivel de usuario: si el mismo usuario dispara dos checkouts casi
+    # al mismo tiempo (dos pestañas, doble clic antes de que el botón se
+    # deshabilite), la segunda petición espera acá a que la primera termine
+    # de hacer commit. Cuando por fin lee el carrito, ya lo encuentra vacío
+    # (la primera ya lo vació) y responde "carrito vacío" en vez de crear un
+    # segundo pedido duplicado a partir del mismo carrito.
+    db.session.query(Usuario).filter_by(id=usuario_id).with_for_update().first()
 
     # Idempotencia: si el cliente ya mandó este mismo checkout antes (doble
     # clic, reintento de red), devolvemos el pedido que ya se creó en vez de
@@ -90,6 +101,14 @@ def checkout():
     costo_envio = COSTO_ENVIO_DELIVERY if tipo_entrega == "delivery" else 0
     total = round(subtotal + costo_envio, 2)
 
+    # Solo tarjeta/Yape reservan stock sin haber pagado todavía — a esos les
+    # ponemos una ventana límite; pasado ese momento el pedido se cancela
+    # solo y el stock vuelve (ver app/utils/pedidos_vencidos.py).
+    fecha_limite_pago = None
+    if metodo_pago in METODOS_PAGO_PASARELA:
+        minutos = current_app.config["MINUTOS_LIMITE_PAGO"]
+        fecha_limite_pago = datetime.utcnow() + timedelta(minutes=minutos)
+
     pedido = Pedido(
         numero_pedido=Pedido.generar_numero(),
         usuario_id=usuario_id,
@@ -99,6 +118,7 @@ def checkout():
         # Culqi justo después de crear el pedido y manda el token a
         # /pagar, así que arrancan "pendiente" hasta que se confirme el cobro.
         estado_pago="pendiente" if metodo_pago in METODOS_PAGO_PASARELA else "no_aplica",
+        fecha_limite_pago=fecha_limite_pago,
         tipo_entrega=tipo_entrega,
         subtotal=subtotal,
         costo_envio=costo_envio,
@@ -152,6 +172,7 @@ def checkout():
 @requiere_activo
 def mis_pedidos():
     usuario_id = int(get_jwt_identity())
+    cancelar_pedidos_vencidos_del_usuario(usuario_id)
     pedidos = (
         Pedido.query.filter_by(usuario_id=usuario_id)
         .order_by(Pedido.fecha_creacion.desc())
@@ -164,6 +185,7 @@ def mis_pedidos():
 @requiere_activo
 def detalle_pedido(pedido_id):
     usuario_id = int(get_jwt_identity())
+    cancelar_pedidos_vencidos_del_usuario(usuario_id)
     pedido = Pedido.query.filter_by(id=pedido_id, usuario_id=usuario_id).first_or_404()
     return jsonify(pedido.to_dict())
 
@@ -179,10 +201,17 @@ def cancelar_pedido(pedido_id):
             "error": "Este pedido ya no se puede cancelar (ya está enviado, entregado o cancelado)"
         }), 400
 
-    pedido.estado = "cancelado"
-    # Si ya se le había confirmado el pago, ahora hay que devolverle su dinero.
+    # Un pedido con el pago YA verificado no lo puede cancelar el cliente
+    # directamente: eso restauraría el stock (vendible a otro) sin que haya
+    # ninguna garantía real de que el dinero se devuelva. El reembolso de un
+    # pedido pagado lo gestiona soporte/ventas desde el panel admin, que sí
+    # dispara el reembolso en Culqi antes de tocar el stock.
     if pedido.estado_pago == "verificado":
-        pedido.estado_pago = "reembolso_pendiente"
+        return jsonify({
+            "error": "Este pedido ya fue pagado. Contáctanos para cancelarlo y gestionar tu reembolso."
+        }), 403
+
+    pedido.estado = "cancelado"
     restaurar_stock_de_pedido(pedido)
     db.session.commit()
     return jsonify(pedido.to_dict())
@@ -190,6 +219,7 @@ def cancelar_pedido(pedido_id):
 
 @bp.post("/<int:pedido_id>/pagar")
 @requiere_activo
+@limiter.limit("10 per minute")
 def pagar_pedido(pedido_id):
     """
     Cobra el pedido con Culqi usando el token que ya generó el widget en el
@@ -244,6 +274,17 @@ def pagar_pedido(pedido_id):
     if pedido.estado_pago != "pendiente":
         db.session.rollback()
         return jsonify({"error": "Este pedido ya no necesita pago por pasarela"}), 400
+    if pedido.esta_vencido:
+        # Se pasó el plazo de pago: liberamos el stock que tenía reservado
+        # ahora mismo (ya tenemos el lock de la fila) en vez de esperar al
+        # cron/chequeo lazy, para no dejarlo "flotando" un rato más.
+        pedido.estado = "cancelado" if pedido.puede_pasar_a("cancelado") else pedido.estado
+        pedido.estado_pago = "rechazado"
+        restaurar_stock_de_pedido(pedido)
+        db.session.commit()
+        return jsonify({
+            "error": "El tiempo para pagar este pedido venció y el stock ya se liberó. Vuelve a intentar la compra."
+        }), 410
     if not token_id:
         db.session.rollback()
         return jsonify({"error": "Falta el token de pago generado por el checkout"}), 400

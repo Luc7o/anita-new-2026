@@ -88,3 +88,48 @@ def crear_cargo(pedido, usuario, token_id, email=None):
 
     current_app.logger.error(f"Respuesta inesperada de Culqi para pedido {pedido.id}: {resp.status_code} {data}")
     return False, None, "La pasarela de pago no respondió como esperábamos, intenta de nuevo"
+
+
+def reembolsar_en_culqi(pedido, motivo="solicitud_comprador"):
+    """
+    Reembolsa en Culqi el cargo asociado a este pedido, usando su
+    culqi_cargo_id ("chr_..."). Documentación:
+    https://docs.culqi.com/es/documentacion/pagos-online/cargo-unico/reembolsos
+
+    Devuelve (ok, reembolso_id, error). Si el pedido no tiene culqi_cargo_id
+    (nunca se le cobró de verdad por acá, o es un pedido muy antiguo antes
+    de que se guardara este campo), devuelve ok=False para que el admin
+    gestione el reembolso manualmente en el panel de Culqi.
+
+    `motivo` debe ser uno de los valores que acepta Culqi: "solicitud_comprador",
+    "duplicado", "fraudulento", u "otro".
+    """
+    if not pedido.culqi_cargo_id:
+        return False, None, "Este pedido no tiene un cargo Culqi registrado; reembólsalo manualmente desde el panel de Culqi"
+
+    secret_key = current_app.config["CULQI_SECRET_KEY"]
+    base_url = current_app.config["CULQI_BASE_URL"].rstrip("/")
+
+    try:
+        resp = requests.post(
+            f"{base_url}/v2/refunds",
+            json={"amount": int(round(float(pedido.total) * 100)), "charge_id": pedido.culqi_cargo_id, "reason": motivo},
+            headers={"Authorization": f"Bearer {secret_key}"},
+            timeout=20,
+        )
+    except requests.RequestException as e:
+        current_app.logger.error(f"Error de red reembolsando pedido {pedido.id} en Culqi: {e}")
+        return False, None, "No se pudo contactar la pasarela de pago para el reembolso, intenta de nuevo"
+
+    data = resp.json() if resp.content else {}
+
+    if resp.status_code in (200, 201) and data.get("object") == "refund":
+        return True, data["id"], None
+
+    if data.get("object") == "error":
+        mensaje = data.get("user_message") or data.get("merchant_message") or "El reembolso no pudo procesarse"
+        current_app.logger.error(f"Reembolso Culqi rechazado para pedido {pedido.id}: {data}")
+        return False, None, mensaje
+
+    current_app.logger.error(f"Respuesta inesperada de Culqi (reembolso) para pedido {pedido.id}: {resp.status_code} {data}")
+    return False, None, "La pasarela de pago no respondió como esperábamos al reembolsar"

@@ -119,7 +119,12 @@ export default function PedidoDetalle() {
   }
 
   const mostrarEstadoPago = pedido.estado_pago !== "no_aplica";
-  const sePuedeCancelar = !["enviado", "entregado", "cancelado"].includes(pedido.estado);
+  const sePuedeCancelar =
+    !["enviado", "entregado", "cancelado"].includes(pedido.estado) &&
+    pedido.estado_pago !== "verificado";
+  const pagoYaVerificado =
+    pedido.estado_pago === "verificado" &&
+    !["enviado", "entregado", "cancelado"].includes(pedido.estado);
   const puedePagarConPasarela =
     METODOS_PASARELA.has(pedido.metodo_pago) &&
     pedido.estado !== "cancelado" &&
@@ -311,6 +316,13 @@ export default function PedidoDetalle() {
             </button>
             {errorCancelar && <p className="mt-2 text-center text-sm text-berry-dark">{errorCancelar}</p>}
           </div>
+        )}
+
+        {pagoYaVerificado && (
+          <p className="mt-4 rounded-2xl bg-white/70 p-4 text-center text-sm text-plum-soft">
+            Este pedido ya fue pagado, así que no se puede cancelar desde acá.
+            Si necesitas cancelarlo, escríbenos y gestionamos tu reembolso.
+          </p>
         )}
 
         <Link

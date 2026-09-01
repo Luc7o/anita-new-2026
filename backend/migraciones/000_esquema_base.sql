@@ -91,6 +91,7 @@ CREATE TABLE IF NOT EXISTS pedidos (
     tarjeta_ultimos4 VARCHAR(4),
     nota TEXT,
     fecha_creacion DATETIME,
+    fecha_limite_pago DATETIME,
     FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE
 );
 

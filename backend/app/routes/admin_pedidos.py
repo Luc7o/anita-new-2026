@@ -13,6 +13,7 @@ from app.roles import (
 )
 from app.utils.stock import restaurar_stock_de_pedido, agrupar_por_producto, validar_stock_disponible, descontar_stock
 from app.utils.boleta import generar_pdf_boleta
+from app.utils.culqi import reembolsar_en_culqi
 
 bp = Blueprint("admin_pedidos", __name__, url_prefix="/api/admin/pedidos")
 
@@ -126,6 +127,13 @@ def revisar_pago(pedido_id):
     if nuevo_estado_pago == "reembolsado":
         if pedido.estado_pago != "reembolso_pendiente":
             return jsonify({"error": "Este pedido no tiene un reembolso pendiente"}), 400
+        # Si se cobró por pasarela (Culqi), el dinero se devuelve de verdad
+        # ahí ANTES de marcar el pedido como reembolsado — así este estado
+        # no es solo una etiqueta en el panel, refleja un reembolso real.
+        if pedido.metodo_pago in ("tarjeta", "yape") and pedido.culqi_cargo_id:
+            ok, _, error = reembolsar_en_culqi(pedido)
+            if not ok:
+                return jsonify({"error": f"No se pudo reembolsar en Culqi: {error}"}), 502
         pedido.estado_pago = "reembolsado"
         db.session.commit()
         return jsonify(pedido.to_dict())
