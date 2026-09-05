@@ -68,14 +68,14 @@ async function refrescarAccessToken() {
 // sesión localmente. Lo usan tanto `request()` (JSON) como las subidas de
 // archivos (FormData) más abajo.
 async function fetchAutenticado(url, construirInit) {
-  let res = await fetch(url, construirInit(getToken()));
+  let res = await fetch(url, { credentials: "include", ...construirInit(getToken()) });
 
   if (res.status === 401) {
     const data = await res.clone().json().catch(() => null);
     if (data?.code === "token_expirado") {
       try {
         const nuevoToken = await refrescarAccessToken();
-        res = await fetch(url, construirInit(nuevoToken));
+        res = await fetch(url, { credentials: "include", ...construirInit(nuevoToken) });
       } catch {
         notificarSesionExpirada();
       }
@@ -99,7 +99,7 @@ async function request(path, { method = "GET", body, auth = false } = {}) {
 
   const res = auth
     ? await fetchAutenticado(`${BASE_URL}${path}`, construirInit)
-    : await fetch(`${BASE_URL}${path}`, construirInit());
+    : await fetch(`${BASE_URL}${path}`, { credentials: "include", ...construirInit() });
 
   let data = null;
   try {
@@ -189,7 +189,11 @@ export const api = {
   restablecerPassword: (payload) =>
     request("/auth/restablecer-password", { method: "POST", body: payload }),
   logout: () =>
-    fetch(`${BASE_URL}/auth/logout`, { method: "POST", credentials: "include" }),
+    fetch(`${BASE_URL}/auth/logout`, {
+      method: "POST",
+      credentials: "include",
+      headers: { "X-CSRF-Token": leerCookie("csrf_refresh_token") || "" },
+    }),
 
   // Ubicación (catálogo departamento -> provincia -> distrito, para los
   // selects en cascada del formulario de dirección)

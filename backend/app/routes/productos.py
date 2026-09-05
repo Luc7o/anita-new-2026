@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from sqlalchemy.orm import joinedload, selectinload
-from app.extensions import db
+from app.extensions import db, limiter
 from app.models import Producto, Categoria, Resena, DetallePedido, Pedido, VarianteProducto, Talla
 from app.utils.decorators import requiere_activo
 
@@ -116,6 +116,7 @@ def listar_resenas(producto_id):
 
 @bp.post("/productos/<int:producto_id>/resenas")
 @requiere_activo
+@limiter.limit("20 per hour")
 def crear_o_editar_resena(producto_id):
     usuario_id = int(get_jwt_identity())
     producto = Producto.query.get_or_404(producto_id)

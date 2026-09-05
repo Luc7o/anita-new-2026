@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from werkzeug.security import generate_password_hash, check_password_hash
 from app.extensions import db
 
@@ -60,6 +60,20 @@ class Usuario(db.Model):
     # password_hash, así que en la práctica solo cambia vía ese endpoint).
     es_invitado = db.Column(db.Boolean, nullable=False, default=False)
     rol_id = db.Column(db.Integer, db.ForeignKey("roles.id"), nullable=False, default=_rol_cliente_por_defecto)
+    # Contador de revocación de sesiones. Todo access/refresh token que se
+    # emite lleva grabado este valor en su claim "sv" (ver create_app en
+    # app/__init__.py y las funciones _tokens_para en app/routes/auth.py).
+    # Subirlo (logout, cambio de contraseña, restablecer contraseña) hace
+    # que cualquier token emitido con un valor anterior deje de servir de
+    # inmediato, sin esperar a que expire por tiempo — incluye tokens ya
+    # en uso en otros dispositivos/pestañas.
+    sesion_version = db.Column(db.Integer, nullable=False, default=1)
+    # Bloqueo de cuenta tras varios intentos de login fallidos seguidos.
+    # Vive en esta misma tabla (no en Redis/memoria) para que funcione
+    # igual sin importar si REDIS_URL está configurado o no, y sea
+    # consistente entre todas las instancias serverless.
+    intentos_fallidos_login = db.Column(db.Integer, nullable=False, default=0)
+    bloqueado_hasta = db.Column(db.DateTime, nullable=True)
     fecha_registro = db.Column(db.DateTime, default=datetime.utcnow)
 
     rol_obj = db.relationship("Rol", lazy="joined")
@@ -76,6 +90,25 @@ class Usuario(db.Model):
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password, method="pbkdf2:sha256")
+
+    UMBRAL_INTENTOS_FALLIDOS = 5
+    DURACION_BLOQUEO = timedelta(minutes=15)
+
+    @property
+    def esta_bloqueado(self):
+        return self.bloqueado_hasta is not None and datetime.utcnow() < self.bloqueado_hasta
+
+    def registrar_intento_fallido(self):
+        """Se llama tras un password incorrecto. Al llegar al umbral,
+        bloquea la cuenta por un rato — este contador vive en MySQL, así
+        que funciona igual sin importar si el rate limiter tiene Redis."""
+        self.intentos_fallidos_login += 1
+        if self.intentos_fallidos_login >= self.UMBRAL_INTENTOS_FALLIDOS:
+            self.bloqueado_hasta = datetime.utcnow() + self.DURACION_BLOQUEO
+
+    def resetear_intentos_fallidos(self):
+        self.intentos_fallidos_login = 0
+        self.bloqueado_hasta = None
 
     def check_password(self, password):
         # Cuenta de invitado sin contraseña todavía: nunca puede loguearse

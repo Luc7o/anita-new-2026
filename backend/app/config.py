@@ -30,7 +30,11 @@ class Config:
     # Access token de corta duración: se usa en cada request y se refresca
     # solo, sin que el usuario tenga que volver a loguearse. El refresh
     # token dura mucho más y solo se usa para pedir accesos nuevos.
-    JWT_ACCESS_TOKEN_EXPIRES = timedelta(hours=1)
+    # 15 min (antes 1h): junto con la revocación por sesion_version
+    # (ver app/__init__.py), reduce la ventana en la que un access token
+    # robado sigue sirviendo si por algún motivo la revocación no llegó a
+    # tiempo a chequearse (ej. caché intermedio, reloj desincronizado).
+    JWT_ACCESS_TOKEN_EXPIRES = timedelta(minutes=15)
     JWT_REFRESH_TOKEN_EXPIRES = timedelta(days=30)
 
     # El access token sigue viajando por header Authorization (el frontend lo
@@ -40,7 +44,12 @@ class Config:
     # lo adjunta solo, y solo al único endpoint que lo necesita.
     JWT_TOKEN_LOCATION = ["headers", "cookies"]
     JWT_REFRESH_COOKIE_NAME = "ans_refresh_token"
-    JWT_REFRESH_COOKIE_PATH = "/api/auth/refrescar-token"
+    # Antes esto apuntaba SOLO a /api/auth/refrescar-token: el navegador
+    # nunca mandaba la cookie a /api/auth/logout, así que logout no podía
+    # identificar al usuario para revocar su sesión (ver sesion_version).
+    # La ampliamos a todo /api/auth para que ambos endpoints la reciban,
+    # sin exponerla a rutas que no son de auth (productos, pedidos, etc.).
+    JWT_REFRESH_COOKIE_PATH = "/api/auth"
     # No usamos cookie para el access token: solo seteamos la de refresh.
     JWT_COOKIE_CSRF_PROTECT = True
     JWT_REFRESH_CSRF_HEADER_NAME = "X-CSRF-Token"
@@ -72,6 +81,15 @@ class Config:
     # (memory://), que sigue sirviendo para desarrollo local.
     REDIS_URL = os.getenv("REDIS_URL", "")
     RATELIMIT_STORAGE_URI = REDIS_URL or "memory://"
+    # Interruptor opcional: en cuanto confirmes que REDIS_URL ya está
+    # conectado de verdad en Vercel, pon esta env var en "true" para que el
+    # backend se niegue a arrancar en producción si por algún motivo
+    # REDIS_URL llegara a faltar (deploy con la env var borrada por error,
+    # typo en el nombre, etc.) — mejor que arrancar "silenciosamente" con
+    # el limiter en memoria, que en serverless no protege nada de verdad.
+    # Por ahora queda en False por defecto para no arriesgar tumbar
+    # producción mientras se confirma que Redis está bien conectado.
+    REQUIRE_REDIS_EN_PROD = os.getenv("REQUIRE_REDIS_EN_PROD", "false").lower() == "true"
 
     # Correo transaccional (registro, confirmación, recuperación de contraseña)
     # vía Resend (https://resend.com). Si dejas RESEND_API_KEY vacío, el
