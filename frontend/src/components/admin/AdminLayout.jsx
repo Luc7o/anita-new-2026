@@ -17,7 +17,7 @@ const TODOS_LOS_ITEMS = [
   { to: "/admin/categorias", label: "Categorías", Icon: IconTag, roles: PUEDE_VER_PRODUCTOS },
   { to: "/admin/promociones", label: "Promociones", Icon: IconGift, roles: PUEDE_VER_PROMOCIONES },
   { to: "/admin/proveedores", label: "Proveedores", Icon: IconTruck, roles: PUEDE_VER_PROVEEDORES },
-  { to: "/admin/pedidos", label: "Pedidos", Icon: IconPackage, roles: PUEDE_VER_PEDIDOS },
+  { to: "/admin/pedidos", label: "Pedidos", Icon: IconPackage, exact: true, roles: PUEDE_VER_PEDIDOS },
   { to: "/admin/pedidos/nueva-venta", label: "Nueva venta", Icon: IconCart, roles: PUEDE_GESTIONAR_PEDIDOS },
   { to: "/admin/reportes", label: "Reportes", Icon: IconReceipt, roles: PUEDE_VER_DASHBOARD },
   { to: "/admin/usuarios", label: "Usuarios y roles", Icon: IconUsers, roles: PUEDE_GESTIONAR_USUARIOS },
@@ -28,7 +28,7 @@ function ContenidoNav({ items, usuario, logout, alNavegar }) {
   return (
     <>
       <div className="mb-4 px-2">
-        <span className="font-display text-lg font-semibold text-berry-dark">Admin</span>
+        <span className="text-lg font-semibold text-berry-dark">Admin</span>
         <p className="truncate text-xs text-plum-soft">{usuario?.email}</p>
         <p className="text-xs font-medium text-berry">{usuario?.rol_label}</p>
       </div>

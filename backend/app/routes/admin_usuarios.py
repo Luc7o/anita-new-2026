@@ -1,8 +1,8 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, g
 from app.extensions import db
 from app.models import Usuario, Rol
 from app.utils.decorators import requiere_roles
-from app.roles import PUEDE_GESTIONAR_USUARIOS, ROLES
+from app.roles import PUEDE_GESTIONAR_USUARIOS, ROLES, SUPERADMIN, RRHH
 
 bp = Blueprint("admin_usuarios", __name__, url_prefix="/api/admin/usuarios")
 
@@ -40,6 +40,12 @@ def crear_usuario_admin():
     if data["rol"] not in ROLES:
         return jsonify({"error": "Rol no válido"}), 400
 
+    # RRHH tiene este mismo permiso para gestionar staff, pero no debe poder
+    # crear (ni ascender a nadie a) Super Administrador — eso es exclusivo
+    # de quien ya es Super Administrador.
+    if data["rol"] == SUPERADMIN and g.usuario.rol != SUPERADMIN:
+        return jsonify({"error": "Solo un Super Administrador puede asignar ese rol"}), 403
+
     email = data["email"].lower().strip()
     if Usuario.query.filter_by(email=email).first():
         return jsonify({"error": "Ese email ya está registrado"}), 409
@@ -66,6 +72,16 @@ def cambiar_rol(usuario_id):
 
     if nuevo_rol not in ROLES:
         return jsonify({"error": "Rol no válido"}), 400
+
+    # Mismo resguardo que en crear_usuario_admin: RRHH no puede ascender a
+    # nadie (ni a una cuenta ya existente) al rol de Super Administrador.
+    if nuevo_rol == SUPERADMIN and g.usuario.rol != SUPERADMIN:
+        return jsonify({"error": "Solo un Super Administrador puede asignar ese rol"}), 403
+
+    # RRHH no puede cambiar su propio rol, sin importar a cuál. Evita que
+    # se autoasigne un nivel de acceso distinto al que le dieron.
+    if g.usuario.rol == RRHH and usuario.id == g.usuario.id:
+        return jsonify({"error": "No puedes cambiar tu propio rol"}), 403
 
     usuario.rol = nuevo_rol
     usuario.es_admin = nuevo_rol != "cliente"

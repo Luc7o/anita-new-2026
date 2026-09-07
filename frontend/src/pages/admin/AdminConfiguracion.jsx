@@ -22,10 +22,10 @@ export default function AdminConfiguracion() {
 
   return (
     <div>
-      <h1 className="mb-6 font-display text-2xl font-semibold text-plum">Configuración</h1>
+      <h1 className="mb-6 text-2xl font-semibold text-plum">Configuración</h1>
 
       <form onSubmit={probarCorreo} className="glass max-w-md space-y-3 rounded-3xl p-6 shadow-glass sm:p-8">
-        <h2 className="font-display text-lg font-semibold text-plum">Probar envío de correo</h2>
+        <h2 className="text-lg font-semibold text-plum">Probar envío de correo</h2>
         <p className="text-sm text-plum-soft">
           Manda un correo de prueba real con la configuración SMTP de tu <code>.env</code> del
           backend, para confirmar que la recuperación de contraseña realmente llega.

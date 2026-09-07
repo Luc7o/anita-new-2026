@@ -3,20 +3,20 @@ from app.extensions import db
 from app.models import ConfiguracionPago
 from app.utils.decorators import requiere_roles
 from app.utils.correo import enviar_correo, resend_configurado
-from app.roles import PUEDE_GESTIONAR_USUARIOS
+from app.roles import PUEDE_GESTIONAR_CONFIGURACION
 
 bp = Blueprint("admin_configuracion", __name__, url_prefix="/api/admin/configuracion")
 
 
 @bp.get("/pagos")
-@requiere_roles(*PUEDE_GESTIONAR_USUARIOS)
+@requiere_roles(*PUEDE_GESTIONAR_CONFIGURACION)
 def obtener():
     config = ConfiguracionPago.obtener()
     return jsonify(config.to_dict())
 
 
 @bp.put("/pagos")
-@requiere_roles(*PUEDE_GESTIONAR_USUARIOS)
+@requiere_roles(*PUEDE_GESTIONAR_CONFIGURACION)
 def actualizar():
     config = ConfiguracionPago.obtener()
     data = request.get_json(force=True) or {}
@@ -30,7 +30,7 @@ def actualizar():
 
 
 @bp.post("/probar-correo")
-@requiere_roles(*PUEDE_GESTIONAR_USUARIOS)
+@requiere_roles(*PUEDE_GESTIONAR_CONFIGURACION)
 def probar_correo():
     """Envía un correo de prueba real, para verificar que el SMTP configurado funciona."""
     data = request.get_json(force=True) or {}

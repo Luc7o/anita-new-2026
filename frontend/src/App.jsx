@@ -2,6 +2,7 @@ import React, { useEffect } from "react";
 import { Routes, Route, useLocation, Link } from "react-router-dom";
 import Navbar from "./components/Navbar.jsx";
 import CartDrawer from "./components/CartDrawer.jsx";
+import Footer from "./components/Footer.jsx"; // <-- NUEVA IMPORTACIÓN
 import Home from "./pages/Home.jsx";
 import Tienda from "./pages/Tienda.jsx";
 import ProductoDetalle from "./pages/ProductoDetalle.jsx";
@@ -146,6 +147,7 @@ export default function App() {
         </Routes>
       </main>
       <CartDrawer />
+      <Footer /> {/* <-- FOOTER AGREGADO AQUÍ */}
     </div>
   );
 }

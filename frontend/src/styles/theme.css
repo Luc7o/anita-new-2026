@@ -15,8 +15,7 @@ body,
 body {
   font-family: "Manrope", sans-serif;
   color: #2b1e29;
-  background: linear-gradient(160deg, #fbf7f3 0%, #f6eef6 45%, #f1e9f7 100%);
-  background-attachment: fixed;
+  background: #ffffff;
 }
 
 ::selection {

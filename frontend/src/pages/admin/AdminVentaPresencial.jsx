@@ -116,7 +116,7 @@ export default function AdminVentaPresencial() {
     return (
       <div className="mx-auto max-w-lg">
         <div className="glass rounded-3xl p-8 text-center shadow-glass">
-          <h1 className="font-display text-xl font-semibold text-plum">Venta registrada</h1>
+          <h1 className="text-xl font-semibold text-plum">Venta registrada</h1>
           <p className="mt-1 text-sm text-plum-soft">
             Pedido {pedidoConfirmado.numero_pedido} · S/ {pedidoConfirmado.total.toFixed(2)}
           </p>
@@ -146,7 +146,7 @@ export default function AdminVentaPresencial() {
       </Link>
 
       <div className="glass mt-4 rounded-3xl p-6 shadow-glass sm:p-8">
-        <h1 className="font-display text-2xl font-semibold text-plum">Venta presencial</h1>
+        <h1 className="text-2xl font-semibold text-plum">Venta presencial</h1>
         <p className="text-sm text-plum-soft">
           Registra una venta hecha en el mostrador — el pago se marca como recibido al momento.
         </p>
@@ -261,7 +261,7 @@ export default function AdminVentaPresencial() {
                 </div>
               </div>
             ))}
-            <div className="flex justify-between border-t border-white/50 pt-2 font-display text-base font-semibold text-plum">
+            <div className="flex justify-between border-t border-white/50 pt-2 text-base font-semibold text-plum">
               <span>Total</span>
               <span>S/ {total.toFixed(2)}</span>
             </div>

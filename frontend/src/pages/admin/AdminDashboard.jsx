@@ -24,7 +24,7 @@ export default function AdminDashboard() {
 
   return (
     <div>
-      <h1 className="mb-6 font-display text-2xl font-semibold text-plum">Dashboard</h1>
+      <h1 className="mb-6 text-2xl font-semibold text-plum">Dashboard</h1>
 
       {!stats ? (
         <p className="text-plum-soft">Cargando métricas...</p>
@@ -114,7 +114,7 @@ function Tarjeta({ label, valor, destacar = false, small = false }) {
   return (
     <div className={`glass rounded-3xl p-5 shadow-glass ${destacar ? "ring-2 ring-gold" : ""}`}>
       <p className="text-xs uppercase tracking-wide text-plum-soft">{label}</p>
-      <p className={`mt-1 font-display font-semibold text-plum ${small ? "text-lg" : "text-2xl"}`}>{valor}</p>
+      <p className={`mt-1 font-semibold text-plum ${small ? "text-lg" : "text-2xl"}`}>{valor}</p>
     </div>
   );
 }
@@ -135,7 +135,7 @@ function VentasChart({ datos }) {
 
   return (
     <div className="glass rounded-3xl p-6 shadow-glass">
-      <h2 className="font-display text-lg font-semibold text-plum">Ventas de los últimos 6 meses</h2>
+      <h2 className="text-lg font-semibold text-plum">Ventas de los últimos 6 meses</h2>
       <p className="text-xs text-plum-soft">Ventas confirmadas por mes</p>
 
       {max <= 1 ? (
@@ -171,7 +171,7 @@ function TopCategorias({ datos }) {
 
   return (
     <div className="glass rounded-3xl p-6 shadow-glass">
-      <h2 className="font-display text-lg font-semibold text-plum">Categorías más vendidas</h2>
+      <h2 className="text-lg font-semibold text-plum">Categorías más vendidas</h2>
       <p className="text-xs text-plum-soft">Por unidades vendidas</p>
 
       {datos.length === 0 ? (
@@ -205,7 +205,7 @@ function PedidosRecientes({ datos }) {
   return (
     <div className="glass rounded-3xl p-6 shadow-glass">
       <div className="flex items-center justify-between">
-        <h2 className="font-display text-lg font-semibold text-plum">Pedidos recientes</h2>
+        <h2 className="text-lg font-semibold text-plum">Pedidos recientes</h2>
         <Link to="/admin/pedidos" className="text-sm font-semibold text-berry-dark hover:underline">
           Ver todos
         </Link>
@@ -238,7 +238,7 @@ function PedidosRecientes({ datos }) {
 function ProductosTop({ datos }) {
   return (
     <div className="glass rounded-3xl p-6 shadow-glass">
-      <h2 className="font-display text-lg font-semibold text-plum">Productos más vendidos</h2>
+      <h2 className="text-lg font-semibold text-plum">Productos más vendidos</h2>
 
       {datos.length === 0 ? (
         <p className="mt-4 text-sm text-plum-soft">Todavía no hay ventas registradas.</p>

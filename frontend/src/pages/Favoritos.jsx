@@ -43,7 +43,7 @@ export default function Favoritos() {
 
   return (
     <CuentaLayout>
-      <h2 className="mb-5 font-display text-xl font-semibold text-plum">Mis favoritos</h2>
+      <h2 className="mb-5 text-xl font-semibold text-plum">Mis favoritos</h2>
 
       {cargando ? (
         <p className="text-plum-soft">Cargando favoritos...</p>

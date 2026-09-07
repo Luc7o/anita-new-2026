@@ -151,7 +151,7 @@ export default function Checkout() {
   // para no mantener el mismo JSX duplicado en dos lugares.
   const resumenContenido = (
     <>
-      <h2 className="font-display text-lg font-semibold text-plum">Resumen</h2>
+      <h2 className="text-lg font-semibold text-plum">Resumen</h2>
       {items.map((item) => {
         const problema = itemsSinStock.find((p) => p.item_id === item.id);
         return (
@@ -199,7 +199,7 @@ export default function Checkout() {
           <span>S/ {costoEnvio.toFixed(2)}</span>
         </div>
       </div>
-      <div className="flex justify-between border-t border-white/50 pt-3 font-display text-lg font-semibold text-plum">
+      <div className="flex justify-between border-t border-white/50 pt-3 text-lg font-semibold text-plum">
         <span>Total</span>
         <span>S/ {(total + costoEnvio).toFixed(2)}</span>
       </div>
@@ -209,7 +209,7 @@ export default function Checkout() {
   return (
     <div className="mx-auto grid max-w-5xl gap-8 px-4 pb-28 md:grid-cols-[1.4fr_1fr] md:pb-16">
       <form onSubmit={handleSubmit} className="glass space-y-4 rounded-3xl p-6 shadow-glass sm:p-8">
-        <h1 className="font-display text-2xl font-semibold text-plum">Datos de entrega</h1>
+        <h1 className="text-2xl font-semibold text-plum">Datos de entrega</h1>
 
         <div role="radiogroup" aria-label="Tipo de entrega" className="grid grid-cols-2 gap-3">
           <button
@@ -406,7 +406,7 @@ export default function Checkout() {
           <span className="text-sm font-medium text-plum">
             {resumenAbierto ? "Ocultar resumen ▴" : `Ver resumen (${items.length} ${items.length === 1 ? "producto" : "productos"}) ▾`}
           </span>
-          <span className="font-display text-lg font-semibold text-plum">
+          <span className="text-lg font-semibold text-plum">
             S/ {(total + costoEnvio).toFixed(2)}
           </span>
         </button>

@@ -31,14 +31,14 @@ export default function AdminReportes() {
 
   return (
     <div>
-      <h1 className="font-display text-2xl font-semibold text-plum">Reportes</h1>
+      <h1 className="text-2xl font-semibold text-plum">Reportes</h1>
       <p className="text-sm text-plum-soft">
         Descarga un resumen de ventas en PDF: total vendido, desglose por método de pago,
         por origen (en línea / tienda) y productos más vendidos.
       </p>
 
       <form onSubmit={descargar} className="glass mt-6 max-w-lg rounded-3xl p-6 shadow-glass sm:p-8">
-        <h2 className="mb-1 font-display text-sm font-semibold uppercase tracking-wide text-plum-soft">
+        <h2 className="mb-1 text-sm font-semibold uppercase tracking-wide text-plum-soft">
           Reporte de ventas
         </h2>
 

@@ -1,5 +1,4 @@
 from datetime import datetime
-import json
 from app.extensions import db
 
 
@@ -30,6 +29,8 @@ class Categoria(db.Model):
             "slug": self.slug,
             "descripcion": self.descripcion,
             "icono": self.icono,
+            "activo": self.activo,
+            "productos_count": self.productos.count(),
         }
 
     def __repr__(self):
@@ -43,14 +44,11 @@ class Producto(db.Model):
     nombre = db.Column(db.String(150), nullable=False)
     descripcion = db.Column(db.Text)
 
-    precio = db.Column(db.Numeric(10, 2), nullable=False)
-    precio_oferta = db.Column(db.Numeric(10, 2))
+    precio = db.Column(db.Numeric(6, 2), nullable=False)
+    precio_oferta = db.Column(db.Numeric(6, 2))
 
     stock = db.Column(db.Integer, default=0)
     sku = db.Column(db.String(60), unique=True)
-
-    tallas = db.Column(db.String(200))
-    colores = db.Column(db.String(300))
 
     categoria_id = db.Column(db.Integer, db.ForeignKey("categorias.id"), nullable=False)
 
@@ -153,21 +151,22 @@ class Producto(db.Model):
 
     @property
     def tallas_lista(self):
-        if self.tallas:
-            try:
-                return json.loads(self.tallas)
-            except Exception:
-                return [t.strip() for t in self.tallas.split(",") if t.strip()]
-        return []
+        """Tallas distintas que usan las variantes de este producto —
+        antes esto vivía repetido también en producto.tallas (texto/JSON),
+        ahora se calcula directo de la fuente real (las variantes)."""
+        vistas = {}
+        for v in self.variantes:
+            if v.talla_obj and v.talla_obj.nombre and v.talla_id not in vistas:
+                vistas[v.talla_id] = v.talla_obj
+        return [t.nombre for t in sorted(vistas.values(), key=lambda t: (t.orden or 0, t.nombre))]
 
     @property
     def colores_lista(self):
-        if self.colores:
-            try:
-                return json.loads(self.colores)
-            except Exception:
-                return [c.strip() for c in self.colores.split(",") if c.strip()]
-        return []
+        vistas = {}
+        for v in self.variantes:
+            if v.color_obj and v.color_obj.nombre and v.color_id not in vistas:
+                vistas[v.color_id] = v.color_obj
+        return [c.nombre for c in sorted(vistas.values(), key=lambda c: c.nombre)]
 
     def to_dict(self, resumen=False):
         data = {

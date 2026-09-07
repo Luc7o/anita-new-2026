@@ -203,7 +203,7 @@ export default function AdminProductos() {
   return (
     <div>
       <div className="mb-6 flex items-center justify-between">
-        <h1 className="font-display text-2xl font-semibold text-plum">Productos</h1>
+        <h1 className="text-2xl font-semibold text-plum">Productos</h1>
         <button
           onClick={nuevoProducto}
           className="rounded-full bg-berry px-5 py-2.5 text-sm font-semibold text-white shadow-glass transition hover:bg-berry-dark"
@@ -449,7 +449,7 @@ export default function AdminProductos() {
             onSubmit={guardar}
             className="glass-strong relative max-h-[85vh] w-full max-w-lg overflow-y-auto rounded-3xl p-6 shadow-glass-lg sm:p-8"
           >
-            <h2 id="producto-form-titulo" className="mb-4 font-display text-xl font-semibold text-plum">
+            <h2 id="producto-form-titulo" className="mb-4 text-xl font-semibold text-plum">
               {editandoId ? "Editar producto" : "Nuevo producto"}
             </h2>
 

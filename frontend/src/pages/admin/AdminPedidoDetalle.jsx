@@ -94,7 +94,7 @@ export default function AdminPedidoDetalle() {
       <div className="glass mt-4 rounded-3xl p-6 shadow-glass sm:p-8">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <h1 className="font-display text-2xl font-semibold text-plum">{pedido.numero_pedido}</h1>
+            <h1 className="text-2xl font-semibold text-plum">{pedido.numero_pedido}</h1>
             <p className="text-sm text-plum-soft">
               {new Date(pedido.fecha_creacion).toLocaleString("es-PE")}
               {pedido.origen === "presencial" && (
@@ -126,7 +126,7 @@ export default function AdminPedidoDetalle() {
 
         <div className="mt-6 grid gap-6 sm:grid-cols-2">
           <div>
-            <h2 className="mb-2 font-display text-sm font-semibold uppercase tracking-wide text-plum-soft">
+            <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-plum-soft">
               Cuenta del cliente
             </h2>
             <p className="text-plum">{pedido.cliente}</p>
@@ -136,7 +136,7 @@ export default function AdminPedidoDetalle() {
             </p>
           </div>
           <div>
-            <h2 className="mb-2 font-display text-sm font-semibold uppercase tracking-wide text-plum-soft">
+            <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-plum-soft">
               Entrega (datos del pedido)
             </h2>
             <p className="text-plum">{pedido.tipo_entrega === "delivery" ? "Delivery" : "Recojo en tienda"}</p>
@@ -161,7 +161,7 @@ export default function AdminPedidoDetalle() {
         {pedido.estado_pago !== "no_aplica" && (
           <div className="mt-6 rounded-2xl bg-white/50 p-4">
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <h2 className="font-display text-sm font-semibold uppercase tracking-wide text-plum-soft">
+              <h2 className="text-sm font-semibold uppercase tracking-wide text-plum-soft">
                 {pedido.metodo_pago === "yape" ? "Comprobante de pago" : "Seguimiento de pago"}
               </h2>
               <span
@@ -234,7 +234,7 @@ export default function AdminPedidoDetalle() {
 
         {pedido.estado !== "cancelado" && (
           <form onSubmit={guardarEnvio} className="mt-6 rounded-2xl bg-white/50 p-4">
-            <h2 className="mb-2 font-display text-sm font-semibold uppercase tracking-wide text-plum-soft">
+            <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-plum-soft">
               Seguimiento de envío
             </h2>
             <div className="grid gap-2 sm:grid-cols-2">
@@ -288,7 +288,7 @@ export default function AdminPedidoDetalle() {
             <span>Envío</span>
             <span>S/ {pedido.costo_envio.toFixed(2)}</span>
           </div>
-          <div className="flex justify-between font-display text-base font-semibold text-plum">
+          <div className="flex justify-between text-base font-semibold text-plum">
             <span>Total</span>
             <span>S/ {pedido.total.toFixed(2)}</span>
           </div>

@@ -1,5 +1,6 @@
 from app.models.rol import Rol
 from app.models.ubicacion import UbigeoDepartamento, UbigeoProvincia, UbigeoDistrito
+from app.models.catalogo import Talla, Color
 from app.models.usuario import Usuario
 from app.models.producto import Categoria, Producto
 from app.models.imagen_producto import ImagenProducto
@@ -18,6 +19,8 @@ __all__ = [
     "UbigeoDepartamento",
     "UbigeoProvincia",
     "UbigeoDistrito",
+    "Talla",
+    "Color",
     "Usuario",
     "Categoria",
     "Producto",

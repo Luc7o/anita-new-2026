@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
-import { IconEye, IconEyeOff, IconFacebook, IconInstagram, IconWhatsApp, IconCheck } from "../components/Icons.jsx";
+import { IconEye, IconEyeOff, IconFacebook, IconInstagram, IconWhatsApp, IconCheck, IconArrowRight } from "../components/Icons.jsx";
 import { soloTexto, soloNumeros, soloDni, soloRuc, soloCarnetExtranjeria } from "../validacion.js";
 import { api } from "../api/client.js";
 import registroHero from "../assets/auth/registro-hero.jpg";
@@ -105,7 +105,20 @@ export default function Registro() {
   };
 
   return (
-    <div className="flex min-h-screen w-full flex-col lg:flex-row">
+    <div className="relative flex min-h-screen w-full flex-col lg:flex-row">
+      {/* Flecha de regreso con tooltip */}
+      <Link
+        to="/"
+        aria-label="Volver al inicio"
+        className="absolute right-4 top-4 z-20 flex h-10 w-10 items-center justify-center rounded-full text-plum transition hover:text-berry hover:bg-white/30 hover:shadow-glass sm:right-6 sm:top-6 group"
+        title="Regresar a la tienda"
+      >
+        <IconArrowRight size={18} />
+        <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 whitespace-nowrap rounded bg-plum/80 px-2 py-1 text-[10px] text-white opacity-0 transition-opacity group-hover:opacity-100 pointer-events-none">
+          Regresar a la tienda
+        </span>
+      </Link>
+
       {/* Columna de marca */}
       <div
         className="relative flex min-h-[280px] flex-col justify-end gap-6 overflow-hidden bg-cover bg-center p-6 sm:p-10 lg:w-1/2"
@@ -114,16 +127,26 @@ export default function Registro() {
         <div className="absolute inset-0 bg-plum/25" />
         <div className="glass relative z-10 rounded-2xl p-6 sm:p-8">
           <h1 className="text-4xl font-semibold leading-tight text-plum sm:text-5xl">
-            Únete a
+            Regístrate
             <br />
-            Anita New Style
+            para comprar
           </h1>
-          <p className="mt-4 max-w-sm text-sm text-plum-soft sm:text-base">
-            En Anita New Style nos dedicamos a curar la mejor moda peruana en carteras, mochilas
-            y calzado para la mujer contemporánea.
-          </p>
+          <div className="mt-4 max-w-sm text-sm text-plum-soft sm:text-base">
+            <p className="font-semibold text-berry">Beneficios ANITA NEW STYLE</p>
+            <ul className="mt-2 space-y-1.5 list-disc pl-4">
+              <li>Recibir notificaciones en tiempo real de tus pedidos.</li>
+              <li>Revisar tus boletas online.</li>
+              <li>Guardar medios de pago y direcciones favoritas.</li>
+            </ul>
+          </div>
           <div className="mt-6 flex items-center gap-4">
-            <a href="#" aria-label="Facebook" className="text-plum-soft transition hover:text-berry">
+            <a 
+              href="https://www.facebook.com/anitanewstyle" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              aria-label="Facebook" 
+              className="text-plum-soft transition hover:text-berry"
+            >
               <IconFacebook />
             </a>
             <a href="#" aria-label="Instagram" className="text-plum-soft transition hover:text-berry">
@@ -316,9 +339,16 @@ export default function Registro() {
             <button
               type="submit"
               disabled={enviando}
-              className="w-full rounded-lg bg-plum py-3.5 font-semibold text-white transition hover:bg-berry-dark disabled:opacity-60"
+              className="w-full rounded-lg bg-plum py-3.5 font-semibold text-white transition hover:bg-berry-dark disabled:opacity-60 flex items-center justify-center gap-2"
             >
-              {enviando ? "Creando cuenta..." : "Crear Cuenta"}
+              {enviando ? (
+                <>
+                  <span className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
+                  Creando cuenta...
+                </>
+              ) : (
+                "Crear Cuenta"
+              )}
             </button>
           </form>
 

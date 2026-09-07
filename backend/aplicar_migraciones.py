@@ -140,5 +140,6 @@ def aplicar():
         print(f"\n✅ Listo, se aplicaron {len(pendientes)} migración(es).")
 
 
+
 if __name__ == "__main__":
     aplicar()

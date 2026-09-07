@@ -87,7 +87,7 @@ export default function Perfil() {
               {inicial}
             </div>
             <div>
-              <h2 className="font-display text-xl font-semibold text-plum">
+              <h2 className="text-xl font-semibold text-plum">
                 {nombreCompleto || "Sin nombre registrado"}
               </h2>
               <p className="text-sm text-plum-soft">{usuario.email}</p>
@@ -110,7 +110,7 @@ export default function Perfil() {
             className="glass space-y-4 rounded-3xl p-6 shadow-glass sm:p-8"
           >
             <div className="flex items-center justify-between">
-              <h2 className="font-display text-lg font-semibold text-plum">Editar datos personales</h2>
+              <h2 className="text-lg font-semibold text-plum">Editar datos personales</h2>
               <button
                 type="button"
                 onClick={() => setEditando(false)}

@@ -30,7 +30,11 @@ class Config:
     # Access token de corta duración: se usa en cada request y se refresca
     # solo, sin que el usuario tenga que volver a loguearse. El refresh
     # token dura mucho más y solo se usa para pedir accesos nuevos.
-    JWT_ACCESS_TOKEN_EXPIRES = timedelta(hours=1)
+    # 15 min (antes 1h): junto con la revocación por sesion_version
+    # (ver app/__init__.py), reduce la ventana en la que un access token
+    # robado sigue sirviendo si por algún motivo la revocación no llegó a
+    # tiempo a chequearse (ej. caché intermedio, reloj desincronizado).
+    JWT_ACCESS_TOKEN_EXPIRES = timedelta(minutes=15)
     JWT_REFRESH_TOKEN_EXPIRES = timedelta(days=30)
 
     # El access token sigue viajando por header Authorization (el frontend lo
@@ -40,7 +44,12 @@ class Config:
     # lo adjunta solo, y solo al único endpoint que lo necesita.
     JWT_TOKEN_LOCATION = ["headers", "cookies"]
     JWT_REFRESH_COOKIE_NAME = "ans_refresh_token"
-    JWT_REFRESH_COOKIE_PATH = "/api/auth/refrescar-token"
+    # Antes esto apuntaba SOLO a /api/auth/refrescar-token: el navegador
+    # nunca mandaba la cookie a /api/auth/logout, así que logout no podía
+    # identificar al usuario para revocar su sesión (ver sesion_version).
+    # La ampliamos a todo /api/auth para que ambos endpoints la reciban,
+    # sin exponerla a rutas que no son de auth (productos, pedidos, etc.).
+    JWT_REFRESH_COOKIE_PATH = "/api/auth"
     # No usamos cookie para el access token: solo seteamos la de refresh.
     JWT_COOKIE_CSRF_PROTECT = True
     JWT_REFRESH_CSRF_HEADER_NAME = "X-CSRF-Token"
@@ -54,7 +63,12 @@ class Config:
     JWT_COOKIE_SECURE = _es_produccion
     JWT_COOKIE_SAMESITE = "None" if _es_produccion else "Lax"
 
-    FRONTEND_ORIGIN = os.getenv("FRONTEND_ORIGIN", "http://localhost:5173")
+    # Acepta uno o varios orígenes separados por coma (útil durante la
+    # migración al dominio propio, mientras el frontend puede estar servido
+    # tanto desde *.vercel.app como desde el dominio custom). Ejemplo:
+    # "https://anita-new-2026.vercel.app,https://www.anita-new-style.xyz"
+    _frontend_origin_raw = os.getenv("FRONTEND_ORIGIN", "http://localhost:5173")
+    FRONTEND_ORIGIN = [origen.strip() for origen in _frontend_origin_raw.split(",") if origen.strip()]
 
     # Backend de almacenamiento para Flask-Limiter (cuenta los intentos de
     # login, registro, recuperación de contraseña, etc.). En Vercel el
@@ -67,6 +81,15 @@ class Config:
     # (memory://), que sigue sirviendo para desarrollo local.
     REDIS_URL = os.getenv("REDIS_URL", "")
     RATELIMIT_STORAGE_URI = REDIS_URL or "memory://"
+    # Interruptor opcional: en cuanto confirmes que REDIS_URL ya está
+    # conectado de verdad en Vercel, pon esta env var en "true" para que el
+    # backend se niegue a arrancar en producción si por algún motivo
+    # REDIS_URL llegara a faltar (deploy con la env var borrada por error,
+    # typo en el nombre, etc.) — mejor que arrancar "silenciosamente" con
+    # el limiter en memoria, que en serverless no protege nada de verdad.
+    # Por ahora queda en False por defecto para no arriesgar tumbar
+    # producción mientras se confirma que Redis está bien conectado.
+    REQUIRE_REDIS_EN_PROD = os.getenv("REQUIRE_REDIS_EN_PROD", "false").lower() == "true"
 
     # Correo transaccional (registro, confirmación, recuperación de contraseña)
     # vía Resend (https://resend.com). Si dejas RESEND_API_KEY vacío, el
@@ -91,6 +114,16 @@ class Config:
     # vez de romper el checkout.
     CULQI_SECRET_KEY = os.getenv("CULQI_SECRET_KEY", "")
     CULQI_BASE_URL = os.getenv("CULQI_BASE_URL", "https://api.culqi.com")
+
+    # Secret compartido para el job que libera stock de pedidos Culqi
+    # impagos vencidos. Vercel Cron (plan Pro) lo manda como
+    # Authorization: Bearer <CRON_SECRET> si la env var existe; también
+    # aceptamos el header X-Cron-Secret. Sin este valor el endpoint del
+    # job rechaza todo (fail closed).
+    CRON_SECRET = os.getenv("CRON_SECRET", "")
+
+    # Cuánto tiempo se reserva el stock de un checkout de pasarela sin pagar.
+    MINUTOS_LIMITE_PAGO = int(os.getenv("MINUTOS_LIMITE_PAGO", "20"))
 
     # Subida de imágenes de producto
     UPLOAD_FOLDER = os.path.join(BASE_DIR, "static", "uploads", "productos")
