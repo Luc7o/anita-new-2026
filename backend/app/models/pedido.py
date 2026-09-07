@@ -93,6 +93,11 @@ class Pedido(db.Model):
     # por la pasarela — sirve para conciliar y consultar el cargo después.
     culqi_cargo_id = db.Column(db.String(40))
 
+    # Clave de idempotencia del INTENTO DE PAGO (distinta de idempotency_key,
+    # que es de la creación del pedido). Ver migraciones/023_*.sql para el
+    # detalle de por qué hace falta una columna separada.
+    pago_idempotency_key = db.Column(db.String(64))
+
     nota = db.Column(db.Text)
     fecha_creacion = db.Column(db.DateTime, default=datetime.utcnow)
 
@@ -124,6 +129,21 @@ class Pedido(db.Model):
     def origen_label(self):
         return self.ORIGENES.get(self.origen, self.origen)
 
+    @property
+    def entrega_estimada_label(self):
+        """
+        Texto de tiempo estimado de entrega para mostrar en la confirmación
+        del pedido. Por ahora Anita New Style solo despacha a provincia
+        (3-5 días hábiles), así que es una sola regla fija — el día que se
+        habilite despacho a Lima (con otro tiempo, probablemente más
+        corto), este es el único lugar que hay que tocar para diferenciarlo
+        por distrito/departamento en vez de aplicar la misma regla a todos
+        los pedidos con delivery.
+        """
+        if self.tipo_entrega == "recojo":
+            return None
+        return "3 a 5 días hábiles"
+
     def to_dict(self, con_detalles=True):
         data = {
             "id": self.id,
@@ -136,6 +156,7 @@ class Pedido(db.Model):
             "metodo_pago": self.metodo_pago,
             "metodo_pago_label": self.metodo_pago_label,
             "tipo_entrega": self.tipo_entrega,
+            "entrega_estimada_label": self.entrega_estimada_label,
             "origen": self.origen,
             "origen_label": self.origen_label,
             "subtotal": float(self.subtotal),

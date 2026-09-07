@@ -4,7 +4,9 @@ import { api } from "../api/client.js";
 import { useAuth } from "../context/AuthContext.jsx";
 import { abrirCulqiCheckout } from "../culqi.js";
 import { obtenerPagoIdempotencyKey, limpiarPagoIdempotencyKey } from "../pagoIdempotencia.js";
+import { armarLinkWhatsApp } from "../whatsapp.js";
 import SeguimientoPedido from "../components/SeguimientoPedido.jsx";
+import { IconCheckCircle, IconCopy, IconCheck, IconClock, IconWhatsApp } from "../components/Icons.jsx";
 
 const ESTADO_PAGO_ESTILOS = {
   pendiente: "bg-gold/20 text-plum",
@@ -30,6 +32,7 @@ export default function PedidoDetalle() {
   const [errorPago, setErrorPago] = useState("");
   const [descargandoBoleta, setDescargandoBoleta] = useState(false);
   const [errorBoleta, setErrorBoleta] = useState("");
+  const [numeroCopiado, setNumeroCopiado] = useState(false);
 
   // Checkout como invitado: se ofrece (nunca se exige) ponerle contraseña a
   // la cuenta acá, en la confirmación, después de que la compra ya se hizo.
@@ -114,6 +117,18 @@ export default function PedidoDetalle() {
     }
   };
 
+  const copiarNumeroPedido = async () => {
+    try {
+      await navigator.clipboard.writeText(pedido.numero_pedido);
+      setNumeroCopiado(true);
+      setTimeout(() => setNumeroCopiado(false), 2000);
+    } catch {
+      // Clipboard API no disponible (contexto no seguro, permiso denegado,
+      // etc.) — no rompemos nada, el número ya está visible en pantalla
+      // para copiarlo a mano.
+    }
+  };
+
   if (!pedido) {
     return <p className="mx-auto max-w-2xl px-4 py-16 text-plum-soft">Cargando pedido...</p>;
   }
@@ -124,19 +139,46 @@ export default function PedidoDetalle() {
     METODOS_PASARELA.has(pedido.metodo_pago) &&
     pedido.estado !== "cancelado" &&
     pedido.estado_pago === "pendiente";
+  const linkWhatsApp = armarLinkWhatsApp(
+    `Hola, tengo una consulta sobre mi pedido #${pedido.numero_pedido}`
+  );
 
   return (
     <div className="mx-auto max-w-2xl px-4 pb-16">
       <div className="glass rounded-3xl p-8 shadow-glass-lg">
-        <span className="rounded-full bg-berry/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-berry-dark">
-          {pedido.estado_label}
-        </span>
-        <h1 className="mt-3 font-display text-2xl font-semibold text-plum">
-          ¡Gracias por tu compra!
-        </h1>
-        <p className="mt-1 text-sm text-plum-soft">
-          Pedido {pedido.numero_pedido} · Pago con {pedido.metodo_pago_label}
-        </p>
+        <div className="flex items-center gap-3">
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-berry/15 to-plum/10 text-berry">
+            <IconCheckCircle size={26} />
+          </span>
+          <div>
+            <span className="rounded-full bg-berry/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-berry-dark">
+              {pedido.estado_label}
+            </span>
+            <h1 className="mt-1 font-display text-2xl font-semibold text-plum">
+              ¡Gracias por tu compra!
+            </h1>
+          </div>
+        </div>
+
+        <div className="mt-2 flex items-center gap-1.5 text-sm text-plum-soft">
+          <span>
+            Pedido {pedido.numero_pedido} · Pago con {pedido.metodo_pago_label}
+          </span>
+          <button
+            type="button"
+            onClick={copiarNumeroPedido}
+            aria-label="Copiar número de pedido"
+            className="inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-xs font-medium text-berry transition hover:bg-berry/10"
+          >
+            {numeroCopiado ? (
+              <>
+                <IconCheck size={12} /> Copiado
+              </>
+            ) : (
+              <IconCopy size={13} />
+            )}
+          </button>
+        </div>
 
         {usuario?.es_invitado && ofrecerCuentaVisible && (
           <div className="glass relative mt-5 rounded-2xl border border-berry/20 p-5 shadow-glass">
@@ -258,6 +300,12 @@ export default function PedidoDetalle() {
                 {pedido.envio_provincia && `, ${pedido.envio_provincia}`}
               </p>
             )}
+            {pedido.entrega_estimada_label && (
+              <p className="mt-2 flex items-center gap-1.5 font-medium text-plum">
+                <IconClock size={15} className="text-berry" />
+                Llega en {pedido.entrega_estimada_label}
+              </p>
+            )}
           </div>
         )}
 
@@ -319,6 +367,18 @@ export default function PedidoDetalle() {
         >
           Seguir comprando
         </Link>
+
+        {linkWhatsApp && (
+          <a
+            href={linkWhatsApp}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-3 flex w-full items-center justify-center gap-2 rounded-full bg-white/70 py-3 text-center font-semibold text-berry-dark shadow-glass transition hover:bg-white"
+          >
+            <IconWhatsApp size={18} />
+            ¿Dudas con tu pedido? Escríbenos
+          </a>
+        )}
       </div>
     </div>
   );
