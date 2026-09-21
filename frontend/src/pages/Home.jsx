@@ -10,8 +10,12 @@ import heroDefecto2 from "../assets/auth/registro-hero.jpg";
 const IMAGENES_POR_DEFECTO = [heroDefecto1, heroDefecto2];
 
 function Hero({ promociones }) {
-  const imagenesPromo = promociones.map((p) => p.imagen_url).filter(Boolean);
-  const imagenes = imagenesPromo.length > 0 ? imagenesPromo : IMAGENES_POR_DEFECTO;
+  // Solo promociones con imagen entran al carrusel — mantenemos esta lista
+  // en el mismo orden para que el índice del carrusel siga apuntando a la
+  // promoción correcta (título, descripción, botón) en todo momento.
+  const slides = promociones.filter((p) => p.imagen_url);
+  const hayPromos = slides.length > 0;
+  const imagenes = hayPromos ? slides.map((p) => p.imagen_url) : IMAGENES_POR_DEFECTO;
   const usaCarrusel = true;
   const [indice, setIndice] = useState(0);
 
@@ -25,6 +29,13 @@ function Hero({ promociones }) {
 
   const anterior = () => setIndice((i) => (i - 1 + imagenes.length) % imagenes.length);
   const siguiente = () => setIndice((i) => (i + 1) % imagenes.length);
+
+  // Mientras no haya promociones activas con imagen, se ve el texto por
+  // defecto de siempre. En cuanto hay, cada slide del carrusel muestra SU
+  // PROPIO título/descripción/botón — antes esto quedaba fijo sin importar
+  // lo que se configurara en el panel admin.
+  const promoActual = hayPromos ? slides[indice] : null;
+  const esLinkExterno = promoActual?.boton_link?.startsWith("http");
 
   return (
     <section className="relative h-[380px] overflow-hidden rounded-3xl shadow-glass-lg sm:h-[460px]">
@@ -48,23 +59,53 @@ function Hero({ promociones }) {
       )}
 
       <div className="relative z-10 mx-auto flex h-full max-w-2xl flex-col items-center justify-center px-6 text-center sm:px-10">
-        <span className="mb-4 inline-block rounded-full bg-white/70 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-berry-dark shadow-glass">
-          Nueva colección
-        </span>
-        <h1 className="font-display text-3xl font-semibold leading-tight text-white drop-shadow-[0_2px_10px_rgba(43,30,41,0.55)] sm:text-5xl">
-          Estilo que se
-          <span className="text-gold-soft"> nota</span>, elegancia que se siente
-        </h1>
-        <p className="mx-auto mt-4 max-w-lg text-sm text-white/90 drop-shadow-[0_1px_6px_rgba(43,30,41,0.5)] sm:text-base">
-          Calzados, vestidos, carteras y accesorios seleccionados para tu día a día.
-          Envíos a todo el país.
-        </p>
-        <Link
-          to="/tienda"
-          className="mt-7 inline-block rounded-full bg-berry px-8 py-3 font-semibold text-white shadow-glass-lg transition hover:scale-[1.03] hover:bg-berry-dark"
-        >
-          Explorar tienda
-        </Link>
+        {(!promoActual || promoActual.etiqueta) && (
+          <span className="mb-4 inline-block rounded-full bg-white/70 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-berry-dark shadow-glass">
+            {promoActual ? promoActual.etiqueta : "Nueva colección"}
+          </span>
+        )}
+
+        {promoActual ? (
+          <h1 className="font-display text-3xl font-semibold leading-tight text-white drop-shadow-[0_2px_10px_rgba(43,30,41,0.55)] sm:text-5xl">
+            {promoActual.titulo}
+          </h1>
+        ) : (
+          <h1 className="font-display text-3xl font-semibold leading-tight text-white drop-shadow-[0_2px_10px_rgba(43,30,41,0.55)] sm:text-5xl">
+            Estilo que se
+            <span className="text-gold-soft"> nota</span>, elegancia que se siente
+          </h1>
+        )}
+
+        {promoActual ? (
+          promoActual.descripcion && (
+            <p className="mx-auto mt-4 max-w-lg text-sm text-white/90 drop-shadow-[0_1px_6px_rgba(43,30,41,0.5)] sm:text-base">
+              {promoActual.descripcion}
+            </p>
+          )
+        ) : (
+          <p className="mx-auto mt-4 max-w-lg text-sm text-white/90 drop-shadow-[0_1px_6px_rgba(43,30,41,0.5)] sm:text-base">
+            Calzados, vestidos, carteras y accesorios seleccionados para tu día a día.
+            Envíos a todo el país.
+          </p>
+        )}
+
+        {esLinkExterno ? (
+          <a
+            href={promoActual.boton_link}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-7 inline-block rounded-full bg-berry px-8 py-3 font-semibold text-white shadow-glass-lg transition hover:scale-[1.03] hover:bg-berry-dark"
+          >
+            {promoActual.boton_texto}
+          </a>
+        ) : (
+          <Link
+            to={promoActual ? promoActual.boton_link : "/tienda"}
+            className="mt-7 inline-block rounded-full bg-berry px-8 py-3 font-semibold text-white shadow-glass-lg transition hover:scale-[1.03] hover:bg-berry-dark"
+          >
+            {promoActual ? promoActual.boton_texto : "Explorar tienda"}
+          </Link>
+        )}
       </div>
 
       {usaCarrusel && imagenes.length > 1 && (

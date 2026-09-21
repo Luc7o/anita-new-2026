@@ -2,7 +2,13 @@ import React, { useEffect } from "react";
 import { Routes, Route, useLocation, Link } from "react-router-dom";
 import Navbar from "./components/Navbar.jsx";
 import CartDrawer from "./components/CartDrawer.jsx";
-import Footer from "./components/Footer.jsx"; // <-- NUEVA IMPORTACIÓN
+import Footer from "./components/Footer.jsx";
+import FormasPago from "./pages/FormasPago.jsx";
+import MetodosEnvio from "./pages/MetodosEnvio.jsx";
+import CambiosDevoluciones from "./pages/CambiosDevoluciones.jsx";
+import GuiaTallas from "./pages/GuiaTallas.jsx";
+import FAQ from "./pages/FAQ.jsx";
+import Contacto from "./pages/Contacto.jsx";
 import Home from "./pages/Home.jsx";
 import Tienda from "./pages/Tienda.jsx";
 import ProductoDetalle from "./pages/ProductoDetalle.jsx";
@@ -144,10 +150,16 @@ export default function App() {
           <Route path="/checkout" element={<Checkout />} />
           <Route path="/pedidos" element={<Pedidos />} />
           <Route path="/pedidos/:id" element={<PedidoDetalle />} />
+          <Route path="/formas-de-pago" element={<FormasPago />} />
+          <Route path="/metodos-de-envio" element={<MetodosEnvio />} />
+          <Route path="/cambios-devoluciones" element={<CambiosDevoluciones />} />
+          <Route path="/guia-de-tallas" element={<GuiaTallas />} />
+          <Route path="/faq" element={<FAQ />} />
+          <Route path="/contacto" element={<Contacto />} />
         </Routes>
       </main>
       <CartDrawer />
-      <Footer /> {/* <-- FOOTER AGREGADO AQUÍ */}
+      <Footer />
     </div>
   );
 }

@@ -65,7 +65,7 @@ export default function Footer() {
                 href="/libro-reclamaciones" 
                 className="inline-flex items-center gap-2 text-sm font-semibold text-berry hover:underline"
               >
-                <span>📋</span> Libro de Reclamaciones
+                <span></span> Libro de Reclamaciones
               </a>
             </div>
           </div>
