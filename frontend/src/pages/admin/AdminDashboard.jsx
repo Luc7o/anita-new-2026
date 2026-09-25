@@ -85,6 +85,16 @@ export default function AdminDashboard() {
             <TopCategorias datos={stats.top_categorias} />
           </div>
 
+          <h2 className="mt-8 text-lg font-semibold text-plum">Visitas de usuario</h2>
+          <div className="mt-3 grid grid-cols-2 gap-4 sm:grid-cols-3">
+            <Tarjeta label="Visitas hoy" valor={stats.visitas_hoy} />
+            <Tarjeta label="Visitantes hoy" valor={stats.visitantes_hoy} />
+            <Tarjeta label="Visitantes (7 días)" valor={stats.visitantes_7dias} />
+          </div>
+          <div className="mt-4">
+            <VisitasChart datos={stats.visitas_por_dia} />
+          </div>
+
           <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-2">
             <PedidosRecientes datos={stats.pedidos_recientes} />
             <ProductosTop datos={stats.productos_top} />
@@ -154,6 +164,42 @@ function VentasChart({ datos }) {
           <span key={d.mes}>{d.mes}</span>
         ))}
       </div>
+    </div>
+  );
+}
+
+function VisitasChart({ datos }) {
+  const max = Math.max(...datos.map((d) => d.visitas), 1);
+  const sinDatos = datos.every((d) => d.visitas === 0);
+
+  return (
+    <div className="glass rounded-3xl p-6 shadow-glass">
+      <h2 className="text-lg font-semibold text-plum">Visitas de los últimos 7 días</h2>
+      <p className="text-xs text-plum-soft">Vistas de página totales, visitantes únicos superpuestos</p>
+
+      {sinDatos ? (
+        <p className="mt-8 text-sm text-plum-soft">Todavía no hay visitas registradas.</p>
+      ) : (
+        <div className="mt-6 flex h-32 items-end justify-between gap-2">
+          {datos.map((d) => (
+            <div key={d.dia} className="flex flex-1 flex-col items-center gap-1.5">
+              <div className="relative flex h-24 w-full items-end justify-center">
+                <div
+                  className="w-full max-w-[28px] rounded-t-lg bg-berry/15"
+                  style={{ height: `${Math.max((d.visitas / max) * 100, d.visitas > 0 ? 6 : 0)}%` }}
+                  title={`${d.visitas} visitas`}
+                />
+                <div
+                  className="absolute bottom-0 w-full max-w-[28px] rounded-t-lg bg-berry"
+                  style={{ height: `${Math.max((d.visitantes / max) * 100, d.visitantes > 0 ? 6 : 0)}%` }}
+                  title={`${d.visitantes} visitantes únicos`}
+                />
+              </div>
+              <span className="text-xs text-plum-soft">{d.dia}</span>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

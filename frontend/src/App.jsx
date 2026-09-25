@@ -26,6 +26,7 @@ import Pedidos from "./pages/Pedidos.jsx";
 import PedidoDetalle from "./pages/PedidoDetalle.jsx";
 import { useAuth } from "./context/AuthContext.jsx";
 import { useCarrito } from "./context/CarritoContext.jsx";
+import { api } from "./api/client.js";
 import RutaAdmin from "./components/admin/RutaAdmin.jsx";
 import AdminLayout from "./components/admin/AdminLayout.jsx";
 import AdminDashboard from "./pages/admin/AdminDashboard.jsx";
@@ -64,6 +65,18 @@ export default function App() {
 
   // Se limpia solo al cambiar de página (por ejemplo, al ir a /ingresar),
   // para no dejar el aviso pegado después de que el usuario ya reaccionó.
+  // Vista de página para KPIs de negocio: solo la tienda pública cuenta como
+  // "visita" (la navegación del propio admin dentro de /admin no debe
+  // inflar la métrica). El tipo "vista_pagina" ya existía en el modelo
+  // EventoAnalitica desde la migración de KPIs, pero nada lo disparaba
+  // todavía — este es el único lugar que faltaba.
+  useEffect(() => {
+    if (!esAdmin) {
+      api.registrarEvento("vista_pagina", { metadata: { ruta: location.pathname } });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname]);
+
   useEffect(() => {
     if (sesionExpirada) setSesionExpirada(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
