@@ -14,6 +14,8 @@ from app.roles import (
 from app.utils.stock import restaurar_stock_de_pedido, agrupar_por_producto, validar_stock_disponible, descontar_stock
 from app.utils.boleta import generar_pdf_boleta
 from app.utils.culqi import reembolsar_en_culqi
+from app.utils.historial import cambiar_estado_pedido
+from app.models import IntentoPago
 
 bp = Blueprint("admin_pedidos", __name__, url_prefix="/api/admin/pedidos")
 
@@ -88,8 +90,11 @@ def cambiar_estado(pedido_id):
         restaurar_stock_de_pedido(pedido)
         if pedido.estado_pago == "verificado":
             pedido.estado_pago = "reembolso_pendiente"
+        pedido.motivo_cancelacion = "admin"
+    if nuevo_estado == "entregado":
+        pedido.fecha_entregado = datetime.utcnow()
 
-    pedido.estado = nuevo_estado
+    cambiar_estado_pedido(pedido, nuevo_estado, cambiado_por=g.usuario.id)
     db.session.commit()
     return jsonify(pedido.to_dict())
 
@@ -131,9 +136,18 @@ def revisar_pago(pedido_id):
         # ahí ANTES de marcar el pedido como reembolsado — así este estado
         # no es solo una etiqueta en el panel, refleja un reembolso real.
         if pedido.metodo_pago in ("tarjeta", "yape") and pedido.culqi_cargo_id:
-            ok, _, error = reembolsar_en_culqi(pedido)
+            ok, reembolso_id, error = reembolsar_en_culqi(pedido)
             if not ok:
+                db.session.add(IntentoPago(
+                    pedido_id=pedido.id, monto=pedido.total, estado="rechazado",
+                    motivo_rechazo=f"reembolso: {error}",
+                ))
+                db.session.commit()
                 return jsonify({"error": f"No se pudo reembolsar en Culqi: {error}"}), 502
+            db.session.add(IntentoPago(
+                pedido_id=pedido.id, monto=pedido.total, estado="reembolsado",
+                codigo_culqi=reembolso_id,
+            ))
         pedido.estado_pago = "reembolsado"
         db.session.commit()
         return jsonify(pedido.to_dict())
@@ -167,7 +181,8 @@ def revisar_pago(pedido_id):
                 )
             }), 400
         restaurar_stock_de_pedido(pedido)
-        pedido.estado = "cancelado"
+        pedido.motivo_cancelacion = "pago_rechazado"
+        cambiar_estado_pedido(pedido, "cancelado", cambiado_por=g.usuario.id)
 
     db.session.commit()
     return jsonify(pedido.to_dict())
@@ -403,7 +418,7 @@ def venta_presencial():
             subtotal=item.subtotal,
         ))
 
-    error_descuento = descontar_stock(grupos_stock, productos_cache)
+    error_descuento = descontar_stock(grupos_stock, productos_cache, pedido_id=pedido.id)
     if error_descuento:
         db.session.rollback()
         return jsonify({"error": error_descuento}), 409

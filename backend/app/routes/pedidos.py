@@ -14,6 +14,8 @@ from app.utils.decorators import requiere_activo
 from app.utils.culqi import culqi_configurado, crear_cargo
 from app.utils.boleta import generar_pdf_boleta
 from app.utils.pedidos_vencidos import cancelar_pedidos_vencidos_del_usuario
+from app.utils.historial import cambiar_estado_pedido
+from app.models import IntentoPago
 
 bp = Blueprint("pedidos", __name__, url_prefix="/api/pedidos")
 
@@ -130,6 +132,12 @@ def checkout():
         envio_provincia=(data.get("envio_provincia") or "").strip()[:100] or None,
         envio_dpto=(data.get("envio_dpto") or "").strip()[:100] or None,
         envio_referencia=(data.get("envio_referencia") or "").strip()[:200] or None,
+        # KPIs: id normalizado del distrito, si el frontend lo manda (viene
+        # de los selects en cascada de /api/ubicaciones). Es opcional a
+        # propósito — envio_distrito (texto libre) sigue siendo la fuente
+        # de verdad para mostrar la dirección; distrito_id es solo para
+        # poder agrupar KPIs geográficos sin parsear texto.
+        distrito_id=data.get("distrito_id") if isinstance(data.get("distrito_id"), int) else None,
         nota=(data.get("nota") or "").strip()[:500] or None,
         tarjeta_titular=tarjeta_titular,
     )
@@ -159,7 +167,7 @@ def checkout():
     # Descuento de stock ATÓMICO a nivel de base de datos (por variante o por
     # producto, según corresponda) — evita sobreventa si dos compras del mismo
     # producto llegan casi al mismo tiempo.
-    error_descuento = descontar_stock(grupos_stock, productos_cache)
+    error_descuento = descontar_stock(grupos_stock, productos_cache, pedido_id=pedido.id)
     if error_descuento:
         db.session.rollback()
         return jsonify({"error": error_descuento}), 409
@@ -211,7 +219,8 @@ def cancelar_pedido(pedido_id):
             "error": "Este pedido ya fue pagado. Contáctanos para cancelarlo y gestionar tu reembolso."
         }), 403
 
-    pedido.estado = "cancelado"
+    pedido.motivo_cancelacion = "cliente"
+    cambiar_estado_pedido(pedido, "cancelado", cambiado_por=usuario_id)
     restaurar_stock_de_pedido(pedido)
     db.session.commit()
     return jsonify(pedido.to_dict())
@@ -278,8 +287,10 @@ def pagar_pedido(pedido_id):
         # Se pasó el plazo de pago: liberamos el stock que tenía reservado
         # ahora mismo (ya tenemos el lock de la fila) en vez de esperar al
         # cron/chequeo lazy, para no dejarlo "flotando" un rato más.
-        pedido.estado = "cancelado" if pedido.puede_pasar_a("cancelado") else pedido.estado
         pedido.estado_pago = "rechazado"
+        if pedido.puede_pasar_a("cancelado"):
+            pedido.motivo_cancelacion = "vencimiento_pago"
+            cambiar_estado_pedido(pedido, "cancelado", cambiado_por=usuario_id)
         restaurar_stock_de_pedido(pedido)
         db.session.commit()
         return jsonify({
@@ -302,13 +313,25 @@ def pagar_pedido(pedido_id):
         # Rechazo del banco o de Culqi — el pedido queda "pendiente" tal
         # cual, así el cliente puede intentar de nuevo (otra tarjeta, etc.)
         # sin que quede un pedido fantasma marcado como rechazado.
+        # KPIs: el intento igual queda registrado (para tasa de rechazo),
+        # en una transacción separada porque el resto del cambio se descarta.
         db.session.rollback()
+        db.session.add(IntentoPago(
+            pedido_id=pedido.id, monto=pedido.total, estado="rechazado",
+            motivo_rechazo=error,
+        ))
+        db.session.commit()
         return jsonify({"error": error}), 402
 
     pedido.culqi_cargo_id = cargo_id
     pedido.estado_pago = "verificado"
+    pedido.fecha_pago = datetime.utcnow()
     if pedido.estado == "pendiente":
-        pedido.estado = "confirmado"
+        cambiar_estado_pedido(pedido, "confirmado", cambiado_por=usuario_id)
+    db.session.add(IntentoPago(
+        pedido_id=pedido.id, monto=pedido.total, estado="aprobado",
+        codigo_culqi=cargo_id,
+    ))
     db.session.commit()
     return jsonify(pedido.to_dict())
 

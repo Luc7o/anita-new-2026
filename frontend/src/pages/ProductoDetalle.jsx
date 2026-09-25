@@ -115,6 +115,7 @@ export default function ProductoDetalle() {
   useEffect(() => {
     api.producto(id).then((data) => {
       setProducto(data);
+      api.registrarEvento("vista_producto", { productoId: data.id });
       // La talla no se preselecciona: el cliente debe elegirla a propósito.
       // El color sí queda preseleccionado con el primero, porque es el que
       // corresponde a la imagen que se muestra al entrar.
@@ -226,6 +227,7 @@ export default function ProductoDetalle() {
     setMensaje("");
     try {
       await agregar(producto.id, { cantidad, talla, color });
+      api.registrarEvento("agregar_carrito", { productoId: producto.id, metadata: { cantidad } });
       setMensaje("¡Producto agregado al carrito!");
     } catch (err) {
       setMensaje(err.message);
@@ -243,6 +245,7 @@ export default function ProductoDetalle() {
     setMensaje("");
     try {
       await agregar(producto.id, { cantidad, talla, color });
+      api.registrarEvento("agregar_carrito", { productoId: producto.id, metadata: { cantidad, via: "comprar_ahora" } });
       navigate("/checkout");
     } catch (err) {
       setMensaje(err.message);

@@ -100,6 +100,18 @@ class Pedido(db.Model):
 
     nota = db.Column(db.Text)
     fecha_creacion = db.Column(db.DateTime, default=datetime.utcnow)
+
+    # --- KPIs ---
+    # Cuándo se confirmó el pago de verdad (no cuándo se creó el pedido).
+    fecha_pago = db.Column(db.DateTime, nullable=True)
+    # Cuándo el admin marcó el pedido como entregado.
+    fecha_entregado = db.Column(db.DateTime, nullable=True)
+    # Motivo fijo de por qué se canceló: 'vencimiento_pago', 'cliente',
+    # 'sin_stock', 'pago_rechazado'. NULL si nunca se canceló.
+    motivo_cancelacion = db.Column(db.String(50), nullable=True)
+    # Distrito normalizado del envío (además de envio_distrito, que sigue
+    # siendo texto libre para no romper pedidos ya guardados así).
+    distrito_id = db.Column(db.Integer, db.ForeignKey("ubigeo_distritos.id"), nullable=True)
     # Solo se setea para pedidos que se pagan por pasarela (tarjeta/Yape):
     # mientras estado_pago siga "pendiente" pasada esta fecha, el pedido se
     # considera vencido y su stock puede liberarse (ver
@@ -193,6 +205,10 @@ class Pedido(db.Model):
             "numero_seguimiento": self.numero_seguimiento,
             "fecha_creacion": self.fecha_creacion.isoformat(),
             "fecha_limite_pago": self.fecha_limite_pago.isoformat() if self.fecha_limite_pago else None,
+            "fecha_pago": self.fecha_pago.isoformat() if self.fecha_pago else None,
+            "fecha_entregado": self.fecha_entregado.isoformat() if self.fecha_entregado else None,
+            "motivo_cancelacion": self.motivo_cancelacion,
+            "distrito_id": self.distrito_id,
         }
         if con_detalles:
             data["detalles"] = [d.to_dict() for d in self.detalles]

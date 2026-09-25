@@ -21,6 +21,7 @@ from datetime import datetime
 from app.extensions import db
 from app.models import Pedido
 from app.utils.stock import restaurar_stock_de_pedido
+from app.utils.historial import cambiar_estado_pedido
 
 # Mismo set que METODOS_PAGO_PASARELA en app/routes/pedidos.py — se
 # duplica acá (en vez de importarlo) para no crear un import circular
@@ -29,8 +30,9 @@ _METODOS_PAGO_PASARELA = {"tarjeta", "yape"}
 
 
 def _cancelar_uno(pedido):
-    pedido.estado = "cancelado"
     pedido.estado_pago = "rechazado"
+    pedido.motivo_cancelacion = "vencimiento_pago"
+    cambiar_estado_pedido(pedido, "cancelado")
     restaurar_stock_de_pedido(pedido)
 
 

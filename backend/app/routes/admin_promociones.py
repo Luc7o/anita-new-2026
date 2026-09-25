@@ -1,7 +1,7 @@
 from datetime import datetime
 from flask import Blueprint, request, jsonify
 from app.extensions import db
-from app.models import Promocion
+from app.models import Promocion, Producto
 from app.utils.decorators import requiere_roles
 from app.roles import PUEDE_VER_PROMOCIONES, PUEDE_GESTIONAR_PROMOCIONES
 
@@ -15,6 +15,21 @@ def _parsear_fecha(valor):
         return datetime.strptime(valor, "%Y-%m-%d").date()
     except ValueError:
         return None
+
+
+def _parsear_producto_id(data):
+    """None = "sin producto vinculado" (válido). Si viene un id, tiene que
+    ser un producto real — devuelve (producto_id, error)."""
+    crudo = data.get("producto_id")
+    if crudo in (None, "", "null"):
+        return None, None
+    try:
+        producto_id = int(crudo)
+    except (TypeError, ValueError):
+        return None, "producto_id inválido"
+    if not Producto.query.get(producto_id):
+        return None, "Ese producto no existe"
+    return producto_id, None
 
 
 @bp.get("")
@@ -32,6 +47,10 @@ def crear():
     if not titulo:
         return jsonify({"error": "El título es obligatorio"}), 400
 
+    producto_id, error = _parsear_producto_id(data)
+    if error:
+        return jsonify({"error": error}), 400
+
     promocion = Promocion(
         etiqueta=(data.get("etiqueta") or "").strip()[:60],
         titulo=titulo[:150],
@@ -39,6 +58,7 @@ def crear():
         imagen_url=data.get("imagen_url") or "",
         boton_texto=(data.get("boton_texto") or "Ver Todo").strip()[:60],
         boton_link=(data.get("boton_link") or "/tienda").strip()[:200],
+        producto_id=producto_id,
         fecha_inicio=_parsear_fecha(data.get("fecha_inicio")),
         fecha_fin=_parsear_fecha(data.get("fecha_fin")),
         activo=bool(data.get("activo", True)),
@@ -67,6 +87,11 @@ def actualizar(promocion_id):
         promocion.boton_texto = (data["boton_texto"] or "Ver Todo").strip()[:60]
     if "boton_link" in data:
         promocion.boton_link = (data["boton_link"] or "/tienda").strip()[:200]
+    if "producto_id" in data:
+        producto_id, error = _parsear_producto_id(data)
+        if error:
+            return jsonify({"error": error}), 400
+        promocion.producto_id = producto_id
     if "fecha_inicio" in data:
         promocion.fecha_inicio = _parsear_fecha(data["fecha_inicio"])
     if "fecha_fin" in data:
