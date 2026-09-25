@@ -1,5 +1,5 @@
 import os
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 from werkzeug.middleware.proxy_fix import ProxyFix
 from app.config import Config
 from app.extensions import db, migrate, jwt, cors, limiter
