@@ -318,6 +318,7 @@ export const api = {
   adminRevisarPago: (id, estado_pago) =>
     request(`/admin/pedidos/${id}/pago`, { method: "PUT", body: { estado_pago }, auth: true }),
   adminEstadisticas: () => request("/admin/pedidos/resumen/estadisticas", { auth: true }),
+  adminKpisAvanzados: () => request("/admin/pedidos/resumen/kpis-avanzados", { auth: true }),
   adminBoletaPedido: (id, numeroPedido) =>
     descargarPdf(`/admin/pedidos/${id}/boleta`, `boleta-${numeroPedido}.pdf`),
   adminVentaPresencial: (payload) =>

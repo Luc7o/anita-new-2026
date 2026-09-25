@@ -16,10 +16,12 @@ const ESTADO_BADGE = {
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState(null);
+  const [kpis, setKpis] = useState(null);
   const [verDetalleFinanciero, setVerDetalleFinanciero] = useState(false);
 
   useEffect(() => {
     api.adminEstadisticas().then(setStats);
+    api.adminKpisAvanzados().then(setKpis);
   }, []);
 
   return (
@@ -99,6 +101,167 @@ export default function AdminDashboard() {
             <PedidosRecientes datos={stats.pedidos_recientes} />
             <ProductosTop datos={stats.productos_top} />
           </div>
+
+          {!kpis ? (
+            <p className="mt-8 text-plum-soft">Cargando KPIs avanzados...</p>
+          ) : (
+            <>
+              <h2 className="mt-8 text-lg font-semibold text-plum">Embudo de conversión</h2>
+              <p className="text-xs text-plum-soft">Últimos 30 días</p>
+              <div className="mt-3">
+                <Embudo datos={kpis.embudo_conversion} />
+              </div>
+
+              <h2 className="mt-8 text-lg font-semibold text-plum">Abandono de carrito</h2>
+              <p className="text-xs text-plum-soft">
+                Ítems que siguen en el carrito ahora mismo (lo que ya se compró o se quitó no cuenta acá)
+              </p>
+              <div className="mt-3 grid grid-cols-2 gap-4 sm:grid-cols-3">
+                <Tarjeta
+                  label="Antigüedad promedio"
+                  valor={kpis.antiguedad_promedio_carrito_horas != null ? `${kpis.antiguedad_promedio_carrito_horas} h` : "—"}
+                />
+                <Tarjeta
+                  label="Abandonados (+48h)"
+                  valor={kpis.carritos_abandonados_48h}
+                  destacar={kpis.carritos_abandonados_48h > 0}
+                />
+              </div>
+
+              <div className="mt-8 grid grid-cols-1 gap-4 lg:grid-cols-2">
+                <div className="glass rounded-3xl p-6 shadow-glass">
+                  <h2 className="text-lg font-semibold text-plum">Tiempos entre estados de pedido</h2>
+                  <p className="text-xs text-plum-soft">Promedio, de punta a punta del flujo</p>
+                  {kpis.tiempos_entre_estados.length === 0 ? (
+                    <p className="mt-4 text-sm text-plum-soft">Todavía no hay suficientes cambios de estado.</p>
+                  ) : (
+                    <div className="mt-4 space-y-2">
+                      {kpis.tiempos_entre_estados.map((t) => (
+                        <div key={t.transicion} className="flex items-center justify-between text-sm">
+                          <span className="text-plum">{t.transicion}</span>
+                          <span className="font-semibold text-plum-soft">{t.horas_promedio} h</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <div className="glass rounded-3xl p-6 shadow-glass">
+                  <h2 className="text-lg font-semibold text-plum">Tiempo de pago y entrega</h2>
+                  <p className="text-xs text-plum-soft">Promedio desde que se crea el pedido</p>
+                  <div className="mt-4 grid grid-cols-2 gap-3">
+                    <div>
+                      <p className="text-xs uppercase tracking-wide text-plum-soft">Hasta el pago</p>
+                      <p className="mt-1 text-xl font-semibold text-plum">
+                        {kpis.tiempo_pago_promedio_horas != null ? `${kpis.tiempo_pago_promedio_horas} h` : "—"}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs uppercase tracking-wide text-plum-soft">Hasta la entrega</p>
+                      <p className="mt-1 text-xl font-semibold text-plum">
+                        {kpis.tiempo_entrega_promedio_horas != null ? `${kpis.tiempo_entrega_promedio_horas} h` : "—"}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-2">
+                <BarrasHorizontales
+                  titulo="Motivos de cancelación"
+                  vacioTexto="Todavía no hay pedidos cancelados."
+                  datos={kpis.motivos_cancelacion.map((m) => ({ label: m.motivo, valor: m.cantidad }))}
+                />
+                <BarrasHorizontales
+                  titulo="Ventas por zona"
+                  subtitulo="Top distritos por monto vendido"
+                  vacioTexto="Todavía no hay ventas con distrito registrado."
+                  datos={kpis.ventas_por_zona.map((z) => ({
+                    label: z.distrito,
+                    valor: z.total,
+                    formato: (v) => `S/ ${v.toFixed(2)}`,
+                    detalle: `${z.pedidos} pedido${z.pedidos === 1 ? "" : "s"}`,
+                  }))}
+                />
+              </div>
+
+              <h2 className="mt-8 text-lg font-semibold text-plum">Stock</h2>
+              <p className="text-xs text-plum-soft">Últimos 30 días</p>
+              <div className="mt-3 grid grid-cols-2 gap-4 sm:grid-cols-3">
+                <Tarjeta label="Unidades vendidas" valor={kpis.unidades_vendidas_30d} />
+                <Tarjeta label="Unidades restauradas" valor={kpis.unidades_restauradas_30d} />
+                <Tarjeta
+                  label="Productos sin stock"
+                  valor={kpis.productos_sin_stock}
+                  destacar={kpis.productos_sin_stock > 0}
+                />
+              </div>
+
+              <div className="mt-8 grid grid-cols-1 gap-4 lg:grid-cols-2">
+                <div className="glass rounded-3xl p-6 shadow-glass">
+                  <h2 className="text-lg font-semibold text-plum">Pagos con Culqi</h2>
+                  <div className="mt-4 grid grid-cols-2 gap-3">
+                    <Tarjeta small label="Intentos" valor={kpis.total_intentos_pago} />
+                    <Tarjeta
+                      small
+                      label="Tasa de rechazo"
+                      valor={kpis.tasa_rechazo_pago != null ? `${kpis.tasa_rechazo_pago}%` : "—"}
+                      destacar={kpis.tasa_rechazo_pago > 20}
+                    />
+                  </div>
+                  {kpis.motivos_rechazo_pago.length > 0 && (
+                    <div className="mt-4 space-y-2 border-t border-white/50 pt-3">
+                      {kpis.motivos_rechazo_pago.map((m) => (
+                        <div key={m.motivo} className="flex items-center justify-between text-sm">
+                          <span className="min-w-0 truncate text-plum">{m.motivo}</span>
+                          <span className="shrink-0 font-semibold text-plum-soft">{m.cantidad}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <div className="glass rounded-3xl p-6 shadow-glass">
+                  <h2 className="text-lg font-semibold text-plum">Performance del backend</h2>
+                  <p className="text-xs text-plum-soft">Últimas 24 horas</p>
+                  <div className="mt-4 grid grid-cols-3 gap-3">
+                    <div>
+                      <p className="text-xs uppercase tracking-wide text-plum-soft">Latencia prom.</p>
+                      <p className="mt-1 text-lg font-semibold text-plum">
+                        {kpis.latencia_promedio_ms != null ? `${kpis.latencia_promedio_ms} ms` : "—"}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs uppercase tracking-wide text-plum-soft">Tasa de error</p>
+                      <p className="mt-1 text-lg font-semibold text-plum">
+                        {kpis.tasa_error_24h != null ? `${kpis.tasa_error_24h}%` : "—"}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs uppercase tracking-wide text-plum-soft">Requests</p>
+                      <p className="mt-1 text-lg font-semibold text-plum">{kpis.total_requests_24h}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <h2 className="mt-8 text-lg font-semibold text-plum">Uso de promociones</h2>
+              <div className="mt-3 glass rounded-3xl p-6 shadow-glass">
+                {kpis.promociones_usadas === 0 ? (
+                  <p className="text-sm text-plum-soft">
+                    Todavía sin datos: el checkout no aplica cupones/códigos de descuento hoy — las
+                    promociones actuales son solo el banner del inicio. Esta métrica queda lista para
+                    cuando exista esa función.
+                  </p>
+                ) : (
+                  <div className="grid grid-cols-2 gap-3">
+                    <Tarjeta small label="Promociones usadas" valor={kpis.promociones_usadas} />
+                    <Tarjeta small label="Descuento total" valor={`S/ ${kpis.monto_descuento_total.toFixed(2)}`} />
+                  </div>
+                )}
+              </div>
+            </>
+          )}
         </>
       )}
 
@@ -196,6 +359,75 @@ function VisitasChart({ datos }) {
                 />
               </div>
               <span className="text-xs text-plum-soft">{d.dia}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function Embudo({ datos }) {
+  const max = Math.max(...datos.map((d) => d.cantidad), 1);
+  const sinDatos = datos.every((d) => d.cantidad === 0);
+
+  return (
+    <div className="glass rounded-3xl p-6 shadow-glass">
+      {sinDatos ? (
+        <p className="text-sm text-plum-soft">Todavía no hay suficientes eventos para calcular el embudo.</p>
+      ) : (
+        <div className="space-y-3">
+          {datos.map((paso, i) => (
+            <div key={paso.paso}>
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-plum">{paso.paso}</span>
+                <span className="font-semibold text-plum-soft">
+                  {paso.cantidad}
+                  {i > 0 && paso.tasa_desde_anterior != null && (
+                    <span className="ml-2 text-xs font-normal text-plum-soft/70">
+                      ({paso.tasa_desde_anterior}% del paso anterior)
+                    </span>
+                  )}
+                </span>
+              </div>
+              <div className="mt-1.5 h-2.5 w-full overflow-hidden rounded-full bg-white/60">
+                <div
+                  className="h-full rounded-full bg-berry"
+                  style={{ width: `${Math.max((paso.cantidad / max) * 100, paso.cantidad > 0 ? 3 : 0)}%` }}
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function BarrasHorizontales({ titulo, subtitulo, vacioTexto, datos }) {
+  const max = Math.max(...datos.map((d) => d.valor), 1);
+
+  return (
+    <div className="glass rounded-3xl p-6 shadow-glass">
+      <h2 className="text-lg font-semibold text-plum">{titulo}</h2>
+      {subtitulo && <p className="text-xs text-plum-soft">{subtitulo}</p>}
+
+      {datos.length === 0 ? (
+        <p className="mt-4 text-sm text-plum-soft">{vacioTexto}</p>
+      ) : (
+        <div className="mt-4 space-y-3">
+          {datos.map((d) => (
+            <div key={d.label}>
+              <div className="flex items-center justify-between text-sm">
+                <span className="min-w-0 truncate text-plum">{d.label}</span>
+                <span className="shrink-0 font-semibold text-plum-soft">
+                  {d.formato ? d.formato(d.valor) : d.valor}
+                  {d.detalle && <span className="ml-1.5 text-xs font-normal text-plum-soft/70">· {d.detalle}</span>}
+                </span>
+              </div>
+              <div className="mt-1 h-2 w-full overflow-hidden rounded-full bg-white/60">
+                <div className="h-full rounded-full bg-berry" style={{ width: `${Math.max((d.valor / max) * 100, 3)}%` }} />
+              </div>
             </div>
           ))}
         </div>
