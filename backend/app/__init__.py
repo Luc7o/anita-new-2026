@@ -64,6 +64,45 @@ def create_app(config_class=Config):
             "REDIS_URL en producción."
         )
 
+    # --- KPIs: latencia y status code por request ---
+    # Sampleado (KPI_LATENCIA_SAMPLE_RATE, default 100%) para no insertar en
+    # cada request si el volumen crece. /api/salud se excluye siempre (lo
+    # pega el propio monitoreo de Vercel/uptime cada pocos minutos, no
+    # aporta nada al KPI y solo generaría ruido).
+    import random
+    import time as _time
+
+    @app.before_request
+    def _kpi_marcar_inicio():
+        from flask import g as _g
+        _g._kpi_inicio = _time.monotonic()
+
+    @app.after_request
+    def _kpi_registrar_latencia(response):
+        from flask import g as _g
+        if request.path == "/api/salud":
+            return response
+        tasa = app.config.get("KPI_LATENCIA_SAMPLE_RATE", 1.0)
+        if tasa < 1.0 and random.random() > tasa:
+            return response
+        inicio = getattr(_g, "_kpi_inicio", None)
+        if inicio is None:
+            return response
+        try:
+            latencia_ms = int((_time.monotonic() - inicio) * 1000)
+            from app.models import LatenciaRequest
+            db.session.add(LatenciaRequest(
+                endpoint=(request.url_rule.rule if request.url_rule else request.path)[:150],
+                metodo=request.method[:10],
+                latencia_ms=latencia_ms,
+                status_code=response.status_code,
+            ))
+            db.session.commit()
+        except Exception:
+            # Nunca romper una respuesta real por un fallo al loguear el KPI.
+            db.session.rollback()
+        return response
+
     # Respuestas de error de JWT con un "code" distinguible, para que el
     # frontend sepa cuándo conviene intentar refrescar el token (token
     # expirado/ausente) y cuándo no (token inválido/manipulado -> a loguear
@@ -109,7 +148,7 @@ def create_app(config_class=Config):
     from app.routes import auth, productos, carrito, pedidos, documentos, favoritos, promociones, ubicaciones
     from app.routes import admin_productos, admin_categorias, admin_pedidos, admin_reportes
     from app.routes import admin_proveedores, admin_usuarios, admin_uploads, admin_configuracion
-    from app.routes import admin_promociones, jobs
+    from app.routes import admin_promociones, jobs, eventos
     app.register_blueprint(auth.bp)
     app.register_blueprint(productos.bp)
     app.register_blueprint(carrito.bp)
@@ -118,6 +157,7 @@ def create_app(config_class=Config):
     app.register_blueprint(favoritos.bp)
     app.register_blueprint(promociones.bp)
     app.register_blueprint(ubicaciones.bp)
+    app.register_blueprint(eventos.bp)
     app.register_blueprint(admin_productos.bp)
     app.register_blueprint(admin_categorias.bp)
     app.register_blueprint(admin_pedidos.bp)

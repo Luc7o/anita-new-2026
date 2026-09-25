@@ -170,7 +170,46 @@ async function descargarPdf(path, nombreArchivo) {
   window.URL.revokeObjectURL(url);
 }
 
+// --- KPIs: eventos de analítica (embudo de compra) ---
+// sesion_id: un id anónimo por navegador, generado una sola vez y guardado
+// en localStorage (no es el JWT ni depende de tener cuenta — sirve para
+// medir embudo también de visitantes no logueados).
+function obtenerSesionAnalitica() {
+  const CLAVE = "ans_sesion_analitica";
+  let sesion = localStorage.getItem(CLAVE);
+  if (!sesion) {
+    sesion = (crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`);
+    localStorage.setItem(CLAVE, sesion);
+  }
+  return sesion;
+}
+
+// Fire-and-forget a propósito: un evento de analítica que falla (red caída,
+// ad-blocker, etc.) nunca debe romper ni frenar la acción real del usuario
+// (agregar al carrito, pagar...), así que nunca se propaga el error ni se
+// espera con await en el caller.
+function registrarEvento(tipoEvento, { productoId, metadata } = {}) {
+  fetch(`${BASE_URL}/eventos`, {
+    method: "POST",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+      ...(getToken() ? { Authorization: `Bearer ${getToken()}` } : {}),
+    },
+    body: JSON.stringify({
+      tipo_evento: tipoEvento,
+      sesion_id: obtenerSesionAnalitica(),
+      producto_id: productoId ?? null,
+      metadata: metadata ?? null,
+    }),
+  }).catch(() => {
+    // Silencioso a propósito — ver comentario de arriba.
+  });
+}
+
 export const api = {
+  registrarEvento,
+
   // Auth
   registro: (payload) => request("/auth/registro", { method: "POST", body: payload }),
   continuarComoInvitado: (payload) => request("/auth/invitado", { method: "POST", body: payload }),

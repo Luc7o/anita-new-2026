@@ -91,6 +91,11 @@ class Config:
     # producción mientras se confirma que Redis está bien conectado.
     REQUIRE_REDIS_EN_PROD = os.getenv("REQUIRE_REDIS_EN_PROD", "false").lower() == "true"
 
+    # KPIs: fracción de requests que se loguean en latencia_requests (1.0 =
+    # todos). Bajarlo (ej. "0.2") si el volumen de tráfico hace crecer mucho
+    # la tabla.
+    KPI_LATENCIA_SAMPLE_RATE = float(os.getenv("KPI_LATENCIA_SAMPLE_RATE", "1.0"))
+
     # Correo transaccional (registro, confirmación, recuperación de contraseña)
     # vía Resend (https://resend.com). Si dejas RESEND_API_KEY vacío, el
     # contenido del correo se imprime en la consola en vez de enviarse de

@@ -8,7 +8,6 @@ const VACIO = {
   imagen_url: "",
   boton_texto: "Ver Todo",
   boton_link: "/tienda",
-  producto_id: null,
   fecha_inicio: "",
   fecha_fin: "",
   activo: true,
@@ -18,10 +17,6 @@ const VACIO = {
 export default function AdminPromociones() {
   const [promociones, setPromociones] = useState([]);
   const [form, setForm] = useState(VACIO);
-  const [productoVinculado, setProductoVinculado] = useState(null); // { id, nombre, imagen_url, precio } — solo para mostrar
-  const [busquedaProducto, setBusquedaProducto] = useState("");
-  const [resultadosProducto, setResultadosProducto] = useState([]);
-  const [buscandoProducto, setBuscandoProducto] = useState(false);
   const [editandoId, setEditandoId] = useState(null);
   const [error, setError] = useState("");
   const [guardando, setGuardando] = useState(false);
@@ -33,45 +28,9 @@ export default function AdminPromociones() {
     cargar();
   }, []);
 
-  // Búsqueda de producto con debounce: espera a que la persona deje de
-  // escribir antes de consultar, para no mandar una request por cada tecla.
-  useEffect(() => {
-    if (!busquedaProducto.trim()) {
-      setResultadosProducto([]);
-      return;
-    }
-    setBuscandoProducto(true);
-    const id = setTimeout(() => {
-      api
-        .productos({ q: busquedaProducto.trim(), por_pagina: 6 })
-        .then((data) => setResultadosProducto(data.productos))
-        .catch(() => setResultadosProducto([]))
-        .finally(() => setBuscandoProducto(false));
-    }, 350);
-    return () => clearTimeout(id);
-  }, [busquedaProducto]);
-
   const actualizarCampo = (campo) => (e) => {
     const valor = e.target.type === "checkbox" ? e.target.checked : e.target.value;
     setForm({ ...form, [campo]: valor });
-  };
-
-  const seleccionarProducto = (producto) => {
-    setForm((f) => ({
-      ...f,
-      producto_id: producto.id,
-      // Solo autocompletamos el link si todavía tiene el valor por
-      // defecto — si el admin ya lo había personalizado, no se lo pisamos.
-      boton_link: !f.boton_link || f.boton_link === "/tienda" ? `/producto/${producto.id}` : f.boton_link,
-    }));
-    setProductoVinculado(producto);
-    setBusquedaProducto("");
-    setResultadosProducto([]);
-  };
-
-  const quitarProducto = () => {
-    setForm((f) => ({ ...f, producto_id: null }));
-    setProductoVinculado(null);
   };
 
   const editar = (promo) => {
@@ -83,21 +42,16 @@ export default function AdminPromociones() {
       imagen_url: promo.imagen_url || "",
       boton_texto: promo.boton_texto || "Ver Todo",
       boton_link: promo.boton_link || "/tienda",
-      producto_id: promo.producto_id || null,
       fecha_inicio: promo.fecha_inicio || "",
       fecha_fin: promo.fecha_fin || "",
       activo: promo.activo,
       orden: promo.orden || 0,
     });
-    setProductoVinculado(promo.producto || null);
   };
 
   const cancelar = () => {
     setEditandoId(null);
     setForm(VACIO);
-    setProductoVinculado(null);
-    setBusquedaProducto("");
-    setResultadosProducto([]);
   };
 
   const subirImagen = async (e) => {
@@ -208,53 +162,6 @@ export default function AdminPromociones() {
             className="w-full resize-none rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-none"
           />
 
-          <div>
-            <label className="mb-1 block text-xs font-semibold text-plum-soft">
-              Producto vinculado (opcional)
-            </label>
-            {productoVinculado ? (
-              <div className="flex items-center justify-between gap-2 rounded-2xl bg-white/70 px-4 py-2.5 shadow-glass">
-                <span className="truncate text-sm text-plum">{productoVinculado.nombre}</span>
-                <button
-                  type="button"
-                  onClick={quitarProducto}
-                  className="shrink-0 text-xs font-semibold text-berry-dark hover:underline"
-                >
-                  Quitar
-                </button>
-              </div>
-            ) : (
-              <div className="relative">
-                <input
-                  placeholder="Buscar producto por nombre..."
-                  value={busquedaProducto}
-                  onChange={(e) => setBusquedaProducto(e.target.value)}
-                  className="w-full rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-none"
-                />
-                {buscandoProducto && (
-                  <p className="mt-1 text-xs text-plum-soft">Buscando...</p>
-                )}
-                {resultadosProducto.length > 0 && (
-                  <div className="glass absolute z-10 mt-1 w-full space-y-1 rounded-2xl p-2 shadow-glass-lg">
-                    {resultadosProducto.map((p) => (
-                      <button
-                        key={p.id}
-                        type="button"
-                        onClick={() => seleccionarProducto(p)}
-                        className="block w-full truncate rounded-xl px-3 py-1.5 text-left text-sm text-plum hover:bg-white/70"
-                      >
-                        {p.nombre}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-            <p className="mt-1 text-[11px] text-plum-soft">
-              Al elegir uno, se llena solo el enlace del botón — lo puedes cambiar si quieres.
-            </p>
-          </div>
-
           <div className="grid grid-cols-2 gap-3">
             <input
               placeholder="Texto del botón"
@@ -343,9 +250,6 @@ export default function AdminPromociones() {
                     </p>
                   )}
                   <p className="truncate font-medium text-plum">{promo.titulo}</p>
-                  {promo.producto && (
-                    <p className="truncate text-xs text-plum-soft">Producto: {promo.producto.nombre}</p>
-                  )}
                   <p className="text-xs text-plum-soft">
                     {promo.fecha_inicio || promo.fecha_fin
                       ? `${promo.fecha_inicio || "sin inicio"} — ${promo.fecha_fin || "sin fin"}`
