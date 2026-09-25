@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../../api/client.js";
 import { IconChevronDown } from "../../components/Icons.jsx";
+import { useAuth } from "../../context/AuthContext.jsx";
 
 const COLORES_CATEGORIA = ["#A53694", "#CA8AC0", "#C9A227", "#E4C765", "#5A4756"];
 
@@ -15,14 +16,25 @@ const ESTADO_BADGE = {
 };
 
 export default function AdminDashboard() {
+  const { cargando } = useAuth();
   const [stats, setStats] = useState(null);
   const [kpis, setKpis] = useState(null);
   const [verDetalleFinanciero, setVerDetalleFinanciero] = useState(false);
 
   useEffect(() => {
-    api.adminEstadisticas().then(setStats);
-    api.adminKpisAvanzados().then(setKpis);
-  }, []);
+    // No disparar las llamadas admin hasta que AuthContext termine de
+    // recuperar (o descartar) la sesión con /auth/refrescar-token: si
+    // salen antes, el access token todavía es null, el fetch va sin
+    // header Authorization, y el backend responde 401 "token_faltante"
+    // (no "token_expirado"), que fetchAutenticado no reintenta.
+    if (cargando) return;
+    api.adminEstadisticas().then(setStats).catch((err) => {
+      console.error("No se pudieron cargar las estadísticas del dashboard:", err);
+    });
+    api.adminKpisAvanzados().then(setKpis).catch((err) => {
+      console.error("No se pudieron cargar los KPIs avanzados:", err);
+    });
+  }, [cargando]);
 
   return (
     <div>
