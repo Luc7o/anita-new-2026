@@ -1,8 +1,8 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from flask import Blueprint, request, jsonify, Response, g
 from sqlalchemy.orm import selectinload, joinedload
 from app.extensions import db
-from app.models import Pedido, DetallePedido, Usuario, Producto, Categoria
+from app.models import Pedido, DetallePedido, Usuario, Producto, Categoria, EventoAnalitica
 from app.utils.decorators import requiere_roles
 from app.roles import (
     PUEDE_VER_PEDIDOS,
@@ -302,6 +302,46 @@ def estadisticas():
         for pid, nombre, categoria, ingresos, unidades in filas_top_productos
     ]
 
+    # --- Visitas de usuario (KPI de negocio, tabla evento_analitica) ---
+    # "Visita" = evento vista_pagina disparado por la tienda pública (el
+    # frontend no lo dispara dentro de /admin, para no inflar esto con la
+    # navegación del propio equipo). "Visitantes" cuenta sesion_id
+    # distintos, no filas: una persona que ve 5 páginas es 1 visitante y
+    # 5 visitas.
+    hoy_inicio = datetime(hoy.year, hoy.month, hoy.day)
+
+    def _query_vistas(desde, hasta):
+        return EventoAnalitica.query.filter(
+            EventoAnalitica.tipo_evento == "vista_pagina",
+            EventoAnalitica.creado_en >= desde,
+            EventoAnalitica.creado_en < hasta,
+        )
+
+    def _visitantes_unicos(desde, hasta):
+        return db.session.query(
+            db.func.count(db.func.distinct(EventoAnalitica.sesion_id))
+        ).filter(
+            EventoAnalitica.tipo_evento == "vista_pagina",
+            EventoAnalitica.creado_en >= desde,
+            EventoAnalitica.creado_en < hasta,
+        ).scalar() or 0
+
+    manana = hoy_inicio + timedelta(days=1)
+    visitas_hoy = _query_vistas(hoy_inicio, manana).count()
+    visitantes_hoy = _visitantes_unicos(hoy_inicio, manana)
+    visitantes_7dias = _visitantes_unicos(hoy_inicio - timedelta(days=6), manana)
+
+    visitas_por_dia = []
+    dias_es = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"]
+    for i in range(6, -1, -1):
+        dia = hoy_inicio - timedelta(days=i)
+        siguiente = dia + timedelta(days=1)
+        visitas_por_dia.append({
+            "dia": dias_es[dia.weekday()],
+            "visitas": _query_vistas(dia, siguiente).count(),
+            "visitantes": _visitantes_unicos(dia, siguiente),
+        })
+
     return jsonify({
         "total_pedidos": total_pedidos,
         "pedidos_pendientes": pendientes,
@@ -321,6 +361,10 @@ def estadisticas():
         "top_categorias": top_categorias,
         "pedidos_recientes": pedidos_recientes,
         "productos_top": productos_top,
+        "visitas_hoy": visitas_hoy,
+        "visitantes_hoy": visitantes_hoy,
+        "visitantes_7dias": visitantes_7dias,
+        "visitas_por_dia": visitas_por_dia,
     })
 
 class _ItemVentaPresencial:
