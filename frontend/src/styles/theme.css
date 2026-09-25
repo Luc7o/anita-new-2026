@@ -12,6 +12,16 @@ body,
   min-height: 100%;
 }
 
+html {
+  /* Reserva siempre el ancho de la barra de scroll vertical, la use o no
+     la página actual. Sin esto, páginas cortas (ej. "Productos" sin
+     productos todavía) no muestran scrollbar y el contenido centrado
+     (mx-auto) se corre unos px respecto a páginas largas (ej. Dashboard),
+     dando la sensación de que el panel admin "salta" al cambiar de sección. */
+  scrollbar-gutter: stable;
+  overflow-y: scroll;
+}
+
 body {
   font-family: "Manrope", sans-serif;
   color: #2b1e29;
