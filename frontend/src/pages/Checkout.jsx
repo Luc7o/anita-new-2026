@@ -3,13 +3,18 @@ import { useNavigate, Link } from "react-router-dom";
 import { api } from "../api/client.js";
 import { useCarrito } from "../context/CarritoContext.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
-import { soloTexto, soloNumeros } from "../validacion.js";
+import { soloTexto, soloNumeros, soloDni, soloRuc, soloDireccion } from "../validacion.js";
 import { abrirCulqiCheckout } from "../culqi.js";
 import { obtenerPagoIdempotencyKey, limpiarPagoIdempotencyKey } from "../pagoIdempotencia.js";
 
 const METODOS = [
   { id: "yape", label: "Yape" },
   { id: "tarjeta", label: "Tarjeta" },
+];
+
+const TIPOS_DOCUMENTO = [
+  { id: "dni", label: "DNI", digitos: 8 },
+  { id: "ruc", label: "RUC", digitos: 11 },
 ];
 
 export default function Checkout() {
@@ -19,6 +24,8 @@ export default function Checkout() {
 
   const [form, setForm] = useState({
     envio_nombre: usuario?.nombre_completo || "",
+    envio_tipo_documento: "dni",
+    envio_numero_documento: "",
     envio_telefono: "",
     envio_direccion: "",
     envio_distrito: "",
@@ -63,6 +70,18 @@ export default function Checkout() {
   const actualizar = (campo) => (e) => setForm({ ...form, [campo]: e.target.value });
   const actualizarTexto = (campo) => (e) => setForm({ ...form, [campo]: soloTexto(e.target.value) });
   const actualizarTelefonoEnvio = (e) => setForm({ ...form, envio_telefono: soloNumeros(e.target.value) });
+  const actualizarDireccion = (e) => setForm({ ...form, envio_direccion: soloDireccion(e.target.value) });
+
+  // Al cambiar entre DNI y RUC se borra el número escrito: un DNI tiene 8
+  // dígitos y un RUC 11, así que lo que había ya no sería válido.
+  const cambiarTipoDocumento = (tipo) =>
+    setForm({ ...form, envio_tipo_documento: tipo, envio_numero_documento: "" });
+  const actualizarNumeroDocumento = (e) => {
+    const limpiar = form.envio_tipo_documento === "ruc" ? soloRuc : soloDni;
+    setForm({ ...form, envio_numero_documento: limpiar(e.target.value) });
+  };
+
+  const documentoActual = TIPOS_DOCUMENTO.find((t) => t.id === form.envio_tipo_documento);
 
   // KPIs: "inicio de checkout" se marca al entrar a esta página con algo en
   // el carrito, no al enviar el formulario — es el momento en que el
@@ -262,13 +281,46 @@ export default function Checkout() {
           />
         </div>
         <div>
+          <div role="radiogroup" aria-label="Tipo de documento" className="mb-2 flex gap-2">
+            {TIPOS_DOCUMENTO.map((t) => (
+              <button
+                type="button"
+                role="radio"
+                aria-checked={form.envio_tipo_documento === t.id}
+                key={t.id}
+                onClick={() => cambiarTipoDocumento(t.id)}
+                className={`rounded-full px-4 py-2 text-sm font-medium shadow-glass ${
+                  form.envio_tipo_documento === t.id ? "bg-berry text-white" : "bg-white/60 text-plum"
+                }`}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
+          <label htmlFor="chk-documento" className="sr-only">Número de {documentoActual.label}</label>
+          <input
+            id="chk-documento"
+            placeholder={`Número de ${documentoActual.label} (${documentoActual.digitos} dígitos)`}
+            required
+            inputMode="numeric"
+            maxLength={documentoActual.digitos}
+            pattern={`[0-9]{${documentoActual.digitos}}`}
+            title={`El ${documentoActual.label} debe tener ${documentoActual.digitos} dígitos`}
+            value={form.envio_numero_documento}
+            onChange={actualizarNumeroDocumento}
+            className="w-full rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-none"
+          />
+        </div>
+        <div>
           <label htmlFor="chk-telefono" className="sr-only">Teléfono</label>
           <input
             id="chk-telefono"
-            placeholder="Teléfono"
+            placeholder="Teléfono (9 dígitos)"
             required
             inputMode="numeric"
             maxLength={9}
+            pattern="9[0-9]{8}"
+            title="El teléfono debe tener 9 dígitos y empezar con 9"
             value={form.envio_telefono}
             onChange={actualizarTelefonoEnvio}
             className="w-full rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-none"
@@ -284,8 +336,9 @@ export default function Checkout() {
                 placeholder="Dirección"
                 required
                 maxLength={200}
+                title="Solo letras, números y los símbolos . * ° #"
                 value={form.envio_direccion}
-                onChange={actualizar("envio_direccion")}
+                onChange={actualizarDireccion}
                 className="w-full rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-none"
               />
             </div>
@@ -325,10 +378,11 @@ export default function Checkout() {
               </div>
             </div>
             <div>
-              <label htmlFor="chk-referencia" className="sr-only">Referencia (opcional)</label>
+              <label htmlFor="chk-referencia" className="sr-only">Referencia</label>
               <input
                 id="chk-referencia"
-                placeholder="Referencia (opcional)"
+                placeholder="Referencia (ej. frente al parque, casa azul)"
+                required
                 maxLength={200}
                 value={form.envio_referencia}
                 onChange={actualizar("envio_referencia")}
