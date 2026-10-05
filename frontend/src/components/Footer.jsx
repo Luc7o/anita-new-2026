@@ -1,9 +1,17 @@
 // src/components/Footer.jsx
-import React from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import { IconFacebook, IconInstagram, IconWhatsApp } from "./Icons.jsx";
+import { IconFacebook, IconTikTok, IconWhatsApp } from "./Icons.jsx";
 
 export default function Footer() {
+  const [email, setEmail] = useState("");
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    // Aquí puedes agregar la lógica para guardar el correo
+    setEmail("");
+  };
+
   return (
     <footer className="mt-16 border-t border-plum/10 bg-gradient-to-b from-transparent to-plum/5">
       <div className="max-w-7xl mx-auto px-6 py-14">
@@ -104,37 +112,53 @@ export default function Footer() {
                   <IconFacebook size={16} />
                 </a>
                 <a
-                  href="#"
-                  aria-label="Instagram"
+                  href="https://www.tiktok.com/@novedadesanita4"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="TikTok"
                   className="flex h-9 w-9 items-center justify-center rounded-full bg-white/60 text-plum-soft shadow-glass transition hover:bg-berry hover:text-white"
                 >
-                  <IconInstagram size={16} />
+                  <IconTikTok size={16} />
                 </a>
                 <a
-                  href="#"
+                  href="https://web.whatsapp.com/"
+                  target="_blank"
+                  rel="noopener noreferrer"
                   aria-label="WhatsApp"
                   className="flex h-9 w-9 items-center justify-center rounded-full bg-white/60 text-plum-soft shadow-glass transition hover:bg-berry hover:text-white"
                 >
                   <IconWhatsApp size={16} />
                 </a>
               </div>
-              <p className="mt-3 text-xs text-plum-soft">
-                WhatsApp: +51 987 654 321
-              </p>
             </div>
           </div>
 
-          {/* ============ COLUMNA 4: VISÍTANOS ============ */}
+          {/* ============ COLUMNA 4: ÚNETE A NUESTRO MUNDO ============ */}
           <div>
             <h4 className="font-display text-lg font-semibold text-plum mb-5">
-              Visítanos
+              Únete a Nuestro Mundo
             </h4>
-            <ul className="space-y-3 text-sm text-plum-soft">
-              <li>Jr. Cajamarca 214, Huancayo</li>
-              <li>+51 987 654 321</li>
-              <li>contacto@anitanewstyle.com</li>
-              <li>Lun a Sáb: 10am - 8pm</li>
-            </ul>
+            <p className="text-sm text-plum-soft leading-relaxed mb-4">
+              Recibe novedades, lanzamientos de temporada y un <span className="text-berry font-semibold">15% OFF</span> de bienvenida en tu primera compra.
+            </p>
+
+            {/* Formulario de suscripción */}
+            <form onSubmit={handleSubmit} className="space-y-3">
+              <input
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Ingresa tu correo electrónico"
+                className="w-full rounded-md border border-plum/20 bg-white/70 px-4 py-2.5 text-sm text-plum placeholder:text-plum-soft/50 shadow-glass focus:outline-none focus:border-berry"
+              />
+              <button
+                type="submit"
+                className="w-full rounded-md bg-berry py-2.5 text-sm font-semibold text-white shadow-glass transition hover:bg-berry-dark"
+              >
+                Suscribirme
+              </button>
+            </form>
 
             {/* Libro de Reclamaciones */}
             <div className="mt-5 pt-5 border-t border-plum/10">
