@@ -1,17 +1,9 @@
 // src/components/Footer.jsx
-import React, { useState } from "react";
+import React from "react";
 import { Link } from "react-router-dom";
 import { IconFacebook, IconTikTok, IconWhatsApp } from "./Icons.jsx";
 
 export default function Footer() {
-  const [email, setEmail] = useState("");
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    // Aquí puedes agregar la lógica para guardar el correo
-    setEmail("");
-  };
-
   return (
     <footer className="mt-16 border-t border-plum/10 bg-gradient-to-b from-transparent to-plum/5">
       <div className="max-w-7xl mx-auto px-6 py-14">
@@ -139,26 +131,25 @@ export default function Footer() {
               Únete a Nuestro Mundo
             </h4>
             <p className="text-sm text-plum-soft leading-relaxed mb-4">
-              Recibe novedades, lanzamientos de temporada y un <span className="text-berry font-semibold">15% OFF</span> de bienvenida en tu primera compra.
+              Ingresa tu correo electrónico y recibirás novedades, lanzamientos de temporada y un <span className="text-berry font-semibold">15% OFF</span> de bienvenida en tu primera compra.
             </p>
 
-            {/* Formulario de suscripción */}
-            <form onSubmit={handleSubmit} className="space-y-3">
-              <input
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="Ingresa tu correo electrónico"
-                className="w-full rounded-md border border-plum/20 bg-white/70 px-4 py-2.5 text-sm text-plum placeholder:text-plum-soft/50 shadow-glass focus:outline-none focus:border-berry"
-              />
-              <button
-                type="submit"
-                className="w-full rounded-md bg-berry py-2.5 text-sm font-semibold text-white shadow-glass transition hover:bg-berry-dark"
-              >
-                Suscribirme
-              </button>
-            </form>
+            {/* Campo de correo (solo mención, sin botón) */}
+            <input
+              type="email"
+              placeholder="Ingresa tu correo electrónico"
+              className="w-full rounded-md border border-plum/20 bg-white/70 px-4 py-2.5 text-sm text-plum placeholder:text-plum-soft/50 shadow-glass focus:outline-none focus:border-berry mb-5"
+            />
+
+            {/* Dirección */}
+            <div className="pt-5 border-t border-plum/10">
+              <p className="text-xs font-semibold uppercase tracking-wider text-plum-soft/70 mb-2">
+                Visítanos
+              </p>
+              <p className="text-sm text-plum-soft">
+                Jr. Cajamarca 214, Huancayo
+              </p>
+            </div>
 
             {/* Libro de Reclamaciones */}
             <div className="mt-5 pt-5 border-t border-plum/10">
