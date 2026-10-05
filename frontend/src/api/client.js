@@ -16,6 +16,7 @@ function setAccessToken(token) {
 }
 function clearAccessToken() {
   accessToken = null;
+  guardarCsrf(null);
 }
 
 // Lee el valor de la cookie no-httpOnly que Flask-JWT-Extended deja junto a
@@ -25,6 +26,37 @@ function clearAccessToken() {
 function leerCookie(nombre) {
   const match = document.cookie.match(new RegExp(`(?:^|; )${nombre}=([^;]*)`));
   return match ? decodeURIComponent(match[1]) : null;
+}
+
+// Token CSRF del refresh. Si frontend y API están en sitios distintos (ej.
+// el frontend en *.vercel.app y la API en api.<dominio propio>), el navegador
+// NO deja a JavaScript leer la cookie csrf_refresh_token (pertenece a otro
+// dominio), así que el backend también la manda en el JSON de login/refresh y
+// la guardamos acá. Va en localStorage (no en memoria) porque tiene que
+// sobrevivir a una recarga —justo cuando se necesita para recuperar la sesión—
+// y para que todas las pestañas usen siempre el valor más reciente (el
+// refresh rota el token). No es un secreto: solo sirve junto con la cookie
+// httpOnly de refresh, que JavaScript nunca ve.
+const CLAVE_CSRF = "ans_csrf_refresh";
+
+function guardarCsrf(valor) {
+  try {
+    if (valor) localStorage.setItem(CLAVE_CSRF, valor);
+    else localStorage.removeItem(CLAVE_CSRF);
+  } catch {
+    // localStorage bloqueado (modo privado estricto): se sigue con la cookie.
+  }
+}
+
+function leerCsrf() {
+  // Si la cookie es legible (mismo sitio), es siempre la fuente más fiable.
+  const deCookie = leerCookie("csrf_refresh_token");
+  if (deCookie) return deCookie;
+  try {
+    return localStorage.getItem(CLAVE_CSRF) || "";
+  } catch {
+    return "";
+  }
 }
 
 // Cuando el refresh token también expiró (o no existe), no hay forma de
@@ -46,12 +78,13 @@ async function refrescarAccessToken() {
     const res = await fetch(`${BASE_URL}/auth/refrescar-token`, {
       method: "POST",
       credentials: "include", // manda la cookie httpOnly de refresh
-      headers: { "X-CSRF-Token": leerCookie("csrf_refresh_token") || "" },
+      headers: { "X-CSRF-Token": leerCsrf() },
     });
     if (!res.ok) throw new Error("El refresh token también expiró");
 
     const data = await res.json();
     setAccessToken(data.token);
+    if (data.csrf) guardarCsrf(data.csrf);
     return data.token;
   })();
 
@@ -231,7 +264,7 @@ export const api = {
     fetch(`${BASE_URL}/auth/logout`, {
       method: "POST",
       credentials: "include",
-      headers: { "X-CSRF-Token": leerCookie("csrf_refresh_token") || "" },
+      headers: { "X-CSRF-Token": leerCsrf() },
     }),
 
   // Ubicación (catálogo departamento -> provincia -> distrito, para los
@@ -393,4 +426,4 @@ export const api = {
   },
 };
 
-export { getToken, setAccessToken, clearAccessToken };
+export { getToken, setAccessToken, clearAccessToken, guardarCsrf };

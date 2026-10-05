@@ -3,6 +3,7 @@ from flask import Blueprint, request, jsonify, current_app
 from flask_jwt_extended import (
     create_access_token,
     create_refresh_token,
+    get_csrf_token,
     get_jwt_identity,
     jwt_required,
     set_refresh_cookies,
@@ -78,7 +79,7 @@ def registro():
     )
 
     token, refresh_token = _crear_par_tokens(usuario)
-    respuesta = jsonify({"token": token, "usuario": usuario.to_dict()})
+    respuesta = jsonify({"token": token, "csrf": get_csrf_token(refresh_token), "usuario": usuario.to_dict()})
     set_refresh_cookies(respuesta, refresh_token)
     return respuesta, 201
 
@@ -125,7 +126,7 @@ def continuar_como_invitado():
     db.session.commit()
 
     token, refresh_token = _crear_par_tokens(usuario)
-    respuesta = jsonify({"token": token, "usuario": usuario.to_dict()})
+    respuesta = jsonify({"token": token, "csrf": get_csrf_token(refresh_token), "usuario": usuario.to_dict()})
     set_refresh_cookies(respuesta, refresh_token)
     return respuesta, 201
 
@@ -186,7 +187,7 @@ def login():
     db.session.commit()
 
     token, refresh_token = _crear_par_tokens(usuario)
-    respuesta = jsonify({"token": token, "usuario": usuario.to_dict()})
+    respuesta = jsonify({"token": token, "csrf": get_csrf_token(refresh_token), "usuario": usuario.to_dict()})
     set_refresh_cookies(respuesta, refresh_token)
     return respuesta
 
@@ -215,7 +216,7 @@ def refrescar_token():
         return jsonify({"error": "Cuenta no disponible"}), 403
 
     token, refresh_token = _crear_par_tokens(usuario)
-    respuesta = jsonify({"token": token})
+    respuesta = jsonify({"token": token, "csrf": get_csrf_token(refresh_token)})
     set_refresh_cookies(respuesta, refresh_token)
     return respuesta
 
@@ -312,7 +313,7 @@ def cambiar_password():
     db.session.commit()
 
     token, refresh_token = _crear_par_tokens(usuario)
-    respuesta = jsonify({"mensaje": "Contraseña actualizada correctamente", "token": token})
+    respuesta = jsonify({"mensaje": "Contraseña actualizada correctamente", "token": token, "csrf": get_csrf_token(refresh_token)})
     set_refresh_cookies(respuesta, refresh_token)
     return respuesta
 
