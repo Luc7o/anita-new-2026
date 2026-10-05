@@ -74,6 +74,8 @@ class Pedido(db.Model):
     total = db.Column(db.Numeric(10, 2), nullable=False)
 
     envio_nombre = db.Column(db.String(160))
+    envio_tipo_documento = db.Column(db.String(10))
+    envio_numero_documento = db.Column(db.String(15))
     envio_telefono = db.Column(db.String(20))
     envio_direccion = db.Column(db.String(200))
     envio_distrito = db.Column(db.String(100))
@@ -191,6 +193,8 @@ class Pedido(db.Model):
             "costo_envio": float(self.costo_envio),
             "total": float(self.total),
             "envio_nombre": self.envio_nombre,
+            "envio_tipo_documento": self.envio_tipo_documento,
+            "envio_numero_documento": self.envio_numero_documento,
             "envio_telefono": self.envio_telefono,
             "envio_direccion": self.envio_direccion,
             "envio_distrito": self.envio_distrito,
