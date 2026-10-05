@@ -71,11 +71,6 @@ export default function Footer() {
                   Nuestras Tiendas
                 </Link>
               </li>
-              <li>
-                <Link to="/trabaja-con-nosotros" className="hover:text-berry transition duration-200">
-                  Trabaja con Nosotros
-                </Link>
-              </li>
             </ul>
           </div>
 
@@ -85,7 +80,7 @@ export default function Footer() {
               Anita New Style
             </h4>
             <p className="text-sm text-plum-soft leading-relaxed">
-              Tienda de moda peruana con tienda física en Huancayo. Envíos a todo el Perú.
+              Tienda de moda peruana con tienda física en Huancayo. Envíos a la región Junín.
             </p>
 
             {/* Redes sociales */}

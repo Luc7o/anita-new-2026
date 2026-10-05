@@ -9,6 +9,9 @@ import CambiosDevoluciones from "./pages/CambiosDevoluciones.jsx";
 import GuiaTallas from "./pages/GuiaTallas.jsx";
 import FAQ from "./pages/FAQ.jsx";
 import Contacto from "./pages/Contacto.jsx";
+import QuienesSomos from "./pages/QuienesSomos.jsx";
+import Reviews from "./pages/Reviews.jsx";
+import NuestrasTiendas from "./pages/NuestrasTiendas.jsx";
 import Home from "./pages/Home.jsx";
 import Tienda from "./pages/Tienda.jsx";
 import ProductoDetalle from "./pages/ProductoDetalle.jsx";
@@ -62,8 +65,6 @@ export default function App() {
     if (usuario) refrescar();
   }, [usuario, refrescar]);
 
-  // Se limpia solo al cambiar de página (por ejemplo, al ir a /ingresar),
-  // para no dejar el aviso pegado después de que el usuario ya reaccionó.
   useEffect(() => {
     if (sesionExpirada) setSesionExpirada(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -82,7 +83,8 @@ export default function App() {
   if (esAdmin) {
     return (
       <div className="min-h-screen pt-8">
-        {bannerSesionExpirada}        <Routes>
+        {bannerSesionExpirada}
+        <Routes>
           <Route
             path="/admin"
             element={
@@ -156,6 +158,9 @@ export default function App() {
           <Route path="/guia-de-tallas" element={<GuiaTallas />} />
           <Route path="/faq" element={<FAQ />} />
           <Route path="/contacto" element={<Contacto />} />
+          <Route path="/quienes-somos" element={<QuienesSomos />} />
+          <Route path="/reviews" element={<Reviews />} />
+          <Route path="/tiendas" element={<NuestrasTiendas />} />
         </Routes>
       </main>
       <CartDrawer />
