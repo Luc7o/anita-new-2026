@@ -25,7 +25,16 @@ COSTO_ENVIO_DELIVERY = 10.00
 # Validaciones de los datos de entrega (el frontend ya filtra lo mismo, pero
 # el servidor nunca debe confiar en que el navegador lo hizo).
 TELEFONO_RE = re.compile(r"^9\d{8}$")  # celular peruano: 9 dígitos, empieza con 9
-DOCUMENTO_RE = {"dni": re.compile(r"^\d{8}$"), "ruc": re.compile(r"^\d{11}$")}
+DOCUMENTO_RE = {
+    "dni": re.compile(r"^\d{8}$"),
+    "ruc": re.compile(r"^\d{11}$"),
+    "ce": re.compile(r"^[A-Z0-9]{6,15}$"),  # Carné de Extranjería
+}
+DOCUMENTO_ERRORES = {
+    "dni": "El DNI debe tener 8 dígitos",
+    "ruc": "El RUC debe tener 11 dígitos",
+    "ce": "El Carné de Extranjería debe tener entre 6 y 15 letras o números",
+}
 # Dirección: letras (con tildes/ñ), números, espacios y SOLO . * ° #
 DIRECCION_RE = re.compile(r"^[A-Za-zÀ-ÿñÑ0-9\s.*°#]+$")
 
@@ -81,12 +90,11 @@ def checkout():
         return jsonify({"error": "El teléfono debe tener 9 dígitos y empezar con 9"}), 400
 
     envio_tipo_documento = (data.get("envio_tipo_documento") or "").strip().lower()
-    envio_numero_documento = (data.get("envio_numero_documento") or "").strip()
+    envio_numero_documento = (data.get("envio_numero_documento") or "").strip().upper()
     if envio_tipo_documento not in DOCUMENTO_RE:
-        return jsonify({"error": "Elige DNI o RUC"}), 400
+        return jsonify({"error": "Elige DNI, RUC o Carné de Extranjería"}), 400
     if not DOCUMENTO_RE[envio_tipo_documento].match(envio_numero_documento):
-        digitos = 8 if envio_tipo_documento == "dni" else 11
-        return jsonify({"error": f"El {envio_tipo_documento.upper()} debe tener {digitos} dígitos"}), 400
+        return jsonify({"error": DOCUMENTO_ERRORES[envio_tipo_documento]}), 400
 
     # Si es delivery, la dirección (con distrito) y la referencia son
     # obligatorias — si es recojo en tienda, no hacen falta.
