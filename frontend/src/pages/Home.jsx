@@ -4,10 +4,35 @@ import { api } from "../api/client.js";
 import ProductCard from "../components/ProductCard.jsx";
 import CategoryPill from "../components/CategoryPill.jsx";
 import { IconChevronLeft, IconChevronRight, IconArrowRight } from "../components/Icons.jsx";
+import { urlVariante } from "../utils/imagenes.js";
 import heroDefecto1 from "../assets/auth/login-hero.jpg";
 import heroDefecto2 from "../assets/auth/registro-hero.jpg";
 
 const IMAGENES_POR_DEFECTO = [heroDefecto1, heroDefecto2];
+
+// Slide del carrusel. Usa la versión "lg" (1600 px, WebP) en vez del original,
+// que puede ser una foto 4K. Como es un background-image no existe onError:
+// se prueba la carga con un Image() y, si la versión lg no existe todavía
+// (imagen subida antes de la optimización y aún no migrada), se usa el original.
+function SlideHero({ url, visible }) {
+  const [src, setSrc] = useState(() => urlVariante(url, "lg"));
+
+  useEffect(() => {
+    const lg = urlVariante(url, "lg");
+    setSrc(lg);
+    if (lg === url) return;
+    const sonda = new Image();
+    sonda.onerror = () => setSrc(url);
+    sonda.src = lg;
+  }, [url]);
+
+  return (
+    <div
+      className="absolute inset-0 scale-105 bg-cover bg-center transition-opacity duration-1000 ease-in-out"
+      style={{ backgroundImage: `url(${src})`, opacity: visible ? 1 : 0 }}
+    />
+  );
+}
 
 function Hero({ promociones }) {
   // Solo promociones con imagen entran al carrusel — mantenemos esta lista
@@ -42,11 +67,7 @@ function Hero({ promociones }) {
       {usaCarrusel ? (
         <>
           {imagenes.map((url, i) => (
-            <div
-              key={url + i}
-              className="absolute inset-0 scale-105 bg-cover bg-center transition-opacity duration-1000 ease-in-out"
-              style={{ backgroundImage: `url(${url})`, opacity: i === indice ? 1 : 0 }}
-            />
+            <SlideHero key={url + i} url={url} visible={i === indice} />
           ))}
           {/* Degradado sutil solo para dar contraste en los bordes, sin tapar la imagen */}
           <div className="absolute inset-0 bg-gradient-to-b from-plum/35 via-transparent to-plum/45" />

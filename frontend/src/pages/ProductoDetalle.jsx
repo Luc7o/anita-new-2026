@@ -6,6 +6,7 @@ import { useCarrito } from "../context/CarritoContext.jsx";
 import { useFavoritos } from "../context/FavoritosContext.jsx";
 import { IconCart, IconHeart } from "../components/Icons.jsx";
 import Estrellas from "../components/Estrellas.jsx";
+import ImagenOptimizada from "../components/ImagenOptimizada.jsx";
 
 // Traduce el nombre del color (como se guarda en BD) a un hex real para
 // pintar el círculo. Si aparece un color que no está mapeado, cae a un
@@ -285,7 +286,7 @@ export default function ProductoDetalle() {
                     imagenActiva === img.url ? "ring-2 ring-berry" : "opacity-80 hover:opacity-100"
                   }`}
                 >
-                  <img src={img.url} alt="" className="h-full w-full object-cover" />
+                  <ImagenOptimizada src={img.url} variante="thumb" alt="" className="h-full w-full object-cover" />
                 </button>
               ))}
             </div>
@@ -293,8 +294,10 @@ export default function ProductoDetalle() {
 
           <div className="glass aspect-[4/5] flex-1 overflow-hidden rounded-3xl shadow-glass">
             {imagenActiva ? (
-              <img
+              <ImagenOptimizada
                 src={imagenActiva}
+                variante="med"
+                prioridad
                 alt={producto.nombre}
                 className="h-full w-full object-cover transition"
               />
@@ -598,8 +601,9 @@ export default function ProductoDetalle() {
                   to={`/producto/${rel.id}`}
                   className="group w-40 shrink-0 rounded-xl border border-plum/10 p-3 transition hover:shadow-glass sm:w-48"
                 >
-                  <img
+                  <ImagenOptimizada
                     src={rel.imagen_url || "/placeholder.png"}
+                    variante="thumb"
                     alt={rel.nombre}
                     className="h-40 w-full rounded-lg object-cover sm:h-48"
                   />
