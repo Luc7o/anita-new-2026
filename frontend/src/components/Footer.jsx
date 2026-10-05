@@ -130,19 +130,12 @@ export default function Footer() {
             <h4 className="font-display text-lg font-semibold text-plum mb-5">
               Únete a Nuestro Mundo
             </h4>
-            <p className="text-sm text-plum-soft leading-relaxed mb-4">
-              Ingresa tu correo electrónico y recibirás novedades, lanzamientos de temporada y un <span className="text-berry font-semibold">15% OFF</span> de bienvenida en tu primera compra.
+            <p className="text-sm text-plum-soft leading-relaxed">
+              Recibe novedades, lanzamientos de temporada y un <span className="text-berry font-semibold">15% OFF</span> de bienvenida en tu primera compra al registrarte con nosotros.
             </p>
 
-            {/* Campo de correo (solo mención, sin botón) */}
-            <input
-              type="email"
-              placeholder="Ingresa tu correo electrónico"
-              className="w-full rounded-md border border-plum/20 bg-white/70 px-4 py-2.5 text-sm text-plum placeholder:text-plum-soft/50 shadow-glass focus:outline-none focus:border-berry mb-5"
-            />
-
             {/* Dirección */}
-            <div className="pt-5 border-t border-plum/10">
+            <div className="mt-5 pt-5 border-t border-plum/10">
               <p className="text-xs font-semibold uppercase tracking-wider text-plum-soft/70 mb-2">
                 Visítanos
               </p>
