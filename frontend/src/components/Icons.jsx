@@ -457,3 +457,12 @@ export function IconStar({ size = 18, className = "", relleno = false }) {
     </svg>
   );
 }
+
+export function IconBook({ size = 18, className = "" }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" {...base} className={className}>
+      <path d="M2 5.5C4.5 4 8 4 12 6.5c4-2.5 7.5-2.5 10-1v13c-2.5-1.5-6-1.5-10 1-4-2.5-7.5-2.5-10-1v-13Z" />
+      <path d="M12 6.5v13" />
+    </svg>
+  );
+}
