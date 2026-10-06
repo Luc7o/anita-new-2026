@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { api, setAccessToken } from "../api/client.js";
+import { api, setAccessToken, guardarCsrf } from "../api/client.js";
 import { useAuth } from "../context/AuthContext.jsx";
 import CuentaLayout from "../components/CuentaLayout.jsx";
 import {
@@ -219,6 +219,7 @@ function FormularioContrasena() {
       // cambiar la contraseña, pero nos da un token nuevo para que esta
       // misma pestaña siga funcionando sin pedir volver a loguearse.
       setAccessToken(respuesta.token);
+      guardarCsrf(respuesta.csrf);
       setMensaje("Contraseña actualizada correctamente.");
       setForm({ password_actual: "", password_nueva: "", password_confirmar: "" });
     } catch (err) {

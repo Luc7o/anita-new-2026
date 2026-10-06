@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { api } from "../../api/client.js";
+import ImagenOptimizada from "../../components/ImagenOptimizada.jsx";
 
 const VACIO = {
   etiqueta: "",
@@ -122,8 +123,9 @@ export default function AdminPromociones() {
           <div>
             <label className="mb-1 block text-xs font-semibold text-plum-soft">Imagen de fondo</label>
             {form.imagen_url && (
-              <img
+              <ImagenOptimizada
                 src={form.imagen_url}
+                variante="med"
                 alt="Vista previa"
                 className="mb-2 h-32 w-full rounded-2xl object-cover shadow-glass"
               />

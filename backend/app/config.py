@@ -63,6 +63,16 @@ class Config:
     JWT_COOKIE_SECURE = _es_produccion
     JWT_COOKIE_SAMESITE = "None" if _es_produccion else "Lax"
 
+    # Dominio de las cookies de sesión. Con el frontend en www.<dominio> y
+    # la API en api.<dominio>, sin esto la cookie csrf_refresh_token queda
+    # atada solo al host de la API y el frontend (otro subdominio) no puede
+    # leerla con document.cookie: el refresh falla y la sesión se pierde al
+    # recargar. Con COOKIE_DOMAIN=".anita-new-style.xyz" (punto inicial) las
+    # cookies se comparten entre todos los subdominios. Vacío = comportamiento
+    # anterior (cookie solo del host que la emite), que es lo correcto en
+    # local y mientras el frontend siga en *.vercel.app.
+    JWT_COOKIE_DOMAIN = os.getenv("COOKIE_DOMAIN", "").strip() or None
+
     # Acepta uno o varios orígenes separados por coma (útil durante la
     # migración al dominio propio, mientras el frontend puede estar servido
     # tanto desde *.vercel.app como desde el dominio custom). Ejemplo:

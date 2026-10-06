@@ -1,3 +1,4 @@
+import re
 from datetime import datetime, timedelta
 from flask import Blueprint, request, jsonify, Response, current_app
 from flask_jwt_extended import jwt_required, get_jwt_identity
@@ -20,6 +21,22 @@ from app.models import IntentoPago
 bp = Blueprint("pedidos", __name__, url_prefix="/api/pedidos")
 
 COSTO_ENVIO_DELIVERY = 10.00
+
+# Validaciones de los datos de entrega (el frontend ya filtra lo mismo, pero
+# el servidor nunca debe confiar en que el navegador lo hizo).
+TELEFONO_RE = re.compile(r"^9\d{8}$")  # celular peruano: 9 dígitos, empieza con 9
+DOCUMENTO_RE = {
+    "dni": re.compile(r"^\d{8}$"),
+    "ruc": re.compile(r"^\d{11}$"),
+    "ce": re.compile(r"^[A-Z0-9]{6,15}$"),  # Carné de Extranjería
+}
+DOCUMENTO_ERRORES = {
+    "dni": "El DNI debe tener 8 dígitos",
+    "ruc": "El RUC debe tener 11 dígitos",
+    "ce": "El Carné de Extranjería debe tener entre 6 y 15 letras o números",
+}
+# Dirección: letras (con tildes/ñ), números, espacios y SOLO . * ° #
+DIRECCION_RE = re.compile(r"^[A-Za-zÀ-ÿñÑ0-9\s.*°#]+$")
 
 # Tarjeta y Yape se cobran por la pasarela Culqi (cargo único, síncrono).
 METODOS_PAGO_PASARELA = {"tarjeta", "yape"}
@@ -64,18 +81,33 @@ def checkout():
     if tipo_entrega not in Pedido.TIPOS_ENTREGA:
         return jsonify({"error": "Tipo de entrega inválido"}), 400
 
-    # Nombre y teléfono de contacto son obligatorios siempre
+    # Nombre, documento y teléfono de contacto son obligatorios siempre
     envio_nombre = (data.get("envio_nombre") or "").strip()[:160]
     envio_telefono = (data.get("envio_telefono") or "").strip()[:20]
     if not envio_nombre or not envio_telefono:
         return jsonify({"error": "Falta el nombre o el teléfono de contacto"}), 400
+    if not TELEFONO_RE.match(envio_telefono):
+        return jsonify({"error": "El teléfono debe tener 9 dígitos y empezar con 9"}), 400
 
-    # Si es delivery, la dirección (con distrito) es obligatoria — si es
-    # recojo en tienda, no hace falta.
+    envio_tipo_documento = (data.get("envio_tipo_documento") or "").strip().lower()
+    envio_numero_documento = (data.get("envio_numero_documento") or "").strip().upper()
+    if envio_tipo_documento not in DOCUMENTO_RE:
+        return jsonify({"error": "Elige DNI, RUC o Carné de Extranjería"}), 400
+    if not DOCUMENTO_RE[envio_tipo_documento].match(envio_numero_documento):
+        return jsonify({"error": DOCUMENTO_ERRORES[envio_tipo_documento]}), 400
+
+    # Si es delivery, la dirección (con distrito) y la referencia son
+    # obligatorias — si es recojo en tienda, no hacen falta.
     envio_direccion = (data.get("envio_direccion") or "").strip()[:200]
     envio_distrito = (data.get("envio_distrito") or "").strip()[:100]
-    if tipo_entrega == "delivery" and (not envio_direccion or not envio_distrito):
-        return jsonify({"error": "Falta la dirección o el distrito de entrega"}), 400
+    envio_referencia = (data.get("envio_referencia") or "").strip()[:200]
+    if tipo_entrega == "delivery":
+        if not envio_direccion or not envio_distrito:
+            return jsonify({"error": "Falta la dirección o el distrito de entrega"}), 400
+        if not DIRECCION_RE.match(envio_direccion):
+            return jsonify({"error": "La dirección solo puede tener letras, números y los símbolos . * ° #"}), 400
+        if not envio_referencia:
+            return jsonify({"error": "Falta la referencia de la dirección"}), 400
 
     # Tarjeta: solo referencia visual, NUNCA se pide ni se acepta número de
     # tarjeta ni CVV — Culqi tokeniza esos datos directamente en el navegador
@@ -126,12 +158,14 @@ def checkout():
         costo_envio=costo_envio,
         total=total,
         envio_nombre=envio_nombre,
+        envio_tipo_documento=envio_tipo_documento,
+        envio_numero_documento=envio_numero_documento,
         envio_telefono=envio_telefono,
         envio_direccion=envio_direccion or None,
         envio_distrito=envio_distrito or None,
         envio_provincia=(data.get("envio_provincia") or "").strip()[:100] or None,
         envio_dpto=(data.get("envio_dpto") or "").strip()[:100] or None,
-        envio_referencia=(data.get("envio_referencia") or "").strip()[:200] or None,
+        envio_referencia=envio_referencia or None,
         # KPIs: id normalizado del distrito, si el frontend lo manda (viene
         # de los selects en cascada de /api/ubicaciones). Es opcional a
         # propósito — envio_distrito (texto libre) sigue siendo la fuente

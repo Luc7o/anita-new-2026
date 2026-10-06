@@ -4,6 +4,7 @@ import { useAuth } from "../context/AuthContext.jsx";
 import { useCarrito } from "../context/CarritoContext.jsx";
 import { useFavoritos } from "../context/FavoritosContext.jsx";
 import { IconCart, IconStar, IconHeart } from "./Icons.jsx";
+import ImagenOptimizada from "./ImagenOptimizada.jsx";
 
 export default function ProductCard({ producto }) {
   const { usuario } = useAuth();
@@ -50,8 +51,9 @@ export default function ProductCard({ producto }) {
       <Link to={`/producto/${producto.id}`} className="flex flex-1 flex-col focus:outline-none focus-visible:ring-2 focus-visible:ring-berry">
         <div className="relative aspect-[4/5] w-full overflow-hidden bg-lilac">
           {producto.imagen_url ? (
-            <img
+            <ImagenOptimizada
               src={producto.imagen_url}
+              variante="thumb"
               alt={producto.nombre}
               className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
             />
