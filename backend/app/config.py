@@ -85,8 +85,19 @@ class Config:
     # migración al dominio propio, mientras el frontend puede estar servido
     # tanto desde *.vercel.app como desde el dominio custom). Ejemplo:
     # "https://anita-new-2026.vercel.app,https://www.anita-new-style.xyz"
-    _frontend_origin_raw = os.getenv("FRONTEND_ORIGIN", "http://localhost:5173")
-    FRONTEND_ORIGIN = [origen.strip() for origen in _frontend_origin_raw.split(",") if origen.strip()]
+    # Default: local + el frontend de Vercel. Cada origen se normaliza (sin
+    # espacios ni "/" final): el navegador manda el header Origin SIN barra
+    # final, y flask-cors compara por igualdad exacta, así que
+    # "https://anita-new-2026.vercel.app/" NUNCA coincide con el Origin real.
+    _frontend_origin_raw = os.getenv(
+        "FRONTEND_ORIGIN",
+        "http://localhost:5173,https://anita-new-2026.vercel.app",
+    )
+    FRONTEND_ORIGIN = [
+        origen.strip().rstrip("/")
+        for origen in _frontend_origin_raw.split(",")
+        if origen.strip()
+    ]
 
     # Backend de almacenamiento para Flask-Limiter (cuenta los intentos de
     # login, registro, recuperación de contraseña, etc.). En Vercel el

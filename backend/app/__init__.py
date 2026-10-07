@@ -25,7 +25,16 @@ def create_app(config_class=Config):
     limiter.init_app(app)
     cors.init_app(
         app,
-        resources={r"/api/*": {"origins": app.config["FRONTEND_ORIGIN"], "supports_credentials": True}},
+        resources={
+            r"/api/*": {
+                "origins": app.config["FRONTEND_ORIGIN"],
+                "supports_credentials": True,
+                "methods": ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+                "allow_headers": ["Content-Type", "Authorization", "X-CSRF-Token"],
+                "expose_headers": ["Content-Disposition"],
+                "max_age": 600,
+            }
+        },
     )
 
     es_produccion = os.environ.get("VERCEL_ENV") == "production" or os.environ.get("FLASK_ENV") == "production"
