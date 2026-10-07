@@ -80,8 +80,3 @@ PUEDE_VER_USUARIOS = PUEDE_GESTIONAR_USUARIOS + [AUDITOR]
 # Configuración del sistema: exclusivo de superadmin (auditor solo puede ver)
 PUEDE_GESTIONAR_CONFIGURACION = [SUPERADMIN]
 PUEDE_VER_CONFIGURACION = PUEDE_GESTIONAR_CONFIGURACION + [AUDITOR]
-
-# --- Libro de Reclamaciones ---
-# Responder reclamos/quejas (plazo legal de 15 días hábiles): soporte y administración
-PUEDE_GESTIONAR_RECLAMACIONES = [SUPERADMIN, ADMINISTRATIVO, SOPORTE]
-PUEDE_VER_RECLAMACIONES = PUEDE_GESTIONAR_RECLAMACIONES + [AUDITOR]

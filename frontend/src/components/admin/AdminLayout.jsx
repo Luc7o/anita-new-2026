@@ -3,11 +3,11 @@ import { NavLink, Outlet, Link } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext.jsx";
 import {
   IconDashboard, IconBag, IconTag, IconPackage, IconStore, IconLogout, IconTruck, IconUsers, IconSettings,
-  IconCart, IconReceipt, IconMenu, IconClose, IconGift, IconBook,
+  IconCart, IconReceipt, IconMenu, IconClose, IconGift,
 } from "../Icons.jsx";
 import {
   PUEDE_VER_PRODUCTOS, PUEDE_VER_PEDIDOS, PUEDE_GESTIONAR_PEDIDOS, PUEDE_VER_PROVEEDORES,
-  PUEDE_GESTIONAR_USUARIOS, PUEDE_VER_DASHBOARD, PUEDE_VER_PROMOCIONES, PUEDE_VER_RECLAMACIONES,
+  PUEDE_GESTIONAR_USUARIOS, PUEDE_VER_DASHBOARD, PUEDE_VER_PROMOCIONES,
 } from "../../roles.js";
 import { useFocusTrap } from "../../hooks/useFocusTrap.js";
 
@@ -20,7 +20,6 @@ const TODOS_LOS_ITEMS = [
   { to: "/admin/pedidos", label: "Pedidos", Icon: IconPackage, exact: true, roles: PUEDE_VER_PEDIDOS },
   { to: "/admin/pedidos/nueva-venta", label: "Nueva venta", Icon: IconCart, roles: PUEDE_GESTIONAR_PEDIDOS },
   { to: "/admin/reportes", label: "Reportes", Icon: IconReceipt, roles: PUEDE_VER_DASHBOARD },
-  { to: "/admin/reclamaciones", label: "Reclamaciones", Icon: IconBook, roles: PUEDE_VER_RECLAMACIONES },
   { to: "/admin/usuarios", label: "Usuarios y roles", Icon: IconUsers, roles: PUEDE_GESTIONAR_USUARIOS },
   { to: "/admin/configuracion", label: "Configuración", Icon: IconSettings, roles: PUEDE_GESTIONAR_USUARIOS },
 ];

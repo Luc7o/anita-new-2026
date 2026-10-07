@@ -1,7 +1,7 @@
 // src/components/Footer.jsx
 import React from "react";
 import { Link } from "react-router-dom";
-import { IconFacebook, IconInstagram, IconWhatsApp, IconBook } from "./Icons.jsx";
+import { IconFacebook, IconInstagram, IconWhatsApp } from "./Icons.jsx";
 
 export default function Footer() {
   return (
@@ -61,16 +61,12 @@ export default function Footer() {
             
             {/* Enlace destacado para el Libro de Reclamaciones */}
             <div className="mt-6 pt-6 border-t border-plum/10">
-              <Link
-                to="/libro-reclamaciones"
-                className="inline-flex items-center gap-2 rounded-lg border border-berry/30 bg-berry/5 px-3 py-2 text-sm font-semibold text-berry transition hover:bg-berry/10"
+              <a 
+                href="/libro-reclamaciones" 
+                className="inline-flex items-center gap-2 text-sm font-semibold text-berry hover:underline"
               >
-                <IconBook size={22} />
-                <span className="leading-tight">
-                  Libro de Reclamaciones
-                  <span className="block text-xs font-normal text-plum-soft">Virtual · registra tu reclamo o queja</span>
-                </span>
-              </Link>
+                <span></span> Libro de Reclamaciones
+              </a>
             </div>
           </div>
 
