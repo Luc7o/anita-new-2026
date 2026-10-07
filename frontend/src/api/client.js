@@ -281,6 +281,11 @@ export const api = {
   },
   producto: (id) => request(`/productos/${id}`),
   resenas: (productoId) => request(`/productos/${productoId}/resenas`),
+  // Reseñas de toda la tienda (página pública de Reviews)
+  resenasRecientes: (params = {}) => {
+    const query = new URLSearchParams(params).toString();
+    return request(`/resenas${query ? `?${query}` : ""}`);
+  },
   guardarResena: (productoId, payload) =>
     request(`/productos/${productoId}/resenas`, { method: "POST", body: payload, auth: true }),
   eliminarResena: (productoId) =>
