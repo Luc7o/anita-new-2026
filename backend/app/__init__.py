@@ -148,7 +148,7 @@ def create_app(config_class=Config):
     from app.routes import auth, productos, carrito, pedidos, documentos, favoritos, promociones, ubicaciones
     from app.routes import admin_productos, admin_categorias, admin_pedidos, admin_reportes
     from app.routes import admin_proveedores, admin_usuarios, admin_uploads, admin_configuracion
-    from app.routes import admin_promociones, jobs, eventos, reclamaciones, admin_reclamaciones
+    from app.routes import admin_promociones, jobs, eventos, reclamaciones, admin_reclamaciones, admin_dashboard
     app.register_blueprint(auth.bp)
     app.register_blueprint(productos.bp)
     app.register_blueprint(carrito.bp)
@@ -170,6 +170,7 @@ def create_app(config_class=Config):
     app.register_blueprint(jobs.bp)
     app.register_blueprint(reclamaciones.bp)
     app.register_blueprint(admin_reclamaciones.bp)
+    app.register_blueprint(admin_dashboard.bp)
 
     @app.get("/api/salud")
     def salud():
