@@ -9,6 +9,7 @@ import CambiosDevoluciones from "./pages/CambiosDevoluciones.jsx";
 import GuiaTallas from "./pages/GuiaTallas.jsx";
 import FAQ from "./pages/FAQ.jsx";
 import Contacto from "./pages/Contacto.jsx";
+import LibroReclamaciones from "./pages/LibroReclamaciones.jsx";
 import Home from "./pages/Home.jsx";
 import Tienda from "./pages/Tienda.jsx";
 import ProductoDetalle from "./pages/ProductoDetalle.jsx";
@@ -41,6 +42,7 @@ import AdminProveedores from "./pages/admin/AdminProveedores.jsx";
 import AdminProveedorDetalle from "./pages/admin/AdminProveedorDetalle.jsx";
 import AdminUsuarios from "./pages/admin/AdminUsuarios.jsx";
 import AdminConfiguracion from "./pages/admin/AdminConfiguracion.jsx";
+import AdminReclamaciones from "./pages/admin/AdminReclamaciones.jsx";
 
 export default function App() {
   const { usuario, sesionExpirada, setSesionExpirada } = useAuth();
@@ -114,6 +116,7 @@ export default function App() {
             <Route path="reportes" element={<AdminReportes />} />
             <Route path="proveedores" element={<AdminProveedores />} />
             <Route path="proveedores/:id" element={<AdminProveedorDetalle />} />
+            <Route path="reclamaciones" element={<AdminReclamaciones />} />
             <Route path="usuarios" element={<AdminUsuarios />} />
             <Route path="configuracion" element={<AdminConfiguracion />} />
           </Route>
@@ -169,6 +172,7 @@ export default function App() {
           <Route path="/guia-de-tallas" element={<GuiaTallas />} />
           <Route path="/faq" element={<FAQ />} />
           <Route path="/contacto" element={<Contacto />} />
+          <Route path="/libro-reclamaciones" element={<LibroReclamaciones />} />
         </Routes>
       </main>
       <CartDrawer />
