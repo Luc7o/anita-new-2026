@@ -1,0 +1,107 @@
+--- a/app/routes/admin_pedidos.py	2026-10-07 05:12:12.735262572 +0000
++++ b/app/routes/admin_pedidos.py	2026-10-07 05:12:12.737571409 +0000
+@@ -12,8 +12,11 @@
+     PUEDE_VER_PEDIDOS,
+     PUEDE_GESTIONAR_PEDIDOS,
+     PUEDE_VER_DASHBOARD,
++    PUEDE_VER_DASHBOARD_VENTAS,
++    PUEDE_VER_DASHBOARD_STOCK,
+     PUEDE_GESTIONAR_REEMBOLSOS,
+     PUEDE_REGISTRAR_VENTA,
++    SUPERADMIN,
+ )
+ from app.utils.stock import restaurar_stock_de_pedido, agrupar_por_producto, validar_stock_disponible, descontar_stock
+ from app.utils.boleta import generar_pdf_boleta
+@@ -192,8 +195,40 @@
+     return jsonify(pedido.to_dict())
+ 
+ 
++# Cifras de dinero "completas" (referencia financiera). El rol Ventas ve su
++# dashboard de ventas pero sin estas (ver comentario en app/roles.py).
++_CLAVES_FINANCIERAS = (
++    "monto_pagos_pendientes", "monto_en_revision", "monto_rechazado",
++    "monto_reembolsos", "monto_cancelado",
++)
++# Todo lo que revela ingresos, ventas o tráfico: Almacén no lo recibe.
++_CLAVES_DE_VENTAS = _CLAVES_FINANCIERAS + (
++    "ventas_total", "ventas_confirmadas", "ventas_por_mes", "top_categorias",
++    "pedidos_recientes", "productos_top", "total_clientes",
++    "visitas_hoy", "visitantes_hoy", "visitantes_7dias", "visitas_por_dia",
++)
++
++
++def _filtrar_estadisticas_por_rol(data, rol):
++    """
++    El dashboard lo ven varios roles, cada uno con lo suyo (ver app/roles.py):
++      - superadmin / administrativo / auditor: todo
++      - ventas: todo menos las cifras financieras de referencia
++      - almacén: solo conteos operativos y de stock, nada de ingresos
++    Se recorta acá, en el servidor, para que el dato ni siquiera salga en la
++    respuesta (ocultarlo solo en pantalla no protegería nada).
++    """
++    if rol in PUEDE_VER_DASHBOARD:
++        return data
++    if rol in PUEDE_VER_DASHBOARD_VENTAS:
++        quitar = _CLAVES_FINANCIERAS
++    else:
++        quitar = _CLAVES_DE_VENTAS
++    return {k: v for k, v in data.items() if k not in quitar}
++
++
+ @bp.get("/resumen/estadisticas")
+-@requiere_roles(*PUEDE_VER_DASHBOARD)
++@requiere_roles(*sorted(set(PUEDE_VER_DASHBOARD + PUEDE_VER_DASHBOARD_VENTAS + PUEDE_VER_DASHBOARD_STOCK)))
+ def estadisticas():
+     total_pedidos = Pedido.query.count()
+     pendientes = Pedido.query.filter_by(estado="pendiente").count()
+@@ -346,7 +381,7 @@
+             "visitantes": _visitantes_unicos(dia, siguiente),
+         })
+ 
+-    return jsonify({
++    data = {
+         "total_pedidos": total_pedidos,
+         "pedidos_pendientes": pendientes,
+         "pagos_por_revisar": pagos_por_revisar,
+@@ -369,7 +404,15 @@
+         "visitantes_hoy": visitantes_hoy,
+         "visitantes_7dias": visitantes_7dias,
+         "visitas_por_dia": visitas_por_dia,
+-    })
++    }
++    return jsonify(_filtrar_estadisticas_por_rol(data, g.usuario.rol))
++
++
++_CLAVES_TECNICAS = (
++    "total_intentos_pago", "tasa_rechazo_pago", "motivos_rechazo_pago",
++    "latencia_promedio_ms", "tasa_error_24h", "total_requests_24h",
++    "promociones_usadas", "monto_descuento_total",
++)
+ 
+ 
+ @bp.get("/resumen/kpis-avanzados")
+@@ -548,7 +591,7 @@
+         db.session.query(db.func.coalesce(db.func.sum(PromocionUso.monto_descuento), 0)).scalar() or 0
+     )
+ 
+-    return jsonify({
++    data = {
+         "embudo_conversion": embudo_conversion,
+         "antiguedad_promedio_carrito_horas": antiguedad_promedio_carrito_horas,
+         "carritos_abandonados_48h": carritos_abandonados_48h,
+@@ -568,7 +611,14 @@
+         "total_requests_24h": total_requests_24h,
+         "promociones_usadas": promociones_usadas,
+         "monto_descuento_total": monto_descuento_total,
+-    })
++    }
++    # Datos técnicos (rendimiento del servidor, pagos con Culqi, promociones):
++    # solo el Super administrador los necesita. El resto del equipo con acceso
++    # al dashboard no los recibe.
++    if g.usuario.rol != SUPERADMIN:
++        for clave in _CLAVES_TECNICAS:
++            data.pop(clave, None)
++    return jsonify(data)
+ 
+ class _ItemVentaPresencial:
+     """
