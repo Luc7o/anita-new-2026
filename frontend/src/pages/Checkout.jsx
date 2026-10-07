@@ -1,9 +1,16 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { api } from "../api/client.js";
 import { useCarrito } from "../context/CarritoContext.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
-import { soloTexto, soloNumeros } from "../validacion.js";
+import {
+  soloTexto,
+  soloNumeros,
+  soloDni,
+  soloRuc,
+  soloCarnetExtranjeria,
+  soloDireccion,
+} from "../validacion.js";
 import { abrirCulqiCheckout } from "../culqi.js";
 import { obtenerPagoIdempotencyKey, limpiarPagoIdempotencyKey } from "../pagoIdempotencia.js";
 
@@ -12,13 +19,47 @@ const METODOS = [
   { id: "tarjeta", label: "Tarjeta" },
 ];
 
+// Cada tipo de documento define cómo se escribe y si se puede consultar.
+//  - filtro: limpia lo que el usuario teclea (solo permite caracteres válidos)
+//  - min/max: largo permitido
+//  - consultable: si hay una API que lo verifique y autocomplete el nombre
+//    (RENIEC para DNI, SUNAT para RUC). El Carné de Extranjería no tiene
+//    consulta pública, así que se escribe a mano.
+const TIPOS_DOCUMENTO = [
+  {
+    id: "dni", label: "DNI", min: 8, max: 8, consultable: true, filtro: soloDni,
+    placeholder: "Número de DNI (8 dígitos)", pattern: "[0-9]{8}",
+    ayuda: "El DNI debe tener 8 dígitos", inputMode: "numeric",
+  },
+  {
+    id: "ruc", label: "RUC", min: 11, max: 11, consultable: true, filtro: soloRuc,
+    placeholder: "Número de RUC (11 dígitos)", pattern: "[0-9]{11}",
+    ayuda: "El RUC debe tener 11 dígitos", inputMode: "numeric",
+  },
+  {
+    id: "ce", label: "Carné de extranjería", min: 6, max: 15, consultable: false, filtro: soloCarnetExtranjeria,
+    placeholder: "Número de carné (6 a 15 letras o números)", pattern: "[A-Z0-9]{6,15}",
+    ayuda: "El carné debe tener entre 6 y 15 letras o números", inputMode: "text",
+  },
+];
+
+// Estado inicial de la validación del documento
+const DOC_SIN_VALIDAR = { estado: "idle", mensaje: "" };
+
 export default function Checkout() {
   const { items, total, vaciarLocal, eliminar } = useCarrito();
   const { usuario } = useAuth();
   const navigate = useNavigate();
 
   const [form, setForm] = useState({
-    envio_nombre: usuario?.nombre_completo || "",
+    // El pedido guarda un solo "envio_nombre", pero en pantalla se pide por
+    // partes según el documento: nombres + apellidos (DNI / carné) o
+    // razón social (RUC). Al enviar se junta todo en envio_nombre.
+    nombres: usuario?.nombre || "",
+    apellidos: usuario?.apellido || "",
+    razon_social: "",
+    envio_tipo_documento: "dni",
+    envio_numero_documento: "",
     envio_telefono: "",
     envio_direccion: "",
     envio_distrito: "",
@@ -31,6 +72,12 @@ export default function Checkout() {
   });
   const [enviando, setEnviando] = useState(false);
   const [error, setError] = useState("");
+  // Resultado de validar el documento: idle | validando | valido | invalido | no_verificado
+  const [docEstado, setDocEstado] = useState(DOC_SIN_VALIDAR);
+  // Memoria de consultas ya hechas (clave "tipo:numero"). Así, si el usuario
+  // borra y vuelve a escribir el mismo número, no gastamos otra consulta
+  // (la API tiene un límite por hora).
+  const cacheDocumentos = useRef(new Map());
   // Cuando el backend rechaza el checkout por falta de stock, guarda acá el
   // detalle item por item (item_id, mensaje, etc.) para poder mostrarlo
   // junto al producto exacto en el resumen, en vez de un error genérico.
@@ -63,6 +110,112 @@ export default function Checkout() {
   const actualizar = (campo) => (e) => setForm({ ...form, [campo]: e.target.value });
   const actualizarTexto = (campo) => (e) => setForm({ ...form, [campo]: soloTexto(e.target.value) });
   const actualizarTelefonoEnvio = (e) => setForm({ ...form, envio_telefono: soloNumeros(e.target.value) });
+  const actualizarDireccion = (e) => setForm({ ...form, envio_direccion: soloDireccion(e.target.value) });
+
+  const documentoActual = TIPOS_DOCUMENTO.find((t) => t.id === form.envio_tipo_documento);
+
+  // Al cambiar de tipo de documento se borra el número escrito (cada tipo
+  // tiene su propio largo y formato) y se reinicia la validación.
+  const cambiarTipoDocumento = (tipo) => {
+    setForm({ ...form, envio_tipo_documento: tipo, envio_numero_documento: "" });
+    setDocEstado(DOC_SIN_VALIDAR);
+  };
+
+  const actualizarNumeroDocumento = (e) => {
+    const nuevo = documentoActual.filtro(e.target.value);
+    if (nuevo === form.envio_numero_documento) return;
+    // Si el número anterior ya estaba validado y autocompletó el nombre,
+    // al modificarlo ese nombre deja de corresponder: se borra.
+    const limpiarNombres =
+      docEstado.estado === "valido" ? { nombres: "", apellidos: "", razon_social: "" } : {};
+    setForm({ ...form, ...limpiarNombres, envio_numero_documento: nuevo });
+  };
+
+  // Validación automática: apenas el número está completo (8 dígitos para
+  // DNI, 11 para RUC) se consulta y se autocompleta el nombre.
+  const tipoDoc = form.envio_tipo_documento;
+  const numeroDoc = form.envio_numero_documento;
+  useEffect(() => {
+    const config = TIPOS_DOCUMENTO.find((t) => t.id === tipoDoc);
+    if (!config.consultable || numeroDoc.length < config.min) {
+      setDocEstado(DOC_SIN_VALIDAR);
+      return undefined;
+    }
+
+    // `cancelado` evita que una respuesta lenta pise el resultado de un
+    // número más nuevo (si el usuario cambió el número mientras esperaba).
+    let cancelado = false;
+    const clave = `${tipoDoc}:${numeroDoc}`;
+
+    const aplicar = (resultado) => {
+      if (cancelado) return;
+      setDocEstado(resultado);
+      if (resultado.estado !== "valido") return;
+      const d = resultado.datos;
+      if (tipoDoc === "ruc") {
+        setForm((f) => ({ ...f, razon_social: d.nombre_o_razon_social || f.razon_social }));
+      } else {
+        setForm((f) => ({
+          ...f,
+          nombres: d.nombres || f.nombres,
+          apellidos: [d.apellido_paterno, d.apellido_materno].filter(Boolean).join(" ") || f.apellidos,
+        }));
+      }
+    };
+
+    const guardado = cacheDocumentos.current.get(clave);
+    if (guardado) {
+      aplicar(guardado);
+      return () => { cancelado = true; };
+    }
+
+    setDocEstado({ estado: "validando", mensaje: `Validando ${config.label}...` });
+    api
+      .consultarDocumento(tipoDoc, numeroDoc)
+      .then((datos) => ({ estado: "valido", datos }))
+      .catch((err) =>
+        // 404 = el documento no existe. Cualquier otro error (red, servicio
+        // caído, token) NO significa que el documento esté mal: no se
+        // acusa al cliente, solo se le deja seguir a mano.
+        err.status === 404
+          ? { estado: "invalido" }
+          : { estado: "no_verificado" }
+      )
+      .then((resultado) => {
+        // Solo se recuerdan respuestas definitivas, no fallos pasajeros.
+        if (resultado.estado !== "no_verificado") cacheDocumentos.current.set(clave, resultado);
+        aplicar(resultado);
+      });
+
+    return () => { cancelado = true; };
+  }, [tipoDoc, numeroDoc]);
+
+  // Texto y color del aviso que se muestra bajo el número de documento
+  const avisoDocumento = (() => {
+    const label = documentoActual.label;
+    if (!documentoActual.consultable) {
+      return numeroDoc
+        ? { texto: "El carné de extranjería no se verifica automáticamente. Escribe tus nombres y apellidos tal como figuran en él.", clase: "text-plum-soft" }
+        : null;
+    }
+    switch (docEstado.estado) {
+      case "validando":
+        return { texto: docEstado.mensaje, clase: "text-plum-soft" };
+      case "valido": {
+        const d = docEstado.datos;
+        const detalle = tipoDoc === "ruc"
+          ? [d.nombre_o_razon_social, [d.estado, d.condicion].filter(Boolean).join(" · ")].filter(Boolean).join(" — ")
+          : [d.nombres, d.apellido_paterno, d.apellido_materno].filter(Boolean).join(" ");
+        return { texto: `✓ ${label} válido${detalle ? `: ${detalle}` : ""}`, clase: "text-emerald-700" };
+      }
+      case "invalido":
+        return { texto: `✗ ${label} no válido: no encontramos ese número. Revísalo.`, clase: "text-berry-dark" };
+      case "no_verificado":
+        return { texto: `No pudimos verificar tu ${label} en este momento. Puedes continuar escribiendo tus datos manualmente.`, clase: "text-plum-soft" };
+      default:
+        return null;
+    }
+  })();
 
   // KPIs: "inicio de checkout" se marca al entrar a esta página con algo en
   // el carrito, no al enviar el formulario — es el momento en que el
@@ -92,12 +245,31 @@ export default function Checkout() {
     e.preventDefault();
     setError("");
     setItemsSinStock([]);
+
+    // Un documento que RENIEC/SUNAT dice que no existe no puede continuar.
+    // (Si el servicio estaba caído, el estado es "no_verificado" y sí deja pasar.)
+    if (docEstado.estado === "validando") {
+      setError("Estamos validando tu documento, espera un momento e inténtalo de nuevo.");
+      return;
+    }
+    if (docEstado.estado === "invalido") {
+      setError(`El ${documentoActual.label} ingresado no es válido. Corrígelo para continuar.`);
+      return;
+    }
+
     setEnviando(true);
 
     try {
       // 1) Se crea el pedido (reserva el stock, calcula el total) con
       //    estado_pago "pendiente".
-      const pedido = await api.checkout({ ...form, idempotency_key: idempotencyKey });
+      // Se separan los campos de pantalla (nombres, apellidos, razón social)
+      // y se manda al backend un solo envio_nombre, como espera el pedido.
+      const { nombres, apellidos, razon_social, ...datosEnvio } = form;
+      const envio_nombre =
+        form.envio_tipo_documento === "ruc"
+          ? razon_social.trim()
+          : `${nombres.trim()} ${apellidos.trim()}`.trim();
+      const pedido = await api.checkout({ ...datosEnvio, envio_nombre, idempotency_key: idempotencyKey });
       try {
         sessionStorage.removeItem("ans_checkout_idempotency_key");
       } catch {
@@ -249,26 +421,101 @@ export default function Checkout() {
           </button>
         </div>
 
+        {/* Documento primero: al validarlo se autocompletan los nombres de abajo */}
         <div>
-          <label htmlFor="chk-nombre" className="sr-only">Nombre completo</label>
+          <div role="radiogroup" aria-label="Tipo de documento" className="mb-2 flex flex-wrap gap-2">
+            {TIPOS_DOCUMENTO.map((t) => (
+              <button
+                type="button"
+                role="radio"
+                aria-checked={form.envio_tipo_documento === t.id}
+                key={t.id}
+                onClick={() => cambiarTipoDocumento(t.id)}
+                className={`rounded-full px-4 py-2 text-sm font-medium shadow-glass ${
+                  form.envio_tipo_documento === t.id ? "bg-berry text-white" : "bg-white/60 text-plum"
+                }`}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
+          <label htmlFor="chk-documento" className="sr-only">Número de {documentoActual.label}</label>
           <input
-            id="chk-nombre"
-            placeholder="Nombre completo"
+            id="chk-documento"
+            placeholder={documentoActual.placeholder}
             required
-            maxLength={160}
-            value={form.envio_nombre}
-            onChange={actualizarTexto("envio_nombre")}
+            inputMode={documentoActual.inputMode}
+            maxLength={documentoActual.max}
+            pattern={documentoActual.pattern}
+            title={documentoActual.ayuda}
+            autoComplete="off"
+            value={form.envio_numero_documento}
+            onChange={actualizarNumeroDocumento}
             className="w-full rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-none"
           />
+          {avisoDocumento && (
+            <p
+              className={`mt-1.5 px-2 text-xs ${avisoDocumento.clase}`}
+              role={docEstado.estado === "invalido" ? "alert" : "status"}
+              aria-live="polite"
+            >
+              {avisoDocumento.texto}
+            </p>
+          )}
         </div>
+
+        {form.envio_tipo_documento === "ruc" ? (
+          <div>
+            <label htmlFor="chk-razon-social" className="sr-only">Razón social</label>
+            <input
+              id="chk-razon-social"
+              placeholder="Razón social (nombre de la empresa)"
+              required
+              maxLength={160}
+              value={form.razon_social}
+              onChange={actualizar("razon_social")}
+              className="w-full rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-none"
+            />
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label htmlFor="chk-nombres" className="sr-only">Nombres</label>
+              <input
+                id="chk-nombres"
+                placeholder="Nombres"
+                required
+                maxLength={80}
+                value={form.nombres}
+                onChange={actualizarTexto("nombres")}
+                className="w-full rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-none"
+              />
+            </div>
+            <div>
+              <label htmlFor="chk-apellidos" className="sr-only">Apellidos</label>
+              <input
+                id="chk-apellidos"
+                placeholder="Apellidos"
+                required
+                maxLength={80}
+                value={form.apellidos}
+                onChange={actualizarTexto("apellidos")}
+                className="w-full rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-none"
+              />
+            </div>
+          </div>
+        )}
+
         <div>
           <label htmlFor="chk-telefono" className="sr-only">Teléfono</label>
           <input
             id="chk-telefono"
-            placeholder="Teléfono"
+            placeholder="Teléfono (9 dígitos)"
             required
             inputMode="numeric"
             maxLength={9}
+            pattern="9[0-9]{8}"
+            title="El teléfono debe tener 9 dígitos y empezar con 9"
             value={form.envio_telefono}
             onChange={actualizarTelefonoEnvio}
             className="w-full rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-none"
@@ -284,8 +531,9 @@ export default function Checkout() {
                 placeholder="Dirección"
                 required
                 maxLength={200}
+                title="Solo letras, números y los símbolos . * ° #"
                 value={form.envio_direccion}
-                onChange={actualizar("envio_direccion")}
+                onChange={actualizarDireccion}
                 className="w-full rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-none"
               />
             </div>
@@ -325,10 +573,11 @@ export default function Checkout() {
               </div>
             </div>
             <div>
-              <label htmlFor="chk-referencia" className="sr-only">Referencia (opcional)</label>
+              <label htmlFor="chk-referencia" className="sr-only">Referencia</label>
               <input
                 id="chk-referencia"
-                placeholder="Referencia (opcional)"
+                placeholder="Referencia (ej. frente al parque, casa azul)"
+                required
                 maxLength={200}
                 value={form.envio_referencia}
                 onChange={actualizar("envio_referencia")}
