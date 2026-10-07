@@ -73,14 +73,6 @@ class Config:
     # local y mientras el frontend siga en *.vercel.app.
     JWT_COOKIE_DOMAIN = os.getenv("COOKIE_DOMAIN", "").strip() or None
 
-    # Datos del proveedor que aparecen en la Hoja de Reclamación (Libro de
-    # Reclamaciones). Deben ser los mismos que registraste en Indecopi.
-    PROVEEDOR_RAZON_SOCIAL = os.getenv("PROVEEDOR_RAZON_SOCIAL", "").strip()
-    PROVEEDOR_RUC = os.getenv("PROVEEDOR_RUC", "").strip()
-    PROVEEDOR_DOMICILIO = os.getenv("PROVEEDOR_DOMICILIO", "").strip()
-    # Correo donde llega el aviso de cada reclamo nuevo (si se deja vacío, no se envía)
-    RECLAMOS_EMAIL_DESTINO = os.getenv("RECLAMOS_EMAIL_DESTINO", "").strip()
-
     # Acepta uno o varios orígenes separados por coma (útil durante la
     # migración al dominio propio, mientras el frontend puede estar servido
     # tanto desde *.vercel.app como desde el dominio custom). Ejemplo:

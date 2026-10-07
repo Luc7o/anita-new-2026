@@ -424,20 +424,6 @@ export const api = {
     formData.append("imagen", archivo);
     return subirArchivo("/admin/uploads/promocion-imagen", formData, "No se pudo subir la imagen");
   },
-
-  // Libro de Reclamaciones (público)
-  reclamacionesInfo: () => request("/reclamaciones/info"),
-  enviarReclamo: (payload) => request("/reclamaciones", { method: "POST", body: payload }),
-
-  // Libro de Reclamaciones (admin)
-  adminReclamaciones: (params = {}) => {
-    const query = new URLSearchParams(params).toString();
-    return request(`/admin/reclamaciones${query ? `?${query}` : ""}`, { auth: true });
-  },
-  adminResponderReclamo: (id, respuesta) =>
-    request(`/admin/reclamaciones/${id}/responder`, { method: "POST", body: { respuesta }, auth: true }),
-  adminHojaReclamoPdf: (id, codigo) =>
-    descargarPdf(`/admin/reclamaciones/${id}/pdf`, `hoja-reclamacion-${codigo}.pdf`),
 };
 
 export { getToken, setAccessToken, clearAccessToken, guardarCsrf };
