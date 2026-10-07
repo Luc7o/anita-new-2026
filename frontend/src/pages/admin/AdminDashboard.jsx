@@ -160,11 +160,23 @@ function Cargando({ error, textoError = "No se pudieron cargar las métricas. Re
   );
 }
 
-function Titulo({ children, nota }) {
+// Todo el texto del dashboard vive dentro de tarjetas con el mismo margen
+// interior (p-6), así títulos, notas y cifras arrancan en la misma línea.
+function SeccionTarjeta({ titulo, nota, children }) {
   return (
-    <div className="mt-8 first:mt-0">
-      <h2 className="text-lg font-semibold text-plum">{children}</h2>
+    <div className="glass rounded-3xl p-6 shadow-glass">
+      <h2 className="text-lg font-semibold text-plum">{titulo}</h2>
       {nota && <p className="text-xs text-plum-soft">{nota}</p>}
+      <div className="mt-4">{children}</div>
+    </div>
+  );
+}
+
+function Dato({ label, valor, destacar = false }) {
+  return (
+    <div>
+      <p className="text-xs uppercase tracking-wide text-plum-soft">{label}</p>
+      <p className={`mt-1 text-xl font-semibold ${destacar ? "text-berry-dark" : "text-plum"}`}>{valor}</p>
     </div>
   );
 }
@@ -177,14 +189,14 @@ function PanelAtencion({ items }) {
   }
   if (items.length === 0) {
     return (
-      <div className="glass rounded-3xl p-5 shadow-glass">
+      <div className="glass rounded-3xl p-6 shadow-glass">
         <p className="font-semibold text-plum">Todo al día ✓</p>
         <p className="text-sm text-plum-soft">No tienes nada pendiente por atender ahora mismo.</p>
       </div>
     );
   }
   return (
-    <section aria-labelledby="atencion-titulo" className="glass rounded-3xl p-5 shadow-glass">
+    <section aria-labelledby="atencion-titulo" className="glass rounded-3xl p-6 shadow-glass">
       <h2 id="atencion-titulo" className="text-lg font-semibold text-plum">Necesita tu atención</h2>
       <ul className="mt-3 divide-y divide-plum/10">
         {items.map((it) => (
@@ -258,14 +270,16 @@ function VistaResumen({ atencion, stats, errorStats, tieneEstadisticas }) {
             </div>
 
             {stats.ventas_por_mes && (
-              <div>
-                <VentasChart datos={stats.ventas_por_mes} />
-                {mejor && (
-                  <p className="mt-2 px-2 text-sm text-plum-soft">
-                    Tu mejor mes fue <strong className="text-plum">{mejor.mes}</strong> con {soles(mejor.total)}.
-                  </p>
-                )}
-              </div>
+              <VentasChart
+                datos={stats.ventas_por_mes}
+                pie={
+                  mejor && (
+                    <>
+                      Tu mejor mes fue <strong className="text-plum">{mejor.mes}</strong> con {soles(mejor.total)}.
+                    </>
+                  )
+                }
+              />
             )}
 
             {stats.pedidos_recientes && <PedidosRecientes datos={stats.pedidos_recientes} />}
@@ -306,27 +320,30 @@ function VistaVentas({ stats, errorStats, kpis, errorKpis, tieneKpis }) {
       </div>
 
       {hayDetalleFinanciero && (
-        <div>
+        <div className="glass rounded-3xl p-6 shadow-glass">
           <button
             onClick={() => setVerDetalleFinanciero((v) => !v)}
             aria-expanded={verDetalleFinanciero}
-            className="flex items-center gap-1.5 text-sm font-semibold text-berry-dark hover:underline"
+            className="flex w-full items-center justify-between gap-3 text-left"
           >
-            {verDetalleFinanciero ? "Ocultar" : "Ver"} detalle financiero
-            <IconChevronDown size={14} className={`transition ${verDetalleFinanciero ? "rotate-180" : ""}`} />
+            <span>
+              <span className="block text-lg font-semibold text-plum">Detalle financiero</span>
+              <span className="block text-xs text-plum-soft">Montos de referencia, no incluidos en "Ventas confirmadas"</span>
+            </span>
+            <IconChevronDown size={16} className={`shrink-0 text-berry transition ${verDetalleFinanciero ? "rotate-180" : ""}`} />
           </button>
           {verDetalleFinanciero && (
             <>
-              <div className="mt-3 grid grid-cols-2 gap-4 sm:grid-cols-4">
-                <Tarjeta small label="Pagos pendientes" valor={soles(stats.monto_pagos_pendientes)} />
-                <Tarjeta small label="En revisión" valor={soles(stats.monto_en_revision)} />
-                <Tarjeta small label="Rechazados" valor={soles(stats.monto_rechazado)} />
-                <Tarjeta small label="Reembolsos" valor={soles(stats.monto_reembolsos)} />
-                <Tarjeta small label="Cancelado" valor={soles(stats.monto_cancelado)} />
+              <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-5">
+                <Dato label="Pagos pendientes" valor={soles(stats.monto_pagos_pendientes)} />
+                <Dato label="En revisión" valor={soles(stats.monto_en_revision)} />
+                <Dato label="Rechazados" valor={soles(stats.monto_rechazado)} />
+                <Dato label="Reembolsos" valor={soles(stats.monto_reembolsos)} />
+                <Dato label="Cancelado" valor={soles(stats.monto_cancelado)} />
               </div>
-              <p className="mt-2 text-xs text-plum-soft">
+              <p className="mt-4 text-xs text-plum-soft">
                 "Ventas confirmadas" es solo dinero con pago verificado (o entregado, para métodos que no
-                requieren verificación). Los montos de arriba son referencia: no están incluidos en ese total.
+                requieren verificación). Estos montos son referencia y no están incluidos en ese total.
               </p>
             </>
           )}
@@ -360,15 +377,15 @@ function VistaVentas({ stats, errorStats, kpis, errorKpis, tieneKpis }) {
 
 // ---------------------------------------------------------------- Tráfico
 
-function FraseEmbudo({ datos }) {
+function fraseEmbudo(datos) {
   const primero = datos[0];
   const ultimo = datos[datos.length - 1];
   if (!primero || primero.cantidad === 0) return null;
   const por100 = Math.round((ultimo.cantidad / primero.cantidad) * 100);
   return (
-    <p className="mb-3 px-1 text-sm text-plum">
-      De cada 100 personas que ven un producto, <strong>{por100}</strong> terminan comprando.
-    </p>
+    <>
+      De cada 100 personas que ven un producto, <strong className="text-plum">{por100}</strong> terminan comprando.
+    </>
   );
 }
 
@@ -376,36 +393,36 @@ function VistaTrafico({ stats, errorStats, kpis, errorKpis }) {
   if (!stats) return <Cargando error={errorStats} />;
   return (
     <div className="space-y-6">
-      <Titulo nota="Cuánta gente entra a tu tienda">Visitas</Titulo>
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-        <Tarjeta label="Visitas hoy" valor={stats.visitas_hoy} />
-        <Tarjeta label="Personas hoy" valor={stats.visitantes_hoy} />
-        <Tarjeta label="Personas (7 días)" valor={stats.visitantes_7dias} />
-      </div>
+      <SeccionTarjeta titulo="Visitas" nota="Cuánta gente entra a tu tienda">
+        <div className="grid grid-cols-3 gap-4">
+          <Dato label="Visitas hoy" valor={stats.visitas_hoy} />
+          <Dato label="Personas hoy" valor={stats.visitantes_hoy} />
+          <Dato label="Personas (7 días)" valor={stats.visitantes_7dias} />
+        </div>
+      </SeccionTarjeta>
+
       <VisitasChart datos={stats.visitas_por_dia} />
 
       {!kpis ? (
         <Cargando error={errorKpis} />
       ) : (
         <>
-          <Titulo nota="Últimos 30 días: ¿en qué paso se van los clientes?">¿Cuántos visitantes terminan comprando?</Titulo>
-          <div>
-            <FraseEmbudo datos={kpis.embudo_conversion} />
-            <Embudo datos={kpis.embudo_conversion} />
-          </div>
+          <Embudo
+            titulo="¿Cuántos visitantes terminan comprando?"
+            nota="Últimos 30 días: ¿en qué paso se van los clientes?"
+            intro={fraseEmbudo(kpis.embudo_conversion)}
+            datos={kpis.embudo_conversion}
+          />
 
-          <Titulo nota="Productos que siguen en el carrito ahora mismo, sin comprar">Carritos abandonados</Titulo>
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-            <Tarjeta
-              label="Llevan más de 2 días"
-              valor={kpis.carritos_abandonados_48h}
-              destacar={kpis.carritos_abandonados_48h > 0}
-            />
-            <Tarjeta
-              label="Antigüedad promedio"
-              valor={kpis.antiguedad_promedio_carrito_horas != null ? `${kpis.antiguedad_promedio_carrito_horas} h` : "—"}
-            />
-          </div>
+          <SeccionTarjeta titulo="Carritos abandonados" nota="Productos que siguen en el carrito ahora mismo, sin comprar">
+            <div className="grid grid-cols-2 gap-4">
+              <Dato label="Llevan más de 2 días" valor={kpis.carritos_abandonados_48h} destacar={kpis.carritos_abandonados_48h > 0} />
+              <Dato
+                label="Antigüedad promedio"
+                valor={kpis.antiguedad_promedio_carrito_horas != null ? `${kpis.antiguedad_promedio_carrito_horas} h` : "—"}
+              />
+            </div>
+          </SeccionTarjeta>
         </>
       )}
     </div>
@@ -419,32 +436,18 @@ function VistaOperacion({ kpis, errorKpis }) {
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <div className="glass rounded-3xl p-6 shadow-glass">
-          <h2 className="text-lg font-semibold text-plum">¿Cuánto demoramos?</h2>
-          <p className="text-xs text-plum-soft">Promedio desde que el cliente hace el pedido</p>
-          <div className="mt-4 grid grid-cols-2 gap-3">
-            <div>
-              <p className="text-xs uppercase tracking-wide text-plum-soft">Hasta el pago</p>
-              <p className="mt-1 text-xl font-semibold text-plum">
-                {kpis.tiempo_pago_promedio_horas != null ? `${kpis.tiempo_pago_promedio_horas} h` : "—"}
-              </p>
-            </div>
-            <div>
-              <p className="text-xs uppercase tracking-wide text-plum-soft">Hasta la entrega</p>
-              <p className="mt-1 text-xl font-semibold text-plum">
-                {kpis.tiempo_entrega_promedio_horas != null ? `${kpis.tiempo_entrega_promedio_horas} h` : "—"}
-              </p>
-            </div>
+        <SeccionTarjeta titulo="¿Cuánto demoramos?" nota="Promedio desde que el cliente hace el pedido">
+          <div className="grid grid-cols-2 gap-4">
+            <Dato label="Hasta el pago" valor={kpis.tiempo_pago_promedio_horas != null ? `${kpis.tiempo_pago_promedio_horas} h` : "—"} />
+            <Dato label="Hasta la entrega" valor={kpis.tiempo_entrega_promedio_horas != null ? `${kpis.tiempo_entrega_promedio_horas} h` : "—"} />
           </div>
-        </div>
+        </SeccionTarjeta>
 
-        <div className="glass rounded-3xl p-6 shadow-glass">
-          <h2 className="text-lg font-semibold text-plum">Tiempo en cada paso del pedido</h2>
-          <p className="text-xs text-plum-soft">Promedio entre un estado y el siguiente</p>
+        <SeccionTarjeta titulo="Tiempo en cada paso del pedido" nota="Promedio entre un estado y el siguiente">
           {kpis.tiempos_entre_estados.length === 0 ? (
-            <p className="mt-4 text-sm text-plum-soft">Todavía no hay suficientes cambios de estado.</p>
+            <p className="text-sm text-plum-soft">Todavía no hay suficientes cambios de estado.</p>
           ) : (
-            <div className="mt-4 space-y-2">
+            <div className="space-y-2">
               {kpis.tiempos_entre_estados.map((t) => (
                 <div key={t.transicion} className="flex items-center justify-between text-sm">
                   <span className="text-plum">{t.transicion}</span>
@@ -453,7 +456,7 @@ function VistaOperacion({ kpis, errorKpis }) {
               ))}
             </div>
           )}
-        </div>
+        </SeccionTarjeta>
       </div>
 
       <BarrasHorizontales
@@ -462,12 +465,13 @@ function VistaOperacion({ kpis, errorKpis }) {
         datos={kpis.motivos_cancelacion.map((m) => ({ label: m.motivo, valor: m.cantidad }))}
       />
 
-      <Titulo nota="Últimos 30 días">Stock</Titulo>
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-        <Tarjeta label="Unidades vendidas" valor={kpis.unidades_vendidas_30d} />
-        <Tarjeta label="Unidades devueltas al stock" valor={kpis.unidades_restauradas_30d} />
-        <Tarjeta label="Productos sin stock" valor={kpis.productos_sin_stock} destacar={kpis.productos_sin_stock > 0} />
-      </div>
+      <SeccionTarjeta titulo="Stock" nota="Últimos 30 días">
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+          <Dato label="Unidades vendidas" valor={kpis.unidades_vendidas_30d} />
+          <Dato label="Unidades devueltas al stock" valor={kpis.unidades_restauradas_30d} />
+          <Dato label="Productos sin stock" valor={kpis.productos_sin_stock} destacar={kpis.productos_sin_stock > 0} />
+        </div>
+      </SeccionTarjeta>
     </div>
   );
 }
@@ -481,12 +485,10 @@ function VistaSistema({ kpis, errorKpis }) {
   }
   return (
     <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-      <div className="glass rounded-3xl p-6 shadow-glass">
-        <h2 className="text-lg font-semibold text-plum">Pagos con Culqi</h2>
-        <div className="mt-4 grid grid-cols-2 gap-3">
-          <Tarjeta small label="Intentos" valor={kpis.total_intentos_pago} />
-          <Tarjeta
-            small
+      <SeccionTarjeta titulo="Pagos con Culqi">
+        <div className="grid grid-cols-2 gap-4">
+          <Dato label="Intentos" valor={kpis.total_intentos_pago} />
+          <Dato
             label="Tasa de rechazo"
             valor={kpis.tasa_rechazo_pago != null ? `${kpis.tasa_rechazo_pago}%` : "—"}
             destacar={kpis.tasa_rechazo_pago > 20}
@@ -502,37 +504,22 @@ function VistaSistema({ kpis, errorKpis }) {
             ))}
           </div>
         )}
-      </div>
+      </SeccionTarjeta>
 
-      <div className="glass rounded-3xl p-6 shadow-glass">
-        <h2 className="text-lg font-semibold text-plum">Rendimiento del servidor</h2>
-        <p className="text-xs text-plum-soft">Últimas 24 horas</p>
-        <div className="mt-4 grid grid-cols-3 gap-3">
-          <div>
-            <p className="text-xs uppercase tracking-wide text-plum-soft">Latencia prom.</p>
-            <p className="mt-1 text-lg font-semibold text-plum">
-              {kpis.latencia_promedio_ms != null ? `${kpis.latencia_promedio_ms} ms` : "—"}
-            </p>
-          </div>
-          <div>
-            <p className="text-xs uppercase tracking-wide text-plum-soft">Tasa de error</p>
-            <p className="mt-1 text-lg font-semibold text-plum">
-              {kpis.tasa_error_24h != null ? `${kpis.tasa_error_24h}%` : "—"}
-            </p>
-          </div>
-          <div>
-            <p className="text-xs uppercase tracking-wide text-plum-soft">Requests</p>
-            <p className="mt-1 text-lg font-semibold text-plum">{kpis.total_requests_24h}</p>
-          </div>
+      <SeccionTarjeta titulo="Rendimiento del servidor" nota="Últimas 24 horas">
+        <div className="grid grid-cols-3 gap-4">
+          <Dato label="Latencia prom." valor={kpis.latencia_promedio_ms != null ? `${kpis.latencia_promedio_ms} ms` : "—"} />
+          <Dato label="Tasa de error" valor={kpis.tasa_error_24h != null ? `${kpis.tasa_error_24h}%` : "—"} />
+          <Dato label="Requests" valor={kpis.total_requests_24h} />
         </div>
-      </div>
+      </SeccionTarjeta>
     </div>
   );
 }
 
 function Tarjeta({ label, valor, destacar = false, small = false, detalle }) {
   return (
-    <div className={`glass rounded-3xl p-5 shadow-glass ${destacar ? "ring-2 ring-gold" : ""}`}>
+    <div className={`glass rounded-3xl shadow-glass ${small ? "p-5" : "p-6"} ${destacar ? "ring-2 ring-inset ring-gold" : ""}`}>
       <p className="text-xs uppercase tracking-wide text-plum-soft">{label}</p>
       <p className={`mt-1 font-semibold text-plum ${small ? "text-lg" : "text-2xl"}`}>{valor}</p>
       {detalle && <p className="mt-1 text-xs text-plum-soft">{detalle}</p>}
@@ -540,19 +527,21 @@ function Tarjeta({ label, valor, destacar = false, small = false, detalle }) {
   );
 }
 
-function VentasChart({ datos }) {
+function VentasChart({ datos, pie }) {
   const ancho = 560;
   const alto = 160;
   const max = Math.max(...datos.map((d) => d.total), 1);
 
+  // Margen lateral dentro del dibujo para que los puntos de los extremos no se corten.
+  const margen = 12;
   const puntos = datos.map((d, i) => {
-    const x = (i / (datos.length - 1)) * ancho;
+    const x = margen + (i / (datos.length - 1)) * (ancho - margen * 2);
     const y = alto - (d.total / max) * (alto - 16) - 8;
     return { x, y, ...d };
   });
 
   const linea = puntos.map((p) => `${p.x},${p.y}`).join(" ");
-  const area = `0,${alto} ${linea} ${ancho},${alto}`;
+  const area = `${margen},${alto} ${linea} ${ancho - margen},${alto}`;
 
   return (
     <div className="glass rounded-3xl p-6 shadow-glass">
@@ -570,11 +559,14 @@ function VentasChart({ datos }) {
           ))}
         </svg>
       )}
-      <div className="mt-2 flex justify-between text-xs text-plum-soft">
-        {datos.map((d) => (
-          <span key={d.mes}>{d.mes}</span>
+      <div className="relative mt-2 h-4 text-xs text-plum-soft">
+        {puntos.map((p) => (
+          <span key={p.mes} className="absolute -translate-x-1/2" style={{ left: `${(p.x / ancho) * 100}%` }}>
+            {p.mes}
+          </span>
         ))}
       </div>
+      {pie && <p className="mt-4 text-sm text-plum-soft">{pie}</p>}
     </div>
   );
 }
@@ -615,16 +607,19 @@ function VisitasChart({ datos }) {
   );
 }
 
-function Embudo({ datos }) {
+function Embudo({ datos, titulo, nota, intro }) {
   const max = Math.max(...datos.map((d) => d.cantidad), 1);
   const sinDatos = datos.every((d) => d.cantidad === 0);
 
   return (
     <div className="glass rounded-3xl p-6 shadow-glass">
+      {titulo && <h2 className="text-lg font-semibold text-plum">{titulo}</h2>}
+      {nota && <p className="text-xs text-plum-soft">{nota}</p>}
+      {intro && !sinDatos && <p className="mt-3 text-sm text-plum-soft">{intro}</p>}
       {sinDatos ? (
-        <p className="text-sm text-plum-soft">Todavía no hay suficientes eventos para calcular el embudo.</p>
+        <p className="mt-4 text-sm text-plum-soft">Todavía no hay suficientes eventos para calcular el embudo.</p>
       ) : (
-        <div className="space-y-3">
+        <div className="mt-4 space-y-3">
           {datos.map((paso, i) => (
             <div key={paso.paso}>
               <div className="flex items-center justify-between text-sm">
