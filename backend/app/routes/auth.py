@@ -14,6 +14,7 @@ from app.extensions import db, limiter
 from app.models import Usuario, TokenRecuperacion, UbigeoDistrito
 from app.utils.decorators import requiere_activo
 from app.utils.correo import enviar_correo
+from app.utils.google_auth import verificar_token_google, TokenGoogleInvalido
 
 bp = Blueprint("auth", __name__, url_prefix="/api/auth")
 
@@ -190,6 +191,91 @@ def login():
     respuesta = jsonify({"token": token, "csrf": get_csrf_token(refresh_token), "usuario": usuario.to_dict()})
     set_refresh_cookies(respuesta, refresh_token)
     return respuesta
+
+
+@bp.post("/google")
+@limiter.limit("20 per hour")
+def login_google():
+    """
+    Registro / inicio de sesión con Google (Google Identity Services).
+
+    El frontend manda el "credential" (un ID token firmado por Google) que
+    recibe del botón de Google. Acá se verifica la firma, que el token sea
+    para ESTA app (GOOGLE_CLIENT_ID) y que Google haya verificado el correo.
+    Nunca confiamos en el email/nombre que mande el cliente, solo en lo que
+    sale del token ya verificado.
+
+    - Si ya existe un usuario con ese google_id -> inicia sesión.
+    - Si existe un usuario con ese email (cuenta normal o de invitado) ->
+      se vincula a Google y entra. Es seguro porque Google garantiza que la
+      persona controla ese correo.
+    - Si no existe -> se crea una cuenta nueva sin contraseña (puede
+      ponerle una después con "¿Olvidaste tu contraseña?").
+    """
+    data = request.get_json(force=True) or {}
+    credential = (data.get("credential") or "").strip()
+    if not credential:
+        return jsonify({"error": "Falta el token de Google"}), 400
+
+    client_id = current_app.config.get("GOOGLE_CLIENT_ID")
+    if not client_id:
+        return jsonify({"error": "El inicio de sesión con Google no está disponible por ahora"}), 503
+
+    try:
+        perfil_google = verificar_token_google(credential, client_id)
+    except TokenGoogleInvalido as e:
+        return jsonify({"error": str(e)}), 401
+
+    google_id = perfil_google["sub"]
+    email = perfil_google["email"]
+
+    usuario = Usuario.query.filter_by(google_id=google_id).first()
+    if not usuario:
+        usuario = Usuario.query.filter_by(email=email).first()
+        if usuario:
+            if usuario.google_id and usuario.google_id != google_id:
+                return jsonify({"error": "Ese correo ya está vinculado a otra cuenta de Google"}), 409
+            usuario.google_id = google_id
+            # Una cuenta de invitado que entra con Google pasa a ser una
+            # cuenta completa (ya tiene una forma de volver a entrar).
+            usuario.es_invitado = False
+
+    nueva = usuario is None
+    if nueva:
+        usuario = Usuario(
+            nombre=perfil_google["nombre"][:80],
+            apellido=perfil_google["apellido"][:80],
+            email=email[:120],
+            password_hash=None,
+            google_id=google_id,
+            es_invitado=False,
+            activo=True,
+        )
+        db.session.add(usuario)
+
+    if not usuario.activo:
+        db.session.rollback()
+        return jsonify({"error": "Cuenta desactivada"}), 403
+
+    usuario.resetear_intentos_fallidos()
+    db.session.commit()
+
+    if nueva:
+        enviar_correo(
+            destinatario=usuario.email,
+            asunto="¡Bienvenida a Anita New Style!",
+            texto=(
+                f"Hola {usuario.nombre},\n\n"
+                f"Gracias por registrarte en Anita New Style con tu cuenta de Google. "
+                f"Tu cuenta ya está lista y puedes empezar a comprar cuando quieras.\n\n"
+                f"Si no creaste esta cuenta, puedes ignorar este correo."
+            ),
+        )
+
+    token, refresh_token = _crear_par_tokens(usuario)
+    respuesta = jsonify({"token": token, "csrf": get_csrf_token(refresh_token), "usuario": usuario.to_dict()})
+    set_refresh_cookies(respuesta, refresh_token)
+    return respuesta, 201 if nueva else 200
 
 
 @bp.post("/refrescar-token")

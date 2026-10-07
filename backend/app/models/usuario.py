@@ -29,6 +29,10 @@ class Usuario(db.Model):
     # es_invitado más abajo y /auth/completar-cuenta).
     password_hash = db.Column(db.String(255), nullable=True)
     telefono = db.Column(db.String(20))
+    # "sub" de Google (identificador estable de la cuenta de Google). Se llena
+    # al entrar con "Continuar con Google" (ver /auth/google). Es nullable:
+    # las cuentas normales o de invitado no lo tienen.
+    google_id = db.Column(db.String(40), unique=True, nullable=True)
 
     # Documento de identidad (DNI / RUC / Carné de Extranjería), validado
     # opcionalmente contra una API de APIs Perú al momento del registro.

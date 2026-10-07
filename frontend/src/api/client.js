@@ -252,6 +252,7 @@ export const api = {
   consultarDocumento: (tipo, numero) =>
     request(`/documentos/consultar?tipo=${encodeURIComponent(tipo)}&numero=${encodeURIComponent(numero)}`),
   login: (payload) => request("/auth/login", { method: "POST", body: payload }),
+  loginGoogle: (credential) => request("/auth/google", { method: "POST", body: { credential } }),
   perfil: () => request("/auth/perfil", { auth: true }),
   actualizarPerfil: (payload) =>
     request("/auth/perfil", { method: "PUT", body: payload, auth: true }),

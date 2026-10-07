@@ -130,6 +130,15 @@ class Config:
     API_PERU_TOKEN = os.getenv("API_PERU_TOKEN", "")
     API_PERU_BASE_URL = os.getenv("API_PERU_BASE_URL", "https://api.decolecta.com")
 
+    # Inicio de sesión / registro con Google (Google Identity Services).
+    # Client ID de tipo "Aplicación web": Google Cloud Console -> APIs y
+    # servicios -> Credenciales -> Crear credenciales -> ID de cliente de
+    # OAuth. Es el MISMO valor que VITE_GOOGLE_CLIENT_ID en el frontend (el
+    # backend lo usa para comprobar que el token fue emitido para ESTA app).
+    # No es un secreto, pero si queda vacío /auth/google responde 503 en vez
+    # de aceptar tokens de cualquier aplicación.
+    GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID", "").strip()
+
     # Pasarela de pago Culqi — tarjeta y Yape se cobran en el momento
     # (síncrono: no hay redirección ni webhook, a diferencia de TuPay).
     # Llave secreta: Panel Culqi -> Desarrollo -> API Keys -> Llave privada.
