@@ -19,9 +19,11 @@ def resend_configurado():
     return bool(current_app.config.get("RESEND_API_KEY"))
 
 
-def enviar_correo(destinatario, asunto, texto, html=None):
+def enviar_correo(destinatario, asunto, texto, html=None, adjuntos=None):
     """
     Envía un correo transaccional.
+
+    `adjuntos` es una lista opcional de tuplas (nombre_archivo, bytes).
 
     Devuelve (ok: bool, error: str | None). `ok` es True tanto si el correo
     se envió de verdad como si se imprimió en consola por falta de API key
@@ -31,6 +33,8 @@ def enviar_correo(destinatario, asunto, texto, html=None):
         print(f"\n[DEV-CORREO] RESEND_API_KEY no configurada, no se envía nada de verdad.")
         print(f"[DEV-CORREO] Para: {destinatario}")
         print(f"[DEV-CORREO] Asunto: {asunto}")
+        if adjuntos:
+            print(f"[DEV-CORREO] Adjuntos: {', '.join(n for n, _ in adjuntos)}")
         print(f"[DEV-CORREO] Contenido:\n{texto}\n")
         return True, None
 
@@ -45,6 +49,10 @@ def enviar_correo(destinatario, asunto, texto, html=None):
     }
     if html:
         payload["html"] = html
+    if adjuntos:
+        payload["attachments"] = [
+            {"filename": nombre, "content": list(contenido)} for nombre, contenido in adjuntos
+        ]
 
     try:
         resend.Emails.send(payload)
