@@ -10,6 +10,11 @@ import GuiaTallas from "./pages/GuiaTallas.jsx";
 import FAQ from "./pages/FAQ.jsx";
 import Contacto from "./pages/Contacto.jsx";
 import LibroReclamaciones from "./pages/LibroReclamaciones.jsx";
+import QuienesSomos from "./pages/QuienesSomos.jsx";
+import Reviews from "./pages/Reviews.jsx";
+import NuestrasTiendas from "./pages/NuestrasTiendas.jsx";
+import Mayoristas from "./pages/Mayoristas.jsx";
+import TrabajaConNosotros from "./pages/TrabajaConNosotros.jsx";
 import Home from "./pages/Home.jsx";
 import Tienda from "./pages/Tienda.jsx";
 import ProductoDetalle from "./pages/ProductoDetalle.jsx";
@@ -173,6 +178,11 @@ export default function App() {
           <Route path="/faq" element={<FAQ />} />
           <Route path="/contacto" element={<Contacto />} />
           <Route path="/libro-reclamaciones" element={<LibroReclamaciones />} />
+          <Route path="/quienes-somos" element={<QuienesSomos />} />
+          <Route path="/reviews" element={<Reviews />} />
+          <Route path="/tiendas" element={<NuestrasTiendas />} />
+          <Route path="/mayoristas" element={<Mayoristas />} />
+          <Route path="/trabaja-con-nosotros" element={<TrabajaConNosotros />} />
         </Routes>
       </main>
       <CartDrawer />
