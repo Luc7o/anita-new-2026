@@ -1,11 +1,14 @@
+from datetime import datetime
 from flask import Blueprint, request, jsonify, current_app
 from flask_jwt_extended import (
     create_access_token,
     create_refresh_token,
+    get_csrf_token,
     get_jwt_identity,
     jwt_required,
     set_refresh_cookies,
     unset_jwt_cookies,
+    verify_jwt_in_request,
 )
 from app.extensions import db, limiter
 from app.models import Usuario, TokenRecuperacion, UbigeoDistrito
@@ -13,6 +16,17 @@ from app.utils.decorators import requiere_activo
 from app.utils.correo import enviar_correo
 
 bp = Blueprint("auth", __name__, url_prefix="/api/auth")
+
+
+def _crear_par_tokens(usuario):
+    """Access + refresh token, ambos con el sesion_version ACTUAL del
+    usuario grabado en el claim "sv" (ver el blocklist loader en
+    app/__init__.py). Centralizado acá para que login/registro/invitado/
+    refresh/cambiar-password siempre lo hagan de la misma forma."""
+    claims = {"sv": usuario.sesion_version}
+    access_token = create_access_token(identity=str(usuario.id), additional_claims=claims)
+    refresh_token = create_refresh_token(identity=str(usuario.id), additional_claims=claims)
+    return access_token, refresh_token
 
 
 @bp.post("/registro")
@@ -64,11 +78,83 @@ def registro():
         ),
     )
 
-    token = create_access_token(identity=str(usuario.id))
-    refresh_token = create_refresh_token(identity=str(usuario.id))
-    respuesta = jsonify({"token": token, "usuario": usuario.to_dict()})
+    token, refresh_token = _crear_par_tokens(usuario)
+    respuesta = jsonify({"token": token, "csrf": get_csrf_token(refresh_token), "usuario": usuario.to_dict()})
     set_refresh_cookies(respuesta, refresh_token)
     return respuesta, 201
+
+
+@bp.post("/invitado")
+@limiter.limit("10 per hour")
+def continuar_como_invitado():
+    """
+    Checkout como invitado (sprint 1, tarea 4): crea una cuenta SIN
+    contraseña para poder comprar sin pasar por el formulario de registro
+    completo. Le damos sesión (JWT) igual que en un login/registro normal,
+    así el resto del sitio — carrito, checkout — no necesita saber que es
+    una cuenta de invitado, funciona exactamente igual.
+
+    Le queda pendiente ponerle contraseña si quiere volver a entrar
+    después; eso se ofrece recién en la confirmación del pedido (ver
+    /auth/completar-cuenta más abajo), nunca se exige antes de comprar.
+    """
+    data = request.get_json(force=True) or {}
+    campos_requeridos = ["nombre", "apellido", "email"]
+    faltantes = [c for c in campos_requeridos if not data.get(c)]
+    if faltantes:
+        return jsonify({"error": f"Faltan campos: {', '.join(faltantes)}"}), 400
+
+    email = data["email"].lower().strip()[:120]
+    if Usuario.query.filter_by(email=email).first():
+        # No decimos si esa cuenta ya tiene contraseña o sigue siendo de
+        # invitado — en cualquier caso ya existe, así que la salida es la
+        # misma: que inicie sesión (o recupere su contraseña si nunca le
+        # puso una, desde "¿Olvidaste tu contraseña?").
+        return jsonify({
+            "error": "Ese correo ya tiene una cuenta. Inicia sesión para continuar con tu compra."
+        }), 409
+
+    usuario = Usuario(
+        nombre=data["nombre"].strip()[:80],
+        apellido=data["apellido"].strip()[:80],
+        email=email,
+        telefono=(data.get("telefono") or "").strip()[:20] or None,
+        password_hash=None,
+        es_invitado=True,
+    )
+    db.session.add(usuario)
+    db.session.commit()
+
+    token, refresh_token = _crear_par_tokens(usuario)
+    respuesta = jsonify({"token": token, "csrf": get_csrf_token(refresh_token), "usuario": usuario.to_dict()})
+    set_refresh_cookies(respuesta, refresh_token)
+    return respuesta, 201
+
+
+@bp.post("/completar-cuenta")
+@requiere_activo
+def completar_cuenta():
+    """
+    Convierte una cuenta de invitado (creada en /auth/invitado, sin
+    contraseña) en una cuenta completa, poniéndole una contraseña para que
+    la persona pueda volver a entrar más adelante y ver su historial. Se
+    ofrece en la pantalla de confirmación del pedido — si no la usa, la
+    cuenta sigue existiendo igual (con su pedido a salvo), solo que no va a
+    poder loguearse de nuevo sin pasar por "olvidé mi contraseña".
+    """
+    usuario = Usuario.query.get_or_404(int(get_jwt_identity()))
+    if not usuario.es_invitado:
+        return jsonify({"error": "Esta cuenta ya tiene contraseña"}), 400
+
+    data = request.get_json(force=True) or {}
+    password = data.get("password") or ""
+    if len(password) < 6:
+        return jsonify({"error": "La contraseña debe tener al menos 6 caracteres"}), 400
+
+    usuario.set_password(password)
+    usuario.es_invitado = False
+    db.session.commit()
+    return jsonify(usuario.to_dict())
 
 
 @bp.post("/login")
@@ -79,43 +165,83 @@ def login():
     password = data.get("password") or ""
 
     usuario = Usuario.query.filter_by(email=email).first()
+
+    # Bloqueo por cuenta (además del límite por IP de arriba): protege
+    # aunque el atacante rote de IP en cada intento, algo que el limiter
+    # por IP no puede evitar por sí solo.
+    if usuario and usuario.esta_bloqueado:
+        minutos_restantes = max(1, int((usuario.bloqueado_hasta - datetime.utcnow()).total_seconds() // 60) + 1)
+        return jsonify({
+            "error": f"Demasiados intentos fallidos. Intenta de nuevo en {minutos_restantes} minuto(s)."
+        }), 429
+
     if not usuario or not usuario.check_password(password):
+        if usuario:
+            usuario.registrar_intento_fallido()
+            db.session.commit()
         return jsonify({"error": "Email o contraseña incorrectos"}), 401
     if not usuario.activo:
         return jsonify({"error": "Cuenta desactivada"}), 403
 
-    token = create_access_token(identity=str(usuario.id))
-    refresh_token = create_refresh_token(identity=str(usuario.id))
-    respuesta = jsonify({"token": token, "usuario": usuario.to_dict()})
+    usuario.resetear_intentos_fallidos()
+    db.session.commit()
+
+    token, refresh_token = _crear_par_tokens(usuario)
+    respuesta = jsonify({"token": token, "csrf": get_csrf_token(refresh_token), "usuario": usuario.to_dict()})
     set_refresh_cookies(respuesta, refresh_token)
     return respuesta
 
 
 @bp.post("/refrescar-token")
+@limiter.limit("30 per minute")
 @jwt_required(refresh=True)
 def refrescar_token():
     """
-    El frontend llama a este endpoint cuando el access_token (que dura 1
-    hora) expira, para obtener uno nuevo sin pedirle al usuario que vuelva a
-    loguearse. El refresh token (30 días) ya no viaja en el body ni en el
-    header: va en una cookie httpOnly que el navegador adjunta solo, y que
-    JavaScript no puede leer ni robar vía XSS. Por ser cookie, el request
-    también debe traer el header X-CSRF-Token con el valor de la cookie
-    legible "csrf_refresh_token" (patrón CSRF de doble envío).
+    El frontend llama a este endpoint cuando el access_token (que dura 15
+    minutos) expira, para obtener uno nuevo sin pedirle al usuario que
+    vuelva a loguearse. El refresh token (30 días) ya no viaja en el body
+    ni en el header: va en una cookie httpOnly que el navegador adjunta
+    solo, y que JavaScript no puede leer ni robar vía XSS. Por ser cookie,
+    el request también debe traer el header X-CSRF-Token con el valor de
+    la cookie legible "csrf_refresh_token" (patrón CSRF de doble envío).
+
+    Rotación: cada vez que se usa el refresh token, se emite uno NUEVO (y
+    se reemplaza la cookie) en vez de reutilizar el mismo por sus 30 días
+    completos — así una cookie de refresh vieja/filtrada deja de ser útil
+    en cuanto el dueño legítimo vuelve a usar la suya.
     """
     usuario_id = get_jwt_identity()
     usuario = Usuario.query.get(int(usuario_id))
     if not usuario or not usuario.activo:
         return jsonify({"error": "Cuenta no disponible"}), 403
 
-    token = create_access_token(identity=usuario_id)
-    return jsonify({"token": token})
+    token, refresh_token = _crear_par_tokens(usuario)
+    respuesta = jsonify({"token": token, "csrf": get_csrf_token(refresh_token)})
+    set_refresh_cookies(respuesta, refresh_token)
+    return respuesta
 
 
 @bp.post("/logout")
 def logout():
-    """Limpia la cookie de refresh token. No requiere sesión válida: si ya
-    expiró o no existe, igual queremos que el navegador quede sin la cookie."""
+    """Cierra la sesión en TODOS los dispositivos, no solo en este
+    navegador: si la cookie de refresh sigue siendo válida, identificamos
+    al usuario y subimos su sesion_version, lo que invalida de inmediato
+    cualquier access/refresh token ya emitido (los de este navegador y los
+    de cualquier otro donde haya iniciado sesión). Si la cookie ya no es
+    válida (expiró, no existe, fue manipulada), no hay nada que revocar:
+    de todas formas limpiamos la cookie de este navegador."""
+    try:
+        verify_jwt_in_request(optional=True, refresh=True)
+    except Exception:
+        pass
+    else:
+        usuario_id = get_jwt_identity()
+        if usuario_id:
+            usuario = Usuario.query.get(int(usuario_id))
+            if usuario:
+                usuario.sesion_version += 1
+                db.session.commit()
+
     respuesta = jsonify({"mensaje": "Sesión cerrada"})
     unset_jwt_cookies(respuesta)
     return respuesta
@@ -178,8 +304,18 @@ def cambiar_password():
     # Cualquier link de recuperación pendiente queda invalidado al cambiar la
     # contraseña por esta vía (ya no tiene sentido que siga sirviendo).
     TokenRecuperacion.query.filter_by(usuario_id=usuario.id, usado=False).update({"usado": True})
+    # Cambiar la contraseña cierra la sesión en CUALQUIER OTRO dispositivo
+    # donde haya un token activo (ver sesion_version). A este mismo
+    # dispositivo/pestaña, en cambio, le damos un par de tokens nuevos ya
+    # con el sesion_version actualizado, así la persona no tiene que
+    # volver a loguearse justo después de cambiar su propia contraseña.
+    usuario.sesion_version += 1
     db.session.commit()
-    return jsonify({"mensaje": "Contraseña actualizada correctamente"})
+
+    token, refresh_token = _crear_par_tokens(usuario)
+    respuesta = jsonify({"mensaje": "Contraseña actualizada correctamente", "token": token, "csrf": get_csrf_token(refresh_token)})
+    set_refresh_cookies(respuesta, refresh_token)
+    return respuesta
 
 
 @bp.post("/olvide-password")
@@ -197,7 +333,7 @@ def olvide_password():
         registro_token = TokenRecuperacion.generar(usuario.id)
         db.session.commit()
 
-        link = f"{current_app.config['FRONTEND_ORIGIN']}/restablecer-password?token={registro_token.token}"
+        link = f"{current_app.config['FRONTEND_ORIGIN'][0]}/restablecer-password?token={registro_token.token}"
 
         enviar_correo(
             destinatario=usuario.email,
@@ -235,5 +371,9 @@ def restablecer_password():
 
     usuario.set_password(password_nueva)
     registro_token.usado = True  # de un solo uso: no se puede volver a usar este link
+    # Si alguien tenía el password anterior comprometido y una sesión ya
+    # abierta con él, este reset también la mata: cualquier token emitido
+    # antes de este momento deja de servir.
+    usuario.sesion_version += 1
     db.session.commit()
     return jsonify({"mensaje": "Contraseña restablecida correctamente, ya puedes ingresar"})

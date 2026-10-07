@@ -18,6 +18,14 @@ class Promocion(db.Model):
     imagen_url = db.Column(db.String(400), default="")
     boton_texto = db.Column(db.String(60), default="Ver Todo")
     boton_link = db.Column(db.String(200), default="/tienda")
+    # Opcional: si la promoción está pensada para un producto puntual (no
+    # "toda la tienda" ni una categoría), esto guarda cuál. boton_link se
+    # sigue guardando por separado y es lo que de verdad decide a dónde
+    # lleva el botón — este campo es solo para mostrar el producto
+    # vinculado en el admin y, si se quiere en el futuro, enriquecer el
+    # banner con su precio/nombre sin otra consulta.
+    producto_id = db.Column(db.Integer, db.ForeignKey("productos.id", ondelete="SET NULL"), nullable=True)
+    producto = db.relationship("Producto", lazy="joined")
 
     fecha_inicio = db.Column(db.Date, nullable=True)
     fecha_fin = db.Column(db.Date, nullable=True)
@@ -48,6 +56,13 @@ class Promocion(db.Model):
             "imagen_url": self.imagen_url,
             "boton_texto": self.boton_texto,
             "boton_link": self.boton_link,
+            "producto_id": self.producto_id,
+            "producto": {
+                "id": self.producto.id,
+                "nombre": self.producto.nombre,
+                "imagen_url": self.producto.imagen_url,
+                "precio": float(self.producto.precio),
+            } if self.producto else None,
             "fecha_inicio": self.fecha_inicio.isoformat() if self.fecha_inicio else None,
             "fecha_fin": self.fecha_fin.isoformat() if self.fecha_fin else None,
             "activo": self.activo,

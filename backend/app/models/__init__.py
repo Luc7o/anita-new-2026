@@ -13,6 +13,15 @@ from app.models.configuracion_pago import ConfiguracionPago
 from app.models.token_recuperacion import TokenRecuperacion
 from app.models.favorito import Favorito
 from app.models.promocion import Promocion
+from app.models.reclamacion import Reclamacion
+from app.models.kpi import (
+    EventoAnalitica,
+    MovimientoStock,
+    HistorialEstadoPedido,
+    IntentoPago,
+    PromocionUso,
+    LatenciaRequest,
+)
 
 __all__ = [
     "Rol",
@@ -36,4 +45,11 @@ __all__ = [
     "TokenRecuperacion",
     "Favorito",
     "Promocion",
+    "Reclamacion",
+    "EventoAnalitica",
+    "MovimientoStock",
+    "HistorialEstadoPedido",
+    "IntentoPago",
+    "PromocionUso",
+    "LatenciaRequest",
 ]

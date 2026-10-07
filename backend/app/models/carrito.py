@@ -1,3 +1,4 @@
+from datetime import datetime
 from app.extensions import db
 
 
@@ -8,6 +9,9 @@ class ItemCarrito(db.Model):
     usuario_id = db.Column(db.Integer, db.ForeignKey("usuarios.id", ondelete="CASCADE"), nullable=False)
     producto_id = db.Column(db.Integer, db.ForeignKey("productos.id", ondelete="CASCADE"), nullable=False)
     cantidad = db.Column(db.Integer, nullable=False, default=1)
+    # KPIs: para medir abandono de carrito (cuánto tiempo pasa desde que se
+    # agrega algo hasta que se compra o queda huérfano).
+    fecha_creacion = db.Column(db.DateTime, default=datetime.utcnow)
     # Referencian el catálogo (tallas/colores) en vez de texto libre. Acá sí
     # puede ser NULL de verdad (no hay UNIQUE que dependa de esto, a
     # diferencia de variantes_producto).

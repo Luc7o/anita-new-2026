@@ -5,8 +5,7 @@ import ProductCard from "../components/ProductCard.jsx";
 import { IconCheck, IconChevronLeft, IconChevronRight } from "../components/Icons.jsx";
 
 const TALLAS_PRENDA = ["XS", "S", "M", "L", "XL"];
-const TALLAS_CALZADO = ["36", "37", "38", "39", "40", "41", "42"];
-const VOLUMENES = ["Grande", "Mediano", "Pequeño"];
+const TALLAS_CALZADO = ["35", "36", "37", "38", "39", "40", "41", "42"];
 
 function alternarEnLista(lista, valor) {
   return lista.includes(valor) ? lista.filter((v) => v !== valor) : [...lista, valor];
@@ -23,7 +22,6 @@ export default function Tienda() {
   const [categorias, setCategorias] = useState([]);
   const [productos, setProductos] = useState([]);
   const [meta, setMeta] = useState({ total: 0, paginas: 1, pagina_actual: 1 });
-  const [volumenActivo, setVolumenActivo] = useState("");
   const [orden, setOrden] = useState("");
   const [cargando, setCargando] = useState(true);
 
@@ -219,40 +217,6 @@ export default function Tienda() {
               </div>
             </div>
 
-            {/* Volumen */}
-            <div className="mt-6 border-t border-plum/10 pt-5">
-              <h2 className="mb-0.5 text-xs font-bold uppercase tracking-widest text-plum">
-                Volumen
-              </h2>
-              <p className="mb-3 text-[11px] text-plum-soft/70">Próximamente</p>
-              <div className="space-y-2.5">
-                {VOLUMENES.map((v) => {
-                  const marcado = volumenActivo === v;
-                  return (
-                    <label
-                      key={v}
-                      className="flex cursor-pointer items-center gap-2.5 text-sm text-plum-soft/60"
-                    >
-                      <input
-                        type="radio"
-                        name="volumen"
-                        checked={marcado}
-                        onChange={() => setVolumenActivo(marcado ? "" : v)}
-                        className="sr-only"
-                      />
-                      <span
-                        className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full border-2 ${
-                          marcado ? "border-berry" : "border-plum/25"
-                        }`}
-                      >
-                        {marcado && <span className="h-2 w-2 rounded-full bg-berry" />}
-                      </span>
-                      {v}
-                    </label>
-                  );
-                })}
-              </div>
-            </div>
 
             {/* Tallas prenda */}
             <div className="mt-6 border-t border-plum/10 pt-5">

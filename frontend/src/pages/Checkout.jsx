@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { api } from "../api/client.js";
 import { useCarrito } from "../context/CarritoContext.jsx";
@@ -64,6 +64,16 @@ export default function Checkout() {
   const actualizarTexto = (campo) => (e) => setForm({ ...form, [campo]: soloTexto(e.target.value) });
   const actualizarTelefonoEnvio = (e) => setForm({ ...form, envio_telefono: soloNumeros(e.target.value) });
 
+  // KPIs: "inicio de checkout" se marca al entrar a esta página con algo en
+  // el carrito, no al enviar el formulario — es el momento en que el
+  // cliente realmente empezó el proceso de pago.
+  useEffect(() => {
+    if (items.length > 0) {
+      api.registrarEvento("inicio_checkout", { metadata: { items: items.length, total } });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const costoEnvio = form.tipo_entrega === "delivery" ? 10 : 0;
 
   const quitarItemSinStock = async (itemId) => {
@@ -94,6 +104,9 @@ export default function Checkout() {
         // no-op: si sessionStorage no está disponible tampoco se llegó a usar
       }
       vaciarLocal();
+      api.registrarEvento("compra_completada", {
+        metadata: { pedido_id: pedido.id, total: pedido.total, metodo_pago: pedido.metodo_pago },
+      });
 
       // 2) Si el pedido necesita pago por pasarela, abrimos el widget de
       //    Culqi ahí mismo (sin salir de la página) y, apenas nos da un

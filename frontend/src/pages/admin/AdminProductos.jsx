@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { api } from "../../api/client.js";
+import ImagenOptimizada from "../../components/ImagenOptimizada.jsx";
 import { IconUpload, IconClose, IconEdit, IconTrash, IconChevronLeft, IconChevronRight } from "../../components/Icons.jsx";
 import { soloCodigo } from "../../validacion.js";
 import { useFocusTrap } from "../../hooks/useFocusTrap.js";
@@ -285,7 +286,7 @@ export default function AdminProductos() {
               <tr key={p.id} className="border-t border-white/40">
                 <td className="px-4 py-2">
                   {p.imagen_url ? (
-                    <img src={p.imagen_url} alt={p.nombre} className="h-10 w-10 rounded-xl object-cover" />
+                    <ImagenOptimizada src={p.imagen_url} variante="thumb" alt={p.nombre} className="h-10 w-10 rounded-xl object-cover" />
                   ) : (
                     <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-lilac to-white" />
                   )}
@@ -372,7 +373,7 @@ export default function AdminProductos() {
         {productos.map((p) => (
           <div key={p.id} className="glass flex gap-3 rounded-2xl p-4 shadow-glass">
             {p.imagen_url ? (
-              <img src={p.imagen_url} alt={p.nombre} className="h-14 w-14 shrink-0 rounded-xl object-cover" />
+              <ImagenOptimizada src={p.imagen_url} variante="thumb" alt={p.nombre} className="h-14 w-14 shrink-0 rounded-xl object-cover" />
             ) : (
               <div className="h-14 w-14 shrink-0 rounded-xl bg-gradient-to-br from-lilac to-white" />
             )}
@@ -634,7 +635,7 @@ export default function AdminProductos() {
                       >
                         <IconClose size={12} />
                       </button>
-                      <img src={img.url} alt={`Imagen ${i + 1}`} className="h-20 w-full rounded-xl object-cover" />
+                      <ImagenOptimizada src={img.url} variante="thumb" alt={`Imagen ${i + 1}`} className="h-20 w-full rounded-xl object-cover" />
                       <select
                         value={img.color}
                         onChange={(e) => asignarColorImagen(i, e.target.value)}

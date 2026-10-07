@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { api } from "../../api/client.js";
 import { useAuth } from "../../context/AuthContext.jsx";
+import ImagenOptimizada from "../../components/ImagenOptimizada.jsx";
 
 export default function AdminProveedorDetalle() {
   const { id } = useParams();
@@ -114,8 +115,9 @@ export default function AdminProveedorDetalle() {
                 >
                   <div className="flex items-center gap-3">
                     {pp.producto?.imagen_url && (
-                      <img
+                      <ImagenOptimizada
                         src={pp.producto.imagen_url}
+                        variante="thumb"
                         alt={pp.producto?.nombre}
                         className="h-10 w-10 rounded-xl object-cover"
                       />

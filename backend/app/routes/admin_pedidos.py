@@ -1,8 +1,12 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from flask import Blueprint, request, jsonify, Response, g
 from sqlalchemy.orm import selectinload, joinedload
 from app.extensions import db
-from app.models import Pedido, DetallePedido, Usuario, Producto, Categoria
+from app.models import (
+    Pedido, DetallePedido, Usuario, Producto, Categoria, EventoAnalitica,
+    ItemCarrito, HistorialEstadoPedido, MovimientoStock, PromocionUso,
+    LatenciaRequest, UbigeoDistrito,
+)
 from app.utils.decorators import requiere_roles
 from app.roles import (
     PUEDE_VER_PEDIDOS,
@@ -13,6 +17,9 @@ from app.roles import (
 )
 from app.utils.stock import restaurar_stock_de_pedido, agrupar_por_producto, validar_stock_disponible, descontar_stock
 from app.utils.boleta import generar_pdf_boleta
+from app.utils.culqi import reembolsar_en_culqi
+from app.utils.historial import cambiar_estado_pedido
+from app.models import IntentoPago
 
 bp = Blueprint("admin_pedidos", __name__, url_prefix="/api/admin/pedidos")
 
@@ -87,8 +94,11 @@ def cambiar_estado(pedido_id):
         restaurar_stock_de_pedido(pedido)
         if pedido.estado_pago == "verificado":
             pedido.estado_pago = "reembolso_pendiente"
+        pedido.motivo_cancelacion = "admin"
+    if nuevo_estado == "entregado":
+        pedido.fecha_entregado = datetime.utcnow()
 
-    pedido.estado = nuevo_estado
+    cambiar_estado_pedido(pedido, nuevo_estado, cambiado_por=g.usuario.id)
     db.session.commit()
     return jsonify(pedido.to_dict())
 
@@ -126,6 +136,22 @@ def revisar_pago(pedido_id):
     if nuevo_estado_pago == "reembolsado":
         if pedido.estado_pago != "reembolso_pendiente":
             return jsonify({"error": "Este pedido no tiene un reembolso pendiente"}), 400
+        # Si se cobró por pasarela (Culqi), el dinero se devuelve de verdad
+        # ahí ANTES de marcar el pedido como reembolsado — así este estado
+        # no es solo una etiqueta en el panel, refleja un reembolso real.
+        if pedido.metodo_pago in ("tarjeta", "yape") and pedido.culqi_cargo_id:
+            ok, reembolso_id, error = reembolsar_en_culqi(pedido)
+            if not ok:
+                db.session.add(IntentoPago(
+                    pedido_id=pedido.id, monto=pedido.total, estado="rechazado",
+                    motivo_rechazo=f"reembolso: {error}",
+                ))
+                db.session.commit()
+                return jsonify({"error": f"No se pudo reembolsar en Culqi: {error}"}), 502
+            db.session.add(IntentoPago(
+                pedido_id=pedido.id, monto=pedido.total, estado="reembolsado",
+                codigo_culqi=reembolso_id,
+            ))
         pedido.estado_pago = "reembolsado"
         db.session.commit()
         return jsonify(pedido.to_dict())
@@ -159,7 +185,8 @@ def revisar_pago(pedido_id):
                 )
             }), 400
         restaurar_stock_de_pedido(pedido)
-        pedido.estado = "cancelado"
+        pedido.motivo_cancelacion = "pago_rechazado"
+        cambiar_estado_pedido(pedido, "cancelado", cambiado_por=g.usuario.id)
 
     db.session.commit()
     return jsonify(pedido.to_dict())
@@ -279,6 +306,46 @@ def estadisticas():
         for pid, nombre, categoria, ingresos, unidades in filas_top_productos
     ]
 
+    # --- Visitas de usuario (KPI de negocio, tabla evento_analitica) ---
+    # "Visita" = evento vista_pagina disparado por la tienda pública (el
+    # frontend no lo dispara dentro de /admin, para no inflar esto con la
+    # navegación del propio equipo). "Visitantes" cuenta sesion_id
+    # distintos, no filas: una persona que ve 5 páginas es 1 visitante y
+    # 5 visitas.
+    hoy_inicio = datetime(hoy.year, hoy.month, hoy.day)
+
+    def _query_vistas(desde, hasta):
+        return EventoAnalitica.query.filter(
+            EventoAnalitica.tipo_evento == "vista_pagina",
+            EventoAnalitica.creado_en >= desde,
+            EventoAnalitica.creado_en < hasta,
+        )
+
+    def _visitantes_unicos(desde, hasta):
+        return db.session.query(
+            db.func.count(db.func.distinct(EventoAnalitica.sesion_id))
+        ).filter(
+            EventoAnalitica.tipo_evento == "vista_pagina",
+            EventoAnalitica.creado_en >= desde,
+            EventoAnalitica.creado_en < hasta,
+        ).scalar() or 0
+
+    manana = hoy_inicio + timedelta(days=1)
+    visitas_hoy = _query_vistas(hoy_inicio, manana).count()
+    visitantes_hoy = _visitantes_unicos(hoy_inicio, manana)
+    visitantes_7dias = _visitantes_unicos(hoy_inicio - timedelta(days=6), manana)
+
+    visitas_por_dia = []
+    dias_es = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"]
+    for i in range(6, -1, -1):
+        dia = hoy_inicio - timedelta(days=i)
+        siguiente = dia + timedelta(days=1)
+        visitas_por_dia.append({
+            "dia": dias_es[dia.weekday()],
+            "visitas": _query_vistas(dia, siguiente).count(),
+            "visitantes": _visitantes_unicos(dia, siguiente),
+        })
+
     return jsonify({
         "total_pedidos": total_pedidos,
         "pedidos_pendientes": pendientes,
@@ -298,6 +365,209 @@ def estadisticas():
         "top_categorias": top_categorias,
         "pedidos_recientes": pedidos_recientes,
         "productos_top": productos_top,
+        "visitas_hoy": visitas_hoy,
+        "visitantes_hoy": visitantes_hoy,
+        "visitantes_7dias": visitantes_7dias,
+        "visitas_por_dia": visitas_por_dia,
+    })
+
+
+@bp.get("/resumen/kpis-avanzados")
+@requiere_roles(*PUEDE_VER_DASHBOARD)
+def kpis_avanzados():
+    """
+    El resto de los KPIs de negocio que la migración 030-037 dejó listos
+    (esquema + registro) pero que todavía no tenían una sección en el
+    Dashboard. Separado de estadisticas() para no seguir inflando esa
+    función — el frontend pide ambos endpoints en paralelo.
+    """
+    ahora = datetime.utcnow()
+    hace_30_dias = ahora - timedelta(days=30)
+    hace_24h = ahora - timedelta(hours=24)
+
+    # --- 1. Embudo de conversión (evento_analitica, últimos 30 días) ---
+    conteos_evento = dict(
+        db.session.query(EventoAnalitica.tipo_evento, db.func.count(EventoAnalitica.id))
+        .filter(EventoAnalitica.creado_en >= hace_30_dias)
+        .group_by(EventoAnalitica.tipo_evento)
+        .all()
+    )
+    pasos_embudo = [
+        ("vista_producto", "Vista de producto"),
+        ("agregar_carrito", "Agregado al carrito"),
+        ("inicio_checkout", "Inicio de checkout"),
+        ("compra_completada", "Compra completada"),
+    ]
+    embudo_conversion = []
+    anterior = None
+    for clave, label in pasos_embudo:
+        cantidad = conteos_evento.get(clave, 0)
+        tasa_desde_anterior = round(cantidad / anterior * 100, 1) if anterior else None
+        embudo_conversion.append({"paso": label, "cantidad": cantidad, "tasa_desde_anterior": tasa_desde_anterior})
+        anterior = cantidad or anterior
+
+    # --- 2. Abandono de carrito (carrito.fecha_creacion) ---
+    # Las filas de "carrito" que siguen ahí AHORA son justamente lo que
+    # nunca se compró ni se quitó — no hay forma de reconstruir cuánto
+    # tardaron los ítems que SÍ se compraron, porque esos se borran al
+    # completar el pedido (ver checkout). Esto mide lo que sigue pendiente.
+    fechas_carrito = [f for (f,) in db.session.query(ItemCarrito.fecha_creacion).all()]
+    antiguedad_promedio_carrito_horas = (
+        round(sum((ahora - f).total_seconds() / 3600 for f in fechas_carrito) / len(fechas_carrito), 1)
+        if fechas_carrito else None
+    )
+    carritos_abandonados_48h = sum(1 for f in fechas_carrito if (ahora - f) >= timedelta(hours=48))
+
+    # --- 3. Tiempos entre estados de pedido (historial_estado_pedido) ---
+    filas_historial = (
+        HistorialEstadoPedido.query
+        .order_by(HistorialEstadoPedido.pedido_id, HistorialEstadoPedido.fecha_creacion)
+        .all()
+    )
+    duraciones_por_transicion = {}
+    fila_anterior_por_pedido = {}
+    for h in filas_historial:
+        previa = fila_anterior_por_pedido.get(h.pedido_id)
+        if previa is not None:
+            horas = (h.fecha_creacion - previa.fecha_creacion).total_seconds() / 3600
+            clave = f"{h.estado_anterior} → {h.estado_nuevo}"
+            duraciones_por_transicion.setdefault(clave, []).append(horas)
+        fila_anterior_por_pedido[h.pedido_id] = h
+    orden_preferido = [
+        "pendiente → confirmado", "confirmado → preparando",
+        "preparando → enviado", "enviado → entregado",
+    ]
+    claves_ordenadas = [c for c in orden_preferido if c in duraciones_por_transicion] + [
+        c for c in duraciones_por_transicion if c not in orden_preferido
+    ]
+    tiempos_entre_estados = [
+        {"transicion": clave, "horas_promedio": round(sum(duraciones_por_transicion[clave]) / len(duraciones_por_transicion[clave]), 1)}
+        for clave in claves_ordenadas
+    ]
+
+    # --- 4. Tiempo de pago y de entrega (pedidos.fecha_pago/fecha_entregado) ---
+    pares_pago = Pedido.query.filter(Pedido.fecha_pago.isnot(None)).with_entities(
+        Pedido.fecha_creacion, Pedido.fecha_pago
+    ).all()
+    tiempo_pago_promedio_horas = (
+        round(sum((fp - fc).total_seconds() / 3600 for fc, fp in pares_pago) / len(pares_pago), 1)
+        if pares_pago else None
+    )
+    pares_entrega = Pedido.query.filter(Pedido.fecha_entregado.isnot(None)).with_entities(
+        Pedido.fecha_creacion, Pedido.fecha_entregado
+    ).all()
+    tiempo_entrega_promedio_horas = (
+        round(sum((fe - fc).total_seconds() / 3600 for fc, fe in pares_entrega) / len(pares_entrega), 1)
+        if pares_entrega else None
+    )
+
+    # --- 5. Motivos de cancelación (pedidos.motivo_cancelacion) ---
+    MOTIVO_CANCELACION_LABELS = {
+        "vencimiento_pago": "Venció el plazo de pago",
+        "cliente": "Cancelado por el cliente",
+        "sin_stock": "Sin stock",
+        "pago_rechazado": "Pago rechazado",
+    }
+    filas_motivo_cancelacion = (
+        db.session.query(Pedido.motivo_cancelacion, db.func.count(Pedido.id))
+        .filter(Pedido.estado == "cancelado", Pedido.motivo_cancelacion.isnot(None))
+        .group_by(Pedido.motivo_cancelacion)
+        .order_by(db.func.count(Pedido.id).desc())
+        .all()
+    )
+    motivos_cancelacion = [
+        {"motivo": MOTIVO_CANCELACION_LABELS.get(m, m), "cantidad": c}
+        for m, c in filas_motivo_cancelacion
+    ]
+
+    # --- 6. Ventas por zona (pedidos.distrito_id -> ubigeo_distritos) ---
+    filas_zona = (
+        db.session.query(
+            UbigeoDistrito.nombre,
+            db.func.count(Pedido.id),
+            db.func.coalesce(db.func.sum(Pedido.total), 0),
+        )
+        .join(Pedido, Pedido.distrito_id == UbigeoDistrito.id)
+        .filter(
+            db.or_(
+                Pedido.estado_pago == "verificado",
+                db.and_(Pedido.estado_pago == "no_aplica", Pedido.estado == "entregado"),
+            )
+        )
+        .group_by(UbigeoDistrito.id)
+        .order_by(db.func.sum(Pedido.total).desc())
+        .limit(8)
+        .all()
+    )
+    ventas_por_zona = [
+        {"distrito": nombre, "pedidos": cantidad, "total": float(total)}
+        for nombre, cantidad, total in filas_zona
+    ]
+
+    # --- 7. Movimientos de stock (movimiento_stock, últimos 30 días) ---
+    unidades_vendidas_30d = db.session.query(db.func.coalesce(db.func.sum(MovimientoStock.cantidad), 0)).filter(
+        MovimientoStock.tipo == "venta", MovimientoStock.fecha_creacion >= hace_30_dias
+    ).scalar()
+    unidades_restauradas_30d = db.session.query(db.func.coalesce(db.func.sum(MovimientoStock.cantidad), 0)).filter(
+        MovimientoStock.tipo == "restauracion", MovimientoStock.fecha_creacion >= hace_30_dias
+    ).scalar()
+    productos_sin_stock = sum(
+        1 for p in Producto.query.filter_by(activo=True).options(selectinload(Producto.variantes)).all()
+        if p.stock_total <= 0
+    )
+
+    # --- 8. Intentos de pago con Culqi (intento_pago) ---
+    total_intentos_pago = IntentoPago.query.filter(IntentoPago.estado.in_(("aprobado", "rechazado"))).count()
+    intentos_rechazados = IntentoPago.query.filter_by(estado="rechazado").count()
+    tasa_rechazo_pago = round(intentos_rechazados / total_intentos_pago * 100, 1) if total_intentos_pago else None
+    filas_motivo_rechazo = (
+        db.session.query(IntentoPago.motivo_rechazo, db.func.count(IntentoPago.id))
+        .filter(IntentoPago.estado == "rechazado", IntentoPago.motivo_rechazo.isnot(None))
+        .group_by(IntentoPago.motivo_rechazo)
+        .order_by(db.func.count(IntentoPago.id).desc())
+        .limit(5)
+        .all()
+    )
+    motivos_rechazo_pago = [{"motivo": m, "cantidad": c} for m, c in filas_motivo_rechazo]
+
+    # --- 9. Latencia de requests (latencia_requests, últimas 24h) ---
+    total_requests_24h = LatenciaRequest.query.filter(LatenciaRequest.fecha_creacion >= hace_24h).count()
+    latencia_promedio_ms = db.session.query(db.func.avg(LatenciaRequest.latencia_ms)).filter(
+        LatenciaRequest.fecha_creacion >= hace_24h
+    ).scalar()
+    errores_5xx_24h = LatenciaRequest.query.filter(
+        LatenciaRequest.fecha_creacion >= hace_24h, LatenciaRequest.status_code >= 500
+    ).count()
+    tasa_error_24h = round(errores_5xx_24h / total_requests_24h * 100, 1) if total_requests_24h else None
+
+    # --- 10. Uso de promociones (promocion_uso) ---
+    # Sin datos todavía: el checkout no aplica cupones/descuentos hoy (ver
+    # comentario en la migración 036). Se deja listo para cuando exista.
+    promociones_usadas = PromocionUso.query.count()
+    monto_descuento_total = float(
+        db.session.query(db.func.coalesce(db.func.sum(PromocionUso.monto_descuento), 0)).scalar() or 0
+    )
+
+    return jsonify({
+        "embudo_conversion": embudo_conversion,
+        "antiguedad_promedio_carrito_horas": antiguedad_promedio_carrito_horas,
+        "carritos_abandonados_48h": carritos_abandonados_48h,
+        "tiempos_entre_estados": tiempos_entre_estados,
+        "tiempo_pago_promedio_horas": tiempo_pago_promedio_horas,
+        "tiempo_entrega_promedio_horas": tiempo_entrega_promedio_horas,
+        "motivos_cancelacion": motivos_cancelacion,
+        "ventas_por_zona": ventas_por_zona,
+        "unidades_vendidas_30d": int(unidades_vendidas_30d or 0),
+        "unidades_restauradas_30d": int(unidades_restauradas_30d or 0),
+        "productos_sin_stock": productos_sin_stock,
+        "total_intentos_pago": total_intentos_pago,
+        "tasa_rechazo_pago": tasa_rechazo_pago,
+        "motivos_rechazo_pago": motivos_rechazo_pago,
+        "latencia_promedio_ms": round(float(latencia_promedio_ms), 0) if latencia_promedio_ms is not None else None,
+        "tasa_error_24h": tasa_error_24h,
+        "total_requests_24h": total_requests_24h,
+        "promociones_usadas": promociones_usadas,
+        "monto_descuento_total": monto_descuento_total,
     })
 
 class _ItemVentaPresencial:
@@ -395,7 +665,7 @@ def venta_presencial():
             subtotal=item.subtotal,
         ))
 
-    error_descuento = descontar_stock(grupos_stock, productos_cache)
+    error_descuento = descontar_stock(grupos_stock, productos_cache, pedido_id=pedido.id)
     if error_descuento:
         db.session.rollback()
         return jsonify({"error": error_descuento}), 409

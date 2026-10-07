@@ -4,7 +4,9 @@ import { api } from "../api/client.js";
 import { useAuth } from "../context/AuthContext.jsx";
 import { abrirCulqiCheckout } from "../culqi.js";
 import { obtenerPagoIdempotencyKey, limpiarPagoIdempotencyKey } from "../pagoIdempotencia.js";
+import { armarLinkWhatsApp } from "../whatsapp.js";
 import SeguimientoPedido from "../components/SeguimientoPedido.jsx";
+import { IconCheckCircle, IconCopy, IconCheck, IconClock, IconWhatsApp } from "../components/Icons.jsx";
 
 const ESTADO_PAGO_ESTILOS = {
   pendiente: "bg-gold/20 text-plum",
@@ -22,7 +24,7 @@ const METODOS_PASARELA = new Set(["tarjeta", "yape"]);
 
 export default function PedidoDetalle() {
   const { id } = useParams();
-  const { usuario } = useAuth();
+  const { usuario, setUsuario } = useAuth();
   const [pedido, setPedido] = useState(null);
   const [cancelando, setCancelando] = useState(false);
   const [errorCancelar, setErrorCancelar] = useState("");
@@ -30,6 +32,15 @@ export default function PedidoDetalle() {
   const [errorPago, setErrorPago] = useState("");
   const [descargandoBoleta, setDescargandoBoleta] = useState(false);
   const [errorBoleta, setErrorBoleta] = useState("");
+  const [numeroCopiado, setNumeroCopiado] = useState(false);
+
+  // Checkout como invitado: se ofrece (nunca se exige) ponerle contraseña a
+  // la cuenta acá, en la confirmación, después de que la compra ya se hizo.
+  const [ofrecerCuentaVisible, setOfrecerCuentaVisible] = useState(true);
+  const [passwordCuenta, setPasswordCuenta] = useState("");
+  const [creandoCuenta, setCreandoCuenta] = useState(false);
+  const [errorCuenta, setErrorCuenta] = useState("");
+  const [cuentaCreada, setCuentaCreada] = useState(false);
 
   const cargar = () => api.pedido(id).then(setPedido);
 
@@ -79,6 +90,21 @@ export default function PedidoDetalle() {
     }
   };
 
+  const crearPasswordCuenta = async (e) => {
+    e.preventDefault();
+    setErrorCuenta("");
+    setCreandoCuenta(true);
+    try {
+      const actualizado = await api.completarCuenta({ password: passwordCuenta });
+      setUsuario(actualizado);
+      setCuentaCreada(true);
+    } catch (err) {
+      setErrorCuenta(err.message);
+    } finally {
+      setCreandoCuenta(false);
+    }
+  };
+
   const descargarBoleta = async () => {
     setDescargandoBoleta(true);
     setErrorBoleta("");
@@ -91,29 +117,128 @@ export default function PedidoDetalle() {
     }
   };
 
+  const copiarNumeroPedido = async () => {
+    try {
+      await navigator.clipboard.writeText(pedido.numero_pedido);
+      setNumeroCopiado(true);
+      setTimeout(() => setNumeroCopiado(false), 2000);
+    } catch {
+      // Clipboard API no disponible (contexto no seguro, permiso denegado,
+      // etc.) — no rompemos nada, el número ya está visible en pantalla
+      // para copiarlo a mano.
+    }
+  };
+
   if (!pedido) {
     return <p className="mx-auto max-w-2xl px-4 py-16 text-plum-soft">Cargando pedido...</p>;
   }
 
   const mostrarEstadoPago = pedido.estado_pago !== "no_aplica";
-  const sePuedeCancelar = !["enviado", "entregado", "cancelado"].includes(pedido.estado);
+  const sePuedeCancelar =
+    !["enviado", "entregado", "cancelado"].includes(pedido.estado) &&
+    pedido.estado_pago !== "verificado";
+  const pagoYaVerificado =
+    pedido.estado_pago === "verificado" &&
+    !["enviado", "entregado", "cancelado"].includes(pedido.estado);
   const puedePagarConPasarela =
     METODOS_PASARELA.has(pedido.metodo_pago) &&
     pedido.estado !== "cancelado" &&
     pedido.estado_pago === "pendiente";
+  const linkWhatsApp = armarLinkWhatsApp(
+    `Hola, tengo una consulta sobre mi pedido #${pedido.numero_pedido}`
+  );
 
   return (
     <div className="mx-auto max-w-2xl px-4 pb-16">
       <div className="glass rounded-3xl p-8 shadow-glass-lg">
-        <span className="rounded-full bg-berry/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-berry-dark">
-          {pedido.estado_label}
-        </span>
-        <h1 className="mt-3 text-2xl font-semibold text-plum">
-          ¡Gracias por tu compra!
-        </h1>
-        <p className="mt-1 text-sm text-plum-soft">
-          Pedido {pedido.numero_pedido} · Pago con {pedido.metodo_pago_label}
-        </p>
+        <div className="flex items-center gap-3">
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-berry/15 to-plum/10 text-berry">
+            <IconCheckCircle size={26} />
+          </span>
+          <div>
+            <span className="rounded-full bg-berry/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-berry-dark">
+              {pedido.estado_label}
+            </span>
+            <h1 className="mt-1 font-display text-2xl font-semibold text-plum">
+              ¡Gracias por tu compra!
+            </h1>
+          </div>
+        </div>
+
+        <div className="mt-2 flex items-center gap-1.5 text-sm text-plum-soft">
+          <span>
+            Pedido {pedido.numero_pedido} · Pago con {pedido.metodo_pago_label}
+          </span>
+          <button
+            type="button"
+            onClick={copiarNumeroPedido}
+            aria-label="Copiar número de pedido"
+            className="inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-xs font-medium text-berry transition hover:bg-berry/10"
+          >
+            {numeroCopiado ? (
+              <>
+                <IconCheck size={12} /> Copiado
+              </>
+            ) : (
+              <IconCopy size={13} />
+            )}
+          </button>
+        </div>
+
+        {usuario?.es_invitado && ofrecerCuentaVisible && (
+          <div className="glass relative mt-5 rounded-2xl border border-berry/20 p-5 shadow-glass">
+            <button
+              type="button"
+              onClick={() => setOfrecerCuentaVisible(false)}
+              aria-label="Cerrar"
+              className="absolute right-3 top-3 text-plum-soft transition hover:text-plum"
+            >
+              ✕
+            </button>
+
+            {cuentaCreada ? (
+              <p className="pr-6 text-sm text-plum">
+                Listo, ya puedes ingresar con <span className="font-semibold">{usuario.email}</span> y
+                tu nueva contraseña cuando quieras.
+              </p>
+            ) : (
+              <form onSubmit={crearPasswordCuenta} className="pr-6">
+                <p className="font-display text-sm font-semibold text-plum">
+                  Guarda tu cuenta para la próxima
+                </p>
+                <p className="mt-0.5 text-xs text-plum-soft">
+                  Ponle una contraseña a <span className="font-medium">{usuario.email}</span> y podrás
+                  ver este y tus próximos pedidos sin volver a llenar tus datos. Es opcional.
+                </p>
+                <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+                  <label htmlFor="pwd-cuenta" className="sr-only">Nueva contraseña</label>
+                  <input
+                    id="pwd-cuenta"
+                    type="password"
+                    placeholder="Nueva contraseña"
+                    minLength={6}
+                    required
+                    value={passwordCuenta}
+                    onChange={(e) => setPasswordCuenta(e.target.value)}
+                    className="w-full flex-1 rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-none"
+                  />
+                  <button
+                    type="submit"
+                    disabled={creandoCuenta}
+                    className="shrink-0 rounded-full bg-berry px-5 py-2.5 text-sm font-semibold text-white shadow-glass transition hover:bg-berry-dark disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {creandoCuenta ? "Guardando..." : "Guardar"}
+                  </button>
+                </div>
+                {errorCuenta && (
+                  <p className="mt-2 text-sm text-berry-dark" role="alert">
+                    {errorCuenta}
+                  </p>
+                )}
+              </form>
+            )}
+          </div>
+        )}
 
         <div className="mt-6">
           <SeguimientoPedido pedido={pedido} />
@@ -169,7 +294,7 @@ export default function PedidoDetalle() {
 
         {pedido.tipo_entrega && (
           <div className="mt-6 rounded-2xl bg-white/50 p-4 text-sm text-plum-soft">
-            <h2 className="mb-1 text-sm font-semibold uppercase tracking-wide text-plum-soft">
+            <h2 className="mb-1 font-display text-sm font-semibold uppercase tracking-wide text-plum-soft">
               Datos de entrega
             </h2>
             <p>{pedido.tipo_entrega === "delivery" ? "Delivery" : "Recojo en tienda"}</p>
@@ -178,6 +303,12 @@ export default function PedidoDetalle() {
               <p>
                 {pedido.envio_direccion}, {pedido.envio_distrito}
                 {pedido.envio_provincia && `, ${pedido.envio_provincia}`}
+              </p>
+            )}
+            {pedido.entrega_estimada_label && (
+              <p className="mt-2 flex items-center gap-1.5 font-medium text-plum">
+                <IconClock size={15} className="text-berry" />
+                Llega en {pedido.entrega_estimada_label}
               </p>
             )}
           </div>
@@ -203,7 +334,7 @@ export default function PedidoDetalle() {
             <span>Envío</span>
             <span>S/ {pedido.costo_envio.toFixed(2)}</span>
           </div>
-          <div className="flex justify-between text-base font-semibold text-plum">
+          <div className="flex justify-between font-display text-base font-semibold text-plum">
             <span>Total</span>
             <span>S/ {pedido.total.toFixed(2)}</span>
           </div>
@@ -235,12 +366,31 @@ export default function PedidoDetalle() {
           </div>
         )}
 
+        {pagoYaVerificado && (
+          <p className="mt-4 rounded-2xl bg-white/70 p-4 text-center text-sm text-plum-soft">
+            Este pedido ya fue pagado, así que no se puede cancelar desde acá.
+            Si necesitas cancelarlo, escríbenos y gestionamos tu reembolso.
+          </p>
+        )}
+
         <Link
           to="/tienda"
           className="mt-3 block w-full rounded-full bg-berry py-3 text-center font-semibold text-white shadow-glass transition hover:bg-berry-dark"
         >
           Seguir comprando
         </Link>
+
+        {linkWhatsApp && (
+          <a
+            href={linkWhatsApp}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-3 flex w-full items-center justify-center gap-2 rounded-full bg-white/70 py-3 text-center font-semibold text-berry-dark shadow-glass transition hover:bg-white"
+          >
+            <IconWhatsApp size={18} />
+            ¿Dudas con tu pedido? Escríbenos
+          </a>
+        )}
       </div>
     </div>
   );

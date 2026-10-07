@@ -16,6 +16,7 @@ function setAccessToken(token) {
 }
 function clearAccessToken() {
   accessToken = null;
+  guardarCsrf(null);
 }
 
 // Lee el valor de la cookie no-httpOnly que Flask-JWT-Extended deja junto a
@@ -25,6 +26,37 @@ function clearAccessToken() {
 function leerCookie(nombre) {
   const match = document.cookie.match(new RegExp(`(?:^|; )${nombre}=([^;]*)`));
   return match ? decodeURIComponent(match[1]) : null;
+}
+
+// Token CSRF del refresh. Si frontend y API están en sitios distintos (ej.
+// el frontend en *.vercel.app y la API en api.<dominio propio>), el navegador
+// NO deja a JavaScript leer la cookie csrf_refresh_token (pertenece a otro
+// dominio), así que el backend también la manda en el JSON de login/refresh y
+// la guardamos acá. Va en localStorage (no en memoria) porque tiene que
+// sobrevivir a una recarga —justo cuando se necesita para recuperar la sesión—
+// y para que todas las pestañas usen siempre el valor más reciente (el
+// refresh rota el token). No es un secreto: solo sirve junto con la cookie
+// httpOnly de refresh, que JavaScript nunca ve.
+const CLAVE_CSRF = "ans_csrf_refresh";
+
+function guardarCsrf(valor) {
+  try {
+    if (valor) localStorage.setItem(CLAVE_CSRF, valor);
+    else localStorage.removeItem(CLAVE_CSRF);
+  } catch {
+    // localStorage bloqueado (modo privado estricto): se sigue con la cookie.
+  }
+}
+
+function leerCsrf() {
+  // Si la cookie es legible (mismo sitio), es siempre la fuente más fiable.
+  const deCookie = leerCookie("csrf_refresh_token");
+  if (deCookie) return deCookie;
+  try {
+    return localStorage.getItem(CLAVE_CSRF) || "";
+  } catch {
+    return "";
+  }
 }
 
 // Cuando el refresh token también expiró (o no existe), no hay forma de
@@ -46,12 +78,13 @@ async function refrescarAccessToken() {
     const res = await fetch(`${BASE_URL}/auth/refrescar-token`, {
       method: "POST",
       credentials: "include", // manda la cookie httpOnly de refresh
-      headers: { "X-CSRF-Token": leerCookie("csrf_refresh_token") || "" },
+      headers: { "X-CSRF-Token": leerCsrf() },
     });
     if (!res.ok) throw new Error("El refresh token también expiró");
 
     const data = await res.json();
     setAccessToken(data.token);
+    if (data.csrf) guardarCsrf(data.csrf);
     return data.token;
   })();
 
@@ -68,14 +101,14 @@ async function refrescarAccessToken() {
 // sesión localmente. Lo usan tanto `request()` (JSON) como las subidas de
 // archivos (FormData) más abajo.
 async function fetchAutenticado(url, construirInit) {
-  let res = await fetch(url, construirInit(getToken()));
+  let res = await fetch(url, { credentials: "include", ...construirInit(getToken()) });
 
   if (res.status === 401) {
     const data = await res.clone().json().catch(() => null);
     if (data?.code === "token_expirado") {
       try {
         const nuevoToken = await refrescarAccessToken();
-        res = await fetch(url, construirInit(nuevoToken));
+        res = await fetch(url, { credentials: "include", ...construirInit(nuevoToken) });
       } catch {
         notificarSesionExpirada();
       }
@@ -99,7 +132,7 @@ async function request(path, { method = "GET", body, auth = false } = {}) {
 
   const res = auth
     ? await fetchAutenticado(`${BASE_URL}${path}`, construirInit)
-    : await fetch(`${BASE_URL}${path}`, construirInit());
+    : await fetch(`${BASE_URL}${path}`, { credentials: "include", ...construirInit() });
 
   let data = null;
   try {
@@ -170,9 +203,51 @@ async function descargarPdf(path, nombreArchivo) {
   window.URL.revokeObjectURL(url);
 }
 
+// --- KPIs: eventos de analítica (embudo de compra) ---
+// sesion_id: un id anónimo por navegador, generado una sola vez y guardado
+// en localStorage (no es el JWT ni depende de tener cuenta — sirve para
+// medir embudo también de visitantes no logueados).
+function obtenerSesionAnalitica() {
+  const CLAVE = "ans_sesion_analitica";
+  let sesion = localStorage.getItem(CLAVE);
+  if (!sesion) {
+    sesion = (crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`);
+    localStorage.setItem(CLAVE, sesion);
+  }
+  return sesion;
+}
+
+// Fire-and-forget a propósito: un evento de analítica que falla (red caída,
+// ad-blocker, etc.) nunca debe romper ni frenar la acción real del usuario
+// (agregar al carrito, pagar...), así que nunca se propaga el error ni se
+// espera con await en el caller.
+function registrarEvento(tipoEvento, { productoId, metadata } = {}) {
+  fetch(`${BASE_URL}/eventos`, {
+    method: "POST",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+      ...(getToken() ? { Authorization: `Bearer ${getToken()}` } : {}),
+    },
+    body: JSON.stringify({
+      tipo_evento: tipoEvento,
+      sesion_id: obtenerSesionAnalitica(),
+      producto_id: productoId ?? null,
+      metadata: metadata ?? null,
+    }),
+  }).catch(() => {
+    // Silencioso a propósito — ver comentario de arriba.
+  });
+}
+
 export const api = {
+  registrarEvento,
+
   // Auth
   registro: (payload) => request("/auth/registro", { method: "POST", body: payload }),
+  continuarComoInvitado: (payload) => request("/auth/invitado", { method: "POST", body: payload }),
+  completarCuenta: (payload) =>
+    request("/auth/completar-cuenta", { method: "POST", body: payload, auth: true }),
   refrescarToken: () => refrescarAccessToken(),
   consultarDocumento: (tipo, numero) =>
     request(`/documentos/consultar?tipo=${encodeURIComponent(tipo)}&numero=${encodeURIComponent(numero)}`),
@@ -186,7 +261,11 @@ export const api = {
   restablecerPassword: (payload) =>
     request("/auth/restablecer-password", { method: "POST", body: payload }),
   logout: () =>
-    fetch(`${BASE_URL}/auth/logout`, { method: "POST", credentials: "include" }),
+    fetch(`${BASE_URL}/auth/logout`, {
+      method: "POST",
+      credentials: "include",
+      headers: { "X-CSRF-Token": leerCsrf() },
+    }),
 
   // Ubicación (catálogo departamento -> provincia -> distrito, para los
   // selects en cascada del formulario de dirección)
@@ -272,6 +351,7 @@ export const api = {
   adminRevisarPago: (id, estado_pago) =>
     request(`/admin/pedidos/${id}/pago`, { method: "PUT", body: { estado_pago }, auth: true }),
   adminEstadisticas: () => request("/admin/pedidos/resumen/estadisticas", { auth: true }),
+  adminKpisAvanzados: () => request("/admin/pedidos/resumen/kpis-avanzados", { auth: true }),
   adminBoletaPedido: (id, numeroPedido) =>
     descargarPdf(`/admin/pedidos/${id}/boleta`, `boleta-${numeroPedido}.pdf`),
   adminVentaPresencial: (payload) =>
@@ -344,6 +424,20 @@ export const api = {
     formData.append("imagen", archivo);
     return subirArchivo("/admin/uploads/promocion-imagen", formData, "No se pudo subir la imagen");
   },
+
+  // Libro de Reclamaciones (público)
+  reclamacionesInfo: () => request("/reclamaciones/info"),
+  enviarReclamo: (payload) => request("/reclamaciones", { method: "POST", body: payload }),
+
+  // Libro de Reclamaciones (admin)
+  adminReclamaciones: (params = {}) => {
+    const query = new URLSearchParams(params).toString();
+    return request(`/admin/reclamaciones${query ? `?${query}` : ""}`, { auth: true });
+  },
+  adminResponderReclamo: (id, respuesta) =>
+    request(`/admin/reclamaciones/${id}/responder`, { method: "POST", body: { respuesta }, auth: true }),
+  adminHojaReclamoPdf: (id, codigo) =>
+    descargarPdf(`/admin/reclamaciones/${id}/pdf`, `hoja-reclamacion-${codigo}.pdf`),
 };
 
-export { getToken, setAccessToken, clearAccessToken };
+export { getToken, setAccessToken, clearAccessToken, guardarCsrf };
