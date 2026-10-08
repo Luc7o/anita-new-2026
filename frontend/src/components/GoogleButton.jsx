@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
 
 const CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
@@ -85,5 +86,15 @@ export default function GoogleButton({ onSuccess, onError, texto = "continue_wit
       </p>
     );
   }
+  return (
+    <div>
+      <div ref={contenedor} className="flex w-full justify-center" />
+      <p className="mt-3 text-center text-xs text-plum-soft">
+        Al continuar con Google aceptas nuestros{" "}
+        <Link to="/terminos-y-condiciones" className="font-semibold text-berry hover:underline">Términos</Link> y la{" "}
+        <Link to="/politica-de-privacidad" className="font-semibold text-berry hover:underline">Política de privacidad</Link>.
+      </p>
+    </div>
+  );
   return <div ref={contenedor} className="flex w-full justify-center" />;
 }

@@ -10,6 +10,8 @@ import GuiaTallas from "./pages/GuiaTallas.jsx";
 import FAQ from "./pages/FAQ.jsx";
 import Contacto from "./pages/Contacto.jsx";
 import LibroReclamaciones from "./pages/LibroReclamaciones.jsx";
+import PoliticaPrivacidad from "./pages/PoliticaPrivacidad.jsx";
+import TerminosCondiciones from "./pages/TerminosCondiciones.jsx";
 import QuienesSomos from "./pages/QuienesSomos.jsx";
 import Reviews from "./pages/Reviews.jsx";
 import NuestrasTiendas from "./pages/NuestrasTiendas.jsx";
@@ -178,6 +180,8 @@ export default function App() {
           <Route path="/faq" element={<FAQ />} />
           <Route path="/contacto" element={<Contacto />} />
           <Route path="/libro-reclamaciones" element={<LibroReclamaciones />} />
+          <Route path="/politica-de-privacidad" element={<PoliticaPrivacidad />} />
+          <Route path="/terminos-y-condiciones" element={<TerminosCondiciones />} />
           <Route path="/quienes-somos" element={<QuienesSomos />} />
           <Route path="/reviews" element={<Reviews />} />
           <Route path="/tiendas" element={<NuestrasTiendas />} />
