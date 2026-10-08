@@ -32,7 +32,7 @@ export default function QuienesSomos() {
           </div>
 
           <div className="mt-4 rounded-xl bg-plum/5 p-5 border border-plum/10">
-            <p className="text-sm font-medium text-plum">📍 Tienda física</p>
+            <p className="text-sm font-medium text-plum">Tienda física</p>
             <p className="text-sm text-plum-soft">Av. Ejemplo #123, Huancayo. Lunes a sábado de 10am a 8pm.</p>
           </div>
         </div>

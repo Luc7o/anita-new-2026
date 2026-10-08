@@ -252,6 +252,7 @@ export const api = {
   consultarDocumento: (tipo, numero) =>
     request(`/documentos/consultar?tipo=${encodeURIComponent(tipo)}&numero=${encodeURIComponent(numero)}`),
   login: (payload) => request("/auth/login", { method: "POST", body: payload }),
+  loginGoogle: (credential) => request("/auth/google", { method: "POST", body: { credential } }),
   perfil: () => request("/auth/perfil", { auth: true }),
   actualizarPerfil: (payload) =>
     request("/auth/perfil", { method: "PUT", body: payload, auth: true }),
@@ -281,6 +282,11 @@ export const api = {
   },
   producto: (id) => request(`/productos/${id}`),
   resenas: (productoId) => request(`/productos/${productoId}/resenas`),
+  // Reseñas de toda la tienda (página pública de Reviews)
+  resenasRecientes: (params = {}) => {
+    const query = new URLSearchParams(params).toString();
+    return request(`/resenas${query ? `?${query}` : ""}`);
+  },
   guardarResena: (productoId, payload) =>
     request(`/productos/${productoId}/resenas`, { method: "POST", body: payload, auth: true }),
   eliminarResena: (productoId) =>
@@ -352,6 +358,7 @@ export const api = {
     request(`/admin/pedidos/${id}/pago`, { method: "PUT", body: { estado_pago }, auth: true }),
   adminEstadisticas: () => request("/admin/pedidos/resumen/estadisticas", { auth: true }),
   adminKpisAvanzados: () => request("/admin/pedidos/resumen/kpis-avanzados", { auth: true }),
+  adminAtencion: () => request("/admin/dashboard/atencion", { auth: true }),
   adminBoletaPedido: (id, numeroPedido) =>
     descargarPdf(`/admin/pedidos/${id}/boleta`, `boleta-${numeroPedido}.pdf`),
   adminVentaPresencial: (payload) =>

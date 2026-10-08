@@ -11,6 +11,7 @@ import {
   IconCheck,
   IconArrowRight,
 } from "../components/Icons.jsx";
+import GoogleButton from "../components/GoogleButton.jsx";
 import loginHero from "../assets/auth/login-hero.jpg";
 
 const CLAVE_RECORDAR = "ans_recordar_email";
@@ -215,6 +216,21 @@ export default function Login() {
               )}
             </button>
           </form>
+
+          {import.meta.env.VITE_GOOGLE_CLIENT_ID && (
+            <>
+              <div className="my-6 flex items-center gap-3 text-xs font-medium uppercase tracking-wide text-plum-soft/70">
+                <span className="h-px flex-1 bg-plum/10" />
+                o
+                <span className="h-px flex-1 bg-plum/10" />
+              </div>
+              <GoogleButton
+                texto="signin_with"
+                onSuccess={() => navigate(destino)}
+                onError={setError}
+              />
+            </>
+          )}
 
           <p className="mt-6 text-center text-sm text-plum-soft">
             ¿No tienes una cuenta?{" "}

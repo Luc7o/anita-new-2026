@@ -42,6 +42,15 @@ export function AuthProvider({ children }) {
     return data.usuario;
   };
 
+  const loginConGoogle = async (credential) => {
+    const data = await api.loginGoogle(credential);
+    setAccessToken(data.token);
+    guardarCsrf(data.csrf);
+    setUsuario(data.usuario);
+    setSesionExpirada(false);
+    return data.usuario;
+  };
+
   const registro = async (payload) => {
     const data = await api.registro(payload);
     setAccessToken(data.token);
@@ -74,6 +83,7 @@ export function AuthProvider({ children }) {
         sesionExpirada,
         setSesionExpirada,
         login,
+        loginConGoogle,
         registro,
         continuarComoInvitado,
         logout,
