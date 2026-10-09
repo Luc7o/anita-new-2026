@@ -2,7 +2,21 @@ import React, { useEffect } from "react";
 import { Routes, Route, useLocation, Link } from "react-router-dom";
 import Navbar from "./components/Navbar.jsx";
 import CartDrawer from "./components/CartDrawer.jsx";
-import Footer from "./components/Footer.jsx"; // <-- NUEVA IMPORTACIÓN
+import Footer from "./components/Footer.jsx";
+import FormasPago from "./pages/FormasPago.jsx";
+import MetodosEnvio from "./pages/MetodosEnvio.jsx";
+import CambiosDevoluciones from "./pages/CambiosDevoluciones.jsx";
+import GuiaTallas from "./pages/GuiaTallas.jsx";
+import FAQ from "./pages/FAQ.jsx";
+import Contacto from "./pages/Contacto.jsx";
+import LibroReclamaciones from "./pages/LibroReclamaciones.jsx";
+import PoliticaPrivacidad from "./pages/PoliticaPrivacidad.jsx";
+import TerminosCondiciones from "./pages/TerminosCondiciones.jsx";
+import QuienesSomos from "./pages/QuienesSomos.jsx";
+import Reviews from "./pages/Reviews.jsx";
+import NuestrasTiendas from "./pages/NuestrasTiendas.jsx";
+import Mayoristas from "./pages/Mayoristas.jsx";
+import TrabajaConNosotros from "./pages/TrabajaConNosotros.jsx";
 import Home from "./pages/Home.jsx";
 import Tienda from "./pages/Tienda.jsx";
 import ProductoDetalle from "./pages/ProductoDetalle.jsx";
@@ -20,6 +34,7 @@ import Pedidos from "./pages/Pedidos.jsx";
 import PedidoDetalle from "./pages/PedidoDetalle.jsx";
 import { useAuth } from "./context/AuthContext.jsx";
 import { useCarrito } from "./context/CarritoContext.jsx";
+import { api } from "./api/client.js";
 import RutaAdmin from "./components/admin/RutaAdmin.jsx";
 import AdminLayout from "./components/admin/AdminLayout.jsx";
 import AdminDashboard from "./pages/admin/AdminDashboard.jsx";
@@ -34,6 +49,7 @@ import AdminProveedores from "./pages/admin/AdminProveedores.jsx";
 import AdminProveedorDetalle from "./pages/admin/AdminProveedorDetalle.jsx";
 import AdminUsuarios from "./pages/admin/AdminUsuarios.jsx";
 import AdminConfiguracion from "./pages/admin/AdminConfiguracion.jsx";
+import AdminReclamaciones from "./pages/admin/AdminReclamaciones.jsx";
 
 export default function App() {
   const { usuario, sesionExpirada, setSesionExpirada } = useAuth();
@@ -58,6 +74,18 @@ export default function App() {
 
   // Se limpia solo al cambiar de página (por ejemplo, al ir a /ingresar),
   // para no dejar el aviso pegado después de que el usuario ya reaccionó.
+  // Vista de página para KPIs de negocio: solo la tienda pública cuenta como
+  // "visita" (la navegación del propio admin dentro de /admin no debe
+  // inflar la métrica). El tipo "vista_pagina" ya existía en el modelo
+  // EventoAnalitica desde la migración de KPIs, pero nada lo disparaba
+  // todavía — este es el único lugar que faltaba.
+  useEffect(() => {
+    if (!esAdmin) {
+      api.registrarEvento("vista_pagina", { metadata: { ruta: location.pathname } });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname]);
+
   useEffect(() => {
     if (sesionExpirada) setSesionExpirada(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -95,6 +123,7 @@ export default function App() {
             <Route path="reportes" element={<AdminReportes />} />
             <Route path="proveedores" element={<AdminProveedores />} />
             <Route path="proveedores/:id" element={<AdminProveedorDetalle />} />
+            <Route path="reclamaciones" element={<AdminReclamaciones />} />
             <Route path="usuarios" element={<AdminUsuarios />} />
             <Route path="configuracion" element={<AdminConfiguracion />} />
           </Route>
@@ -144,10 +173,24 @@ export default function App() {
           <Route path="/checkout" element={<Checkout />} />
           <Route path="/pedidos" element={<Pedidos />} />
           <Route path="/pedidos/:id" element={<PedidoDetalle />} />
+          <Route path="/formas-de-pago" element={<FormasPago />} />
+          <Route path="/metodos-de-envio" element={<MetodosEnvio />} />
+          <Route path="/cambios-devoluciones" element={<CambiosDevoluciones />} />
+          <Route path="/guia-de-tallas" element={<GuiaTallas />} />
+          <Route path="/faq" element={<FAQ />} />
+          <Route path="/contacto" element={<Contacto />} />
+          <Route path="/libro-reclamaciones" element={<LibroReclamaciones />} />
+          <Route path="/politica-de-privacidad" element={<PoliticaPrivacidad />} />
+          <Route path="/terminos-y-condiciones" element={<TerminosCondiciones />} />
+          <Route path="/quienes-somos" element={<QuienesSomos />} />
+          <Route path="/reviews" element={<Reviews />} />
+          <Route path="/tiendas" element={<NuestrasTiendas />} />
+          <Route path="/mayoristas" element={<Mayoristas />} />
+          <Route path="/trabaja-con-nosotros" element={<TrabajaConNosotros />} />
         </Routes>
       </main>
       <CartDrawer />
-      <Footer /> {/* <-- FOOTER AGREGADO AQUÍ */}
+      <Footer />
     </div>
   );
 }

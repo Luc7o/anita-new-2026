@@ -74,6 +74,8 @@ class Pedido(db.Model):
     total = db.Column(db.Numeric(10, 2), nullable=False)
 
     envio_nombre = db.Column(db.String(160))
+    envio_tipo_documento = db.Column(db.String(10))
+    envio_numero_documento = db.Column(db.String(15))
     envio_telefono = db.Column(db.String(20))
     envio_direccion = db.Column(db.String(200))
     envio_distrito = db.Column(db.String(100))
@@ -93,8 +95,31 @@ class Pedido(db.Model):
     # por la pasarela — sirve para conciliar y consultar el cargo después.
     culqi_cargo_id = db.Column(db.String(40))
 
+    # Clave de idempotencia del INTENTO DE PAGO (distinta de idempotency_key,
+    # que es de la creación del pedido). Ver migraciones/023_*.sql para el
+    # detalle de por qué hace falta una columna separada.
+    pago_idempotency_key = db.Column(db.String(64))
+
     nota = db.Column(db.Text)
     fecha_creacion = db.Column(db.DateTime, default=datetime.utcnow)
+
+    # --- KPIs ---
+    # Cuándo se confirmó el pago de verdad (no cuándo se creó el pedido).
+    fecha_pago = db.Column(db.DateTime, nullable=True)
+    # Cuándo el admin marcó el pedido como entregado.
+    fecha_entregado = db.Column(db.DateTime, nullable=True)
+    # Motivo fijo de por qué se canceló: 'vencimiento_pago', 'cliente',
+    # 'sin_stock', 'pago_rechazado'. NULL si nunca se canceló.
+    motivo_cancelacion = db.Column(db.String(50), nullable=True)
+    # Distrito normalizado del envío (además de envio_distrito, que sigue
+    # siendo texto libre para no romper pedidos ya guardados así).
+    distrito_id = db.Column(db.Integer, db.ForeignKey("ubigeo_distritos.id"), nullable=True)
+    # Solo se setea para pedidos que se pagan por pasarela (tarjeta/Yape):
+    # mientras estado_pago siga "pendiente" pasada esta fecha, el pedido se
+    # considera vencido y su stock puede liberarse (ver
+    # app/utils/pedidos_vencidos.py). None para pedidos que no aplican
+    # (efectivo, ya pagados, etc.).
+    fecha_limite_pago = db.Column(db.DateTime)
 
     detalles = db.relationship(
         "DetallePedido", backref="pedido", lazy="dynamic",
@@ -107,6 +132,16 @@ class Pedido(db.Model):
 
     def puede_pasar_a(self, nuevo_estado):
         return nuevo_estado in self.TRANSICIONES_VALIDAS.get(self.estado, set())
+
+    @property
+    def esta_vencido(self):
+        """True si este pedido reservó stock por pasarela y se pasó el
+        plazo de pago sin que el cliente completara el cobro."""
+        return (
+            self.estado_pago == "pendiente"
+            and self.fecha_limite_pago is not None
+            and datetime.utcnow() >= self.fecha_limite_pago
+        )
 
     @property
     def estado_label(self):
@@ -124,6 +159,21 @@ class Pedido(db.Model):
     def origen_label(self):
         return self.ORIGENES.get(self.origen, self.origen)
 
+    @property
+    def entrega_estimada_label(self):
+        """
+        Texto de tiempo estimado de entrega para mostrar en la confirmación
+        del pedido. Por ahora Anita New Style solo despacha a provincia
+        (3-5 días hábiles), así que es una sola regla fija — el día que se
+        habilite despacho a Lima (con otro tiempo, probablemente más
+        corto), este es el único lugar que hay que tocar para diferenciarlo
+        por distrito/departamento en vez de aplicar la misma regla a todos
+        los pedidos con delivery.
+        """
+        if self.tipo_entrega == "recojo":
+            return None
+        return "3 a 5 días hábiles"
+
     def to_dict(self, con_detalles=True):
         data = {
             "id": self.id,
@@ -136,12 +186,15 @@ class Pedido(db.Model):
             "metodo_pago": self.metodo_pago,
             "metodo_pago_label": self.metodo_pago_label,
             "tipo_entrega": self.tipo_entrega,
+            "entrega_estimada_label": self.entrega_estimada_label,
             "origen": self.origen,
             "origen_label": self.origen_label,
             "subtotal": float(self.subtotal),
             "costo_envio": float(self.costo_envio),
             "total": float(self.total),
             "envio_nombre": self.envio_nombre,
+            "envio_tipo_documento": self.envio_tipo_documento,
+            "envio_numero_documento": self.envio_numero_documento,
             "envio_telefono": self.envio_telefono,
             "envio_direccion": self.envio_direccion,
             "envio_distrito": self.envio_distrito,
@@ -155,6 +208,11 @@ class Pedido(db.Model):
             "empresa_envio": self.empresa_envio,
             "numero_seguimiento": self.numero_seguimiento,
             "fecha_creacion": self.fecha_creacion.isoformat(),
+            "fecha_limite_pago": self.fecha_limite_pago.isoformat() if self.fecha_limite_pago else None,
+            "fecha_pago": self.fecha_pago.isoformat() if self.fecha_pago else None,
+            "fecha_entregado": self.fecha_entregado.isoformat() if self.fecha_entregado else None,
+            "motivo_cancelacion": self.motivo_cancelacion,
+            "distrito_id": self.distrito_id,
         }
         if con_detalles:
             data["detalles"] = [d.to_dict() for d in self.detalles]

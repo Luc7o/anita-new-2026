@@ -30,7 +30,7 @@ def subir_imagen_promocion():
 @requiere_roles(*PUEDE_GESTIONAR_CONFIGURACION)
 def subir_qr_pago():
     try:
-        url = guardar_imagen(request.files.get("imagen"), "pagos")
+        url = guardar_imagen(request.files.get("imagen"), "pagos", optimizar=False)
     except ImagenInvalida as e:
         return jsonify({"error": str(e)}), 400
     return jsonify({"url": url}), 201

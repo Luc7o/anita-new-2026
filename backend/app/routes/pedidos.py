@@ -1,6 +1,8 @@
-from flask import Blueprint, request, jsonify, Response
+import re
+from datetime import datetime, timedelta
+from flask import Blueprint, request, jsonify, Response, current_app
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from app.extensions import db
+from app.extensions import db, limiter
 from app.models import ItemCarrito, Pedido, DetallePedido, Producto, Usuario
 from app.utils.stock import (
     agrupar_por_producto,
@@ -12,10 +14,29 @@ from app.utils.stock import (
 from app.utils.decorators import requiere_activo
 from app.utils.culqi import culqi_configurado, crear_cargo
 from app.utils.boleta import generar_pdf_boleta
+from app.utils.pedidos_vencidos import cancelar_pedidos_vencidos_del_usuario
+from app.utils.historial import cambiar_estado_pedido
+from app.models import IntentoPago
 
 bp = Blueprint("pedidos", __name__, url_prefix="/api/pedidos")
 
 COSTO_ENVIO_DELIVERY = 10.00
+
+# Validaciones de los datos de entrega (el frontend ya filtra lo mismo, pero
+# el servidor nunca debe confiar en que el navegador lo hizo).
+TELEFONO_RE = re.compile(r"^9\d{8}$")  # celular peruano: 9 dígitos, empieza con 9
+DOCUMENTO_RE = {
+    "dni": re.compile(r"^\d{8}$"),
+    "ruc": re.compile(r"^\d{11}$"),
+    "ce": re.compile(r"^[A-Z0-9]{6,15}$"),  # Carné de Extranjería
+}
+DOCUMENTO_ERRORES = {
+    "dni": "El DNI debe tener 8 dígitos",
+    "ruc": "El RUC debe tener 11 dígitos",
+    "ce": "El Carné de Extranjería debe tener entre 6 y 15 letras o números",
+}
+# Dirección: letras (con tildes/ñ), números, espacios y SOLO . * ° #
+DIRECCION_RE = re.compile(r"^[A-Za-zÀ-ÿñÑ0-9\s.*°#]+$")
 
 # Tarjeta y Yape se cobran por la pasarela Culqi (cargo único, síncrono).
 METODOS_PAGO_PASARELA = {"tarjeta", "yape"}
@@ -23,9 +44,18 @@ METODOS_PAGO_PASARELA = {"tarjeta", "yape"}
 
 @bp.post("/checkout")
 @requiere_activo
+@limiter.limit("5 per minute")
 def checkout():
     usuario_id = int(get_jwt_identity())
     data = request.get_json(force=True) or {}
+
+    # Lock a nivel de usuario: si el mismo usuario dispara dos checkouts casi
+    # al mismo tiempo (dos pestañas, doble clic antes de que el botón se
+    # deshabilite), la segunda petición espera acá a que la primera termine
+    # de hacer commit. Cuando por fin lee el carrito, ya lo encuentra vacío
+    # (la primera ya lo vació) y responde "carrito vacío" en vez de crear un
+    # segundo pedido duplicado a partir del mismo carrito.
+    db.session.query(Usuario).filter_by(id=usuario_id).with_for_update().first()
 
     # Idempotencia: si el cliente ya mandó este mismo checkout antes (doble
     # clic, reintento de red), devolvemos el pedido que ya se creó en vez de
@@ -51,18 +81,33 @@ def checkout():
     if tipo_entrega not in Pedido.TIPOS_ENTREGA:
         return jsonify({"error": "Tipo de entrega inválido"}), 400
 
-    # Nombre y teléfono de contacto son obligatorios siempre
+    # Nombre, documento y teléfono de contacto son obligatorios siempre
     envio_nombre = (data.get("envio_nombre") or "").strip()[:160]
     envio_telefono = (data.get("envio_telefono") or "").strip()[:20]
     if not envio_nombre or not envio_telefono:
         return jsonify({"error": "Falta el nombre o el teléfono de contacto"}), 400
+    if not TELEFONO_RE.match(envio_telefono):
+        return jsonify({"error": "El teléfono debe tener 9 dígitos y empezar con 9"}), 400
 
-    # Si es delivery, la dirección (con distrito) es obligatoria — si es
-    # recojo en tienda, no hace falta.
+    envio_tipo_documento = (data.get("envio_tipo_documento") or "").strip().lower()
+    envio_numero_documento = (data.get("envio_numero_documento") or "").strip().upper()
+    if envio_tipo_documento not in DOCUMENTO_RE:
+        return jsonify({"error": "Elige DNI, RUC o Carné de Extranjería"}), 400
+    if not DOCUMENTO_RE[envio_tipo_documento].match(envio_numero_documento):
+        return jsonify({"error": DOCUMENTO_ERRORES[envio_tipo_documento]}), 400
+
+    # Si es delivery, la dirección (con distrito) y la referencia son
+    # obligatorias — si es recojo en tienda, no hacen falta.
     envio_direccion = (data.get("envio_direccion") or "").strip()[:200]
     envio_distrito = (data.get("envio_distrito") or "").strip()[:100]
-    if tipo_entrega == "delivery" and (not envio_direccion or not envio_distrito):
-        return jsonify({"error": "Falta la dirección o el distrito de entrega"}), 400
+    envio_referencia = (data.get("envio_referencia") or "").strip()[:200]
+    if tipo_entrega == "delivery":
+        if not envio_direccion or not envio_distrito:
+            return jsonify({"error": "Falta la dirección o el distrito de entrega"}), 400
+        if not DIRECCION_RE.match(envio_direccion):
+            return jsonify({"error": "La dirección solo puede tener letras, números y los símbolos . * ° #"}), 400
+        if not envio_referencia:
+            return jsonify({"error": "Falta la referencia de la dirección"}), 400
 
     # Tarjeta: solo referencia visual, NUNCA se pide ni se acepta número de
     # tarjeta ni CVV — Culqi tokeniza esos datos directamente en el navegador
@@ -90,6 +135,14 @@ def checkout():
     costo_envio = COSTO_ENVIO_DELIVERY if tipo_entrega == "delivery" else 0
     total = round(subtotal + costo_envio, 2)
 
+    # Solo tarjeta/Yape reservan stock sin haber pagado todavía — a esos les
+    # ponemos una ventana límite; pasado ese momento el pedido se cancela
+    # solo y el stock vuelve (ver app/utils/pedidos_vencidos.py).
+    fecha_limite_pago = None
+    if metodo_pago in METODOS_PAGO_PASARELA:
+        minutos = current_app.config["MINUTOS_LIMITE_PAGO"]
+        fecha_limite_pago = datetime.utcnow() + timedelta(minutes=minutos)
+
     pedido = Pedido(
         numero_pedido=Pedido.generar_numero(),
         usuario_id=usuario_id,
@@ -99,17 +152,26 @@ def checkout():
         # Culqi justo después de crear el pedido y manda el token a
         # /pagar, así que arrancan "pendiente" hasta que se confirme el cobro.
         estado_pago="pendiente" if metodo_pago in METODOS_PAGO_PASARELA else "no_aplica",
+        fecha_limite_pago=fecha_limite_pago,
         tipo_entrega=tipo_entrega,
         subtotal=subtotal,
         costo_envio=costo_envio,
         total=total,
         envio_nombre=envio_nombre,
+        envio_tipo_documento=envio_tipo_documento,
+        envio_numero_documento=envio_numero_documento,
         envio_telefono=envio_telefono,
         envio_direccion=envio_direccion or None,
         envio_distrito=envio_distrito or None,
         envio_provincia=(data.get("envio_provincia") or "").strip()[:100] or None,
         envio_dpto=(data.get("envio_dpto") or "").strip()[:100] or None,
-        envio_referencia=(data.get("envio_referencia") or "").strip()[:200] or None,
+        envio_referencia=envio_referencia or None,
+        # KPIs: id normalizado del distrito, si el frontend lo manda (viene
+        # de los selects en cascada de /api/ubicaciones). Es opcional a
+        # propósito — envio_distrito (texto libre) sigue siendo la fuente
+        # de verdad para mostrar la dirección; distrito_id es solo para
+        # poder agrupar KPIs geográficos sin parsear texto.
+        distrito_id=data.get("distrito_id") if isinstance(data.get("distrito_id"), int) else None,
         nota=(data.get("nota") or "").strip()[:500] or None,
         tarjeta_titular=tarjeta_titular,
     )
@@ -139,7 +201,7 @@ def checkout():
     # Descuento de stock ATÓMICO a nivel de base de datos (por variante o por
     # producto, según corresponda) — evita sobreventa si dos compras del mismo
     # producto llegan casi al mismo tiempo.
-    error_descuento = descontar_stock(grupos_stock, productos_cache)
+    error_descuento = descontar_stock(grupos_stock, productos_cache, pedido_id=pedido.id)
     if error_descuento:
         db.session.rollback()
         return jsonify({"error": error_descuento}), 409
@@ -152,6 +214,7 @@ def checkout():
 @requiere_activo
 def mis_pedidos():
     usuario_id = int(get_jwt_identity())
+    cancelar_pedidos_vencidos_del_usuario(usuario_id)
     pedidos = (
         Pedido.query.filter_by(usuario_id=usuario_id)
         .order_by(Pedido.fecha_creacion.desc())
@@ -164,6 +227,7 @@ def mis_pedidos():
 @requiere_activo
 def detalle_pedido(pedido_id):
     usuario_id = int(get_jwt_identity())
+    cancelar_pedidos_vencidos_del_usuario(usuario_id)
     pedido = Pedido.query.filter_by(id=pedido_id, usuario_id=usuario_id).first_or_404()
     return jsonify(pedido.to_dict())
 
@@ -179,10 +243,18 @@ def cancelar_pedido(pedido_id):
             "error": "Este pedido ya no se puede cancelar (ya está enviado, entregado o cancelado)"
         }), 400
 
-    pedido.estado = "cancelado"
-    # Si ya se le había confirmado el pago, ahora hay que devolverle su dinero.
+    # Un pedido con el pago YA verificado no lo puede cancelar el cliente
+    # directamente: eso restauraría el stock (vendible a otro) sin que haya
+    # ninguna garantía real de que el dinero se devuelva. El reembolso de un
+    # pedido pagado lo gestiona soporte/ventas desde el panel admin, que sí
+    # dispara el reembolso en Culqi antes de tocar el stock.
     if pedido.estado_pago == "verificado":
-        pedido.estado_pago = "reembolso_pendiente"
+        return jsonify({
+            "error": "Este pedido ya fue pagado. Contáctanos para cancelarlo y gestionar tu reembolso."
+        }), 403
+
+    pedido.motivo_cancelacion = "cliente"
+    cambiar_estado_pedido(pedido, "cancelado", cambiado_por=usuario_id)
     restaurar_stock_de_pedido(pedido)
     db.session.commit()
     return jsonify(pedido.to_dict())
@@ -190,6 +262,7 @@ def cancelar_pedido(pedido_id):
 
 @bp.post("/<int:pedido_id>/pagar")
 @requiere_activo
+@limiter.limit("10 per minute")
 def pagar_pedido(pedido_id):
     """
     Cobra el pedido con Culqi usando el token que ya generó el widget en el
@@ -244,6 +317,19 @@ def pagar_pedido(pedido_id):
     if pedido.estado_pago != "pendiente":
         db.session.rollback()
         return jsonify({"error": "Este pedido ya no necesita pago por pasarela"}), 400
+    if pedido.esta_vencido:
+        # Se pasó el plazo de pago: liberamos el stock que tenía reservado
+        # ahora mismo (ya tenemos el lock de la fila) en vez de esperar al
+        # cron/chequeo lazy, para no dejarlo "flotando" un rato más.
+        pedido.estado_pago = "rechazado"
+        if pedido.puede_pasar_a("cancelado"):
+            pedido.motivo_cancelacion = "vencimiento_pago"
+            cambiar_estado_pedido(pedido, "cancelado", cambiado_por=usuario_id)
+        restaurar_stock_de_pedido(pedido)
+        db.session.commit()
+        return jsonify({
+            "error": "El tiempo para pagar este pedido venció y el stock ya se liberó. Vuelve a intentar la compra."
+        }), 410
     if not token_id:
         db.session.rollback()
         return jsonify({"error": "Falta el token de pago generado por el checkout"}), 400
@@ -261,13 +347,25 @@ def pagar_pedido(pedido_id):
         # Rechazo del banco o de Culqi — el pedido queda "pendiente" tal
         # cual, así el cliente puede intentar de nuevo (otra tarjeta, etc.)
         # sin que quede un pedido fantasma marcado como rechazado.
+        # KPIs: el intento igual queda registrado (para tasa de rechazo),
+        # en una transacción separada porque el resto del cambio se descarta.
         db.session.rollback()
+        db.session.add(IntentoPago(
+            pedido_id=pedido.id, monto=pedido.total, estado="rechazado",
+            motivo_rechazo=error,
+        ))
+        db.session.commit()
         return jsonify({"error": error}), 402
 
     pedido.culqi_cargo_id = cargo_id
     pedido.estado_pago = "verificado"
+    pedido.fecha_pago = datetime.utcnow()
     if pedido.estado == "pendiente":
-        pedido.estado = "confirmado"
+        cambiar_estado_pedido(pedido, "confirmado", cambiado_por=usuario_id)
+    db.session.add(IntentoPago(
+        pedido_id=pedido.id, monto=pedido.total, estado="aprobado",
+        codigo_culqi=cargo_id,
+    ))
     db.session.commit()
     return jsonify(pedido.to_dict())
 

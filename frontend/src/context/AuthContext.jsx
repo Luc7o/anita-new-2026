@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
-import { api, setAccessToken, clearAccessToken } from "../api/client.js";
+import { api, setAccessToken, clearAccessToken, guardarCsrf } from "../api/client.js";
 
 const AuthContext = createContext(null);
 
@@ -36,6 +36,16 @@ export function AuthProvider({ children }) {
   const login = async (email, password) => {
     const data = await api.login({ email, password });
     setAccessToken(data.token);
+    guardarCsrf(data.csrf);
+    setUsuario(data.usuario);
+    setSesionExpirada(false);
+    return data.usuario;
+  };
+
+  const loginConGoogle = async (credential) => {
+    const data = await api.loginGoogle(credential);
+    setAccessToken(data.token);
+    guardarCsrf(data.csrf);
     setUsuario(data.usuario);
     setSesionExpirada(false);
     return data.usuario;
@@ -44,6 +54,7 @@ export function AuthProvider({ children }) {
   const registro = async (payload) => {
     const data = await api.registro(payload);
     setAccessToken(data.token);
+    guardarCsrf(data.csrf);
     setUsuario(data.usuario);
     setSesionExpirada(false);
     return data.usuario;
@@ -52,6 +63,7 @@ export function AuthProvider({ children }) {
   const continuarComoInvitado = async (payload) => {
     const data = await api.continuarComoInvitado(payload);
     setAccessToken(data.token);
+    guardarCsrf(data.csrf);
     setUsuario(data.usuario);
     setSesionExpirada(false);
     return data.usuario;
@@ -71,6 +83,7 @@ export function AuthProvider({ children }) {
         sesionExpirada,
         setSesionExpirada,
         login,
+        loginConGoogle,
         registro,
         continuarComoInvitado,
         logout,

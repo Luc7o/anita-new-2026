@@ -423,6 +423,24 @@ export function IconGift({ size = 18, className = "" }) {
   );
 }
 
+export function IconCopy({ size = 16, className = "" }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" {...base} className={className}>
+      <rect x="9" y="9" width="12" height="12" rx="2" />
+      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+    </svg>
+  );
+}
+
+export function IconClock({ size = 18, className = "" }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" {...base} className={className}>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 7v5l3.5 2" />
+    </svg>
+  );
+}
+
 export function IconStar({ size = 18, className = "", relleno = false }) {
   return (
     <svg
@@ -436,6 +454,15 @@ export function IconStar({ size = 18, className = "", relleno = false }) {
       className={className}
     >
       <path d="m12 2.5 2.9 6.06 6.6.82-4.85 4.6 1.27 6.6L12 17.5l-5.92 3.08 1.27-6.6-4.85-4.6 6.6-.82L12 2.5Z" />
+    </svg>
+  );
+}
+
+export function IconBook({ size = 18, className = "" }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" {...base} className={className}>
+      <path d="M2 5.5C4.5 4 8 4 12 6.5c4-2.5 7.5-2.5 10-1v13c-2.5-1.5-6-1.5-10 1-4-2.5-7.5-2.5-10-1v-13Z" />
+      <path d="M12 6.5v13" />
     </svg>
   );
 }

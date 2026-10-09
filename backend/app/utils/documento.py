@@ -13,6 +13,11 @@ funcionando igual (el campo queda sin autocompletar).
 import requests
 from flask import current_app
 
+# Mensaje cuando el proveedor confirma que el documento NO existe. Es una
+# constante para que la ruta pueda distinguir "no existe" (404, el cliente
+# se equivocó) de "el servicio falló" (502, no es culpa del cliente).
+DOCUMENTO_NO_ENCONTRADO = "No se encontró ese documento."
+
 
 def api_peru_configurada():
     return bool(current_app.config.get("API_PERU_TOKEN"))
@@ -47,7 +52,7 @@ def consultar_documento(tipo, numero):
         return False, None, "No se pudo contactar al servicio de validación, intenta de nuevo."
 
     if resp.status_code == 404:
-        return False, None, "No se encontró ese documento."
+        return False, None, DOCUMENTO_NO_ENCONTRADO
     if resp.status_code == 401 or resp.status_code == 403:
         current_app.logger.error(f"Token de API Perú inválido/vencido (status {resp.status_code})")
         return False, None, "La validación de documentos no está disponible en este momento."

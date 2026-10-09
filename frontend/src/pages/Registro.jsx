@@ -4,6 +4,7 @@ import { useAuth } from "../context/AuthContext.jsx";
 import { IconEye, IconEyeOff, IconFacebook, IconInstagram, IconWhatsApp, IconCheck, IconArrowRight } from "../components/Icons.jsx";
 import { soloTexto, soloNumeros, soloDni, soloRuc, soloCarnetExtranjeria } from "../validacion.js";
 import { api } from "../api/client.js";
+import GoogleButton from "../components/GoogleButton.jsx";
 import registroHero from "../assets/auth/registro-hero.jpg";
 
 const ETIQUETAS_DOCUMENTO = { dni: "DNI", ruc: "RUC", ce: "Carné de Extranjería" };
@@ -170,6 +171,21 @@ export default function Registro() {
               Únete a nosotros y descubre lo último en moda y accesorios.
             </p>
           </div>
+
+          {import.meta.env.VITE_GOOGLE_CLIENT_ID && (
+            <>
+              <GoogleButton
+                texto="signup_with"
+                onSuccess={() => navigate("/")}
+                onError={setError}
+              />
+              <div className="my-6 flex items-center gap-3 text-xs font-medium uppercase tracking-wide text-plum-soft/70">
+                <span className="h-px flex-1 bg-plum/10" />
+                o regístrate con tu correo
+                <span className="h-px flex-1 bg-plum/10" />
+              </div>
+            </>
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div className="grid grid-cols-2 gap-4">

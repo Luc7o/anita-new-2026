@@ -1,18 +1,33 @@
+from datetime import datetime
 from flask import Blueprint, request, jsonify, current_app
 from flask_jwt_extended import (
     create_access_token,
     create_refresh_token,
+    get_csrf_token,
     get_jwt_identity,
     jwt_required,
     set_refresh_cookies,
     unset_jwt_cookies,
+    verify_jwt_in_request,
 )
 from app.extensions import db, limiter
 from app.models import Usuario, TokenRecuperacion, UbigeoDistrito
 from app.utils.decorators import requiere_activo
 from app.utils.correo import enviar_correo
+from app.utils.google_auth import verificar_token_google, TokenGoogleInvalido
 
 bp = Blueprint("auth", __name__, url_prefix="/api/auth")
+
+
+def _crear_par_tokens(usuario):
+    """Access + refresh token, ambos con el sesion_version ACTUAL del
+    usuario grabado en el claim "sv" (ver el blocklist loader en
+    app/__init__.py). Centralizado acá para que login/registro/invitado/
+    refresh/cambiar-password siempre lo hagan de la misma forma."""
+    claims = {"sv": usuario.sesion_version}
+    access_token = create_access_token(identity=str(usuario.id), additional_claims=claims)
+    refresh_token = create_refresh_token(identity=str(usuario.id), additional_claims=claims)
+    return access_token, refresh_token
 
 
 @bp.post("/registro")
@@ -64,9 +79,8 @@ def registro():
         ),
     )
 
-    token = create_access_token(identity=str(usuario.id))
-    refresh_token = create_refresh_token(identity=str(usuario.id))
-    respuesta = jsonify({"token": token, "usuario": usuario.to_dict()})
+    token, refresh_token = _crear_par_tokens(usuario)
+    respuesta = jsonify({"token": token, "csrf": get_csrf_token(refresh_token), "usuario": usuario.to_dict()})
     set_refresh_cookies(respuesta, refresh_token)
     return respuesta, 201
 
@@ -112,9 +126,8 @@ def continuar_como_invitado():
     db.session.add(usuario)
     db.session.commit()
 
-    token = create_access_token(identity=str(usuario.id))
-    refresh_token = create_refresh_token(identity=str(usuario.id))
-    respuesta = jsonify({"token": token, "usuario": usuario.to_dict()})
+    token, refresh_token = _crear_par_tokens(usuario)
+    respuesta = jsonify({"token": token, "csrf": get_csrf_token(refresh_token), "usuario": usuario.to_dict()})
     set_refresh_cookies(respuesta, refresh_token)
     return respuesta, 201
 
@@ -153,43 +166,168 @@ def login():
     password = data.get("password") or ""
 
     usuario = Usuario.query.filter_by(email=email).first()
+
+    # Bloqueo por cuenta (además del límite por IP de arriba): protege
+    # aunque el atacante rote de IP en cada intento, algo que el limiter
+    # por IP no puede evitar por sí solo.
+    if usuario and usuario.esta_bloqueado:
+        minutos_restantes = max(1, int((usuario.bloqueado_hasta - datetime.utcnow()).total_seconds() // 60) + 1)
+        return jsonify({
+            "error": f"Demasiados intentos fallidos. Intenta de nuevo en {minutos_restantes} minuto(s)."
+        }), 429
+
     if not usuario or not usuario.check_password(password):
+        if usuario:
+            usuario.registrar_intento_fallido()
+            db.session.commit()
         return jsonify({"error": "Email o contraseña incorrectos"}), 401
     if not usuario.activo:
         return jsonify({"error": "Cuenta desactivada"}), 403
 
-    token = create_access_token(identity=str(usuario.id))
-    refresh_token = create_refresh_token(identity=str(usuario.id))
-    respuesta = jsonify({"token": token, "usuario": usuario.to_dict()})
+    usuario.resetear_intentos_fallidos()
+    db.session.commit()
+
+    token, refresh_token = _crear_par_tokens(usuario)
+    respuesta = jsonify({"token": token, "csrf": get_csrf_token(refresh_token), "usuario": usuario.to_dict()})
     set_refresh_cookies(respuesta, refresh_token)
     return respuesta
 
 
+@bp.post("/google")
+@limiter.limit("20 per hour")
+def login_google():
+    """
+    Registro / inicio de sesión con Google (Google Identity Services).
+
+    El frontend manda el "credential" (un ID token firmado por Google) que
+    recibe del botón de Google. Acá se verifica la firma, que el token sea
+    para ESTA app (GOOGLE_CLIENT_ID) y que Google haya verificado el correo.
+    Nunca confiamos en el email/nombre que mande el cliente, solo en lo que
+    sale del token ya verificado.
+
+    - Si ya existe un usuario con ese google_id -> inicia sesión.
+    - Si existe un usuario con ese email (cuenta normal o de invitado) ->
+      se vincula a Google y entra. Es seguro porque Google garantiza que la
+      persona controla ese correo.
+    - Si no existe -> se crea una cuenta nueva sin contraseña (puede
+      ponerle una después con "¿Olvidaste tu contraseña?").
+    """
+    data = request.get_json(force=True) or {}
+    credential = (data.get("credential") or "").strip()
+    if not credential:
+        return jsonify({"error": "Falta el token de Google"}), 400
+
+    client_id = current_app.config.get("GOOGLE_CLIENT_ID")
+    if not client_id:
+        return jsonify({"error": "El inicio de sesión con Google no está disponible por ahora"}), 503
+
+    try:
+        perfil_google = verificar_token_google(credential, client_id)
+    except TokenGoogleInvalido as e:
+        return jsonify({"error": str(e)}), 401
+
+    google_id = perfil_google["sub"]
+    email = perfil_google["email"]
+
+    usuario = Usuario.query.filter_by(google_id=google_id).first()
+    if not usuario:
+        usuario = Usuario.query.filter_by(email=email).first()
+        if usuario:
+            if usuario.google_id and usuario.google_id != google_id:
+                return jsonify({"error": "Ese correo ya está vinculado a otra cuenta de Google"}), 409
+            usuario.google_id = google_id
+            # Una cuenta de invitado que entra con Google pasa a ser una
+            # cuenta completa (ya tiene una forma de volver a entrar).
+            usuario.es_invitado = False
+
+    nueva = usuario is None
+    if nueva:
+        usuario = Usuario(
+            nombre=perfil_google["nombre"][:80],
+            apellido=perfil_google["apellido"][:80],
+            email=email[:120],
+            password_hash=None,
+            google_id=google_id,
+            es_invitado=False,
+            activo=True,
+        )
+        db.session.add(usuario)
+
+    if not usuario.activo:
+        db.session.rollback()
+        return jsonify({"error": "Cuenta desactivada"}), 403
+
+    usuario.resetear_intentos_fallidos()
+    db.session.commit()
+
+    if nueva:
+        enviar_correo(
+            destinatario=usuario.email,
+            asunto="¡Bienvenida a Anita New Style!",
+            texto=(
+                f"Hola {usuario.nombre},\n\n"
+                f"Gracias por registrarte en Anita New Style con tu cuenta de Google. "
+                f"Tu cuenta ya está lista y puedes empezar a comprar cuando quieras.\n\n"
+                f"Si no creaste esta cuenta, puedes ignorar este correo."
+            ),
+        )
+
+    token, refresh_token = _crear_par_tokens(usuario)
+    respuesta = jsonify({"token": token, "csrf": get_csrf_token(refresh_token), "usuario": usuario.to_dict()})
+    set_refresh_cookies(respuesta, refresh_token)
+    return respuesta, 201 if nueva else 200
+
+
 @bp.post("/refrescar-token")
+@limiter.limit("30 per minute")
 @jwt_required(refresh=True)
 def refrescar_token():
     """
-    El frontend llama a este endpoint cuando el access_token (que dura 1
-    hora) expira, para obtener uno nuevo sin pedirle al usuario que vuelva a
-    loguearse. El refresh token (30 días) ya no viaja en el body ni en el
-    header: va en una cookie httpOnly que el navegador adjunta solo, y que
-    JavaScript no puede leer ni robar vía XSS. Por ser cookie, el request
-    también debe traer el header X-CSRF-Token con el valor de la cookie
-    legible "csrf_refresh_token" (patrón CSRF de doble envío).
+    El frontend llama a este endpoint cuando el access_token (que dura 15
+    minutos) expira, para obtener uno nuevo sin pedirle al usuario que
+    vuelva a loguearse. El refresh token (30 días) ya no viaja en el body
+    ni en el header: va en una cookie httpOnly que el navegador adjunta
+    solo, y que JavaScript no puede leer ni robar vía XSS. Por ser cookie,
+    el request también debe traer el header X-CSRF-Token con el valor de
+    la cookie legible "csrf_refresh_token" (patrón CSRF de doble envío).
+
+    Rotación: cada vez que se usa el refresh token, se emite uno NUEVO (y
+    se reemplaza la cookie) en vez de reutilizar el mismo por sus 30 días
+    completos — así una cookie de refresh vieja/filtrada deja de ser útil
+    en cuanto el dueño legítimo vuelve a usar la suya.
     """
     usuario_id = get_jwt_identity()
     usuario = Usuario.query.get(int(usuario_id))
     if not usuario or not usuario.activo:
         return jsonify({"error": "Cuenta no disponible"}), 403
 
-    token = create_access_token(identity=usuario_id)
-    return jsonify({"token": token})
+    token, refresh_token = _crear_par_tokens(usuario)
+    respuesta = jsonify({"token": token, "csrf": get_csrf_token(refresh_token)})
+    set_refresh_cookies(respuesta, refresh_token)
+    return respuesta
 
 
 @bp.post("/logout")
 def logout():
-    """Limpia la cookie de refresh token. No requiere sesión válida: si ya
-    expiró o no existe, igual queremos que el navegador quede sin la cookie."""
+    """Cierra la sesión en TODOS los dispositivos, no solo en este
+    navegador: si la cookie de refresh sigue siendo válida, identificamos
+    al usuario y subimos su sesion_version, lo que invalida de inmediato
+    cualquier access/refresh token ya emitido (los de este navegador y los
+    de cualquier otro donde haya iniciado sesión). Si la cookie ya no es
+    válida (expiró, no existe, fue manipulada), no hay nada que revocar:
+    de todas formas limpiamos la cookie de este navegador."""
+    try:
+        verify_jwt_in_request(optional=True, refresh=True)
+    except Exception:
+        pass
+    else:
+        usuario_id = get_jwt_identity()
+        if usuario_id:
+            usuario = Usuario.query.get(int(usuario_id))
+            if usuario:
+                usuario.sesion_version += 1
+                db.session.commit()
+
     respuesta = jsonify({"mensaje": "Sesión cerrada"})
     unset_jwt_cookies(respuesta)
     return respuesta
@@ -252,8 +390,18 @@ def cambiar_password():
     # Cualquier link de recuperación pendiente queda invalidado al cambiar la
     # contraseña por esta vía (ya no tiene sentido que siga sirviendo).
     TokenRecuperacion.query.filter_by(usuario_id=usuario.id, usado=False).update({"usado": True})
+    # Cambiar la contraseña cierra la sesión en CUALQUIER OTRO dispositivo
+    # donde haya un token activo (ver sesion_version). A este mismo
+    # dispositivo/pestaña, en cambio, le damos un par de tokens nuevos ya
+    # con el sesion_version actualizado, así la persona no tiene que
+    # volver a loguearse justo después de cambiar su propia contraseña.
+    usuario.sesion_version += 1
     db.session.commit()
-    return jsonify({"mensaje": "Contraseña actualizada correctamente"})
+
+    token, refresh_token = _crear_par_tokens(usuario)
+    respuesta = jsonify({"mensaje": "Contraseña actualizada correctamente", "token": token, "csrf": get_csrf_token(refresh_token)})
+    set_refresh_cookies(respuesta, refresh_token)
+    return respuesta
 
 
 @bp.post("/olvide-password")
@@ -271,7 +419,7 @@ def olvide_password():
         registro_token = TokenRecuperacion.generar(usuario.id)
         db.session.commit()
 
-        link = f"{current_app.config['FRONTEND_ORIGIN']}/restablecer-password?token={registro_token.token}"
+        link = f"{current_app.config['FRONTEND_ORIGIN'][0]}/restablecer-password?token={registro_token.token}"
 
         enviar_correo(
             destinatario=usuario.email,
@@ -309,5 +457,9 @@ def restablecer_password():
 
     usuario.set_password(password_nueva)
     registro_token.usado = True  # de un solo uso: no se puede volver a usar este link
+    # Si alguien tenía el password anterior comprometido y una sesión ya
+    # abierta con él, este reset también la mata: cualquier token emitido
+    # antes de este momento deja de servir.
+    usuario.sesion_version += 1
     db.session.commit()
     return jsonify({"mensaje": "Contraseña restablecida correctamente, ya puedes ingresar"})

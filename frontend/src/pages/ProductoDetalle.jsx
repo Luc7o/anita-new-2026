@@ -4,8 +4,10 @@ import { api } from "../api/client.js";
 import { useAuth } from "../context/AuthContext.jsx";
 import { useCarrito } from "../context/CarritoContext.jsx";
 import { useFavoritos } from "../context/FavoritosContext.jsx";
-import { IconCart, IconHeart } from "../components/Icons.jsx";
+import { IconCart, IconHeart, IconSearch } from "../components/Icons.jsx";
 import Estrellas from "../components/Estrellas.jsx";
+import ImagenOptimizada from "../components/ImagenOptimizada.jsx";
+import VisorImagen from "../components/VisorImagen.jsx";
 
 // Traduce el nombre del color (como se guarda en BD) a un hex real para
 // pintar el círculo. Si aparece un color que no está mapeado, cae a un
@@ -67,6 +69,7 @@ export default function ProductoDetalle() {
   const [mensaje, setMensaje] = useState("");
   const [agregando, setAgregando] = useState(false);
   const [imagenActiva, setImagenActiva] = useState(null);
+  const [visorAbierto, setVisorAbierto] = useState(false);
   const [resenas, setResenas] = useState([]);
   const [miCalificacion, setMiCalificacion] = useState(0);
   const [miComentario, setMiComentario] = useState("");
@@ -115,6 +118,7 @@ export default function ProductoDetalle() {
   useEffect(() => {
     api.producto(id).then((data) => {
       setProducto(data);
+      api.registrarEvento("vista_producto", { productoId: data.id });
       // La talla no se preselecciona: el cliente debe elegirla a propósito.
       // El color sí queda preseleccionado con el primero, porque es el que
       // corresponde a la imagen que se muestra al entrar.
@@ -226,6 +230,7 @@ export default function ProductoDetalle() {
     setMensaje("");
     try {
       await agregar(producto.id, { cantidad, talla, color });
+      api.registrarEvento("agregar_carrito", { productoId: producto.id, metadata: { cantidad } });
       setMensaje("¡Producto agregado al carrito!");
     } catch (err) {
       setMensaje(err.message);
@@ -243,6 +248,7 @@ export default function ProductoDetalle() {
     setMensaje("");
     try {
       await agregar(producto.id, { cantidad, talla, color });
+      api.registrarEvento("agregar_carrito", { productoId: producto.id, metadata: { cantidad, via: "comprar_ahora" } });
       navigate("/checkout");
     } catch (err) {
       setMensaje(err.message);
@@ -260,6 +266,14 @@ export default function ProductoDetalle() {
 
   return (
     <div className="mx-auto max-w-7xl px-6 pb-16">
+      {visorAbierto && imagenActiva && (
+        <VisorImagen
+          imagenes={producto.imagenes?.length ? producto.imagenes : [{ id: "unica", url: imagenActiva }]}
+          indiceInicial={Math.max(0, (producto.imagenes || []).findIndex((img) => img.url === imagenActiva))}
+          nombre={producto.nombre}
+          onClose={() => setVisorAbierto(false)}
+        />
+      )}
       <div className="grid gap-8 md:grid-cols-2">
         {/* Galería: en mobile, la imagen grande arriba y las miniaturas debajo
             en fila horizontal (flex-col-reverse muestra el último hijo del DOM
@@ -282,7 +296,7 @@ export default function ProductoDetalle() {
                     imagenActiva === img.url ? "ring-2 ring-berry" : "opacity-80 hover:opacity-100"
                   }`}
                 >
-                  <img src={img.url} alt="" className="h-full w-full object-cover" />
+                  <ImagenOptimizada src={img.url} variante="thumb" alt="" className="h-full w-full object-cover" />
                 </button>
               ))}
             </div>
@@ -290,11 +304,26 @@ export default function ProductoDetalle() {
 
           <div className="glass aspect-[4/5] flex-1 overflow-hidden rounded-3xl shadow-glass">
             {imagenActiva ? (
-              <img
-                src={imagenActiva}
-                alt={producto.nombre}
-                className="h-full w-full object-cover transition"
-              />
+              <button
+                type="button"
+                onClick={() => setVisorAbierto(true)}
+                aria-label="Ampliar imagen"
+                className="relative block h-full w-full cursor-zoom-in focus:outline-none focus-visible:ring-2 focus-visible:ring-berry"
+              >
+                <ImagenOptimizada
+                  src={imagenActiva}
+                  variante="med"
+                  prioridad
+                  alt={producto.nombre}
+                  className="h-full w-full object-cover transition"
+                />
+                <span
+                  className="pointer-events-none absolute bottom-3 right-3 flex h-9 w-9 items-center justify-center rounded-full bg-white/85 text-plum shadow-glass"
+                  aria-hidden="true"
+                >
+                  <IconSearch size={16} />
+                </span>
+              </button>
             ) : (
               <div className="flex h-full items-center justify-center bg-gradient-to-br from-lilac to-white font-display text-5xl text-berry-light/60">
                 {producto.nombre.slice(0, 1)}
@@ -595,8 +624,9 @@ export default function ProductoDetalle() {
                   to={`/producto/${rel.id}`}
                   className="group w-40 shrink-0 rounded-xl border border-plum/10 p-3 transition hover:shadow-glass sm:w-48"
                 >
-                  <img
+                  <ImagenOptimizada
                     src={rel.imagen_url || "/placeholder.png"}
+                    variante="thumb"
                     alt={rel.nombre}
                     className="h-40 w-full rounded-lg object-cover sm:h-48"
                   />

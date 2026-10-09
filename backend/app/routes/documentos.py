@@ -1,7 +1,7 @@
 import re
 from flask import Blueprint, request, jsonify
 from app.extensions import limiter
-from app.utils.documento import consultar_documento, api_peru_configurada
+from app.utils.documento import consultar_documento, api_peru_configurada, DOCUMENTO_NO_ENCONTRADO
 
 bp = Blueprint("documentos", __name__, url_prefix="/api/documentos")
 
@@ -39,6 +39,9 @@ def consultar():
 
     ok, datos, error = consultar_documento(tipo, numero)
     if not ok:
-        return jsonify({"error": error}), 502
+        # 404 = el documento no existe (error del cliente); 502 = falló el
+        # servicio externo (red, token, límite). El checkout necesita
+        # distinguirlos para no decir "inválido" cuando solo no pudimos ver.
+        return jsonify({"error": error}), 404 if error == DOCUMENTO_NO_ENCONTRADO else 502
 
     return jsonify(datos)

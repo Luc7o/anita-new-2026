@@ -30,6 +30,9 @@ CREATE TABLE IF NOT EXISTS usuarios (
     activo BOOLEAN DEFAULT TRUE,
     es_admin BOOLEAN DEFAULT FALSE,
     rol VARCHAR(20) NOT NULL DEFAULT 'cliente',
+    sesion_version INT NOT NULL DEFAULT 1,
+    intentos_fallidos_login INT NOT NULL DEFAULT 0,
+    bloqueado_hasta DATETIME NULL,
     fecha_registro DATETIME,
     INDEX idx_usuarios_email (email)
 );
@@ -91,6 +94,7 @@ CREATE TABLE IF NOT EXISTS pedidos (
     tarjeta_ultimos4 VARCHAR(4),
     nota TEXT,
     fecha_creacion DATETIME,
+    fecha_limite_pago DATETIME,
     FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE
 );
 
