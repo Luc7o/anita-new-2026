@@ -4,6 +4,7 @@ import ImagenOptimizada from "../../components/ImagenOptimizada.jsx";
 import { IconUpload, IconClose, IconEdit, IconTrash, IconChevronLeft, IconChevronRight } from "../../components/Icons.jsx";
 import { soloCodigo } from "../../validacion.js";
 import { useFocusTrap } from "../../hooks/useFocusTrap.js";
+import Paginador from "../../components/Paginador.jsx";
 
 const MINIMO_IMAGENES = 4;
 
@@ -54,7 +55,7 @@ export default function AdminProductos() {
   const refDialogo = useFocusTrap(mostrarForm, () => setMostrarForm(false));
 
   const cargarProductos = () => {
-    const params = { pagina };
+    const params = { pagina, por_pagina: 10 };
     if (busqueda) params.q = busqueda;
     if (filtroCategoria) params.categoria = filtroCategoria;
     if (filtroEstado) params.activo = filtroEstado;
@@ -268,6 +269,7 @@ export default function AdminProductos() {
         </select>
       </div>
 
+      <Paginador pagina={pagina} porPagina={10} total={meta.total} onCambiar={setPagina} className="mb-2" />
       <div className="glass hidden overflow-hidden rounded-3xl shadow-glass md:block">
         <table className="w-full text-left text-sm">
           <thead className="bg-white/50 text-xs uppercase tracking-wide text-plum-soft">
@@ -322,47 +324,6 @@ export default function AdminProductos() {
           </tbody>
         </table>
 
-        {productos.length > 0 && (
-          <div className="flex items-center justify-between border-t border-white/40 px-4 py-3">
-            <p className="text-xs text-plum-soft">
-              Mostrando {productos.length} de {meta.total} productos
-            </p>
-            {meta.paginas > 1 && (
-              <div className="flex items-center gap-1.5">
-                <button
-                  onClick={() => setPagina((p) => Math.max(1, p - 1))}
-                  disabled={pagina <= 1}
-                  aria-label="Página anterior"
-                  className="flex h-8 w-8 items-center justify-center rounded-lg border border-plum/15 text-plum transition hover:border-berry/40 disabled:opacity-30"
-                >
-                  <IconChevronLeft size={14} />
-                </button>
-                {Array.from({ length: meta.paginas }, (_, i) => i + 1).map((n) => (
-                  <button
-                    key={n}
-                    onClick={() => setPagina(n)}
-                    aria-current={n === pagina ? "page" : undefined}
-                    className={`flex h-8 min-w-8 items-center justify-center rounded-lg px-2 text-xs font-semibold transition ${
-                      n === pagina
-                        ? "bg-berry/10 text-berry-dark"
-                        : "border border-plum/15 text-plum-soft hover:border-berry/40"
-                    }`}
-                  >
-                    {n}
-                  </button>
-                ))}
-                <button
-                  onClick={() => setPagina((p) => Math.min(meta.paginas, p + 1))}
-                  disabled={pagina >= meta.paginas}
-                  aria-label="Página siguiente"
-                  className="flex h-8 w-8 items-center justify-center rounded-lg border border-plum/15 text-plum transition hover:border-berry/40 disabled:opacity-30"
-                >
-                  <IconChevronRight size={14} />
-                </button>
-              </div>
-            )}
-          </div>
-        )}
         {productos.length === 0 && (
           <p className="p-6 text-center text-plum-soft">No hay productos todavía.</p>
         )}
@@ -410,27 +371,6 @@ export default function AdminProductos() {
           <p className="glass rounded-2xl p-6 text-center text-plum-soft shadow-glass">
             No hay productos todavía.
           </p>
-        )}
-        {productos.length > 0 && meta.paginas > 1 && (
-          <div className="flex items-center justify-center gap-1.5 pt-2">
-            <button
-              onClick={() => setPagina((p) => Math.max(1, p - 1))}
-              disabled={pagina <= 1}
-              aria-label="Página anterior"
-              className="flex h-8 w-8 items-center justify-center rounded-lg border border-plum/15 text-plum disabled:opacity-30"
-            >
-              <IconChevronLeft size={14} />
-            </button>
-            <span className="text-xs text-plum-soft">Página {pagina} de {meta.paginas}</span>
-            <button
-              onClick={() => setPagina((p) => Math.min(meta.paginas, p + 1))}
-              disabled={pagina >= meta.paginas}
-              aria-label="Página siguiente"
-              className="flex h-8 w-8 items-center justify-center rounded-lg border border-plum/15 text-plum disabled:opacity-30"
-            >
-              <IconChevronRight size={14} />
-            </button>
-          </div>
         )}
       </div>
 

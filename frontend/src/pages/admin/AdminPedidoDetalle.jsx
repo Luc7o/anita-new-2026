@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { api } from "../../api/client.js";
 import { ESTADOS_PEDIDO } from "./estadosPedido.js";
+import EstadoPedidoSelect from "../../components/EstadoPedidoSelect.jsx";
 
 export default function AdminPedidoDetalle() {
   const { id } = useParams();
@@ -109,18 +110,12 @@ export default function AdminPedidoDetalle() {
               Cancelado — no se puede modificar
             </span>
           ) : (
-            <select
+            <EstadoPedidoSelect
               value={pedido.estado}
+              opciones={ESTADOS_PEDIDO}
               disabled={actualizando}
-              onChange={(e) => cambiarEstado(e.target.value)}
-              className="rounded-full bg-berry px-4 py-2 text-sm font-semibold text-white shadow-glass focus:outline-none"
-            >
-              {Object.entries(ESTADOS_PEDIDO).map(([valor, label]) => (
-                <option key={valor} value={valor} className="text-plum">
-                  {label}
-                </option>
-              ))}
-            </select>
+              onChange={cambiarEstado}
+            />
           )}
         </div>
 

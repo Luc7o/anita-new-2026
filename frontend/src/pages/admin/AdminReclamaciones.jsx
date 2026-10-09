@@ -4,6 +4,8 @@ import { useAuth } from "../../context/AuthContext.jsx";
 import Dialog from "../../components/Dialog.jsx";
 import { IconClose } from "../../components/Icons.jsx";
 import { PUEDE_GESTIONAR_RECLAMACIONES } from "../../roles.js";
+import Paginador from "../../components/Paginador.jsx";
+import { usePaginacion } from "../../hooks/usePaginacion.js";
 
 const FILTROS = [
   { valor: "pendiente", label: "Pendientes" },
@@ -153,7 +155,9 @@ export default function AdminReclamaciones() {
   const { usuario } = useAuth();
   const puedeResponder = PUEDE_GESTIONAR_RECLAMACIONES.includes(usuario?.rol);
   const [reclamos, setReclamos] = useState([]);
+  const pag = usePaginacion(reclamos, 10);
   const [filtro, setFiltro] = useState("pendiente");
+  useEffect(() => { pag.setPagina(1); }, [filtro]);
   const [cargando, setCargando] = useState(true);
   const [seleccionado, setSeleccionado] = useState(null);
 
@@ -198,6 +202,7 @@ export default function AdminReclamaciones() {
         <p className="glass rounded-3xl p-6 text-center text-plum-soft shadow-glass">No hay reclamaciones con ese filtro.</p>
       ) : (
         <>
+          <Paginador pagina={pag.pagina} porPagina={pag.porPagina} total={pag.total} onCambiar={pag.setPagina} className="mb-2" />
           <div className="glass hidden overflow-hidden rounded-3xl shadow-glass md:block">
             <table className="w-full text-left text-sm">
               <thead className="bg-white/50 text-xs uppercase tracking-wide text-plum-soft">
@@ -212,7 +217,7 @@ export default function AdminReclamaciones() {
                 </tr>
               </thead>
               <tbody>
-                {reclamos.map((r) => (
+                {pag.items.map((r) => (
                   <tr key={r.id} className="border-t border-white/40">
                     <td className="px-4 py-3 font-medium text-plum">{r.codigo}</td>
                     <td className="px-4 py-3 text-plum-soft">{r.consumidor_nombre}</td>
@@ -230,7 +235,7 @@ export default function AdminReclamaciones() {
           </div>
 
           <div className="space-y-3 md:hidden">
-            {reclamos.map((r) => (
+            {pag.items.map((r) => (
               <button key={r.id} onClick={() => setSeleccionado(r)}
                 className="glass block w-full rounded-2xl p-4 text-left shadow-glass">
                 <div className="flex items-start justify-between gap-2">

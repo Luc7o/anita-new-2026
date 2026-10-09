@@ -5,6 +5,8 @@ import { PUEDE_VER_PROVEEDORES } from "../../roles.js";
 import { useAuth } from "../../context/AuthContext.jsx";
 import { soloTexto, soloNumeros, soloRuc } from "../../validacion.js";
 import { useFocusTrap } from "../../hooks/useFocusTrap.js";
+import Paginador from "../../components/Paginador.jsx";
+import { usePaginacion } from "../../hooks/usePaginacion.js";
 
 const VACIO = { nombre: "", contacto_nombre: "", telefono: "", email: "", direccion: "", ruc: "", notas: "" };
 
@@ -13,6 +15,7 @@ export default function AdminProveedores() {
   const puedeGestionar = ["superadmin", "editor"].includes(usuario?.rol);
 
   const [proveedores, setProveedores] = useState([]);
+  const pag = usePaginacion(proveedores, 10);
   const [productosDisponibles, setProductosDisponibles] = useState([]);
   const [form, setForm] = useState(VACIO);
   const [editandoId, setEditandoId] = useState(null);
@@ -160,6 +163,7 @@ export default function AdminProveedores() {
         )}
       </div>
 
+      <Paginador pagina={pag.pagina} porPagina={pag.porPagina} total={pag.total} onCambiar={pag.setPagina} className="mb-2" />
       <div className="glass hidden overflow-hidden rounded-3xl shadow-glass md:block">
         <table className="w-full text-left text-sm">
           <thead className="bg-white/50 text-xs uppercase tracking-wide text-plum-soft">
@@ -174,7 +178,7 @@ export default function AdminProveedores() {
             </tr>
           </thead>
           <tbody>
-            {proveedores.map((p) => (
+            {pag.items.map((p) => (
               <tr key={p.id} className="border-t border-white/40">
                 <td className="px-4 py-3 font-medium text-plum">{p.nombre}</td>
                 <td className="px-4 py-3 text-plum-soft">{p.contacto_nombre || "—"}</td>
@@ -215,7 +219,7 @@ export default function AdminProveedores() {
 
       {/* Tarjetas — solo móvil/tablet */}
       <div className="space-y-3 md:hidden">
-        {proveedores.map((p) => (
+        {pag.items.map((p) => (
           <div key={p.id} className="glass rounded-2xl p-4 shadow-glass">
             <div className="flex items-start justify-between gap-2">
               <p className="font-medium text-plum">{p.nombre}</p>

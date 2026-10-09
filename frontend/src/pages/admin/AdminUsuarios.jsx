@@ -3,6 +3,8 @@ import { api } from "../../api/client.js";
 import { soloTexto } from "../../validacion.js";
 import { useFocusTrap } from "../../hooks/useFocusTrap.js";
 import { useAuth } from "../../context/AuthContext.jsx";
+import Paginador from "../../components/Paginador.jsx";
+import { usePaginacion } from "../../hooks/usePaginacion.js";
 
 const VACIO = { nombre: "", apellido: "", email: "", password: "", rol: "editor" };
 
@@ -11,6 +13,8 @@ export default function AdminUsuarios() {
   const esRRHH = usuarioActual?.rol === "rrhh";
 
   const [usuarios, setUsuarios] = useState([]);
+  const pag = usePaginacion(usuarios, 10);
+  useEffect(() => { pag.setPagina(1); }, [filtroRol]);
   const [roles, setRoles] = useState({});
   const [filtroRol, setFiltroRol] = useState("");
   const [form, setForm] = useState(VACIO);
@@ -136,6 +140,7 @@ export default function AdminUsuarios() {
         ))}
       </div>
 
+      <Paginador pagina={pag.pagina} porPagina={pag.porPagina} total={pag.total} onCambiar={pag.setPagina} className="mb-2" />
       <div className="glass hidden overflow-hidden rounded-3xl shadow-glass md:block">
         <table className="w-full text-left text-sm">
           <thead className="bg-white/50 text-xs uppercase tracking-wide text-plum-soft">
@@ -148,7 +153,7 @@ export default function AdminUsuarios() {
             </tr>
           </thead>
           <tbody>
-            {usuarios.map((u) => (
+            {pag.items.map((u) => (
               <tr key={u.id} className="border-t border-white/40">
                 <td className="px-4 py-3 font-medium text-plum">{u.nombre_completo}</td>
                 <td className="px-4 py-3 text-plum-soft">{u.email}</td>
@@ -193,7 +198,7 @@ export default function AdminUsuarios() {
 
       {/* Tarjetas — solo móvil/tablet */}
       <div className="space-y-3 md:hidden">
-        {usuarios.map((u) => (
+        {pag.items.map((u) => (
           <div key={u.id} className="glass rounded-2xl p-4 shadow-glass">
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0">
