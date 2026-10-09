@@ -1,5 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { api } from "../../api/client.js";
+import ImagenOptimizada from "../../components/ImagenOptimizada.jsx";
+import Paginador from "../../components/Paginador.jsx";
+import { usePaginacion } from "../../hooks/usePaginacion.js";
 
 const VACIO = {
   etiqueta: "",
@@ -16,6 +19,7 @@ const VACIO = {
 
 export default function AdminPromociones() {
   const [promociones, setPromociones] = useState([]);
+  const pag = usePaginacion(promociones, 10);
   const [form, setForm] = useState(VACIO);
   const [editandoId, setEditandoId] = useState(null);
   const [error, setError] = useState("");
@@ -122,8 +126,9 @@ export default function AdminPromociones() {
           <div>
             <label className="mb-1 block text-xs font-semibold text-plum-soft">Imagen de fondo</label>
             {form.imagen_url && (
-              <img
+              <ImagenOptimizada
                 src={form.imagen_url}
+                variante="med"
                 alt="Vista previa"
                 className="mb-2 h-32 w-full rounded-2xl object-cover shadow-glass"
               />
@@ -240,7 +245,8 @@ export default function AdminPromociones() {
           {promociones.length === 0 && (
             <p className="text-sm text-plum-soft">Aún no creaste ninguna promoción de temporada.</p>
           )}
-          {promociones.map((promo) => (
+<Paginador pagina={pag.pagina} porPagina={pag.porPagina} total={pag.total} onCambiar={pag.setPagina} className="mb-1" />
+          {pag.items.map((promo) => (
             <div key={promo.id} className="glass rounded-2xl p-4 shadow-glass">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">

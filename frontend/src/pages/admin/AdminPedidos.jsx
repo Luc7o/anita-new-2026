@@ -2,19 +2,26 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../../api/client.js";
 import { ESTADOS_PEDIDO } from "./estadosPedido.js";
+import Paginador from "../../components/Paginador.jsx";
 
 export default function AdminPedidos() {
   const [pedidos, setPedidos] = useState([]);
   const [estado, setEstado] = useState("");
   const [cargando, setCargando] = useState(true);
+  const [pagina, setPagina] = useState(1);
+  const [total, setTotal] = useState(0);
+  const POR_PAGINA = 10;
 
   useEffect(() => {
     setCargando(true);
     api
-      .adminPedidos(estado ? { estado } : {})
-      .then((data) => setPedidos(data.pedidos))
+      .adminPedidos(estado ? { estado, pagina, por_pagina: POR_PAGINA } : { pagina, por_pagina: POR_PAGINA })
+      .then((data) => {
+        setPedidos(data.pedidos);
+        setTotal(data.total);
+      })
       .finally(() => setCargando(false));
-  }, [estado]);
+  }, [estado, pagina]);
 
   return (
     <div>
@@ -22,7 +29,7 @@ export default function AdminPedidos() {
 
       <div className="mb-4 flex gap-2 overflow-x-auto pb-1">
         <button
-          onClick={() => setEstado("")}
+          onClick={() => { setEstado(""); setPagina(1); }}
           className={`shrink-0 rounded-full px-4 py-1.5 text-sm font-medium shadow-glass ${
             estado === "" ? "bg-berry text-white" : "glass text-plum"
           }`}
@@ -32,7 +39,7 @@ export default function AdminPedidos() {
         {Object.entries(ESTADOS_PEDIDO).map(([valor, label]) => (
           <button
             key={valor}
-            onClick={() => setEstado(valor)}
+            onClick={() => { setEstado(valor); setPagina(1); }}
             className={`shrink-0 rounded-full px-4 py-1.5 text-sm font-medium shadow-glass ${
               estado === valor ? "bg-berry text-white" : "glass text-plum"
             }`}
@@ -46,6 +53,7 @@ export default function AdminPedidos() {
         <p className="text-plum-soft">Cargando pedidos...</p>
       ) : (
         <>
+          <Paginador pagina={pagina} porPagina={POR_PAGINA} total={total} onCambiar={setPagina} className="mb-2" />
           {/* Tabla — solo desktop */}
           <div className="glass hidden overflow-hidden rounded-3xl shadow-glass md:block">
             <table className="w-full text-left text-sm">
