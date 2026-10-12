@@ -73,7 +73,8 @@ export default function ProductCard({ producto, indice = 0 }) {
     }
     setCargando(true);
     try {
-      await agregar(producto.id);
+      // abrirCarrito: false: se va directo al checkout, sin abrir el carrito.
+      await agregar(producto.id, { abrirCarrito: false });
       navigate("/checkout");
     } catch {
       // Sin stock u otro rechazo del servidor: llevamos a la ficha, donde se

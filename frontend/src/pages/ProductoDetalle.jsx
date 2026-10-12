@@ -228,7 +228,8 @@ export default function ProductoDetalle() {
     setAgregando(true);
     setMensaje("");
     try {
-      await agregar(producto.id, { cantidad, talla, color });
+      // abrirCarrito: false: "Comprar ahora" va directo al checkout, sin abrir el carrito.
+      await agregar(producto.id, { cantidad, talla, color, abrirCarrito: false });
       api.registrarEvento("agregar_carrito", { productoId: producto.id, metadata: { cantidad, via: "comprar_ahora" } });
       navigate("/checkout");
     } catch (err) {
