@@ -8,7 +8,7 @@ import {
   IconInstagram,
   IconWhatsApp,
   IconCheck,
-  IconArrowRight,
+  IconArrowLeft,
 } from "../components/Icons.jsx";
 import GoogleButton from "../components/GoogleButton.jsx";
 import loginHero from "../assets/auth/login-hero.jpg";
@@ -53,10 +53,10 @@ export default function Login() {
       <Link
         to="/"
         aria-label="Volver al inicio"
-        className="absolute right-4 top-4 z-20 flex h-10 w-10 items-center justify-center rounded-full text-plum transition hover:text-berry hover:bg-white/30 hover:shadow-glass sm:right-6 sm:top-6 group"
+        className="absolute left-4 top-4 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-white/70 text-plum shadow-glass backdrop-blur transition hover:bg-white hover:text-berry sm:left-6 sm:top-6 group"
         title="Regresar a la tienda"
       >
-        <IconArrowRight size={18} />
+        <IconArrowLeft size={18} />
         <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 whitespace-nowrap rounded bg-plum/80 px-2 py-1 text-[10px] text-white opacity-0 transition-opacity group-hover:opacity-100 pointer-events-none">
           Regresar a la tienda
         </span>
@@ -207,20 +207,10 @@ export default function Login() {
             </>
           )}
 
-          <div className="my-6 flex items-center gap-3 text-xs font-medium uppercase tracking-wide text-plum-soft/70">
-            <span className="h-px flex-1 bg-plum/10" />
-            o
-            <span className="h-px flex-1 bg-plum/10" />
-          </div>
-
-          <Link
-            to="/tienda"
-            className="glass block w-full rounded-full py-3 text-center text-sm font-semibold text-plum shadow-glass transition hover:bg-white/60"
-          >
-            Seguir comprando sin cuenta
-          </Link>
-          <p className="mt-2 text-center text-xs text-plum-soft">
-            Puedes armar tu carrito y pagar solo con tu correo.
+          <p className="mt-8 text-center text-sm">
+            <Link to="/tienda" className="font-medium text-plum-soft transition hover:text-berry hover:underline">
+              Seguir comprando sin cuenta
+            </Link>
           </p>
         </div>
       </div>
