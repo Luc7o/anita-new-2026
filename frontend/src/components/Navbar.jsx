@@ -70,7 +70,12 @@ export default function Navbar() {
           >
             <IconCart size={20} />
             {totalItems > 0 && (
-              <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-berry text-[10px] font-bold text-white">
+              // key={totalItems}: cada vez que cambia la cantidad el contador se
+              // vuelve a montar y repite el "pop", para que se note que se agregó.
+              <span
+                key={totalItems}
+                className="absolute -right-1 -top-1 flex h-4 min-w-[1rem] animate-pop items-center justify-center rounded-full bg-berry px-1 text-[10px] font-bold text-white"
+              >
                 {totalItems}
               </span>
             )}

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { SkeletonFilas } from "./Skeleton.jsx";
 import { Link } from "react-router-dom";
 import { api } from "../api/client.js";
 
@@ -14,7 +15,7 @@ export default function ListaPedidos({ pedidosBase = "/pedidos" }) {
   }, []);
 
   if (cargando) {
-    return <p className="text-plum-soft">Cargando pedidos...</p>;
+    return <SkeletonFilas cantidad={3} etiqueta="Cargando pedidos" />;
   }
 
   if (pedidos.length === 0) {

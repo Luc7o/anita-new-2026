@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { SkeletonPedidoDetalle } from "../components/Skeleton.jsx";
 import { useParams, Link } from "react-router-dom";
 import { api } from "../api/client.js";
 import { useAuth } from "../context/AuthContext.jsx";
@@ -130,7 +131,11 @@ export default function PedidoDetalle() {
   };
 
   if (!pedido) {
-    return <p className="mx-auto max-w-2xl px-4 py-16 text-plum-soft">Cargando pedido...</p>;
+    return (
+      <div className="mx-auto max-w-2xl px-4 py-10">
+        <SkeletonPedidoDetalle />
+      </div>
+    );
   }
 
   const mostrarEstadoPago = pedido.estado_pago !== "no_aplica";

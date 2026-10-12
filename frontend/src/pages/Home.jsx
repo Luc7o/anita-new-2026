@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { api } from "../api/client.js";
 import ProductCard from "../components/ProductCard.jsx";
 import CategoryPill from "../components/CategoryPill.jsx";
+import { SkeletonPills, SkeletonProductGrid } from "../components/Skeleton.jsx";
 import { IconChevronLeft, IconChevronRight, IconArrowRight } from "../components/Icons.jsx";
 import { urlVariante } from "../utils/imagenes.js";
 import heroDefecto1 from "../assets/auth/login-hero.jpg";
@@ -167,13 +168,22 @@ export default function Home() {
   const [categorias, setCategorias] = useState([]);
   const [destacados, setDestacados] = useState([]);
   const [promociones, setPromociones] = useState([]);
+  // Mientras llegan los datos se muestran skeletons con la forma del contenido
+  // final, en vez de dejar las secciones en blanco.
+  const [cargandoCategorias, setCargandoCategorias] = useState(true);
+  const [cargandoDestacados, setCargandoDestacados] = useState(true);
 
   useEffect(() => {
-    api.categorias().then(setCategorias).catch(() => {});
+    api
+      .categorias()
+      .then(setCategorias)
+      .catch(() => {})
+      .finally(() => setCargandoCategorias(false));
     api
       .productos({ destacado: "true", por_pagina: 8 })
       .then((data) => setDestacados(data.productos))
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => setCargandoDestacados(false));
     api.promocionesActivas().then(setPromociones).catch(() => {});
   }, []);
 
@@ -184,11 +194,15 @@ export default function Home() {
       {/* Categorías */}
       <section className="mt-6">
         <h2 className="mb-4 text-2xl font-semibold text-plum">Categorías</h2>
-        <div className="flex gap-3 overflow-x-auto pb-2">
-          {categorias.map((cat) => (
-            <CategoryPill key={cat.id} categoria={cat} />
-          ))}
-        </div>
+        {cargandoCategorias ? (
+          <SkeletonPills />
+        ) : (
+          <div className="flex animate-fade-in gap-3 overflow-x-auto pb-2">
+            {categorias.map((cat) => (
+              <CategoryPill key={cat.id} categoria={cat} />
+            ))}
+          </div>
+        )}
       </section>
 
       {/* Destacados */}
@@ -203,11 +217,19 @@ export default function Home() {
             <IconArrowRight size={14} />
           </Link>
         </div>
-        <div className="grid grid-cols-2 gap-5 sm:grid-cols-3 lg:grid-cols-4">
-          {destacados.map((producto) => (
-            <ProductCard key={producto.id} producto={producto} />
-          ))}
-        </div>
+        {cargandoDestacados ? (
+          <SkeletonProductGrid
+            cantidad={8}
+            className="grid grid-cols-2 gap-5 sm:grid-cols-3 lg:grid-cols-4"
+            etiqueta="Cargando productos destacados"
+          />
+        ) : (
+          <div className="grid grid-cols-2 gap-5 sm:grid-cols-3 lg:grid-cols-4">
+            {destacados.map((producto, i) => (
+              <ProductCard key={producto.id} producto={producto} indice={i} />
+            ))}
+          </div>
+        )}
       </section>
     </div>
   );

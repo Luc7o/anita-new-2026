@@ -25,7 +25,7 @@ export default function Contacto() {
             </div>
             <div className="rounded-xl border border-plum/10 bg-white/50 p-5 shadow-sm">
               <h3 className="font-semibold text-plum">Tienda física</h3>
-              <p className="mt-1 text-sm text-plum-soft">Av. Ejemplo #123, Huancayo</p>
+              <p className="mt-1 text-sm text-plum-soft">Jr. Cajamarca 214, Huancayo</p>
               <p className="text-xs text-plum-soft/70">Lunes a sábado, 10am - 8pm.</p>
             </div>
             <div className="rounded-xl border border-plum/10 bg-white/50 p-5 shadow-sm">
@@ -36,7 +36,7 @@ export default function Contacto() {
           </div>
 
           <div className="mt-4 rounded-xl bg-plum/5 p-5 border border-plum/10">
-            <p className="text-sm font-medium text-plum">📬 Horario de atención</p>
+            <p className="text-sm font-medium text-plum">Horario de atención</p>
             <p className="text-sm text-plum-soft">Lunes a sábado de 10:00 a.m. a 8:00 p.m. Domingos y feriados cerrado.</p>
           </div>
         </div>

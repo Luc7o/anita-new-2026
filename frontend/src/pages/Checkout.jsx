@@ -47,9 +47,16 @@ const TIPOS_DOCUMENTO = [
 const DOC_SIN_VALIDAR = { estado: "idle", mensaje: "" };
 
 export default function Checkout() {
-  const { items, total, vaciarLocal, eliminar } = useCarrito();
-  const { usuario } = useAuth();
+  const { items, total, totalItems, vaciarLocal, eliminar, refrescar } = useCarrito();
+  const { usuario, continuarComoInvitado } = useAuth();
   const navigate = useNavigate();
+
+  // Compra sin cuenta: si no hay sesión, se pide solo el correo. Al confirmar,
+  // se crea la cuenta con ese correo (sin contraseña), el carrito del
+  // navegador pasa a esa cuenta y se le envía un correo para crear su
+  // contraseña cuando quiera volver a entrar.
+  const [emailInvitado, setEmailInvitado] = useState("");
+  const [cuentaExistente, setCuentaExistente] = useState(false);
 
   const [form, setForm] = useState({
     // El pedido guarda un solo "envio_nombre", pero en pantalla se pide por
@@ -260,6 +267,36 @@ export default function Checkout() {
     setEnviando(true);
 
     try {
+      // 0) Sin sesión: se crea la cuenta solo con el correo y el carrito del
+      //    navegador se pasa a esa cuenta, para poder crear el pedido normal.
+      let usuarioActual = usuario;
+      let cuentaNueva = false;
+      if (!usuarioActual) {
+        setCuentaExistente(false);
+        try {
+          usuarioActual = await continuarComoInvitado({ email: emailInvitado.trim() });
+          cuentaNueva = true;
+        } catch (err) {
+          if (err.status === 409) setCuentaExistente(true);
+          setError(err.message);
+          return; // el finally de abajo vuelve a habilitar el botón
+        }
+        const unidadesAntes = totalItems;
+        const resumenFusionado = await refrescar();
+        if (resumenFusionado.total_items !== unidadesAntes) {
+          // Entre que armó el carrito y pagó, algo se agotó: mejor que lo
+          // vea antes de pagar a que se le cobre algo distinto a lo que vio.
+          setError(
+            resumenFusionado.ajustes?.length
+              ? `Ajustamos tu carrito por falta de stock: ${resumenFusionado.ajustes
+                  .map((a) => a.mensaje)
+                  .join(" ")} Revisa el resumen y confirma de nuevo.`
+              : "Ajustamos tu carrito por falta de stock. Revisa el resumen y confirma de nuevo."
+          );
+          return;
+        }
+      }
+
       // 1) Se crea el pedido (reserva el stock, calcula el total) con
       //    estado_pago "pendiente".
       // Se separan los campos de pantalla (nombres, apellidos, razón social)
@@ -275,6 +312,20 @@ export default function Checkout() {
       } catch {
         // no-op: si sessionStorage no está disponible tampoco se llegó a usar
       }
+      if (cuentaNueva && form.envio_tipo_documento !== "ruc") {
+        // La cuenta se creó solo con el correo (nombre provisional). Ahora
+        // que ya dio sus datos reales, los guardamos en su perfil. Si falla
+        // no importa: el pedido ya quedó creado con sus datos de entrega.
+        try {
+          await api.actualizarPerfil({
+            nombre: nombres.trim(),
+            apellido: apellidos.trim(),
+            telefono: form.envio_telefono,
+          });
+        } catch {
+          // no-op
+        }
+      }
       vaciarLocal();
       api.registrarEvento("compra_completada", {
         metadata: { pedido_id: pedido.id, total: pedido.total, metodo_pago: pedido.metodo_pago },
@@ -287,7 +338,7 @@ export default function Checkout() {
         try {
           const { tokenId, email } = await abrirCulqiCheckout({
             amountCentavos: Math.round(pedido.total * 100),
-            email: usuario?.email,
+            email: usuarioActual.email,
             metodoPago: pedido.metodo_pago,
           });
           const idempotencyKeyPago = obtenerPagoIdempotencyKey(pedido.id);
@@ -394,6 +445,54 @@ export default function Checkout() {
   return (
     <div className="mx-auto grid max-w-5xl gap-8 px-4 pb-28 md:grid-cols-[1.4fr_1fr] md:pb-16">
       <form onSubmit={handleSubmit} className="glass space-y-4 rounded-3xl p-6 shadow-glass sm:p-8">
+        {!usuario && (
+          <section className="space-y-3 rounded-2xl border border-plum/10 bg-white/60 p-4">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <h2 className="text-lg font-semibold text-plum">Tu correo</h2>
+                <p className="mt-0.5 text-xs text-plum-soft">
+                  No necesitas crear una cuenta para comprar. Te enviaremos aquí la
+                  confirmación y un enlace para crear tu contraseña cuando quieras.
+                </p>
+              </div>
+              <Link
+                to="/ingresar"
+                state={{ from: "/checkout" }}
+                className="shrink-0 text-xs font-semibold text-berry hover:underline"
+              >
+                ¿Ya tienes cuenta? Ingresa
+              </Link>
+            </div>
+            <div>
+              <label htmlFor="checkout-email" className="sr-only">Correo electrónico</label>
+              <input
+                id="checkout-email"
+                type="email"
+                inputMode="email"
+                autoComplete="email"
+                placeholder="tucorreo@gmail.com"
+                required
+                maxLength={120}
+                value={emailInvitado}
+                onChange={(e) => {
+                  setEmailInvitado(e.target.value);
+                  setCuentaExistente(false);
+                }}
+                className="w-full rounded-2xl bg-white/80 px-4 py-3 text-plum shadow-glass focus:outline-none focus:ring-2 focus:ring-berry"
+              />
+            </div>
+            {cuentaExistente && (
+              <Link
+                to="/ingresar"
+                state={{ from: "/checkout" }}
+                className="inline-block rounded-full bg-plum px-4 py-2 text-sm font-semibold text-white hover:bg-berry-dark"
+              >
+                Iniciar sesión para continuar
+              </Link>
+            )}
+          </section>
+        )}
+
         <h1 className="text-2xl font-semibold text-plum">Datos de entrega</h1>
 
         <div role="radiogroup" aria-label="Tipo de entrega" className="grid grid-cols-2 gap-3">

@@ -8,52 +8,12 @@ import { IconCart, IconHeart, IconSearch } from "../components/Icons.jsx";
 import Estrellas from "../components/Estrellas.jsx";
 import ImagenOptimizada from "../components/ImagenOptimizada.jsx";
 import VisorImagen from "../components/VisorImagen.jsx";
-
-// Traduce el nombre del color (como se guarda en BD) a un hex real para
-// pintar el círculo. Si aparece un color que no está mapeado, cae a un
-// gris neutro en vez de romper la UI.
-const MAPA_COLORES = {
-  negro: "#171717",
-  blanco: "#FFFFFF",
-  rojo: "#DC2626",
-  guindo: "#7C1D2E",
-  vino: "#7C1D2E",
-  azul: "#2563EB",
-  "azul marino": "#1E3A8A",
-  "azul rey": "#1D4ED8",
-  verde: "#16A34A",
-  "verde militar": "#4D5C36",
-  "verde olivo": "#6B7A3A",
-  amarillo: "#EAB308",
-  mostaza: "#CA9A2E",
-  naranja: "#EA580C",
-  rosa: "#EC4899",
-  "rosa palo": "#D8A6A6",
-  morado: "#9333EA",
-  violeta: "#7C3AED",
-  gris: "#6B7280",
-  "gris claro": "#D1D5DB",
-  "gris oscuro": "#4B5563",
-  beige: "#D6C7A1",
-  marron: "#78350F",
-  marrón: "#78350F",
-  café: "#6F4E37",
-  camel: "#C19A6B",
-  chocolate: "#4B2E1E",
-  celeste: "#38BDF8",
-  turquesa: "#14B8A6",
-  dorado: "#CA8A04",
-  plateado: "#9CA3AF",
-  crema: "#FDF6E3",
-  fucsia: "#DB2777",
-  lila: "#C4B5FD",
-  coral: "#FF6F61",
-  khaki: "#8B8355",
-  caqui: "#8B8355",
-  ocre: "#B5651D",
-};
-
-const nombreColorAHex = (nombre) => MAPA_COLORES[(nombre || "").trim().toLowerCase()] || "#D4D4D8";
+import {
+  SkeletonDetalleProducto,
+  SkeletonResenas,
+  SkeletonCarruselRelacionados,
+} from "../components/Skeleton.jsx";
+import { nombreColorAHex } from "../utils/colores.js";
 
 export default function ProductoDetalle() {
   const { id } = useParams();
@@ -76,9 +36,18 @@ export default function ProductoDetalle() {
   const [enviandoResena, setEnviandoResena] = useState(false);
   const [errorResena, setErrorResena] = useState("");
   const [productosRelacionados, setProductosRelacionados] = useState([]);
+  // Banderas de carga: mientras llegan reseñas / relacionados se muestran
+  // skeletons en vez de mensajes engañosos ("sé la primera en reseñar...").
+  const [cargandoResenas, setCargandoResenas] = useState(true);
+  const [cargandoRelacionados, setCargandoRelacionados] = useState(true);
+  const [errorProducto, setErrorProducto] = useState(false);
   const refCarrusel = useRef(null);
 
-  const cargarResenas = () => api.resenas(id).then((data) => setResenas(data.resenas));
+  const cargarResenas = () =>
+    api
+      .resenas(id)
+      .then((data) => setResenas(data.resenas))
+      .finally(() => setCargandoResenas(false));
 
   useEffect(() => {
     cargarResenas();
@@ -136,9 +105,12 @@ export default function ProductoDetalle() {
             const filtrados = response.productos.filter(p => p.id !== data.id);
             setProductosRelacionados(filtrados);
           })
-          .catch(() => {});
+          .catch(() => {})
+          .finally(() => setCargandoRelacionados(false));
+      } else {
+        setCargandoRelacionados(false);
       }
-    });
+    }).catch(() => setErrorProducto(true));
   }, [id]);
 
   // Disponibilidad de una talla/color para habilitar o no su botón.
@@ -188,7 +160,24 @@ export default function ProductoDetalle() {
   }, [talla, color, producto]);
 
   if (!producto) {
-    return <p className="mx-auto max-w-6xl px-4 py-10 text-plum-soft">Cargando producto...</p>;
+    if (errorProducto) {
+      return (
+        <div className="mx-auto max-w-6xl px-4 py-16 text-center">
+          <p className="text-lg font-semibold text-plum">No encontramos este producto.</p>
+          <Link
+            to="/tienda"
+            className="mt-4 inline-block rounded-full bg-berry px-6 py-2.5 text-sm font-semibold text-white shadow-glass transition hover:bg-berry-dark"
+          >
+            Ver la tienda
+          </Link>
+        </div>
+      );
+    }
+    return (
+      <div className="mx-auto max-w-7xl px-6 pb-16">
+        <SkeletonDetalleProducto />
+      </div>
+    );
   }
 
   // Falta elegir talla y/o color: solo aplica si el producto realmente
@@ -219,13 +208,9 @@ export default function ProductoDetalle() {
     favoritos?.alternar(producto.id);
   };
 
+  // Agregar y comprar NO exigen cuenta: el carrito funciona sin registrarse y
+  // el correo se pide recién al pagar (ver Checkout).
   const handleAgregar = async () => {
-    if (!usuario) {
-      // Guardamos desde dónde vino para que, si elige "Comprar sin crear
-      // cuenta", vuelva acá mismo en vez de al inicio.
-      navigate("/ingresar", { state: { from: `/producto/${producto.id}` } });
-      return;
-    }
     setAgregando(true);
     setMensaje("");
     try {
@@ -240,10 +225,6 @@ export default function ProductoDetalle() {
   };
 
   const handleComprar = async () => {
-    if (!usuario) {
-      navigate("/ingresar", { state: { from: `/producto/${producto.id}` } });
-      return;
-    }
     setAgregando(true);
     setMensaje("");
     try {
@@ -265,7 +246,7 @@ export default function ProductoDetalle() {
   };
 
   return (
-    <div className="mx-auto max-w-7xl px-6 pb-16">
+    <div className="mx-auto max-w-7xl animate-fade-in px-6 pb-16">
       {visorAbierto && imagenActiva && (
         <VisorImagen
           imagenes={producto.imagenes?.length ? producto.imagenes : [{ id: "unica", url: imagenActiva }]}
@@ -571,7 +552,9 @@ export default function ProductoDetalle() {
           <h2 className="mb-4 text-xl font-semibold text-plum">
             Reseñas {resenas.length > 0 && `(${resenas.length})`}
           </h2>
-          {resenas.length === 0 ? (
+          {cargandoResenas ? (
+            <SkeletonResenas cantidad={2} />
+          ) : resenas.length === 0 ? (
             <p className="text-sm text-plum-soft">Sé la primera en reseñar este producto.</p>
           ) : (
             <div className="space-y-3">
@@ -598,6 +581,14 @@ export default function ProductoDetalle() {
       </div>
 
       {/* Productos relacionados: carrusel horizontal con flechas */}
+      {cargandoRelacionados && productosRelacionados.length === 0 && (
+        <section className="mt-16">
+          <h3 className="font-display text-xl font-semibold text-plum">También te puede interesar</h3>
+          <div className="mt-4">
+            <SkeletonCarruselRelacionados />
+          </div>
+        </section>
+      )}
       {productosRelacionados.length > 0 && (
         <section className="mt-16">
           <h3 className="font-display text-xl font-semibold text-plum">

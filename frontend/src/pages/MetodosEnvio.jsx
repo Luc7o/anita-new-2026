@@ -28,7 +28,7 @@ export default function MetodosEnvio() {
           </div>
 
           <div className="mt-4 rounded-xl bg-plum/5 p-5 border border-plum/10">
-            <p className="text-sm font-medium text-plum">📦 Costos de envío</p>
+            <p className="text-sm font-medium text-plum">Costos de envío</p>
             <p className="text-sm text-plum-soft">El costo del envío se calcula automáticamente al finalizar tu compra, según tu ubicación y el peso del pedido.</p>
           </div>
         </div>

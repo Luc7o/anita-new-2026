@@ -78,7 +78,11 @@ export default function Footer() {
 
         {/* Línea divisoria y copyright */}
         <div className="mt-12 pt-6 border-t border-plum/10 text-center text-xs text-plum-soft/60">
-          © {new Date().getFullYear()} Anita New Style. Todos los derechos reservados.
+          <p>© {new Date().getFullYear()} Anita New Style. Todos los derechos reservados.</p>
+          <p className="mt-2 flex flex-wrap items-center justify-center gap-x-4 gap-y-1">
+            <Link to="/politica-de-privacidad" className="hover:text-berry transition duration-200">Política de privacidad</Link>
+            <Link to="/terminos-y-condiciones" className="hover:text-berry transition duration-200">Términos y condiciones</Link>
+          </p>
         </div>
       </div>
     </footer>
