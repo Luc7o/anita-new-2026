@@ -85,19 +85,30 @@ class Config:
     # migración al dominio propio, mientras el frontend puede estar servido
     # tanto desde *.vercel.app como desde el dominio custom). Ejemplo:
     # "https://anita-new-2026.vercel.app,https://www.anita-new-style.xyz"
-    # Default: local + el frontend de Vercel. Cada origen se normaliza (sin
-    # espacios ni "/" final): el navegador manda el header Origin SIN barra
-    # final, y flask-cors compara por igualdad exacta, así que
-    # "https://anita-new-2026.vercel.app/" NUNCA coincide con el Origin real.
+    # Este backend puede servir a DOS frontends (la tienda y un panel de
+    # administración aparte), así que aquí van los orígenes separados por coma.
+    # Ejemplo: "https://www.midominio.com,https://admin.midominio.com".
+    # Default: local (tienda 5173, admin 5174) + el frontend de Vercel. Cada
+    # origen se normaliza (sin espacios ni "/" final): el navegador manda el
+    # header Origin SIN barra final, y flask-cors compara por igualdad exacta,
+    # así que "https://anita-new-2026.vercel.app/" NUNCA coincide con el Origin real.
     _frontend_origin_raw = os.getenv(
         "FRONTEND_ORIGIN",
-        "http://localhost:5173,https://anita-new-2026.vercel.app",
+        "http://localhost:5173,http://localhost:5174,https://anita-new-2026.vercel.app",
     )
     FRONTEND_ORIGIN = [
         origen.strip().rstrip("/")
         for origen in _frontend_origin_raw.split(",")
         if origen.strip()
     ]
+
+    # URL pública de la TIENDA (la que ven los clientes). Se usa para armar los
+    # enlaces que van por correo (por ejemplo "restablecer contraseña"), que
+    # deben abrir la tienda y no el panel de administración. Si no se define,
+    # se usa el primer origen de FRONTEND_ORIGIN.
+    FRONTEND_TIENDA_URL = (
+        os.getenv("FRONTEND_TIENDA_URL", "").strip().rstrip("/") or FRONTEND_ORIGIN[0]
+    )
 
     # Backend de almacenamiento para Flask-Limiter (cuenta los intentos de
     # login, registro, recuperación de contraseña, etc.). En Vercel el
