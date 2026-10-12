@@ -11,7 +11,7 @@ import {
   IconArrowLeft,
 } from "../components/Icons.jsx";
 import GoogleButton from "../components/GoogleButton.jsx";
-import loginHero from "../assets/auth/login-hero.jpg";
+import loginHero from "../assets/auth/login-hero.webp";
 
 const CLAVE_RECORDAR = "ans_recordar_email";
 

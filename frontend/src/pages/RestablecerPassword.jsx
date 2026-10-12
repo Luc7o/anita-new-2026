@@ -10,7 +10,7 @@ import {
   IconInstagram,
   IconWhatsApp,
 } from "../components/Icons.jsx";
-import registroHero from "../assets/auth/registro-hero.jpg";
+import registroHero from "../assets/auth/registro-hero.webp";
 
 const claseInput =
   "w-full rounded-md border border-plum/20 bg-white px-4 py-3 pr-11 text-plum placeholder:text-plum-soft/50 focus:outline-none focus:border-berry";
