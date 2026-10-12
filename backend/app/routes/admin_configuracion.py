@@ -1,32 +1,9 @@
-from flask import Blueprint, request, jsonify, current_app
-from app.extensions import db
-from app.models import ConfiguracionPago
+from flask import Blueprint, request, jsonify
 from app.utils.decorators import requiere_roles
 from app.utils.correo import enviar_correo, resend_configurado
 from app.roles import PUEDE_GESTIONAR_CONFIGURACION
 
 bp = Blueprint("admin_configuracion", __name__, url_prefix="/api/admin/configuracion")
-
-
-@bp.get("/pagos")
-@requiere_roles(*PUEDE_GESTIONAR_CONFIGURACION)
-def obtener():
-    config = ConfiguracionPago.obtener()
-    return jsonify(config.to_dict())
-
-
-@bp.put("/pagos")
-@requiere_roles(*PUEDE_GESTIONAR_CONFIGURACION)
-def actualizar():
-    config = ConfiguracionPago.obtener()
-    data = request.get_json(force=True) or {}
-
-    for campo in ["yape_numero", "yape_titular", "yape_qr_url"]:
-        if campo in data:
-            setattr(config, campo, data[campo])
-
-    db.session.commit()
-    return jsonify(config.to_dict())
 
 
 @bp.post("/probar-correo")

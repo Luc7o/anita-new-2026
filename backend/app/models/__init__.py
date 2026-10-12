@@ -9,7 +9,6 @@ from app.models.resena import Resena
 from app.models.carrito import ItemCarrito
 from app.models.pedido import Pedido, DetallePedido
 from app.models.proveedor import Proveedor, ProveedorProducto
-from app.models.configuracion_pago import ConfiguracionPago
 from app.models.token_recuperacion import TokenRecuperacion
 from app.models.favorito import Favorito
 from app.models.promocion import Promocion
@@ -41,7 +40,6 @@ __all__ = [
     "DetallePedido",
     "Proveedor",
     "ProveedorProducto",
-    "ConfiguracionPago",
     "TokenRecuperacion",
     "Favorito",
     "Promocion",
