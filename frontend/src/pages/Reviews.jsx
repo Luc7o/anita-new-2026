@@ -130,7 +130,6 @@ export default function Reviews() {
           </p>
 
           {cargando && <SkeletonResenas cantidad={4} />}
-          {cargando && <p className="text-sm text-plum-soft">Cargando reseñas…</p>}
 
           {!cargando && error && resenas.length === 0 && (
             <div className="rounded-xl border border-plum/10 bg-plum/5 p-5">

@@ -11,6 +11,7 @@ import {
   IconArrowRight,
 } from "../components/Icons.jsx";
 import GoogleButton from "../components/GoogleButton.jsx";
+import { api } from "../api/client.js";
 import loginHero from "../assets/auth/login-hero.jpg";
 
 const CLAVE_RECORDAR = "ans_recordar_email";
@@ -25,6 +26,36 @@ export default function Login() {
   const [verPassword, setVerPassword] = useState(false);
   const [error, setError] = useState("");
   const [enviando, setEnviando] = useState(false);
+
+  // Registro rápido solo con correo (no inicia sesión: envía un enlace para
+  // que la persona cree su contraseña).
+  const [verRegistro, setVerRegistro] = useState(false);
+  const [emailRegistro, setEmailRegistro] = useState("");
+  const [enviandoRegistro, setEnviandoRegistro] = useState(false);
+  const [errorRegistro, setErrorRegistro] = useState("");
+  const [registroEnviadoA, setRegistroEnviadoA] = useState(null);
+
+  const abrirRegistro = () => {
+    // Reutiliza el correo que ya escribió en el login, si lo hay.
+    setEmailRegistro(email);
+    setErrorRegistro("");
+    setRegistroEnviadoA(null);
+    setVerRegistro(true);
+  };
+
+  const registrarConCorreo = async (e) => {
+    e.preventDefault();
+    setErrorRegistro("");
+    setEnviandoRegistro(true);
+    try {
+      const respuesta = await api.registroConEmail(emailRegistro.trim());
+      setRegistroEnviadoA(respuesta.email || emailRegistro.trim());
+    } catch (err) {
+      setErrorRegistro(err.message);
+    } finally {
+      setEnviandoRegistro(false);
+    }
+  };
 
   const destino = location.state?.from || "/";
 
@@ -203,6 +234,83 @@ export default function Login() {
               />
             </>
           )}
+
+          <div className="mt-6">
+            {!verRegistro ? (
+              <button
+                type="button"
+                onClick={abrirRegistro}
+                className="w-full rounded-lg border border-plum/20 bg-white py-3 text-sm font-semibold text-plum transition hover:border-berry hover:text-berry"
+              >
+                Registrarme solo con mi correo
+              </button>
+            ) : registroEnviadoA ? (
+              <div role="status" className="rounded-lg border border-berry/30 bg-berry/5 p-4 text-center text-sm text-plum">
+                <p className="font-semibold">Revisa tu correo</p>
+                <p className="mt-1 text-plum-soft">
+                  Enviamos un enlace a <span className="font-medium text-plum">{registroEnviadoA}</span> para
+                  que crees tu contraseña y termines tu registro.
+                </p>
+                <button
+                  type="button"
+                  onClick={abrirRegistro}
+                  className="mt-3 text-xs font-medium text-berry hover:underline"
+                >
+                  Usar otro correo
+                </button>
+              </div>
+            ) : (
+              <form onSubmit={registrarConCorreo} className="space-y-3">
+                <label htmlFor="login-registro-email" className="block text-sm font-semibold text-plum">
+                  Registrarme solo con mi correo
+                </label>
+                <input
+                  id="login-registro-email"
+                  type="email"
+                  inputMode="email"
+                  autoComplete="email"
+                  required
+                  autoFocus
+                  maxLength={120}
+                  value={emailRegistro}
+                  onChange={(e) => setEmailRegistro(e.target.value)}
+                  placeholder="ejemplo@correo.com"
+                  className="w-full rounded-md border border-plum/20 bg-white px-4 py-3 text-plum placeholder:text-plum-soft/50 focus:outline-none focus:border-berry"
+                />
+                <p className="text-xs text-plum-soft">
+                  Te enviaremos un enlace para crear tu contraseña.
+                </p>
+                {errorRegistro && (
+                  <p className="text-sm text-berry-dark" role="alert">
+                    {errorRegistro}
+                  </p>
+                )}
+                <div className="flex gap-2">
+                  <button
+                    type="submit"
+                    disabled={enviandoRegistro}
+                    className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-berry py-3 text-sm font-semibold text-white transition hover:bg-berry-dark disabled:opacity-60"
+                  >
+                    {enviandoRegistro ? (
+                      <>
+                        <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                        Enviando...
+                      </>
+                    ) : (
+                      "Enviar enlace"
+                    )}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setVerRegistro(false)}
+                    className="rounded-lg border border-plum/20 px-4 py-3 text-sm font-semibold text-plum transition hover:border-berry"
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
 
           <p className="mt-6 text-center text-sm text-plum-soft">
             ¿No tienes una cuenta?{" "}
