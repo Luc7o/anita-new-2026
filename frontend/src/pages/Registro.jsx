@@ -1,14 +1,13 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import {
   IconFacebook,
   IconInstagram,
   IconWhatsApp,
   IconMail,
-  IconCheckCircle,
   IconArrowLeft,
 } from "../components/Icons.jsx";
-import { api } from "../api/client.js";
+import { useAuth } from "../context/AuthContext.jsx";
 import GoogleButton from "../components/GoogleButton.jsx";
 import { useNavigate } from "react-router-dom";
 import registroHero from "../assets/auth/registro-hero.jpg";
@@ -17,35 +16,32 @@ const claseInput =
   "w-full rounded-md border border-plum/20 bg-white px-4 py-3 text-plum placeholder:text-plum-soft/50 focus:outline-none focus:border-berry";
 const claseLabel = "mb-1.5 block text-sm font-semibold text-plum";
 
-// Registro mínimo: solo el correo. No se pide contraseña ni datos personales;
-// se envía un enlace al correo para que la persona elija su contraseña. Los
-// datos de entrega se piden recién cuando compra (ver Checkout).
+// Registro mínimo: solo el correo. La cuenta se crea al instante con un nombre
+// y una contraseña aleatorios y la persona queda con sesión iniciada para
+// seguir comprando. Sus datos reales se piden recién al comprar (ver
+// Checkout) y le llega un enlace por correo para elegir su contraseña cuando
+// quiera.
 export default function Registro() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { registroConEmail } = useAuth();
+  const destino = location.state?.from || "/";
   const [email, setEmail] = useState("");
   const [enviando, setEnviando] = useState(false);
   const [error, setError] = useState("");
-  // Correo al que se envió el enlace (si no es null, se muestra la confirmación)
-  const [enviadoA, setEnviadoA] = useState(null);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
     setEnviando(true);
     try {
-      const respuesta = await api.registroConEmail(email.trim());
-      setEnviadoA(respuesta.email || email.trim());
+      await registroConEmail(email.trim());
+      navigate(destino);
     } catch (err) {
       setError(err.message);
     } finally {
       setEnviando(false);
     }
-  };
-
-  const usarOtroCorreo = () => {
-    setEnviadoA(null);
-    setEmail("");
-    setError("");
   };
 
   return (
@@ -106,43 +102,14 @@ export default function Registro() {
       {/* Columna de formulario */}
       <div className="flex flex-1 flex-col items-center justify-center bg-white px-6 py-12 sm:px-16 lg:w-1/2">
         <div className="w-full max-w-[460px]">
-          {enviadoA ? (
-            <div className="text-center" role="status" aria-live="polite">
-              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-lilac text-berry">
-                <IconCheckCircle size={32} />
-              </div>
-              <h2 className="mt-6 text-3xl font-semibold text-plum sm:text-4xl">
-                Revisa tu correo
-              </h2>
-              <p className="mt-2 text-sm text-plum-soft">
-                Te enviamos un enlace a <span className="font-semibold text-plum">{enviadoA}</span>{" "}
-                para que crees tu contraseña y termines tu registro. El enlace dura 3 días.
-              </p>
-              <p className="mt-4 text-xs text-plum-soft">
-                ¿No lo ves? Revisa la carpeta de spam o espera un minuto antes de pedir otro.
-              </p>
-              <button
-                type="button"
-                onClick={usarOtroCorreo}
-                className="mt-8 w-full rounded-lg border border-plum/20 py-3.5 font-semibold text-plum transition hover:bg-lilac"
-              >
-                Usar otro correo
-              </button>
-              <Link
-                to="/tienda"
-                className="mt-3 inline-flex w-full items-center justify-center rounded-lg bg-plum py-3.5 font-semibold text-white transition hover:bg-berry-dark"
-              >
-                Seguir comprando
-              </Link>
-            </div>
-          ) : (
+          {(
             <>
               <div className="mb-8 text-center">
                 <h2 className="text-3xl font-semibold text-plum sm:text-4xl">
                   Crear una Cuenta
                 </h2>
                 <p className="mt-2 text-sm text-plum-soft">
-                  Solo necesitas tu correo. Te enviaremos un enlace para crear tu contraseña.
+                  Solo necesitas tu correo. Podrás seguir comprando de inmediato y elegir tu contraseña cuando quieras.
                 </p>
               </div>
 
@@ -193,7 +160,7 @@ export default function Registro() {
                   {enviando ? (
                     <>
                       <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                      Enviando...
+                      Creando cuenta...
                     </>
                   ) : (
                     "Crear Cuenta"

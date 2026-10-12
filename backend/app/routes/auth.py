@@ -1,4 +1,4 @@
-import re
+import secrets
 from datetime import datetime, timedelta
 from email_validator import validate_email, EmailNotValidError
 from flask import Blueprint, request, jsonify, current_app
@@ -56,13 +56,18 @@ def _normalizar_email(valor):
     return validado.normalized.lower(), None
 
 
-def _nombre_desde_email(email):
+def _nombre_aleatorio():
     """Nombre provisional para una cuenta creada solo con el correo
-    ('maria.perez92@gmail.com' -> 'Maria Perez'). La persona lo corrige
-    después en su perfil o al completar los datos de entrega."""
-    parte_local = email.split("@")[0]
-    limpio = re.sub(r"[^A-Za-zÀ-ÿñÑ]+", " ", parte_local).strip()
-    return limpio.title()[:80] or "Cliente"
+    ("Cliente 3FA9"). La persona da sus datos reales al comprar (el
+    checkout actualiza el perfil) o los edita después en su perfil."""
+    return f"Cliente {secrets.token_hex(2).upper()}"
+
+
+def _asignar_password_aleatoria(usuario):
+    """Contraseña aleatoria que nadie conoce: la cuenta queda con una clave
+    válida pero inutilizable. Sirve para que la cuenta nunca esté "vacía";
+    la persona elige la suya real con el enlace que recibe por correo."""
+    usuario.set_password(secrets.token_urlsafe(32))
 
 
 def _enviar_correo_crear_password(usuario, cuenta_existente=False):
@@ -199,13 +204,13 @@ def continuar_como_invitado():
         }), 409
 
     usuario = Usuario(
-        nombre=(data.get("nombre") or "").strip()[:80] or _nombre_desde_email(email),
+        nombre=(data.get("nombre") or "").strip()[:80] or _nombre_aleatorio(),
         apellido=(data.get("apellido") or "").strip()[:80],
         email=email,
         telefono=(data.get("telefono") or "").strip()[:20] or None,
-        password_hash=None,
         es_invitado=True,
     )
+    _asignar_password_aleatoria(usuario)
     db.session.add(usuario)
     db.session.commit()
 
@@ -221,43 +226,53 @@ def continuar_como_invitado():
 @limiter.limit("10 per hour")
 def registro_con_email():
     """
-    Registro solo con el correo: sin formulario largo y SIN dar sesión. Se
-    crea la cuenta y se envía un enlace para que la persona elija su
-    contraseña; recién ahí queda registrada y puede entrar. Como la sesión
-    solo se obtiene demostrando que el correo es suyo (abriendo el enlace),
-    nadie puede registrar el correo de otra persona y entrar con él.
+    Registro rápido solo con el correo, para reducir pasos: se crea la cuenta
+    con un nombre y una contraseña ALEATORIOS y se devuelve sesión (JWT) igual
+    que un login normal, así la persona puede seguir comprando de inmediato.
+    Sus datos reales los da en el checkout (que actualiza el perfil).
 
-    La respuesta es siempre la misma exista o no el correo, para no revelar
-    qué correos tienen cuenta. Si ya tenía cuenta, el correo que recibe se lo
-    dice y le ofrece recuperar su contraseña.
+    Además se le envía un enlace para elegir su contraseña real cuando quiera
+    (también confirma que el correo es suyo). Al usarlo, todas las sesiones
+    abiertas antes se cierran (sesion_version), así que si alguien hubiera
+    registrado el correo de otra persona, esa persona recupera el control.
+
+    Si el correo YA tiene cuenta NO se da sesión (sería entrar a una cuenta
+    ajena): se responde 409 para que inicie sesión.
     """
     data = request.get_json(force=True) or {}
     email, error = _normalizar_email(data.get("email"))
     if error:
         return jsonify({"error": error}), 400
 
-    respuesta = {
-        "mensaje": "Revisa tu correo: te enviamos un enlace para crear tu contraseña y terminar tu registro.",
-        "email": email,
-    }
+    if Usuario.query.filter_by(email=email).first():
+        return jsonify({
+            "error": (
+                "Ese correo ya tiene una cuenta. Inicia sesión "
+                "(si aún no creaste tu contraseña, usa «¿Olvidaste tu contraseña?»)."
+            ),
+            "code": "cuenta_existente",
+        }), 409
 
-    usuario = Usuario.query.filter_by(email=email).first()
-    if usuario is None:
-        usuario = Usuario(
-            nombre=_nombre_desde_email(email),
-            apellido="",
-            email=email,
-            password_hash=None,
-            es_invitado=True,
-        )
-        db.session.add(usuario)
-        db.session.commit()
-        _enviar_correo_crear_password(usuario)
-    elif usuario.activo:
-        sin_contrasena = usuario.es_invitado and not usuario.password_hash and not usuario.google_id
-        _enviar_correo_crear_password(usuario, cuenta_existente=not sin_contrasena)
+    usuario = Usuario(
+        nombre=_nombre_aleatorio(),
+        apellido="",
+        email=email,
+        es_invitado=True,
+    )
+    _asignar_password_aleatoria(usuario)
+    db.session.add(usuario)
+    db.session.commit()
 
-    return jsonify(respuesta)
+    _enviar_correo_crear_password(usuario)
+
+    token, refresh_token = _crear_par_tokens(usuario)
+    respuesta = jsonify({
+        "token": token,
+        "csrf": get_csrf_token(refresh_token),
+        "usuario": usuario.to_dict(),
+    })
+    set_refresh_cookies(respuesta, refresh_token)
+    return respuesta, 201
 
 
 @bp.post("/completar-cuenta")
@@ -365,7 +380,12 @@ def login_google():
                 return jsonify({"error": "Ese correo ya está vinculado a otra cuenta de Google"}), 409
             usuario.google_id = google_id
             # Una cuenta de invitado que entra con Google pasa a ser una
-            # cuenta completa (ya tiene una forma de volver a entrar).
+            # cuenta completa (ya tiene una forma de volver a entrar). Si era
+            # de invitado, se cierran las sesiones abiertas antes: pudo
+            # haberla creado otra persona con el correo de quien entra ahora
+            # (Google sí garantiza que este correo es suyo).
+            if usuario.es_invitado:
+                usuario.sesion_version += 1
             usuario.es_invitado = False
 
     nueva = usuario is None
