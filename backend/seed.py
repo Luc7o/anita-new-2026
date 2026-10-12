@@ -2,10 +2,14 @@
 Pobla la base de datos con categorías y productos de ejemplo.
 
 IMPORTANTE: este script YA NO crea el esquema (no usa db.create_all()).
-Antes de correrlo, tenés que tener las tablas creadas — corriendo:
+Antes de correrlo, tienes que tener las tablas creadas, corriendo:
     python aplicar_migraciones.py
 (eso incluye 000_esquema_base.sql, que crea todo desde cero si tu base
 está vacía, y no hace nada si ya existen las tablas).
+
+Las tallas y colores ya no son texto en Producto: viven en el catálogo
+(tablas tallas / colores) y cada combinación talla+color es una fila de
+variantes_producto con su propio stock. Este script crea esas variantes.
 
 Uso:
     python seed.py
@@ -13,10 +17,11 @@ Uso:
 from sqlalchemy import inspect
 from app import create_app
 from app.extensions import db
-from app.models import Categoria, Producto
+from app.models import Categoria, Producto, VarianteProducto
 
 app = create_app()
 
+# (categoria_slug, nombre, precio, precio_oferta, stock_total, tallas, colores)
 PRODUCTOS_DEMO = [
     ("calzados", "Botines Charol Negro", 189.90, None, 12, ["35", "36", "37", "38"], ["Negro"]),
     ("calzados", "Sandalias Trenzadas Beige", 129.90, 99.90, 8, ["35", "36", "37"], ["Beige", "Camel"]),
@@ -29,6 +34,21 @@ PRODUCTOS_DEMO = [
     ("accesorios", "Set Aretes Perla Barroca", 69.90, None, 20, [], ["Perla"]),
     ("accesorios", "Cinturón Trenzado Ancho", 79.90, 59.90, 11, ["Único"], ["Marrón"]),
 ]
+
+
+def _crear_variantes(producto, stock_total, tallas, colores):
+    """Reparte el stock total entre todas las combinaciones talla x color.
+
+    Si un eje no aplica (sin tallas o sin colores) se usa '' (el registro
+    placeholder del catálogo), nunca NULL, igual que hace el panel admin.
+    """
+    combinaciones = [(t, c) for t in (tallas or [""]) for c in (colores or [""])]
+    base, resto = divmod(stock_total, len(combinaciones))
+    for i, (talla, color) in enumerate(combinaciones):
+        variante = VarianteProducto(stock=base + (1 if i < resto else 0))
+        variante.talla = talla   # el setter busca/crea la talla en el catálogo
+        variante.color = color   # idem para el color
+        producto.variantes.append(variante)
 
 
 def seed():
@@ -55,15 +75,18 @@ def seed():
                     descripcion=f"{nombre} — pieza seleccionada de la colección Anita New Style.",
                     precio=precio,
                     precio_oferta=oferta,
-                    stock=stock,
                     sku=f"ANS-{i+1:04d}",
-                    tallas=",".join(tallas) if tallas else None,
-                    colores=",".join(colores) if colores else None,
                     categoria_id=categorias_map[slug].id,
                     destacado=(i % 3 == 0),
                     es_nuevo=(i % 2 == 0),
                     imagen_url="",
                 )
+                if tallas or colores:
+                    # Con variantes, el stock real vive en cada variante.
+                    producto.stock = 0
+                    _crear_variantes(producto, stock, tallas, colores)
+                else:
+                    producto.stock = stock
                 db.session.add(producto)
 
         db.session.commit()

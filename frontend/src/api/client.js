@@ -246,6 +246,8 @@ export const api = {
   // Auth
   registro: (payload) => request("/auth/registro", { method: "POST", body: payload }),
   continuarComoInvitado: (payload) => request("/auth/invitado", { method: "POST", body: payload }),
+  // Registro solo con correo: NO inicia sesión, solo envía el enlace para crear la contraseña.
+  registroConEmail: (email) => request("/auth/registro-email", { method: "POST", body: { email } }),
   completarCuenta: (payload) =>
     request("/auth/completar-cuenta", { method: "POST", body: payload, auth: true }),
   refrescarToken: () => refrescarAccessToken(),
@@ -305,6 +307,13 @@ export const api = {
 
   // Carrito
   verCarrito: () => request("/carrito", { auth: true }),
+  // Carrito de invitado (sin cuenta): el navegador guarda las líneas y el
+  // servidor las valida/hidrata (precio, stock) sin guardar nada.
+  validarCarritoInvitado: (items) =>
+    request("/carrito/invitado/validar", { method: "POST", body: { items } }),
+  // Al registrarse/iniciar sesión, pasa esas líneas al carrito real de la cuenta.
+  fusionarCarrito: (items) =>
+    request("/carrito/fusionar", { method: "POST", body: { items }, auth: true }),
   agregarAlCarrito: (payload) =>
     request("/carrito/agregar", { method: "POST", body: payload, auth: true }),
   actualizarItemCarrito: (itemId, payload) =>

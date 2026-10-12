@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { api } from "../api/client.js";
 import ProductCard from "../components/ProductCard.jsx";
+import { Skeleton, SkeletonProductGrid } from "../components/Skeleton.jsx";
 import { IconCheck, IconChevronLeft, IconChevronRight } from "../components/Icons.jsx";
 
 const TALLAS_PRENDA = ["XS", "S", "M", "L", "XL"];
@@ -129,13 +130,15 @@ export default function Tienda() {
             <p className="mt-1 text-sm text-plum-soft">{categoriaDestacada.descripcion}</p>
           )}
         </div>
-        <p className="text-sm text-plum-soft">
-          {cargando
-            ? "Cargando..."
-            : meta.total > 0
-            ? `Mostrando ${inicio}-${fin} de ${meta.total} resultados`
-            : "Sin resultados"}
-        </p>
+        {cargando ? (
+          <Skeleton className="h-4 w-44" />
+        ) : (
+          <p className="animate-fade-in text-sm text-plum-soft">
+            {meta.total > 0
+              ? `Mostrando ${inicio}-${fin} de ${meta.total} resultados`
+              : "Sin resultados"}
+          </p>
+        )}
       </div>
 
       <div className="flex flex-col gap-8 lg:flex-row">
@@ -275,14 +278,14 @@ export default function Tienda() {
         {/* Resultados */}
         <div className="min-w-0 flex-1">
           {cargando ? (
-            <p className="text-plum-soft">Cargando productos...</p>
+            <SkeletonProductGrid cantidad={9} />
           ) : productos.length === 0 ? (
             <p className="text-plum-soft">No encontramos productos con esos filtros.</p>
           ) : (
             <>
               <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-                {productos.map((producto) => (
-                  <ProductCard key={producto.id} producto={producto} />
+                {productos.map((producto, i) => (
+                  <ProductCard key={producto.id} producto={producto} indice={i} />
                 ))}
               </div>
 

@@ -123,7 +123,8 @@ class Usuario(db.Model):
 
     @property
     def nombre_completo(self):
-        return f"{self.nombre} {self.apellido}"
+        # .strip(): una cuenta creada solo con el correo tiene apellido vacío.
+        return f"{self.nombre} {self.apellido or ''}".strip()
 
     # --- Compatibilidad: el resto del código (decoradores, rutas, scripts)
     # sigue usando `usuario.rol` como si fuera un string ("cliente",

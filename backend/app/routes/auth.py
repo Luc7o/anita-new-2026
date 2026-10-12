@@ -1,4 +1,6 @@
-from datetime import datetime
+import re
+from datetime import datetime, timedelta
+from email_validator import validate_email, EmailNotValidError
 from flask import Blueprint, request, jsonify, current_app
 from flask_jwt_extended import (
     create_access_token,
@@ -28,6 +30,87 @@ def _crear_par_tokens(usuario):
     access_token = create_access_token(identity=str(usuario.id), additional_claims=claims)
     refresh_token = create_refresh_token(identity=str(usuario.id), additional_claims=claims)
     return access_token, refresh_token
+
+
+# Cuánto dura el enlace para crear la contraseña de una cuenta nueva. Más
+# largo que el de "olvidé mi contraseña" (30 min): quien compró como invitado
+# puede abrir el correo horas o días después, y el enlace sigue siendo de un
+# solo uso.
+MINUTOS_VALIDEZ_CREAR_PASSWORD = 60 * 24 * 3
+# Mínimo entre dos correos de enlace al mismo usuario: evita que alguien use
+# los formularios públicos para llenarle el buzón a un tercero.
+SEGUNDOS_ENTRE_CORREOS = 60
+
+
+def _normalizar_email(valor):
+    """Devuelve (email_normalizado, None) o (None, mensaje_de_error)."""
+    valor = (valor or "").strip().lower()
+    if not valor:
+        return None, "Escribe tu correo electrónico"
+    if len(valor) > 120:
+        return None, "El correo es demasiado largo"
+    try:
+        validado = validate_email(valor, check_deliverability=False)
+    except EmailNotValidError:
+        return None, "Escribe un correo electrónico válido"
+    return validado.normalized.lower(), None
+
+
+def _nombre_desde_email(email):
+    """Nombre provisional para una cuenta creada solo con el correo
+    ('maria.perez92@gmail.com' -> 'Maria Perez'). La persona lo corrige
+    después en su perfil o al completar los datos de entrega."""
+    parte_local = email.split("@")[0]
+    limpio = re.sub(r"[^A-Za-zÀ-ÿñÑ]+", " ", parte_local).strip()
+    return limpio.title()[:80] or "Cliente"
+
+
+def _enviar_correo_crear_password(usuario, cuenta_existente=False):
+    """
+    Envía el enlace para crear (o recuperar) la contraseña. Reutiliza el
+    mismo token de un solo uso del flujo "olvidé mi contraseña": al abrirlo
+    la persona cae en /restablecer-password y elige su contraseña.
+
+    Devuelve False si no se envió porque ya se mandó uno hace menos de
+    SEGUNDOS_ENTRE_CORREOS (el usuario ya tiene un enlace vigente en su buzón).
+    """
+    ultimo = (
+        TokenRecuperacion.query.filter_by(usuario_id=usuario.id)
+        .order_by(TokenRecuperacion.creado_en.desc())
+        .first()
+    )
+    if ultimo and ultimo.creado_en and (
+        datetime.utcnow() - ultimo.creado_en
+    ) < timedelta(seconds=SEGUNDOS_ENTRE_CORREOS):
+        return False
+
+    registro_token = TokenRecuperacion.generar(
+        usuario.id, minutos_validez=MINUTOS_VALIDEZ_CREAR_PASSWORD
+    )
+    db.session.commit()
+    link = f"{current_app.config['FRONTEND_TIENDA_URL']}/restablecer-password?token={registro_token.token}"
+
+    if cuenta_existente:
+        asunto = "Ya tienes una cuenta — Anita New Style"
+        texto = (
+            "Hola,\n\n"
+            "Alguien intentó registrar este correo en Anita New Style, pero ya tienes una cuenta. "
+            "Puedes iniciar sesión normalmente. Si olvidaste tu contraseña, crea una nueva aquí "
+            f"(el enlace dura 3 días y es de un solo uso):\n{link}\n\n"
+            "Si no fuiste tú, ignora este correo."
+        )
+    else:
+        asunto = "Crea tu contraseña — Anita New Style"
+        texto = (
+            "Hola,\n\n"
+            "Gracias por tu interés en Anita New Style. Ya tienes una cuenta con este correo; "
+            "para poder volver a entrar y ver tus pedidos, crea tu contraseña aquí "
+            f"(el enlace dura 3 días y es de un solo uso):\n{link}\n\n"
+            "Si no fuiste tú, ignora este correo."
+        )
+
+    enviar_correo(destinatario=usuario.email, asunto=asunto, texto=texto)
+    return True
 
 
 @bp.post("/registro")
@@ -89,35 +172,35 @@ def registro():
 @limiter.limit("10 per hour")
 def continuar_como_invitado():
     """
-    Checkout como invitado (sprint 1, tarea 4): crea una cuenta SIN
-    contraseña para poder comprar sin pasar por el formulario de registro
-    completo. Le damos sesión (JWT) igual que en un login/registro normal,
-    así el resto del sitio — carrito, checkout — no necesita saber que es
-    una cuenta de invitado, funciona exactamente igual.
+    Compra como invitado: crea una cuenta SOLO con el correo (sin contraseña,
+    sin formulario) y devuelve sesión (JWT) igual que un login normal, así el
+    carrito y el checkout funcionan igual. Se usa al pagar, cuando la persona
+    ya armó su carrito sin registrarse.
 
-    Le queda pendiente ponerle contraseña si quiere volver a entrar
-    después; eso se ofrece recién en la confirmación del pedido (ver
-    /auth/completar-cuenta más abajo), nunca se exige antes de comprar.
+    Le enviamos por correo un enlace para crear su contraseña; así puede
+    volver a entrar y ver sus pedidos después. Nunca se exige antes de comprar.
+    Nombre y apellido son opcionales (el checkout los pide de todas formas
+    para la entrega y luego actualiza el perfil).
     """
     data = request.get_json(force=True) or {}
-    campos_requeridos = ["nombre", "apellido", "email"]
-    faltantes = [c for c in campos_requeridos if not data.get(c)]
-    if faltantes:
-        return jsonify({"error": f"Faltan campos: {', '.join(faltantes)}"}), 400
+    email, error = _normalizar_email(data.get("email"))
+    if error:
+        return jsonify({"error": error}), 400
 
-    email = data["email"].lower().strip()[:120]
     if Usuario.query.filter_by(email=email).first():
         # No decimos si esa cuenta ya tiene contraseña o sigue siendo de
-        # invitado — en cualquier caso ya existe, así que la salida es la
-        # misma: que inicie sesión (o recupere su contraseña si nunca le
-        # puso una, desde "¿Olvidaste tu contraseña?").
+        # invitado: en cualquier caso ya existe, y la salida es la misma.
         return jsonify({
-            "error": "Ese correo ya tiene una cuenta. Inicia sesión para continuar con tu compra."
+            "error": (
+                "Ese correo ya tiene una cuenta. Inicia sesión para continuar con tu compra "
+                "(si aún no creaste tu contraseña, usa «¿Olvidaste tu contraseña?»)."
+            ),
+            "code": "cuenta_existente",
         }), 409
 
     usuario = Usuario(
-        nombre=data["nombre"].strip()[:80],
-        apellido=data["apellido"].strip()[:80],
+        nombre=(data.get("nombre") or "").strip()[:80] or _nombre_desde_email(email),
+        apellido=(data.get("apellido") or "").strip()[:80],
         email=email,
         telefono=(data.get("telefono") or "").strip()[:20] or None,
         password_hash=None,
@@ -126,10 +209,55 @@ def continuar_como_invitado():
     db.session.add(usuario)
     db.session.commit()
 
+    _enviar_correo_crear_password(usuario)
+
     token, refresh_token = _crear_par_tokens(usuario)
     respuesta = jsonify({"token": token, "csrf": get_csrf_token(refresh_token), "usuario": usuario.to_dict()})
     set_refresh_cookies(respuesta, refresh_token)
     return respuesta, 201
+
+
+@bp.post("/registro-email")
+@limiter.limit("10 per hour")
+def registro_con_email():
+    """
+    Registro solo con el correo: sin formulario largo y SIN dar sesión. Se
+    crea la cuenta y se envía un enlace para que la persona elija su
+    contraseña; recién ahí queda registrada y puede entrar. Como la sesión
+    solo se obtiene demostrando que el correo es suyo (abriendo el enlace),
+    nadie puede registrar el correo de otra persona y entrar con él.
+
+    La respuesta es siempre la misma exista o no el correo, para no revelar
+    qué correos tienen cuenta. Si ya tenía cuenta, el correo que recibe se lo
+    dice y le ofrece recuperar su contraseña.
+    """
+    data = request.get_json(force=True) or {}
+    email, error = _normalizar_email(data.get("email"))
+    if error:
+        return jsonify({"error": error}), 400
+
+    respuesta = {
+        "mensaje": "Revisa tu correo: te enviamos un enlace para crear tu contraseña y terminar tu registro.",
+        "email": email,
+    }
+
+    usuario = Usuario.query.filter_by(email=email).first()
+    if usuario is None:
+        usuario = Usuario(
+            nombre=_nombre_desde_email(email),
+            apellido="",
+            email=email,
+            password_hash=None,
+            es_invitado=True,
+        )
+        db.session.add(usuario)
+        db.session.commit()
+        _enviar_correo_crear_password(usuario)
+    elif usuario.activo:
+        sin_contrasena = usuario.es_invitado and not usuario.password_hash and not usuario.google_id
+        _enviar_correo_crear_password(usuario, cuenta_existente=not sin_contrasena)
+
+    return jsonify(respuesta)
 
 
 @bp.post("/completar-cuenta")
@@ -419,7 +547,7 @@ def olvide_password():
         registro_token = TokenRecuperacion.generar(usuario.id)
         db.session.commit()
 
-        link = f"{current_app.config['FRONTEND_ORIGIN'][0]}/restablecer-password?token={registro_token.token}"
+        link = f"{current_app.config['FRONTEND_TIENDA_URL']}/restablecer-password?token={registro_token.token}"
 
         enviar_correo(
             destinatario=usuario.email,
@@ -456,6 +584,9 @@ def restablecer_password():
         return jsonify({"error": "Esta cuenta está desactivada"}), 403
 
     usuario.set_password(password_nueva)
+    # Si era una cuenta creada solo con el correo (registro rápido o compra
+    # como invitado), al elegir contraseña pasa a ser una cuenta completa.
+    usuario.es_invitado = False
     registro_token.usado = True  # de un solo uso: no se puede volver a usar este link
     # Si alguien tenía el password anterior comprometido y una sesión ya
     # abierta con él, este reset también la mata: cualquier token emitido

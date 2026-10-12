@@ -89,6 +89,30 @@ body {
   border-radius: 999px;
 }
 
+/* Skeleton: bloque gris-lila con un brillo que recorre de izquierda a derecha.
+   Se usa mientras carga contenido (tarjetas, listas, imágenes). Con
+   "prefers-reduced-motion" (regla de abajo) queda estático, sin brillo. */
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.skeleton {
+  background-color: rgba(165, 54, 148, 0.08);
+  background-image: linear-gradient(
+    100deg,
+    rgba(255, 255, 255, 0) 20%,
+    rgba(255, 255, 255, 0.7) 50%,
+    rgba(255, 255, 255, 0) 80%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.6s ease-in-out infinite;
+}
+
 /* Foco visible por accesibilidad */
 a:focus-visible,
 button:focus-visible,

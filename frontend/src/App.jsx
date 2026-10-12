@@ -1,6 +1,7 @@
 import React, { useEffect } from "react";
 import { Routes, Route, useLocation, Link } from "react-router-dom";
 import Navbar from "./components/Navbar.jsx";
+import Carrito from "./pages/Carrito.jsx";
 import CartDrawer from "./components/CartDrawer.jsx";
 import Footer from "./components/Footer.jsx";
 import FormasPago from "./pages/FormasPago.jsx";
@@ -136,12 +137,14 @@ export default function App() {
     return (
       <div className="min-h-screen">
         {bannerSesionExpirada}
+        <div key={location.pathname} className="animate-fade-in">
         <Routes>
           <Route path="/ingresar" element={<Login />} />
           <Route path="/registro" element={<Registro />} />
           <Route path="/olvide-password" element={<OlvidePassword />} />
           <Route path="/restablecer-password" element={<RestablecerPassword />} />
         </Routes>
+        </div>
       </div>
     );
   }
@@ -150,6 +153,7 @@ export default function App() {
     return (
       <div className="min-h-screen">
         {bannerSesionExpirada}
+        <div key={location.pathname} className="animate-fade-in">
         <Routes>
           <Route path="/perfil" element={<Perfil />} />
           <Route path="/perfil/pedidos" element={<PerfilPedidos />} />
@@ -157,6 +161,7 @@ export default function App() {
           <Route path="/perfil/configuracion" element={<Configuracion />} />
           <Route path="/perfil/ayuda" element={<Ayuda />} />
         </Routes>
+        </div>
       </div>
     );
   }
@@ -166,10 +171,14 @@ export default function App() {
       {bannerSesionExpirada}
       <Navbar />
       <main className="pt-8">
+        {/* key: al cambiar de ruta el contenido se vuelve a montar y entra con
+            una animación suave (fundido + leve subida) en vez de "saltar". */}
+        <div key={location.pathname} className="animate-fade-in-up">
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/tienda" element={<Tienda />} />
           <Route path="/producto/:id" element={<ProductoDetalle />} />
+          <Route path="/carrito" element={<Carrito />} />
           <Route path="/checkout" element={<Checkout />} />
           <Route path="/pedidos" element={<Pedidos />} />
           <Route path="/pedidos/:id" element={<PedidoDetalle />} />
@@ -188,6 +197,7 @@ export default function App() {
           <Route path="/mayoristas" element={<Mayoristas />} />
           <Route path="/trabaja-con-nosotros" element={<TrabajaConNosotros />} />
         </Routes>
+        </div>
       </main>
       <CartDrawer />
       <Footer />

@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useState } from "react";
+import { SkeletonResenas } from "../components/Skeleton.jsx";
 import { Link } from "react-router-dom";
 import PaginaInfo from "./PaginaInfo.jsx";
 import Estrellas from "../components/Estrellas.jsx";
@@ -128,6 +129,7 @@ export default function Reviews() {
             Solo pueden reseñar quienes compraron el producto.
           </p>
 
+          {cargando && <SkeletonResenas cantidad={4} />}
           {cargando && <p className="text-sm text-plum-soft">Cargando reseñas…</p>}
 
           {!cargando && error && resenas.length === 0 && (
