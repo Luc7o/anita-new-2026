@@ -5,17 +5,20 @@ from sqlalchemy.orm import joinedload, selectinload
 from app.extensions import db, limiter
 from app.models import Producto, Categoria, Resena, DetallePedido, Pedido, VarianteProducto, Talla
 from app.utils.decorators import requiere_activo
+from app.utils.cache import cache_publico
 
 bp = Blueprint("productos", __name__, url_prefix="/api")
 
 
 @bp.get("/categorias")
+@cache_publico(ttl=300, navegador=60)
 def listar_categorias():
     categorias = Categoria.query.filter_by(activo=True).all()
     return jsonify([c.to_dict() for c in categorias])
 
 
 @bp.get("/productos")
+@cache_publico(ttl=60, navegador=30)
 def listar_productos():
     query = Producto.query.filter_by(activo=True).options(
         joinedload(Producto.categoria),
@@ -76,6 +79,7 @@ def listar_productos():
 
 
 @bp.get("/productos/<int:producto_id>")
+@cache_publico(ttl=60, navegador=30)
 def detalle_producto(producto_id):
     producto = Producto.query.filter_by(id=producto_id, activo=True).first_or_404()
     return jsonify(producto.to_dict())
@@ -105,6 +109,7 @@ def _compro_este_producto(usuario_id, producto_id):
 
 
 @bp.get("/productos/<int:producto_id>/resenas")
+@cache_publico(ttl=60, navegador=30)
 def listar_resenas(producto_id):
     producto = Producto.query.get_or_404(producto_id)
     resenas = sorted(producto.resenas, key=lambda r: r.fecha_creacion, reverse=True)
@@ -116,6 +121,7 @@ def listar_resenas(producto_id):
 
 
 @bp.get("/resenas")
+@cache_publico(ttl=120, navegador=60)
 def listar_resenas_recientes():
     """Reseñas reales de toda la tienda (página pública "Reviews de clientes").
 

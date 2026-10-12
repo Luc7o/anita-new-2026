@@ -131,6 +131,11 @@ class Config:
     # producción mientras se confirma que Redis está bien conectado.
     REQUIRE_REDIS_EN_PROD = os.getenv("REQUIRE_REDIS_EN_PROD", "false").lower() == "true"
 
+    # Caché de respuestas públicas (ver app/utils/cache.py). CACHE_EDGE=true
+    # agrega s-maxage para que también el CDN de Vercel las guarde; se deja
+    # apagado por defecto hasta confirmar que el CDN respeta "Vary: Origin"
+    # (las respuestas llevan cabeceras CORS distintas según el origen).
+    CACHE_EDGE = os.getenv("CACHE_EDGE", "false").lower() == "true"
     # KPIs: fracción de requests que se loguean en latencia_requests (1.0 =
     # todos). Bajarlo (ej. "0.2") si el volumen de tráfico hace crecer mucho
     # la tabla.

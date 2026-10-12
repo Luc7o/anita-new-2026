@@ -120,7 +120,7 @@ async function fetchAutenticado(url, construirInit) {
   return res;
 }
 
-async function request(path, { method = "GET", body, auth = false } = {}) {
+async function pedirRed(path, { method = "GET", body, auth = false } = {}) {
   const construirInit = (token) => ({
     method,
     headers: {
@@ -153,6 +153,77 @@ async function request(path, { method = "GET", body, auth = false } = {}) {
     throw err;
   }
   return data;
+}
+
+// ---------------------------------------------------------------------------
+// Caché en memoria de lecturas PÚBLICAS (catálogo, categorías, reseñas,
+// promociones, ubicaciones). Tres efectos:
+//  - Dedupe: si dos componentes piden lo mismo a la vez, sale UNA sola
+//    petición.
+//  - Fresco (< ttl): se responde al instante, sin red.
+//  - Vencido pero reciente (< ttl * 5): se responde al instante con la copia
+//    vieja y se refresca en segundo plano (stale-while-revalidate), así
+//    volver a una página nunca espera a la red.
+// Solo vive mientras la pestaña esté abierta. Nada privado se cachea acá:
+// únicamente GET sin sesión y de esta lista.
+// ---------------------------------------------------------------------------
+const REGLAS_CACHE = [
+  { prefijo: "/ubicaciones", ttl: 24 * 60 * 60 * 1000 }, // catálogo INEI: casi no cambia
+  { prefijo: "/categorias", ttl: 5 * 60 * 1000 },
+  { prefijo: "/promociones/activas", ttl: 60 * 1000 },
+  { prefijo: "/productos", ttl: 60 * 1000 },
+  { prefijo: "/resenas", ttl: 2 * 60 * 1000 },
+];
+// Mutaciones que pueden cambiar lo que muestra el catálogo (stock, precios,
+// reseñas): espejo de _PREFIJOS_QUE_INVALIDAN en backend/app/utils/cache.py.
+const PREFIJOS_QUE_INVALIDAN = ["/admin", "/pedidos", "/productos"];
+
+const cachePublico = new Map(); // path -> { datos, guardadoEn }
+const peticionesEnVuelo = new Map(); // path -> Promise
+
+function reglaDeCache(path) {
+  const ruta = path.split("?")[0];
+  return REGLAS_CACHE.find((r) => ruta === r.prefijo || ruta.startsWith(`${r.prefijo}/`));
+}
+
+function leerPublicoConCache(path, regla) {
+  const entrada = cachePublico.get(path);
+  const edad = entrada ? Date.now() - entrada.guardadoEn : Infinity;
+
+  const refrescar = () => {
+    if (peticionesEnVuelo.has(path)) return peticionesEnVuelo.get(path);
+    const p = pedirRed(path)
+      .then((datos) => {
+        cachePublico.set(path, { datos, guardadoEn: Date.now() });
+        return datos;
+      })
+      .finally(() => peticionesEnVuelo.delete(path));
+    peticionesEnVuelo.set(path, p);
+    return p;
+  };
+
+  if (entrada && edad < regla.ttl) return Promise.resolve(structuredClone(entrada.datos));
+  if (entrada && edad < regla.ttl * 5) {
+    refrescar().catch(() => {}); // en segundo plano; si falla, queda la copia vieja
+    return Promise.resolve(structuredClone(entrada.datos));
+  }
+  return refrescar().then((datos) => structuredClone(datos));
+}
+
+async function request(path, opciones = {}) {
+  const { method = "GET", auth = false } = opciones;
+
+  if (method === "GET" && !auth) {
+    const regla = reglaDeCache(path);
+    if (regla) return leerPublicoConCache(path, regla);
+  }
+
+  const datos = await pedirRed(path, opciones);
+
+  if (method !== "GET" && PREFIJOS_QUE_INVALIDAN.some((p) => path.startsWith(p))) {
+    cachePublico.clear();
+  }
+  return datos;
 }
 
 // Para subidas multipart (comprobantes, imágenes) — misma lógica de
