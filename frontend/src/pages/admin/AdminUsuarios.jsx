@@ -13,10 +13,11 @@ export default function AdminUsuarios() {
   const esRRHH = usuarioActual?.rol === "rrhh";
 
   const [usuarios, setUsuarios] = useState([]);
-  const pag = usePaginacion(usuarios, 10);
-  useEffect(() => { pag.setPagina(1); }, [filtroRol]);
   const [roles, setRoles] = useState({});
   const [filtroRol, setFiltroRol] = useState("");
+  // Paginación: debe ir DESPUÉS de declarar `usuarios` y `filtroRol`, porque los usa.
+  const pag = usePaginacion(usuarios, 10);
+  useEffect(() => { pag.setPagina(1); }, [filtroRol]);
   const [form, setForm] = useState(VACIO);
   const [mostrarForm, setMostrarForm] = useState(false);
   const [error, setError] = useState("");
