@@ -77,6 +77,7 @@ class Pedido(db.Model):
     envio_tipo_documento = db.Column(db.String(10))
     envio_numero_documento = db.Column(db.String(15))
     envio_telefono = db.Column(db.String(20))
+    envio_email = db.Column(db.String(120))
     envio_direccion = db.Column(db.String(200))
     envio_distrito = db.Column(db.String(100))
     envio_provincia = db.Column(db.String(100))
@@ -196,6 +197,7 @@ class Pedido(db.Model):
             "envio_tipo_documento": self.envio_tipo_documento,
             "envio_numero_documento": self.envio_numero_documento,
             "envio_telefono": self.envio_telefono,
+            "envio_email": self.envio_email,
             "envio_direccion": self.envio_direccion,
             "envio_distrito": self.envio_distrito,
             "envio_provincia": self.envio_provincia,

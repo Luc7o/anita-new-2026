@@ -24,6 +24,7 @@ COSTO_ENVIO_DELIVERY = 10.00
 
 # Validaciones de los datos de entrega (el frontend ya filtra lo mismo, pero
 # el servidor nunca debe confiar en que el navegador lo hizo).
+EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 TELEFONO_RE = re.compile(r"^9\d{8}$")  # celular peruano: 9 dígitos, empieza con 9
 DOCUMENTO_RE = {
     "dni": re.compile(r"^\d{8}$"),
@@ -89,6 +90,13 @@ def checkout():
     if not TELEFONO_RE.match(envio_telefono):
         return jsonify({"error": "El teléfono debe tener 9 dígitos y empezar con 9"}), 400
 
+    # Correo de contacto: obligatorio siempre (ahí llega la confirmación del pedido).
+    envio_email = (data.get("envio_email") or "").strip().lower()[:120]
+    if not envio_email:
+        return jsonify({"error": "Falta el correo electrónico"}), 400
+    if not EMAIL_RE.match(envio_email):
+        return jsonify({"error": "El correo electrónico no es válido"}), 400
+
     envio_tipo_documento = (data.get("envio_tipo_documento") or "").strip().lower()
     envio_numero_documento = (data.get("envio_numero_documento") or "").strip().upper()
     if envio_tipo_documento not in DOCUMENTO_RE:
@@ -106,6 +114,8 @@ def checkout():
             return jsonify({"error": "Falta la dirección o el distrito de entrega"}), 400
         if not DIRECCION_RE.match(envio_direccion):
             return jsonify({"error": "La dirección solo puede tener letras, números y los símbolos . * ° #"}), 400
+        if not (data.get("envio_provincia") or "").strip():
+            return jsonify({"error": "Falta la provincia de entrega"}), 400
         if not envio_referencia:
             return jsonify({"error": "Falta la referencia de la dirección"}), 400
 
@@ -161,6 +171,7 @@ def checkout():
         envio_tipo_documento=envio_tipo_documento,
         envio_numero_documento=envio_numero_documento,
         envio_telefono=envio_telefono,
+        envio_email=envio_email,
         envio_direccion=envio_direccion or None,
         envio_distrito=envio_distrito or None,
         envio_provincia=(data.get("envio_provincia") or "").strip()[:100] or None,

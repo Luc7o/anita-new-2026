@@ -12,6 +12,7 @@ import {
   soloCarnetExtranjeria,
   soloDireccion,
 } from "../validacion.js";
+import UbicacionEntrega from "../components/UbicacionEntrega.jsx";
 import { abrirCulqiCheckout } from "../culqi.js";
 import { obtenerPagoIdempotencyKey, limpiarPagoIdempotencyKey } from "../pagoIdempotencia.js";
 
@@ -56,7 +57,6 @@ export default function Checkout() {
   // se crea la cuenta con ese correo (sin contraseña), el carrito del
   // navegador pasa a esa cuenta y se le envía un correo para crear su
   // contraseña cuando quiera volver a entrar.
-  const [emailInvitado, setEmailInvitado] = useState("");
   const [cuentaExistente, setCuentaExistente] = useState(false);
 
   const [form, setForm] = useState({
@@ -70,10 +70,15 @@ export default function Checkout() {
     envio_tipo_documento: "dni",
     envio_numero_documento: "",
     envio_telefono: "",
+    // Correo obligatorio para todos: si ya hay sesión se precarga el de la
+    // cuenta (y se puede cambiar); si no, es el correo con el que se crea
+    // la cuenta de invitado.
+    envio_email: usuario?.email || "",
     envio_direccion: "",
     envio_distrito: "",
     envio_provincia: "",
     envio_dpto: "",
+    distrito_id: null,
     envio_referencia: "",
     tipo_entrega: "delivery",
     metodo_pago: "yape",
@@ -276,7 +281,7 @@ export default function Checkout() {
       if (!usuarioActual) {
         setCuentaExistente(false);
         try {
-          usuarioActual = await continuarComoInvitado({ email: emailInvitado.trim() });
+          usuarioActual = await continuarComoInvitado({ email: form.envio_email.trim() });
           cuentaNueva = true;
         } catch (err) {
           if (err.status === 409) setCuentaExistente(true);
@@ -340,7 +345,7 @@ export default function Checkout() {
         try {
           const { tokenId, email } = await abrirCulqiCheckout({
             amountCentavos: Math.round(pedido.total * 100),
-            email: usuarioActual.email,
+            email: form.envio_email.trim() || usuarioActual.email,
             metodoPago: pedido.metodo_pago,
           });
           const idempotencyKeyPago = obtenerPagoIdempotencyKey(pedido.id);
@@ -451,10 +456,10 @@ export default function Checkout() {
           <section className="space-y-3 rounded-2xl border border-plum/10 bg-white/60 p-4">
             <div className="flex items-start justify-between gap-3">
               <div>
-                <h2 className="text-lg font-semibold text-plum">Tu correo</h2>
+                <h2 className="text-lg font-semibold text-plum">Compra sin cuenta</h2>
                 <p className="mt-0.5 text-xs text-plum-soft">
-                  No necesitas crear una cuenta para comprar. Te enviaremos aquí la
-                  confirmación y un enlace para crear tu contraseña cuando quieras.
+                  No necesitas crear una cuenta para comprar. Al correo que escribas abajo
+                  te enviaremos la confirmación y un enlace para crear tu contraseña cuando quieras.
                 </p>
               </div>
               <Link
@@ -464,24 +469,6 @@ export default function Checkout() {
               >
                 ¿Ya tienes cuenta? Ingresa
               </Link>
-            </div>
-            <div>
-              <label htmlFor="checkout-email" className="sr-only">Correo electrónico</label>
-              <input
-                id="checkout-email"
-                type="email"
-                inputMode="email"
-                autoComplete="email"
-                placeholder="tucorreo@gmail.com"
-                required
-                maxLength={120}
-                value={emailInvitado}
-                onChange={(e) => {
-                  setEmailInvitado(e.target.value);
-                  setCuentaExistente(false);
-                }}
-                className="w-full rounded-2xl bg-white/80 px-4 py-3 text-plum shadow-glass focus:outline-none focus:ring-2 focus:ring-berry"
-              />
             </div>
             {cuentaExistente && (
               <Link
@@ -623,6 +610,25 @@ export default function Checkout() {
           />
         </div>
 
+        <div>
+          <label htmlFor="chk-email" className="sr-only">Correo electrónico</label>
+          <input
+            id="chk-email"
+            type="email"
+            inputMode="email"
+            autoComplete="email"
+            placeholder="Correo electrónico"
+            required
+            maxLength={120}
+            value={form.envio_email}
+            onChange={(e) => {
+              setForm({ ...form, envio_email: e.target.value });
+              setCuentaExistente(false);
+            }}
+            className="w-full rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-none"
+          />
+        </div>
+
         {form.tipo_entrega === "delivery" && (
           <>
             <div>
@@ -638,41 +644,9 @@ export default function Checkout() {
                 className="w-full rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-none"
               />
             </div>
-            <div className="grid grid-cols-3 gap-3">
-              <div>
-                <label htmlFor="chk-distrito" className="sr-only">Distrito</label>
-                <input
-                  id="chk-distrito"
-                  placeholder="Distrito"
-                  maxLength={100}
-                  value={form.envio_distrito}
-                  onChange={actualizarTexto("envio_distrito")}
-                  className="w-full rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-none"
-                />
-              </div>
-              <div>
-                <label htmlFor="chk-provincia" className="sr-only">Provincia</label>
-                <input
-                  id="chk-provincia"
-                  placeholder="Provincia"
-                  maxLength={100}
-                  value={form.envio_provincia}
-                  onChange={actualizarTexto("envio_provincia")}
-                  className="w-full rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-none"
-                />
-              </div>
-              <div>
-                <label htmlFor="chk-dpto" className="sr-only">Departamento</label>
-                <input
-                  id="chk-dpto"
-                  placeholder="Depto."
-                  maxLength={100}
-                  value={form.envio_dpto}
-                  onChange={actualizarTexto("envio_dpto")}
-                  className="w-full rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-none"
-                />
-              </div>
-            </div>
+            <UbicacionEntrega
+              onChange={(ubic) => setForm((f) => ({ ...f, ...ubic }))}
+            />
             <div>
               <label htmlFor="chk-referencia" className="sr-only">Referencia</label>
               <input
