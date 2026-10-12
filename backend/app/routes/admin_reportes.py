@@ -8,6 +8,8 @@ from app.utils.decorators import requiere_roles
 from app.roles import PUEDE_VER_DASHBOARD_VENTAS
 from app.utils.reporte_ventas import generar_pdf_reporte_ventas
 
+OFFSET_UTC_LIMA = timedelta(hours=5)
+
 bp = Blueprint("admin_reportes", __name__, url_prefix="/api/admin/reportes")
 
 
@@ -18,9 +20,14 @@ def reporte_ventas():
     hasta_str = (request.args.get("hasta") or "").strip() or None
 
     try:
-        desde = datetime.strptime(desde_str, "%Y-%m-%d") if desde_str else None
+        # Las fechas del formulario son días de Lima (UTC-5) y fecha_creacion
+        # se guarda en UTC: medianoche en Lima = 05:00 UTC, por eso el +5h.
+        desde = datetime.strptime(desde_str, "%Y-%m-%d") + OFFSET_UTC_LIMA if desde_str else None
         # +1 día para que "hasta" incluya todo ese día completo, no solo su medianoche.
-        hasta = datetime.strptime(hasta_str, "%Y-%m-%d") + timedelta(days=1) if hasta_str else None
+        hasta = (
+            datetime.strptime(hasta_str, "%Y-%m-%d") + timedelta(days=1) + OFFSET_UTC_LIMA
+            if hasta_str else None
+        )
     except ValueError:
         return jsonify({"error": "Fechas inválidas, usa el formato YYYY-MM-DD"}), 400
 

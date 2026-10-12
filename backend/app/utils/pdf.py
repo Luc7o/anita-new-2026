@@ -133,6 +133,16 @@ def generar_pdf(html_body, titulo="Documento"):
     </body>
     </html>
     """
+    return html_a_pdf(html_completo)
+
+
+def html_a_pdf(html_completo):
+    """
+    Convierte un documento HTML COMPLETO (con su propio <style>) a bytes de
+    PDF. Lo usan los documentos que no comparten el CSS de marca base — por
+    ejemplo el reporte de ventas, que tiene su propia plantilla en blanco y
+    negro con cabecera, pie y numeración de páginas.
+    """
     buffer = BytesIO()
     resultado = pisa.CreatePDF(html_completo, dest=buffer)
     if resultado.err:
