@@ -60,6 +60,17 @@ export function AuthProvider({ children }) {
     return data.usuario;
   };
 
+  // Registro rápido solo con el correo: el backend crea la cuenta (nombre y
+  // contraseña aleatorios) y devuelve sesión, así se puede seguir comprando.
+  const registroConEmail = async (email) => {
+    const data = await api.registroConEmail(email);
+    setAccessToken(data.token);
+    guardarCsrf(data.csrf);
+    setUsuario(data.usuario);
+    setSesionExpirada(false);
+    return data.usuario;
+  };
+
   const continuarComoInvitado = async (payload) => {
     const data = await api.continuarComoInvitado(payload);
     setAccessToken(data.token);
@@ -85,6 +96,7 @@ export function AuthProvider({ children }) {
         login,
         loginConGoogle,
         registro,
+        registroConEmail,
         continuarComoInvitado,
         logout,
         setUsuario,

@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import { esNombreProvisional } from "../utils/nombreUsuario.js";
 import { useNavigate, Link } from "react-router-dom";
 import { api } from "../api/client.js";
 import { useCarrito } from "../context/CarritoContext.jsx";
@@ -62,8 +63,9 @@ export default function Checkout() {
     // El pedido guarda un solo "envio_nombre", pero en pantalla se pide por
     // partes según el documento: nombres + apellidos (DNI / carné) o
     // razón social (RUC). Al enviar se junta todo en envio_nombre.
-    nombres: usuario?.nombre || "",
-    apellidos: usuario?.apellido || "",
+    // Si el nombre es provisional ("Cliente 3FA9") no se precarga: se pide el real.
+    nombres: esNombreProvisional(usuario) ? "" : usuario?.nombre || "",
+    apellidos: esNombreProvisional(usuario) ? "" : usuario?.apellido || "",
     razon_social: "",
     envio_tipo_documento: "dni",
     envio_numero_documento: "",
@@ -312,7 +314,7 @@ export default function Checkout() {
       } catch {
         // no-op: si sessionStorage no está disponible tampoco se llegó a usar
       }
-      if (cuentaNueva && form.envio_tipo_documento !== "ruc") {
+      if ((cuentaNueva || esNombreProvisional(usuarioActual)) && form.envio_tipo_documento !== "ruc") {
         // La cuenta se creó solo con el correo (nombre provisional). Ahora
         // que ya dio sus datos reales, los guardamos en su perfil. Si falla
         // no importa: el pedido ya quedó creado con sus datos de entrega.

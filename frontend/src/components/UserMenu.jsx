@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import { esNombreProvisional, nombreVisible } from "../utils/nombreUsuario.js";
 import { Link } from "react-router-dom";
 import { IconUser, IconChevronDown, IconDashboard, IconPackage, IconLogout } from "./Icons.jsx";
 
@@ -33,8 +34,10 @@ export default function UserMenu({ usuario, onLogout }) {
       {abierto && (
         <div className="glass-strong absolute right-0 top-full mt-2 w-52 overflow-hidden rounded-2xl py-1.5 shadow-glass-lg">
           <div className="border-b border-white/50 px-4 py-2">
-            <p className="truncate text-sm font-medium text-plum">{usuario.nombre_completo}</p>
-            <p className="truncate text-xs text-plum-soft">{usuario.email}</p>
+            <p className="truncate text-sm font-medium text-plum">{nombreVisible(usuario)}</p>
+            {!esNombreProvisional(usuario) && (
+              <p className="truncate text-xs text-plum-soft">{usuario.email}</p>
+            )}
           </div>
 
           <Link
