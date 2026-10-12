@@ -1,56 +1,62 @@
-import React, { useEffect } from "react";
+import React, { lazy, Suspense, useEffect } from "react";
 import { Routes, Route, useLocation, Link } from "react-router-dom";
 import Navbar from "./components/Navbar.jsx";
 import Carrito from "./pages/Carrito.jsx";
 import CartDrawer from "./components/CartDrawer.jsx";
 import Footer from "./components/Footer.jsx";
-import FormasPago from "./pages/FormasPago.jsx";
-import MetodosEnvio from "./pages/MetodosEnvio.jsx";
-import CambiosDevoluciones from "./pages/CambiosDevoluciones.jsx";
-import GuiaTallas from "./pages/GuiaTallas.jsx";
-import FAQ from "./pages/FAQ.jsx";
-import Contacto from "./pages/Contacto.jsx";
-import LibroReclamaciones from "./pages/LibroReclamaciones.jsx";
-import PoliticaPrivacidad from "./pages/PoliticaPrivacidad.jsx";
-import TerminosCondiciones from "./pages/TerminosCondiciones.jsx";
-import QuienesSomos from "./pages/QuienesSomos.jsx";
-import Reviews from "./pages/Reviews.jsx";
-import NuestrasTiendas from "./pages/NuestrasTiendas.jsx";
-import Mayoristas from "./pages/Mayoristas.jsx";
-import TrabajaConNosotros from "./pages/TrabajaConNosotros.jsx";
+const FormasPago = lazy(() => import("./pages/FormasPago.jsx"));
+const MetodosEnvio = lazy(() => import("./pages/MetodosEnvio.jsx"));
+const CambiosDevoluciones = lazy(() => import("./pages/CambiosDevoluciones.jsx"));
+const GuiaTallas = lazy(() => import("./pages/GuiaTallas.jsx"));
+const FAQ = lazy(() => import("./pages/FAQ.jsx"));
+const Contacto = lazy(() => import("./pages/Contacto.jsx"));
+const LibroReclamaciones = lazy(() => import("./pages/LibroReclamaciones.jsx"));
+const PoliticaPrivacidad = lazy(() => import("./pages/PoliticaPrivacidad.jsx"));
+const TerminosCondiciones = lazy(() => import("./pages/TerminosCondiciones.jsx"));
+const QuienesSomos = lazy(() => import("./pages/QuienesSomos.jsx"));
+const Reviews = lazy(() => import("./pages/Reviews.jsx"));
+const NuestrasTiendas = lazy(() => import("./pages/NuestrasTiendas.jsx"));
+const Mayoristas = lazy(() => import("./pages/Mayoristas.jsx"));
+const TrabajaConNosotros = lazy(() => import("./pages/TrabajaConNosotros.jsx"));
 import Home from "./pages/Home.jsx";
 import Tienda from "./pages/Tienda.jsx";
 import ProductoDetalle from "./pages/ProductoDetalle.jsx";
-import Login from "./pages/Login.jsx";
-import Registro from "./pages/Registro.jsx";
-import OlvidePassword from "./pages/OlvidePassword.jsx";
-import RestablecerPassword from "./pages/RestablecerPassword.jsx";
-import Perfil from "./pages/Perfil.jsx";
-import PerfilPedidos from "./pages/PerfilPedidos.jsx";
-import Configuracion from "./pages/Configuracion.jsx";
-import Favoritos from "./pages/Favoritos.jsx";
-import Ayuda from "./pages/Ayuda.jsx";
-import Checkout from "./pages/Checkout.jsx";
-import Pedidos from "./pages/Pedidos.jsx";
-import PedidoDetalle from "./pages/PedidoDetalle.jsx";
+const Login = lazy(() => import("./pages/Login.jsx"));
+const Registro = lazy(() => import("./pages/Registro.jsx"));
+const OlvidePassword = lazy(() => import("./pages/OlvidePassword.jsx"));
+const RestablecerPassword = lazy(() => import("./pages/RestablecerPassword.jsx"));
+const Perfil = lazy(() => import("./pages/Perfil.jsx"));
+const PerfilPedidos = lazy(() => import("./pages/PerfilPedidos.jsx"));
+const Configuracion = lazy(() => import("./pages/Configuracion.jsx"));
+const Favoritos = lazy(() => import("./pages/Favoritos.jsx"));
+const Ayuda = lazy(() => import("./pages/Ayuda.jsx"));
+const Checkout = lazy(() => import("./pages/Checkout.jsx"));
+const Pedidos = lazy(() => import("./pages/Pedidos.jsx"));
+const PedidoDetalle = lazy(() => import("./pages/PedidoDetalle.jsx"));
 import { useAuth } from "./context/AuthContext.jsx";
 import { useCarrito } from "./context/CarritoContext.jsx";
 import { api } from "./api/client.js";
 import RutaAdmin from "./components/admin/RutaAdmin.jsx";
 import AdminLayout from "./components/admin/AdminLayout.jsx";
-import AdminDashboard from "./pages/admin/AdminDashboard.jsx";
-import AdminProductos from "./pages/admin/AdminProductos.jsx";
-import AdminCategorias from "./pages/admin/AdminCategorias.jsx";
-import AdminPromociones from "./pages/admin/AdminPromociones.jsx";
-import AdminPedidos from "./pages/admin/AdminPedidos.jsx";
-import AdminPedidoDetalle from "./pages/admin/AdminPedidoDetalle.jsx";
-import AdminVentaPresencial from "./pages/admin/AdminVentaPresencial.jsx";
-import AdminReportes from "./pages/admin/AdminReportes.jsx";
-import AdminProveedores from "./pages/admin/AdminProveedores.jsx";
-import AdminProveedorDetalle from "./pages/admin/AdminProveedorDetalle.jsx";
-import AdminUsuarios from "./pages/admin/AdminUsuarios.jsx";
-import AdminConfiguracion from "./pages/admin/AdminConfiguracion.jsx";
-import AdminReclamaciones from "./pages/admin/AdminReclamaciones.jsx";
+const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard.jsx"));
+const AdminProductos = lazy(() => import("./pages/admin/AdminProductos.jsx"));
+const AdminCategorias = lazy(() => import("./pages/admin/AdminCategorias.jsx"));
+const AdminPromociones = lazy(() => import("./pages/admin/AdminPromociones.jsx"));
+const AdminPedidos = lazy(() => import("./pages/admin/AdminPedidos.jsx"));
+const AdminPedidoDetalle = lazy(() => import("./pages/admin/AdminPedidoDetalle.jsx"));
+const AdminVentaPresencial = lazy(() => import("./pages/admin/AdminVentaPresencial.jsx"));
+const AdminReportes = lazy(() => import("./pages/admin/AdminReportes.jsx"));
+const AdminProveedores = lazy(() => import("./pages/admin/AdminProveedores.jsx"));
+const AdminProveedorDetalle = lazy(() => import("./pages/admin/AdminProveedorDetalle.jsx"));
+const AdminUsuarios = lazy(() => import("./pages/admin/AdminUsuarios.jsx"));
+const AdminConfiguracion = lazy(() => import("./pages/admin/AdminConfiguracion.jsx"));
+const AdminReclamaciones = lazy(() => import("./pages/admin/AdminReclamaciones.jsx"));
+
+// Mientras baja el código de una página (se carga bajo demanda, ver los
+// import() de arriba) se deja el espacio reservado en vez de una pantalla en blanco.
+function CargandoPagina() {
+  return <div className="min-h-[60vh]" aria-busy="true" />;
+}
 
 export default function App() {
   const { usuario, sesionExpirada, setSesionExpirada } = useAuth();
@@ -105,7 +111,8 @@ export default function App() {
   if (esAdmin) {
     return (
       <div className="min-h-screen pt-8">
-        {bannerSesionExpirada}        <Routes>
+        {bannerSesionExpirada}        <Suspense fallback={<CargandoPagina />}>
+        <Routes>
           <Route
             path="/admin"
             element={
@@ -129,6 +136,7 @@ export default function App() {
             <Route path="configuracion" element={<AdminConfiguracion />} />
           </Route>
         </Routes>
+        </Suspense>
       </div>
     );
   }
@@ -138,12 +146,14 @@ export default function App() {
       <div className="min-h-screen">
         {bannerSesionExpirada}
         <div key={location.pathname} className="animate-fade-in">
+        <Suspense fallback={<CargandoPagina />}>
         <Routes>
           <Route path="/ingresar" element={<Login />} />
           <Route path="/registro" element={<Registro />} />
           <Route path="/olvide-password" element={<OlvidePassword />} />
           <Route path="/restablecer-password" element={<RestablecerPassword />} />
         </Routes>
+        </Suspense>
         </div>
       </div>
     );
@@ -154,6 +164,7 @@ export default function App() {
       <div className="min-h-screen">
         {bannerSesionExpirada}
         <div key={location.pathname} className="animate-fade-in">
+        <Suspense fallback={<CargandoPagina />}>
         <Routes>
           <Route path="/perfil" element={<Perfil />} />
           <Route path="/perfil/pedidos" element={<PerfilPedidos />} />
@@ -161,6 +172,7 @@ export default function App() {
           <Route path="/perfil/configuracion" element={<Configuracion />} />
           <Route path="/perfil/ayuda" element={<Ayuda />} />
         </Routes>
+        </Suspense>
         </div>
       </div>
     );
@@ -174,6 +186,7 @@ export default function App() {
         {/* key: al cambiar de ruta el contenido se vuelve a montar y entra con
             una animación suave (fundido + leve subida) en vez de "saltar". */}
         <div key={location.pathname} className="animate-fade-in-up">
+        <Suspense fallback={<CargandoPagina />}>
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/tienda" element={<Tienda />} />
@@ -197,6 +210,7 @@ export default function App() {
           <Route path="/mayoristas" element={<Mayoristas />} />
           <Route path="/trabaja-con-nosotros" element={<TrabajaConNosotros />} />
         </Routes>
+        </Suspense>
         </div>
       </main>
       <CartDrawer />

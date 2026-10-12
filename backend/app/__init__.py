@@ -37,6 +37,9 @@ def create_app(config_class=Config):
         },
     )
 
+    from app.utils.cache import registrar_cache
+    registrar_cache(app)
+
     es_produccion = os.environ.get("VERCEL_ENV") == "production" or os.environ.get("FLASK_ENV") == "production"
 
     # --- Fail closed: nunca arrancar en producción con secretos de
