@@ -7,7 +7,7 @@ import {
   IconTag,
   IconSettings,
   IconHelp,
-  IconArrowRight,
+  IconArrowLeft,
 } from "./Icons.jsx";
 
 const ITEMS = [
@@ -27,9 +27,10 @@ export default function CuentaLayout({ children }) {
       <Link
         to="/"
         aria-label="Volver al inicio"
-        className="absolute right-4 top-4 z-20 flex h-10 w-10 items-center justify-center rounded-full text-plum transition hover:text-berry sm:right-6 sm:top-6"
+        title="Volver al inicio"
+        className="absolute left-4 top-4 z-20 flex h-10 w-10 items-center justify-center rounded-full text-plum transition hover:bg-white/70 hover:text-berry sm:left-6 sm:top-6"
       >
-        <IconArrowRight size={18} />
+        <IconArrowLeft size={18} />
       </Link>
 
       <div className="mx-auto max-w-5xl px-4 py-10 sm:py-14">
@@ -59,6 +60,14 @@ export default function CuentaLayout({ children }) {
                 );
               })}
             </nav>
+
+            <Link
+              to="/tienda"
+              className="glass mt-3 flex w-full items-center justify-center gap-2 rounded-2xl px-3.5 py-3 text-sm font-semibold text-plum shadow-glass transition hover:bg-white/70 hover:text-berry"
+            >
+              <IconArrowLeft size={16} />
+              Volver a la tienda
+            </Link>
           </aside>
 
           <div className="min-w-0 flex-1">{children}</div>
