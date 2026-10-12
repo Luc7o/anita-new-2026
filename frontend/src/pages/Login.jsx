@@ -105,8 +105,11 @@ export default function Login() {
             <h2 className="text-3xl font-semibold text-plum sm:text-4xl">
               Iniciar Sesión
             </h2>
-            <p className="mt-2 text-sm text-plum-soft">
-              ¡Qué bueno verte de nuevo! Ingresa tus datos.
+            <p className="mt-3 text-sm text-plum-soft">
+              ¿Aún no tienes cuenta?{" "}
+              <Link to="/registro" className="font-semibold text-berry hover:underline">
+                Crea una cuenta solo con tu correo
+              </Link>
             </p>
           </div>
 
@@ -203,13 +206,6 @@ export default function Login() {
               />
             </>
           )}
-
-          <p className="mt-6 text-center text-sm text-plum-soft">
-            ¿Aún no tienes cuenta?{" "}
-            <Link to="/registro" className="font-bold text-berry hover:underline">
-              Regístrate
-            </Link>
-          </p>
 
           <div className="my-6 flex items-center gap-3 text-xs font-medium uppercase tracking-wide text-plum-soft/70">
             <span className="h-px flex-1 bg-plum/10" />
