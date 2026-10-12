@@ -8,7 +8,7 @@ import {
   IconInstagram,
   IconWhatsApp,
 } from "../components/Icons.jsx";
-import loginHero from "../assets/auth/login-hero.jpg";
+import loginHero from "../assets/auth/login-hero.webp";
 
 export default function OlvidePassword() {
   const [email, setEmail] = useState("");

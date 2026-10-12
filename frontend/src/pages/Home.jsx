@@ -6,8 +6,8 @@ import CategoryPill from "../components/CategoryPill.jsx";
 import { SkeletonPills, SkeletonProductGrid } from "../components/Skeleton.jsx";
 import { IconChevronLeft, IconChevronRight, IconArrowRight } from "../components/Icons.jsx";
 import { urlVariante } from "../utils/imagenes.js";
-import heroDefecto1 from "../assets/auth/login-hero.jpg";
-import heroDefecto2 from "../assets/auth/registro-hero.jpg";
+import heroDefecto1 from "../assets/auth/login-hero.webp";
+import heroDefecto2 from "../assets/auth/registro-hero.webp";
 
 const IMAGENES_POR_DEFECTO = [heroDefecto1, heroDefecto2];
 
