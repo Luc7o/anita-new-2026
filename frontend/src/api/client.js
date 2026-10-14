@@ -171,6 +171,7 @@ const REGLAS_CACHE = [
   { prefijo: "/ubicaciones", ttl: 24 * 60 * 60 * 1000 }, // catálogo INEI: casi no cambia
   { prefijo: "/categorias", ttl: 5 * 60 * 1000 },
   { prefijo: "/promociones/activas", ttl: 60 * 1000 },
+  { prefijo: "/configuracion/tienda", ttl: 60 * 1000 },
   { prefijo: "/productos", ttl: 60 * 1000 },
   { prefijo: "/resenas", ttl: 2 * 60 * 1000 },
 ];
@@ -451,7 +452,13 @@ export const api = {
     return descargarPdf(`/admin/reportes/ventas${query ? `?${query}` : ""}`, nombre);
   },
 
+  // Datos públicos de la tienda (contacto, dirección, redes)
+  configuracionTienda: () => request("/configuracion/tienda"),
+
   // Admin — configuración
+  adminConfiguracionTienda: () => request("/admin/configuracion/tienda", { auth: true }),
+  adminActualizarConfiguracionTienda: (payload) =>
+    request("/admin/configuracion/tienda", { method: "PUT", body: payload, auth: true }),
   adminProbarCorreo: (email) =>
     request("/admin/configuracion/probar-correo", { method: "POST", body: { email }, auth: true }),
 

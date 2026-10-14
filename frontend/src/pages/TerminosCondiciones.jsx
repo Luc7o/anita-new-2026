@@ -2,7 +2,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import PaginaInfo from "./PaginaInfo.jsx";
 import DatosProveedor from "../components/DatosProveedor.jsx";
-import { EMPRESA } from "../datosEmpresa.js";
+import useConfigTienda from "../hooks/useConfigTienda.js";
 
 function Seccion({ titulo, children }) {
   return (
@@ -16,6 +16,7 @@ function Seccion({ titulo, children }) {
 const enlace = "font-semibold text-berry hover:underline";
 
 export default function TerminosCondiciones() {
+  const config = useConfigTienda();
   return (
     <PaginaInfo
       titulo="Términos y condiciones"
@@ -32,8 +33,8 @@ export default function TerminosCondiciones() {
             <DatosProveedor />
             <p>
               Contacto:{" "}
-              {EMPRESA.correoContacto ? (
-                <strong className="text-plum">{EMPRESA.correoContacto}</strong>
+              {config.correo_contacto ? (
+                <strong className="text-plum">{config.correo_contacto}</strong>
               ) : (
                 <Link to="/contacto" className="font-semibold text-berry hover:underline">página de Contacto</Link>
               )}

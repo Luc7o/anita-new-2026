@@ -13,6 +13,7 @@ from app.models.token_recuperacion import TokenRecuperacion
 from app.models.favorito import Favorito
 from app.models.promocion import Promocion
 from app.models.reclamacion import Reclamacion
+from app.models.configuracion_tienda import ConfiguracionTienda
 from app.models.kpi import (
     EventoAnalitica,
     MovimientoStock,
@@ -44,6 +45,7 @@ __all__ = [
     "Favorito",
     "Promocion",
     "Reclamacion",
+    "ConfiguracionTienda",
     "EventoAnalitica",
     "MovimientoStock",
     "HistorialEstadoPedido",
