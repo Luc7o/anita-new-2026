@@ -33,7 +33,7 @@ export default function Mayoristas() {
           </div>
 
           <div className="mt-4 rounded-xl bg-plum/5 p-5 border border-plum/10">
-            <p className="text-sm font-medium text-plum">📩 ¿Cómo empezar?</p>
+            <p className="text-sm font-medium text-plum">¿Cómo empezar?</p>
             <p className="mb-3 text-sm text-plum-soft">Escríbenos contándonos qué productos te interesan y coordinamos contigo.</p>
             <BotonesContacto
               mensaje="Hola, quiero información sobre ventas mayoristas."

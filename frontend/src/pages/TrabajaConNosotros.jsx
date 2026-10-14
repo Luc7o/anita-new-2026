@@ -37,7 +37,7 @@ export default function TrabajaConNosotros() {
           </div>
 
           <div className="mt-4 rounded-xl bg-plum/5 p-5 border border-plum/10">
-            <p className="text-sm font-medium text-plum">📩 ¿Cómo postular?</p>
+            <p className="text-sm font-medium text-plum">¿Cómo postular?</p>
             <p className="mb-3 text-sm text-plum-soft">Escríbenos indicando el puesto al que postulas y cuéntanos por qué te gustaría trabajar con nosotros.</p>
             <BotonesContacto
               mensaje="Hola, quiero postular a un puesto. Puesto: "
