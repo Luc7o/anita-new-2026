@@ -25,9 +25,6 @@ class VarianteProducto(db.Model):
     talla_id = db.Column(db.Integer, db.ForeignKey("tallas.id"), nullable=False)
     color_id = db.Column(db.Integer, db.ForeignKey("colores.id"), nullable=False)
     stock = db.Column(db.Integer, nullable=False, default=0)
-    # SKU propio de la combinación talla/color (ver utils/sku.py). Nullable
-    # para las variantes anteriores a este cambio; UNIQUE permite varios NULL.
-    sku = db.Column(db.String(80), unique=True)
 
     talla_obj = db.relationship("Talla", lazy="joined")
     color_obj = db.relationship("Color", lazy="joined")
@@ -59,7 +56,6 @@ class VarianteProducto(db.Model):
             "talla": self.talla,
             "color": self.color,
             "stock": self.stock,
-            "sku": self.sku,
         }
 
     def __repr__(self):
