@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import { api } from "../../api/client.js";
 import ImagenOptimizada from "../../components/ImagenOptimizada.jsx";
 import { IconUpload, IconClose, IconEdit, IconTrash, IconChevronLeft, IconChevronRight } from "../../components/Icons.jsx";
-import { soloCodigo } from "../../validacion.js";
 import { useFocusTrap } from "../../hooks/useFocusTrap.js";
 import Paginador from "../../components/Paginador.jsx";
 
@@ -76,7 +75,6 @@ export default function AdminProductos() {
     const valor = e.target.type === "checkbox" ? e.target.checked : e.target.value;
     setForm({ ...form, [campo]: valor });
   };
-  const actualizarSku = (e) => setForm({ ...form, sku: soloCodigo(e.target.value) });
 
   const tallasActuales = parsearLista(form.tallas);
   const coloresActuales = parsearLista(form.colores);
@@ -163,8 +161,10 @@ export default function AdminProductos() {
     }
 
     setGuardando(true);
+    // El SKU lo genera el backend: nunca se manda desde el formulario.
+    const { sku: _skuGeneradoPorElServidor, ...datosForm } = form;
     const payload = {
-      ...form,
+      ...datosForm,
       precio: parseFloat(form.precio),
       precio_oferta: form.precio_oferta ? parseFloat(form.precio_oferta) : null,
       stock: usaVariantes ? 0 : parseInt(form.stock, 10) || 0,
@@ -469,16 +469,10 @@ export default function AdminProductos() {
                   </div>
                 )}
                 <div className={usaVariantes ? "col-span-2" : ""}>
-                  <label htmlFor="prod-sku" className="mb-1 block text-xs font-medium text-plum-soft">
-                    SKU (opcional)
-                  </label>
-                  <input
-                    id="prod-sku"
-                    maxLength={60}
-                    value={form.sku}
-                    onChange={actualizarSku}
-                    className="w-full rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-none"
-                  />
+                  <span className="mb-1 block text-xs font-medium text-plum-soft">SKU</span>
+                  <p className="w-full rounded-2xl bg-white/40 px-4 py-2.5 text-sm text-plum-soft shadow-glass">
+                    {form.sku || "Se genera automáticamente al guardar"}
+                  </p>
                 </div>
               </div>
 

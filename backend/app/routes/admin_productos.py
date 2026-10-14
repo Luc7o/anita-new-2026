@@ -5,6 +5,7 @@ from app.extensions import db
 from app.models import Producto, Categoria, ImagenProducto, VarianteProducto
 from app.utils.decorators import requiere_roles
 from app.roles import PUEDE_VER_PRODUCTOS, PUEDE_GESTIONAR_PRODUCTOS, PUEDE_GESTIONAR_STOCK
+from app.utils.sku import asignar_sku_si_falta
 
 bp = Blueprint("admin_productos", __name__, url_prefix="/api/admin/productos")
 
@@ -200,7 +201,6 @@ def crear():
         precio=data["precio"],
         precio_oferta=data.get("precio_oferta") or None,
         stock=data.get("stock", 0),
-        sku=data.get("sku") or None,
         categoria_id=data["categoria_id"],
         destacado=bool(data.get("destacado", False)),
         es_nuevo=bool(data.get("es_nuevo", True)),
@@ -209,10 +209,12 @@ def crear():
     db.session.add(producto)
 
     try:
-        db.session.flush()  # para tener producto.id antes de guardar imágenes/variantes; aquí puede fallar el SKU duplicado
+        db.session.flush()  # para tener producto.id antes de guardar imágenes/variantes y generar el SKU
+        asignar_sku_si_falta(producto)
+        db.session.flush()
     except IntegrityError:
         db.session.rollback()
-        return jsonify({"error": "Ya existe un producto con ese SKU"}), 409
+        return jsonify({"error": "No se pudo generar un SKU único, intenta de nuevo"}), 409
 
     _guardar_imagenes(producto, data["imagenes"])
     _guardar_variantes(producto, tallas, colores, data.get("variantes") or [])
@@ -221,7 +223,7 @@ def crear():
         db.session.commit()
     except IntegrityError:
         db.session.rollback()
-        return jsonify({"error": "Ya existe un producto con ese SKU"}), 409
+        return jsonify({"error": "No se pudo generar un SKU único, intenta de nuevo"}), 409
 
     return jsonify(producto.to_dict()), 201
 
@@ -255,11 +257,15 @@ def actualizar(producto_id):
 
     campos_directos = [
         "nombre", "descripcion", "precio", "precio_oferta", "stock",
-        "sku", "categoria_id", "destacado", "es_nuevo", "activo",
+        "categoria_id", "destacado", "es_nuevo", "activo",
     ]
     for campo in campos_directos:
         if campo in data:
             setattr(producto, campo, data[campo] if data[campo] != "" else None)
+
+    # El SKU no se edita a mano (cambiarlo rompería referencias en proveedores
+    # y reportes). Si es un producto antiguo sin SKU, se le genera uno ahora.
+    asignar_sku_si_falta(producto)
 
     tallas = data["tallas"] if "tallas" in data else producto.tallas_lista
     colores = data["colores"] if "colores" in data else producto.colores_lista
@@ -284,7 +290,7 @@ def actualizar(producto_id):
         db.session.commit()
     except IntegrityError:
         db.session.rollback()
-        return jsonify({"error": "Ya existe un producto con ese SKU"}), 409
+        return jsonify({"error": "No se pudo guardar el producto: el SKU generado ya existe, intenta de nuevo"}), 409
 
     return jsonify(producto.to_dict())
 
