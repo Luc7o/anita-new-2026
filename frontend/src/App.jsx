@@ -1,4 +1,5 @@
-import React, { lazy, Suspense, useEffect } from "react";
+import React, { Suspense, useEffect } from "react";
+import { lazyConReintento as lazy } from "./utils/lazyConReintento.js";
 import { Routes, Route, useLocation, Link } from "react-router-dom";
 import Navbar from "./components/Navbar.jsx";
 import Carrito from "./pages/Carrito.jsx";
