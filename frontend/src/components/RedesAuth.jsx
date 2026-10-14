@@ -1,5 +1,5 @@
 import React from "react";
-import { IconFacebook, IconInstagram, IconWhatsApp } from "./Icons.jsx";
+import { IconFacebook, IconInstagram, IconTikTok, IconWhatsApp } from "./Icons.jsx";
 import useConfigTienda, { linkWhatsApp } from "../hooks/useConfigTienda.js";
 
 const clase = "text-plum-soft transition hover:text-berry";
@@ -20,6 +20,11 @@ export default function RedesAuth() {
       {c.instagram_url && (
         <a href={c.instagram_url} target="_blank" rel="noopener noreferrer" aria-label="Instagram" className={clase}>
           <IconInstagram />
+        </a>
+      )}
+      {c.tiktok_url && (
+        <a href={c.tiktok_url} target="_blank" rel="noopener noreferrer" aria-label="TikTok" className={clase}>
+          <IconTikTok />
         </a>
       )}
       {wa && (

@@ -1,7 +1,7 @@
 // src/components/Footer.jsx
 import React from "react";
 import { Link } from "react-router-dom";
-import { IconFacebook, IconInstagram, IconWhatsApp, IconBook } from "./Icons.jsx";
+import { IconFacebook, IconInstagram, IconTikTok, IconWhatsApp, IconBook } from "./Icons.jsx";
 import useConfigTienda, { linkWhatsApp } from "../hooks/useConfigTienda.js";
 
 export default function Footer() {
@@ -59,6 +59,11 @@ export default function Footer() {
               {c.instagram_url && (
                 <a href={c.instagram_url} target="_blank" rel="noopener noreferrer" aria-label="Instagram" className={claseRed}>
                   <IconInstagram />
+                </a>
+              )}
+              {c.tiktok_url && (
+                <a href={c.tiktok_url} target="_blank" rel="noopener noreferrer" aria-label="TikTok" className={claseRed}>
+                  <IconTikTok />
                 </a>
               )}
               {wa && (

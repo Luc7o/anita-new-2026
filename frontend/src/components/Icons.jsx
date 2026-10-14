@@ -214,6 +214,15 @@ export function IconWhatsApp({ size = 18, className = "" }) {
   );
 }
 
+export function IconTikTok({ size = 18, className = "" }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" {...base} className={className}>
+      <path d="M14 3v11.5a3.5 3.5 0 1 1-3.5-3.5" />
+      <path d="M14 3c.3 2.4 2 4.2 4.5 4.5" />
+    </svg>
+  );
+}
+
 export function IconCheck({ size = 14, className = "" }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" {...base} strokeWidth={3} className={className}>
