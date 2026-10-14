@@ -39,7 +39,6 @@ export default function AdminProductos() {
   const [form, setForm] = useState(VACIO);
   const [imagenes, setImagenes] = useState([]); // [{ url, color }]
   const [stockVariantes, setStockVariantes] = useState({}); // { "talla||color": stock }
-  const [skuVariantes, setSkuVariantes] = useState({}); // { "talla||color": sku } (solo lectura, lo genera el servidor)
   const [editandoId, setEditandoId] = useState(null);
   const [mostrarForm, setMostrarForm] = useState(false);
   const [error, setError] = useState("");
@@ -96,7 +95,6 @@ export default function AdminProductos() {
     setForm({ ...VACIO, categoria_id: categorias[0]?.id || "" });
     setImagenes([]);
     setStockVariantes({});
-    setSkuVariantes({});
     setMostrarForm(true);
   };
 
@@ -121,13 +119,10 @@ export default function AdminProductos() {
     setImagenes((detalle.imagenes || []).map((img) => ({ url: img.url, color: img.color || "" })));
 
     const mapaStock = {};
-    const mapaSku = {};
     (detalle.variantes || []).forEach((v) => {
       mapaStock[claveCombo(v.talla, v.color)] = v.stock;
-      if (v.sku) mapaSku[claveCombo(v.talla, v.color)] = v.sku;
     });
     setStockVariantes(mapaStock);
-    setSkuVariantes(mapaSku);
     setMostrarForm(true);
   };
 
@@ -537,12 +532,7 @@ export default function AdminProductos() {
                       const etiqueta = [combo.talla, combo.color].filter(Boolean).join(" / ");
                       return (
                         <label key={clave} className="glass flex items-center justify-between gap-2 rounded-xl px-3 py-2 text-xs text-plum shadow-glass">
-                          <span className="min-w-0">
-                            <span className="block truncate">{etiqueta}</span>
-                            <span className="block truncate font-mono text-[10px] text-plum-soft/80">
-                              {skuVariantes[clave] || "SKU: se genera al guardar"}
-                            </span>
-                          </span>
+                          <span className="truncate">{etiqueta}</span>
                           <input
                             type="number"
                             min={0}
@@ -555,7 +545,7 @@ export default function AdminProductos() {
                     })}
                   </div>
                   <p className="mt-2 text-xs text-plum-soft">
-                    Cada combinación tiene su propio SKU (se genera solo y no se edita). Total: {combosActuales.reduce((acc, combo) => acc + (stockVariantes[claveCombo(combo.talla, combo.color)] || 0), 0)} unidades
+                    Total: {combosActuales.reduce((acc, combo) => acc + (stockVariantes[claveCombo(combo.talla, combo.color)] || 0), 0)} unidades
                   </p>
                 </div>
               )}
