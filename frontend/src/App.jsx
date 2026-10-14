@@ -7,7 +7,6 @@ import Footer from "./components/Footer.jsx";
 const FormasPago = lazy(() => import("./pages/FormasPago.jsx"));
 const MetodosEnvio = lazy(() => import("./pages/MetodosEnvio.jsx"));
 const CambiosDevoluciones = lazy(() => import("./pages/CambiosDevoluciones.jsx"));
-const GuiaTallas = lazy(() => import("./pages/GuiaTallas.jsx"));
 const FAQ = lazy(() => import("./pages/FAQ.jsx"));
 const Contacto = lazy(() => import("./pages/Contacto.jsx"));
 const LibroReclamaciones = lazy(() => import("./pages/LibroReclamaciones.jsx"));
@@ -198,7 +197,6 @@ export default function App() {
           <Route path="/formas-de-pago" element={<FormasPago />} />
           <Route path="/metodos-de-envio" element={<MetodosEnvio />} />
           <Route path="/cambios-devoluciones" element={<CambiosDevoluciones />} />
-          <Route path="/guia-de-tallas" element={<GuiaTallas />} />
           <Route path="/faq" element={<FAQ />} />
           <Route path="/contacto" element={<Contacto />} />
           <Route path="/libro-reclamaciones" element={<LibroReclamaciones />} />

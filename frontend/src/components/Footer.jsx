@@ -19,7 +19,6 @@ export default function Footer() {
               <li><Link to="/formas-de-pago" className="hover:text-berry transition duration-200">Formas de pago</Link></li>
               <li><Link to="/metodos-de-envio" className="hover:text-berry transition duration-200">Métodos de Envío</Link></li>
               <li><Link to="/cambios-devoluciones" className="hover:text-berry transition duration-200">Cambios & Devoluciones</Link></li>
-              <li><Link to="/guia-de-tallas" className="hover:text-berry transition duration-200">Guía de Tallas</Link></li>
               <li><Link to="/faq" className="hover:text-berry transition duration-200">Preguntas frecuentes (FAQ)</Link></li>
               <li><Link to="/contacto" className="hover:text-berry transition duration-200">Contáctanos</Link></li>
             </ul>
