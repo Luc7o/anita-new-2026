@@ -1,4 +1,5 @@
 from datetime import datetime
+from sqlalchemy.exc import SQLAlchemyError
 from app.extensions import db
 
 
@@ -42,8 +43,20 @@ class ConfiguracionTienda(db.Model):
     @staticmethod
     def obtener():
         """Devuelve el registro único (id=1), creándolo si todavía no existe
-        (por ejemplo, en una BD migrada antes de que esta tabla existiera)."""
-        config = ConfiguracionTienda.query.get(1)
+        (por ejemplo, en una BD migrada antes de que esta tabla existiera).
+
+        Si la TABLA misma no existe (la migración 040 aún no se aplicó en esa
+        base), se crea aquí y se reintenta, en vez de dejar la tienda y el
+        panel admin con errores. Es el mismo CREATE TABLE que hace la
+        migración 040 (que usa IF NOT EXISTS), así que aplicarla después no
+        rompe nada. Si el usuario de la base no tiene permiso para crear
+        tablas, el error se propaga y las rutas responden con su mensaje."""
+        try:
+            config = ConfiguracionTienda.query.get(1)
+        except SQLAlchemyError:
+            db.session.rollback()
+            ConfiguracionTienda.__table__.create(db.engine, checkfirst=True)
+            config = ConfiguracionTienda.query.get(1)
         if not config:
             config = ConfiguracionTienda(id=1)
             db.session.add(config)
