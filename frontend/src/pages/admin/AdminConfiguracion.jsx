@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import { api } from "../../api/client.js";
 import { useAuth } from "../../context/AuthContext.jsx";
 import { PUEDE_GESTIONAR_CONFIGURACION } from "../../roles.js";
+import MapaTienda from "../../components/MapaTienda.jsx";
+import { urlMapaEnlace } from "../../utils/mapa.js";
 
 const CAMPOS_VACIOS = {
   nombre_comercial: "", logo_url: "",
@@ -31,6 +33,10 @@ export default function AdminConfiguracion() {
   const [cargando, setCargando] = useState(true);
   const [guardando, setGuardando] = useState(false);
   const [aviso, setAviso] = useState(null); // { ok, texto }
+  const [subiendoLogo, setSubiendoLogo] = useState(false);
+  const [errorLogo, setErrorLogo] = useState("");
+  // El mapa se actualiza cuando el admin deja de escribir, no en cada tecla.
+  const [dirMapa, setDirMapa] = useState({ direccion: "", ciudad: "", maps_url: "" });
 
   const [correoPrueba, setCorreoPrueba] = useState("");
   const [probando, setProbando] = useState(false);
@@ -47,6 +53,40 @@ export default function AdminConfiguracion() {
       .catch((err) => setAviso({ ok: false, texto: err.message }))
       .finally(() => setCargando(false));
   }, []);
+
+  useEffect(() => {
+    const t = setTimeout(
+      () => setDirMapa({ direccion: form.direccion, ciudad: form.ciudad, maps_url: form.maps_url }),
+      700
+    );
+    return () => clearTimeout(t);
+  }, [form.direccion, form.ciudad, form.maps_url]);
+
+  const subirLogo = async (e) => {
+    const archivo = e.target.files?.[0];
+    e.target.value = "";
+    if (!archivo) return;
+    setErrorLogo("");
+    if (archivo.size > 5 * 1024 * 1024) {
+      setErrorLogo("La imagen pesa más de 5 MB. Elige una más liviana.");
+      return;
+    }
+    setSubiendoLogo(true);
+    try {
+      const { url } = await api.adminSubirLogoTienda(archivo);
+      setForm((f) => ({ ...f, logo_url: url }));
+      setAviso({ ok: true, texto: "Logo cargado. Presiona «Guardar configuración» para publicarlo." });
+    } catch (err) {
+      setErrorLogo(err.message);
+    } finally {
+      setSubiendoLogo(false);
+    }
+  };
+
+  const quitarLogo = () => {
+    setForm((f) => ({ ...f, logo_url: "" }));
+    setAviso({ ok: true, texto: "Logo quitado. Presiona «Guardar configuración» para aplicar el cambio." });
+  };
 
   const cambiar = (campo) => (e) => setForm({ ...form, [campo]: e.target.value });
 
@@ -99,9 +139,40 @@ export default function AdminConfiguracion() {
             <h2 className="text-sm font-semibold uppercase tracking-wide text-plum-soft">Datos de la tienda</h2>
             <Campo id="cfg-nombre" etiqueta="Nombre comercial" required maxLength={120}
               value={form.nombre_comercial} onChange={cambiar("nombre_comercial")} />
-            <Campo id="cfg-logo" etiqueta="Logo (enlace a la imagen)" maxLength={400} placeholder="https://..."
-              ayuda="Si lo dejas vacío, el encabezado muestra el nombre en texto."
-              value={form.logo_url} onChange={cambiar("logo_url")} />
+            <div>
+              <span className="mb-1 block text-xs font-medium text-plum-soft">Logo</span>
+              <div className="flex flex-wrap items-center gap-4">
+                <div className="flex h-20 w-32 items-center justify-center overflow-hidden rounded-2xl bg-white/70 shadow-glass">
+                  {form.logo_url ? (
+                    <img src={form.logo_url} alt="Logo actual" className="max-h-full max-w-full object-contain" />
+                  ) : (
+                    <span className="px-2 text-center text-xs text-plum-soft/70">Sin logo</span>
+                  )}
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <label className="cursor-pointer rounded-full bg-white/70 px-4 py-2 text-sm font-semibold text-plum shadow-glass transition hover:bg-white">
+                    {subiendoLogo ? "Subiendo..." : form.logo_url ? "Cambiar logo" : "Elegir imagen"}
+                    <input
+                      type="file"
+                      accept="image/png,image/jpeg,image/webp"
+                      onChange={subirLogo}
+                      disabled={subiendoLogo}
+                      className="hidden"
+                    />
+                  </label>
+                  {form.logo_url && (
+                    <button type="button" onClick={quitarLogo}
+                      className="rounded-full px-4 py-2 text-sm text-plum-soft hover:text-berry-dark">
+                      Quitar
+                    </button>
+                  )}
+                </div>
+              </div>
+              <p className="mt-1 text-xs text-plum-soft/70">
+                PNG, JPG o WEBP de hasta 5 MB (mejor con fondo transparente). Si no hay logo, el encabezado muestra el nombre en texto.
+              </p>
+              {errorLogo && <p className="mt-1 text-sm text-red-600" role="alert">{errorLogo}</p>}
+            </div>
           </section>
 
           <section className="space-y-3">
@@ -129,7 +200,25 @@ export default function AdminConfiguracion() {
               <Campo id="cfg-horario" etiqueta="Horario de atención" maxLength={120}
                 value={form.horario_atencion} onChange={cambiar("horario_atencion")} />
             </div>
-            <Campo id="cfg-maps" etiqueta="Enlace de Google Maps" maxLength={400} placeholder="https://..."
+            {dirMapa.direccion || /maps\/embed/i.test(dirMapa.maps_url) ? (
+              <div className="space-y-2">
+                <MapaTienda {...dirMapa} />
+                {urlMapaEnlace(dirMapa) && (
+                  <a href={urlMapaEnlace(dirMapa)} target="_blank" rel="noopener noreferrer"
+                    className="inline-block text-xs font-semibold text-berry hover:underline">
+                    Abrir en Google Maps
+                  </a>
+                )}
+                <p className="text-xs text-plum-soft/70">
+                  Así verán el mapa los clientes. Se arma con la dirección y la ciudad; si el pin no queda exacto,
+                  completa mejor la dirección o pega abajo el enlace «Insertar un mapa» de Google Maps.
+                </p>
+              </div>
+            ) : (
+              <p className="text-xs text-plum-soft/70">Escribe la dirección y aquí aparecerá el mapa de Google.</p>
+            )}
+            <Campo id="cfg-maps" etiqueta="Enlace de Google Maps (opcional)" maxLength={400} placeholder="https://..."
+              ayuda="Solo si quieres un punto exacto. Acepta un enlace normal de Maps o la URL del código «Insertar un mapa»."
               value={form.maps_url} onChange={cambiar("maps_url")} />
           </section>
 

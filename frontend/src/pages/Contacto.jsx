@@ -1,6 +1,8 @@
 import React from "react";
 import PaginaInfo from "./PaginaInfo.jsx";
 import useConfigTienda, { linkWhatsApp } from "../hooks/useConfigTienda.js";
+import MapaTienda from "../components/MapaTienda.jsx";
+import { urlMapaEnlace } from "../utils/mapa.js";
 
 function Tarjeta({ titulo, children, nota }) {
   return (
@@ -42,10 +44,10 @@ export default function Contacto() {
               {c.direccion && (
                 <Tarjeta titulo="Tienda física" nota={c.referencia}>
                   {c.direccion}{c.ciudad ? `, ${c.ciudad}` : ""}
-                  {c.maps_url && (
+                  {urlMapaEnlace(c) && (
                     <>
                       {" · "}
-                      <a href={c.maps_url} target="_blank" rel="noopener noreferrer" className="font-semibold text-berry hover:underline">Ver mapa</a>
+                      <a href={urlMapaEnlace(c)} target="_blank" rel="noopener noreferrer" className="font-semibold text-berry hover:underline">Ver mapa</a>
                     </>
                   )}
                 </Tarjeta>
@@ -53,6 +55,8 @@ export default function Contacto() {
               {c.telefono && <Tarjeta titulo="Teléfono">{c.telefono}</Tarjeta>}
             </div>
           )}
+
+          {c.direccion && <MapaTienda direccion={c.direccion} ciudad={c.ciudad} maps_url={c.maps_url} />}
 
           {c.horario_atencion && (
             <div className="mt-4 rounded-xl bg-plum/5 p-5 border border-plum/10">

@@ -505,6 +505,13 @@ export const api = {
     return subirArchivo("/admin/uploads/producto-imagen", formData, "No se pudo subir la imagen");
   },
 
+  // Admin — logo de la tienda (archivo, no enlace)
+  adminSubirLogoTienda: (archivo) => {
+    const formData = new FormData();
+    formData.append("imagen", archivo);
+    return subirArchivo("/admin/uploads/logo-tienda", formData, "No se pudo subir el logo");
+  },
+
   // Admin — promociones de temporada
   adminPromociones: () => request("/admin/promociones", { auth: true }),
   adminCrearPromocion: (payload) =>
