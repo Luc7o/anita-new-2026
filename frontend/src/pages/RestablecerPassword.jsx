@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import RedesAuth from "../components/RedesAuth.jsx";
 import { useSearchParams, useNavigate, Link } from "react-router-dom";
 import { api } from "../api/client.js";
 import {
@@ -75,15 +76,7 @@ export default function RestablecerPassword() {
             Elige una contraseña segura para proteger tu cuenta de Anita New Style.
           </p>
           <div className="mt-6 flex items-center gap-4">
-            <a href="#" aria-label="Facebook" className="text-plum-soft transition hover:text-berry">
-              <IconFacebook />
-            </a>
-            <a href="#" aria-label="Instagram" className="text-plum-soft transition hover:text-berry">
-              <IconInstagram />
-            </a>
-            <a href="#" aria-label="WhatsApp" className="text-plum-soft transition hover:text-berry">
-              <IconWhatsApp />
-            </a>
+            <RedesAuth />
           </div>
         </div>
       </div>

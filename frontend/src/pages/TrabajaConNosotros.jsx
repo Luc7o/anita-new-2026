@@ -1,7 +1,10 @@
 import React from "react";
 import PaginaInfo from "./PaginaInfo.jsx";
+import BotonesContacto from "../components/BotonesContacto.jsx";
+import useConfigTienda from "../hooks/useConfigTienda.js";
 
 export default function TrabajaConNosotros() {
+  const c = useConfigTienda();
   return (
     <PaginaInfo
       titulo="Trabaja con nosotros"
@@ -9,7 +12,7 @@ export default function TrabajaConNosotros() {
       contenido={
         <div className="space-y-6">
           <p className="text-lg text-plum-soft">
-            En <strong className="text-plum">Anita New Style</strong> estamos siempre buscando personas apasionadas por la moda y el servicio al cliente.
+            En <strong className="text-plum">{c.nombre_comercial}</strong> estamos siempre buscando personas apasionadas por la moda y el servicio al cliente.
           </p>
 
           <div className="grid gap-4 sm:grid-cols-2">
@@ -35,7 +38,11 @@ export default function TrabajaConNosotros() {
 
           <div className="mt-4 rounded-xl bg-plum/5 p-5 border border-plum/10">
             <p className="text-sm font-medium text-plum">📩 ¿Cómo postular?</p>
-            <p className="text-sm text-plum-soft">Envía tu CV a <strong>rrhh@anitanewstyle.com</strong> con el asunto: "Postulación - [Nombre del puesto]". Incluye una breve descripción de por qué te gustaría trabajar con nosotros.</p>
+            <p className="mb-3 text-sm text-plum-soft">Escríbenos indicando el puesto al que postulas y cuéntanos por qué te gustaría trabajar con nosotros.</p>
+            <BotonesContacto
+              mensaje="Hola, quiero postular a un puesto. Puesto: "
+              asunto="Postulación - [Nombre del puesto]"
+            />
           </div>
         </div>
       }

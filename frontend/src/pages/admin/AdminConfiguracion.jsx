@@ -39,9 +39,6 @@ export default function AdminConfiguracion() {
   // El mapa se actualiza cuando el admin deja de escribir, no en cada tecla.
   const [dirMapa, setDirMapa] = useState({ direccion: "", ciudad: "", maps_url: "" });
 
-  const [correoPrueba, setCorreoPrueba] = useState("");
-  const [probando, setProbando] = useState(false);
-  const [resultadoPrueba, setResultadoPrueba] = useState(null);
 
   useEffect(() => {
     api
@@ -102,20 +99,6 @@ export default function AdminConfiguracion() {
       setAviso({ ok: false, texto: err.message });
     } finally {
       setGuardando(false);
-    }
-  };
-
-  const probarCorreo = async (e) => {
-    e.preventDefault();
-    setProbando(true);
-    setResultadoPrueba(null);
-    try {
-      const data = await api.adminProbarCorreo(correoPrueba);
-      setResultadoPrueba({ ok: true, texto: data.mensaje });
-    } catch (err) {
-      setResultadoPrueba({ ok: false, texto: err.message });
-    } finally {
-      setProbando(false);
     }
   };
 
@@ -269,38 +252,6 @@ export default function AdminConfiguracion() {
           )}
         </div>
       </form>
-
-      {puedeEditar && (
-        <form onSubmit={probarCorreo} className="glass max-w-md space-y-3 rounded-3xl p-6 shadow-glass sm:p-8">
-          <h2 className="text-lg font-semibold text-plum">Probar envío de correo</h2>
-          <p className="text-sm text-plum-soft">
-            Manda un correo de prueba real con la configuración de Resend del backend, para confirmar
-            que la recuperación de contraseña realmente llega.
-          </p>
-          <input
-            type="email"
-            placeholder="Correo donde recibir la prueba"
-            required
-            maxLength={120}
-            value={correoPrueba}
-            onChange={(e) => setCorreoPrueba(e.target.value)}
-            className={claseInput}
-          />
-          <button
-            type="submit"
-            disabled={probando}
-            className="rounded-full bg-white/70 px-6 py-2.5 text-sm font-semibold text-plum shadow-glass transition hover:bg-white disabled:opacity-60"
-          >
-            {probando ? "Enviando..." : "Enviar correo de prueba"}
-          </button>
-          {resultadoPrueba && (
-            <p className={`text-sm ${resultadoPrueba.ok ? "text-berry-dark" : "text-red-600"}`}>
-              {resultadoPrueba.ok ? "✅ " : "❌ "}
-              {resultadoPrueba.texto}
-            </p>
-          )}
-        </form>
-      )}
     </div>
   );
 }
