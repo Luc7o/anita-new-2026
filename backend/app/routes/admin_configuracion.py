@@ -1,5 +1,6 @@
 import re
 from flask import Blueprint, request, jsonify
+from sqlalchemy.exc import SQLAlchemyError
 from app.extensions import db
 from app.models import ConfiguracionTienda
 from app.utils.decorators import requiere_roles
@@ -27,10 +28,27 @@ _CAMPOS_TEXTO = {
 }
 
 
+def _config_o_503():
+    """Devuelve (config, None), o (None, respuesta_503) si la tabla no existe
+    aún en esta base (migración 040 pendiente): así el panel muestra un
+    mensaje que se entiende en vez de un 'Error interno del servidor'."""
+    try:
+        return ConfiguracionTienda.obtener(), None
+    except SQLAlchemyError:
+        db.session.rollback()
+        return None, (jsonify({
+            "error": "La configuración de la tienda aún no está disponible: falta aplicar "
+                     "la migración 040 en la base de datos."
+        }), 503)
+
+
 @bp.get("/tienda")
 @requiere_roles(*PUEDE_VER_CONFIGURACION)
 def obtener_configuracion_tienda():
-    return jsonify(ConfiguracionTienda.obtener().to_dict())
+    config, error = _config_o_503()
+    if error:
+        return error
+    return jsonify(config.to_dict())
 
 
 @bp.put("/tienda")
@@ -38,7 +56,9 @@ def obtener_configuracion_tienda():
 def actualizar_configuracion_tienda():
     """Edita los datos generales de la tienda. Solo superadmin (ver
     PUEDE_GESTIONAR_CONFIGURACION) — auditor puede ver pero no modificar."""
-    config = ConfiguracionTienda.obtener()
+    config, error = _config_o_503()
+    if error:
+        return error
     data = request.get_json(force=True) or {}
 
     if "nombre_comercial" in data and not (data.get("nombre_comercial") or "").strip():
