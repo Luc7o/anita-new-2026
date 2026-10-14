@@ -1,7 +1,22 @@
 import React from "react";
 import PaginaInfo from "./PaginaInfo.jsx";
+import useConfigTienda, { linkWhatsApp } from "../hooks/useConfigTienda.js";
+
+function Tarjeta({ titulo, children, nota }) {
+  return (
+    <div className="rounded-xl border border-plum/10 bg-white/50 p-5 shadow-sm">
+      <h3 className="font-semibold text-plum">{titulo}</h3>
+      <div className="mt-1 text-sm text-plum-soft">{children}</div>
+      {nota && <p className="text-xs text-plum-soft/70">{nota}</p>}
+    </div>
+  );
+}
 
 export default function Contacto() {
+  const c = useConfigTienda();
+  const wa = linkWhatsApp(c.whatsapp);
+  const hayAlgo = c.correo_contacto || c.whatsapp || c.direccion || c.telefono;
+
   return (
     <PaginaInfo
       titulo="Contáctanos"
@@ -12,33 +27,39 @@ export default function Contacto() {
             Estamos aquí para ayudarte. Elige el medio que prefieras y cuéntanos cómo podemos ayudarte.
           </p>
 
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="rounded-xl border border-plum/10 bg-white/50 p-5 shadow-sm">
-              <h3 className="font-semibold text-plum">Correo electrónico</h3>
-              <p className="mt-1 text-sm text-plum-soft">contacto@anitanewstyle.com</p>
-              <p className="text-xs text-plum-soft/70">Respondemos en menos de 24 horas.</p>
+          {hayAlgo && (
+            <div className="grid gap-4 sm:grid-cols-2">
+              {c.correo_contacto && (
+                <Tarjeta titulo="Correo electrónico">
+                  <a href={`mailto:${c.correo_contacto}`} className="hover:underline">{c.correo_contacto}</a>
+                </Tarjeta>
+              )}
+              {c.whatsapp && (
+                <Tarjeta titulo="WhatsApp">
+                  {wa ? <a href={wa} target="_blank" rel="noopener noreferrer" className="hover:underline">{c.whatsapp}</a> : c.whatsapp}
+                </Tarjeta>
+              )}
+              {c.direccion && (
+                <Tarjeta titulo="Tienda física" nota={c.referencia}>
+                  {c.direccion}{c.ciudad ? `, ${c.ciudad}` : ""}
+                  {c.maps_url && (
+                    <>
+                      {" · "}
+                      <a href={c.maps_url} target="_blank" rel="noopener noreferrer" className="font-semibold text-berry hover:underline">Ver mapa</a>
+                    </>
+                  )}
+                </Tarjeta>
+              )}
+              {c.telefono && <Tarjeta titulo="Teléfono">{c.telefono}</Tarjeta>}
             </div>
-            <div className="rounded-xl border border-plum/10 bg-white/50 p-5 shadow-sm">
-              <h3 className="font-semibold text-plum">WhatsApp</h3>
-              <p className="mt-1 text-sm text-plum-soft">+51 987 654 321</p>
-              <p className="text-xs text-plum-soft/70">Lunes a sábado, 10am - 8pm.</p>
-            </div>
-            <div className="rounded-xl border border-plum/10 bg-white/50 p-5 shadow-sm">
-              <h3 className="font-semibold text-plum">Tienda física</h3>
-              <p className="mt-1 text-sm text-plum-soft">Jr. Cajamarca 214, Huancayo</p>
-              <p className="text-xs text-plum-soft/70">Lunes a sábado, 10am - 8pm.</p>
-            </div>
-            <div className="rounded-xl border border-plum/10 bg-white/50 p-5 shadow-sm">
-              <h3 className="font-semibold text-plum">Teléfono fijo</h3>
-              <p className="mt-1 text-sm text-plum-soft">(064) 123-456</p>
-              <p className="text-xs text-plum-soft/70">Lunes a viernes, 9am - 6pm.</p>
-            </div>
-          </div>
+          )}
 
-          <div className="mt-4 rounded-xl bg-plum/5 p-5 border border-plum/10">
-            <p className="text-sm font-medium text-plum">Horario de atención</p>
-            <p className="text-sm text-plum-soft">Lunes a sábado de 10:00 a.m. a 8:00 p.m. Domingos y feriados cerrado.</p>
-          </div>
+          {c.horario_atencion && (
+            <div className="mt-4 rounded-xl bg-plum/5 p-5 border border-plum/10">
+              <p className="text-sm font-medium text-plum">Horario de atención</p>
+              <p className="text-sm text-plum-soft">{c.horario_atencion}</p>
+            </div>
+          )}
         </div>
       }
     />

@@ -1,7 +1,11 @@
 import React from "react";
 import PaginaInfo from "./PaginaInfo.jsx";
+import useConfigTienda from "../hooks/useConfigTienda.js";
 
 export default function NuestrasTiendas() {
+  const c = useConfigTienda();
+  const hayContacto = c.correo_contacto || c.telefono;
+
   return (
     <PaginaInfo
       titulo="Nuestras Tiendas"
@@ -13,23 +17,32 @@ export default function NuestrasTiendas() {
           </p>
 
           <div className="grid gap-4 sm:grid-cols-2">
-            <div className="rounded-xl border border-plum/10 bg-white/50 p-5 shadow-sm">
-              <h3 className="font-semibold text-plum">📍 Huancayo (Tienda principal)</h3>
-              <p className="mt-1 text-sm text-plum-soft">Av. Ejemplo #123, Huancayo</p>
-              <p className="text-sm text-plum-soft">Horario: Lunes a Sábado de 10am a 8pm</p>
-              <p className="text-sm text-plum-soft">Teléfono: (064) 123-456</p>
-            </div>
-            <div className="rounded-xl border border-plum/10 bg-white/50 p-5 shadow-sm">
-              <h3 className="font-semibold text-plum">🚀 Próximamente</h3>
-              <p className="mt-1 text-sm text-plum-soft">Estamos trabajando para abrir nuevas tiendas en Lima y Arequipa en los próximos meses.</p>
-              <p className="text-sm text-plum-soft">Síguenos en redes para más novedades.</p>
-            </div>
+            {(c.direccion || c.ciudad) && (
+              <div className="rounded-xl border border-plum/10 bg-white/50 p-5 shadow-sm">
+                <h3 className="font-semibold text-plum">📍 {c.ciudad ? `${c.ciudad} (Tienda principal)` : "Tienda principal"}</h3>
+                {c.direccion && <p className="mt-1 text-sm text-plum-soft">{c.direccion}</p>}
+                {c.referencia && <p className="text-sm text-plum-soft">{c.referencia}</p>}
+                {c.horario_atencion && <p className="text-sm text-plum-soft">Horario: {c.horario_atencion}</p>}
+                {c.telefono && <p className="text-sm text-plum-soft">Teléfono: {c.telefono}</p>}
+                {c.maps_url && (
+                  <a href={c.maps_url} target="_blank" rel="noopener noreferrer" className="mt-1 inline-block text-sm font-semibold text-berry hover:underline">
+                    Ver en Google Maps
+                  </a>
+                )}
+              </div>
+            )}
           </div>
 
-          <div className="mt-4 rounded-xl bg-plum/5 p-5 border border-plum/10">
-            <p className="text-sm font-medium text-plum">📞 ¿Dudas sobre nuestras tiendas?</p>
-            <p className="text-sm text-plum-soft">Escríbenos a <strong>contacto@anitanewstyle.com</strong> o llámanos al (064) 123-456.</p>
-          </div>
+          {hayContacto && (
+            <div className="mt-4 rounded-xl bg-plum/5 p-5 border border-plum/10">
+              <p className="text-sm font-medium text-plum">¿Dudas sobre nuestras tiendas?</p>
+              <p className="text-sm text-plum-soft">
+                {c.correo_contacto && <>Escríbenos a <strong>{c.correo_contacto}</strong></>}
+                {c.correo_contacto && c.telefono && " o "}
+                {c.telefono && <>llámanos al <strong>{c.telefono}</strong></>}.
+              </p>
+            </div>
+          )}
         </div>
       }
     />

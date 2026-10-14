@@ -4,9 +4,11 @@ import { useAuth } from "../context/AuthContext.jsx";
 import { useCarrito } from "../context/CarritoContext.jsx";
 import { IconSearch, IconCart, IconClose, IconUser } from "./Icons.jsx";
 import UserMenu from "./UserMenu.jsx";
+import useConfigTienda from "../hooks/useConfigTienda.js";
 
 export default function Navbar() {
   const { usuario, logout } = useAuth();
+  const config = useConfigTienda();
   const { totalItems, setDrawerAbierto } = useCarrito();
   const [busqueda, setBusqueda] = useState("");
   const [busquedaMovilAbierta, setBusquedaMovilAbierta] = useState(false);
@@ -22,7 +24,11 @@ export default function Navbar() {
     <header className="sticky top-0 z-30 border-b border-plum/10 bg-white">
       <div className="mx-auto grid max-w-6xl grid-cols-[auto_1fr_auto] items-center gap-6 px-5 py-4">
         <Link to="/" className="shrink-0 font-display text-2xl">
-          <span className="text-plum">Anita</span> <span className="text-berry">New Style</span>
+          {config.logo_url ? (
+            <img src={config.logo_url} alt={config.nombre_comercial} className="h-9 w-auto" />
+          ) : (
+            <><span className="text-plum">Anita</span> <span className="text-berry">New Style</span></>
+          )}
         </Link>
 
         <form
