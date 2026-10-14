@@ -5,7 +5,7 @@ from app.extensions import db
 from app.models import Producto, Categoria, ImagenProducto, VarianteProducto
 from app.utils.decorators import requiere_roles
 from app.roles import PUEDE_VER_PRODUCTOS, PUEDE_GESTIONAR_PRODUCTOS, PUEDE_GESTIONAR_STOCK
-from app.utils.sku import asignar_sku_si_falta
+from app.utils.sku import asignar_sku_si_falta, asignar_skus_variantes
 
 bp = Blueprint("admin_productos", __name__, url_prefix="/api/admin/productos")
 
@@ -105,16 +105,26 @@ def _validar_variantes(tallas, colores, variantes):
 
 
 def _guardar_variantes(producto, tallas, colores, variantes):
+    # Las variantes se borran y se recrean en cada guardado, así que antes se
+    # recuerda el SKU de cada combinación para devolvérselo a la misma
+    # talla+color y que el código no cambie al editar el producto.
+    previos = {
+        (v.talla_id, v.color_id): v.sku
+        for v in VarianteProducto.query.filter_by(producto_id=producto.id).all()
+        if v.sku
+    }
     VarianteProducto.query.filter_by(producto_id=producto.id).delete()
     if not _combos_esperados(tallas, colores):
         return  # producto simple: no guarda variantes
     for v in variantes:
-        db.session.add(VarianteProducto(
+        nueva = VarianteProducto(
             producto_id=producto.id,
             talla=v.get("talla") or "",
             color=v.get("color") or "",
             stock=v["stock"],
-        ))
+        )
+        nueva.sku = previos.get((nueva.talla_obj.id, nueva.color_obj.id))
+        db.session.add(nueva)
 
 
 @bp.get("")
@@ -218,6 +228,7 @@ def crear():
 
     _guardar_imagenes(producto, data["imagenes"])
     _guardar_variantes(producto, tallas, colores, data.get("variantes") or [])
+    asignar_skus_variantes(producto)
 
     try:
         db.session.commit()
@@ -279,6 +290,9 @@ def actualizar(producto_id):
         if error_variantes:
             return jsonify({"error": error_variantes}), 400
         _guardar_variantes(producto, tallas, colores, data.get("variantes") or [])
+
+    # Variantes nuevas, o de un producto antiguo que aún no tenía SKU por variante.
+    asignar_skus_variantes(producto)
 
     if "imagenes" in data:
         error_imagenes = _validar_imagenes(data["imagenes"])

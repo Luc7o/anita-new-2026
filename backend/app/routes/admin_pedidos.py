@@ -712,6 +712,7 @@ def venta_presencial():
             precio_unit=item.producto.precio_final,
             talla=item.talla,
             color=item.color,
+            sku=(variante.sku if variante and variante.sku else item.producto.sku),
             subtotal=item.subtotal,
         ))
 
