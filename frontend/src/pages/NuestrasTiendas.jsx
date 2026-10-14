@@ -1,6 +1,8 @@
 import React from "react";
 import PaginaInfo from "./PaginaInfo.jsx";
 import useConfigTienda from "../hooks/useConfigTienda.js";
+import MapaTienda from "../components/MapaTienda.jsx";
+import { urlMapaEnlace } from "../utils/mapa.js";
 
 export default function NuestrasTiendas() {
   const c = useConfigTienda();
@@ -24,14 +26,16 @@ export default function NuestrasTiendas() {
                 {c.referencia && <p className="text-sm text-plum-soft">{c.referencia}</p>}
                 {c.horario_atencion && <p className="text-sm text-plum-soft">Horario: {c.horario_atencion}</p>}
                 {c.telefono && <p className="text-sm text-plum-soft">Teléfono: {c.telefono}</p>}
-                {c.maps_url && (
-                  <a href={c.maps_url} target="_blank" rel="noopener noreferrer" className="mt-1 inline-block text-sm font-semibold text-berry hover:underline">
+                {urlMapaEnlace(c) && (
+                  <a href={urlMapaEnlace(c)} target="_blank" rel="noopener noreferrer" className="mt-1 inline-block text-sm font-semibold text-berry hover:underline">
                     Ver en Google Maps
                   </a>
                 )}
               </div>
             )}
           </div>
+
+          {c.direccion && <MapaTienda direccion={c.direccion} ciudad={c.ciudad} maps_url={c.maps_url} className="h-72" />}
 
           {hayContacto && (
             <div className="mt-4 rounded-xl bg-plum/5 p-5 border border-plum/10">
