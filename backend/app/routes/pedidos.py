@@ -192,9 +192,12 @@ def checkout():
 
     for item in items:
         variante_id = None
+        sku_vendido = item.producto.sku if item.producto else None
         if item.producto and item.producto.usa_variantes:
             variante = item.producto.variante_para(item.talla, item.color)
             variante_id = variante.id if variante else None
+            if variante and variante.sku:
+                sku_vendido = variante.sku
 
         detalle = DetallePedido(
             pedido_id=pedido.id,
@@ -204,6 +207,7 @@ def checkout():
             precio_unit=item.producto.precio_final,
             talla=item.talla,
             color=item.color,
+            sku=sku_vendido,
             subtotal=item.subtotal,
         )
         db.session.add(detalle)

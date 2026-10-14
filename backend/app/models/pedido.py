@@ -241,11 +241,16 @@ class DetallePedido(db.Model):
     precio_unit = db.Column(db.Numeric(10, 2), nullable=False)
     talla = db.Column(db.String(20))
     color = db.Column(db.String(50))
+    # SKU de lo que se vendió (el de la variante, o el del producto si no usa
+    # variantes), copiado al momento de la compra: así el pedido conserva el
+    # código aunque después se edite el producto y sus variantes se recreen.
+    sku = db.Column(db.String(80))
     subtotal = db.Column(db.Numeric(10, 2), nullable=False)
 
     def to_dict(self):
         return {
             "id": self.id,
+            "sku": self.sku,
             "producto_id": self.producto_id,
             "variante_id": self.variante_id,
             "producto_nombre": self.producto.nombre if self.producto else None,
