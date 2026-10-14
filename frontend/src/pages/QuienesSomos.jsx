@@ -23,11 +23,21 @@ export default function QuienesSomos() {
             </div>
             <div className="rounded-xl border border-plum/10 bg-white/50 p-5 shadow-sm">
               <h3 className="font-semibold text-plum">Nuestra misión</h3>
-              <p className="mt-1 text-sm text-plum-soft">Brindar a la mujer contemporánea piezas únicas que reflejen su personalidad, con la confianza de una tienda que cuida cada detalle.</p>
+              <p className="mt-1 text-sm text-plum-soft">Somos una empresa ubicada en Huancayo dedicada a la
+              comercialización de calzados, correas, mochilas y carteras de alta calidad,
+              ofreciendo a nuestros clientes productos modernos, funcionales y accesibles
+              económicamente. Nos comprometemos a brindar una experiencia de
+              compra segura y satisfactoria, basada en la atención personalizada, y la
+              variedad de productos.
+              </p>
             </div>
             <div className="rounded-xl border border-plum/10 bg-white/50 p-5 shadow-sm">
               <h3 className="font-semibold text-plum">Nuestra visión</h3>
-              <p className="mt-1 text-sm text-plum-soft">Ser la tienda de moda peruana de referencia, reconocida por su calidad, estilo y cercanía con el cliente en todo el Perú.</p>
+              <p className="mt-1 text-sm text-plum-soft">Ser una empresa reconocida en Huancayo y en el mercado digital como una de las principales
+              tiendas de moda y accesorios, destacándonos por la innovación, la calidad
+              de nuestros productos, la variedad de diseños y la excelencia en el servicio
+              al cliente.
+              </p>
             </div>
             <div className="rounded-xl border border-plum/10 bg-white/50 p-5 shadow-sm">
               <h3 className="font-semibold text-plum">Nuestros valores</h3>
