@@ -33,6 +33,7 @@ export default function AdminConfiguracion() {
   const [cargando, setCargando] = useState(true);
   const [guardando, setGuardando] = useState(false);
   const [aviso, setAviso] = useState(null); // { ok, texto }
+  const [errorCarga, setErrorCarga] = useState("");
   const [subiendoLogo, setSubiendoLogo] = useState(false);
   const [errorLogo, setErrorLogo] = useState("");
   // El mapa se actualiza cuando el admin deja de escribir, no en cada tecla.
@@ -50,7 +51,7 @@ export default function AdminConfiguracion() {
         Object.keys(CAMPOS_VACIOS).forEach((k) => { limpio[k] = d[k] || ""; });
         setForm(limpio);
       })
-      .catch((err) => setAviso({ ok: false, texto: err.message }))
+      .catch((err) => setErrorCarga(err.message))
       .finally(() => setCargando(false));
   }, []);
 
@@ -119,6 +120,16 @@ export default function AdminConfiguracion() {
   };
 
   if (cargando) return <p className="text-plum-soft">Cargando configuración...</p>;
+
+  if (errorCarga) {
+    return (
+      <div className="space-y-2">
+        <h1 className="text-2xl font-semibold text-plum">Configuración</h1>
+        <p className="text-sm text-red-600" role="alert">{errorCarga}</p>
+        <p className="text-sm text-plum-soft">Recarga la página; si sigue igual, avisa a quien administra el sistema.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">
