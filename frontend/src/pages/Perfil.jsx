@@ -21,23 +21,34 @@ export default function Perfil() {
   const [mensajeDatos, setMensajeDatos] = useState("");
   const [errorDatos, setErrorDatos] = useState("");
 
+  // Se pide el detalle del perfil solo cuando ya hay sesión. Al recargar la
+  // página el token se recupera de forma asíncrona (ver AuthContext): si se
+  // pedía de inmediato, la petición salía sin token (401 «Debes iniciar
+  // sesión»), el error quedaba sin atrapar y el formulario se quedaba vacío.
   useEffect(() => {
-    api.perfil().then((data) => {
-      setForm({
-        nombre: data.nombre || "",
-        apellido: data.apellido || "",
-        telefono: data.telefono || "",
-        direccion: data.direccion || "",
-        distrito_id: data.distrito_id || "",
-        referencia: data.referencia || "",
-      });
-      setUbicacionInicial({
-        departamento_id: data.departamento_id || "",
-        provincia_id: data.provincia_id || "",
-        distrito_id: data.distrito_id || "",
-      });
-    });
-  }, []);
+    if (!usuario?.id) return;
+    let cancelado = false;
+    api
+      .perfil()
+      .then((data) => {
+        if (cancelado) return;
+        setForm({
+          nombre: data.nombre || "",
+          apellido: data.apellido || "",
+          telefono: data.telefono || "",
+          direccion: data.direccion || "",
+          distrito_id: data.distrito_id || "",
+          referencia: data.referencia || "",
+        });
+        setUbicacionInicial({
+          departamento_id: data.departamento_id || "",
+          provincia_id: data.provincia_id || "",
+          distrito_id: data.distrito_id || "",
+        });
+      })
+      .catch(() => {}); // sin datos el formulario queda vacío; no es un error que mostrar
+    return () => { cancelado = true; };
+  }, [usuario?.id]);
 
   const actualizarCampo = (campo) => (e) => setForm({ ...form, [campo]: e.target.value });
   const actualizarTexto = (campo) => (e) => setForm({ ...form, [campo]: soloTexto(e.target.value) });
