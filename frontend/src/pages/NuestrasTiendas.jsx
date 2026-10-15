@@ -21,7 +21,7 @@ export default function NuestrasTiendas() {
           <div className="grid gap-4 sm:grid-cols-2">
             {(c.direccion || c.ciudad) && (
               <div className="rounded-xl border border-plum/10 bg-white/50 p-5 shadow-sm">
-                <h3 className="font-semibold text-plum">📍 {c.ciudad ? `${c.ciudad} (Tienda principal)` : "Tienda principal"}</h3>
+                <h3 className="font-semibold text-plum">{c.ciudad ? `${c.ciudad} (Tienda principal)` : "Tienda principal"}</h3>
                 {c.direccion && <p className="mt-1 text-sm text-plum-soft">{c.direccion}</p>}
                 {c.referencia && <p className="text-sm text-plum-soft">{c.referencia}</p>}
                 {c.horario_atencion && <p className="text-sm text-plum-soft">Horario: {c.horario_atencion}</p>}
