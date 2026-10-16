@@ -156,7 +156,7 @@ export default function AdminProveedores() {
         {puedeGestionar && (
           <button
             onClick={nuevo}
-            className="rounded-full bg-berry px-5 py-2.5 text-sm font-semibold text-white shadow-glass transition hover:bg-berry-dark"
+            className="rounded-[10px] bg-berry px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-berry-dark"
           >
             + Nuevo proveedor
           </button>
@@ -164,9 +164,9 @@ export default function AdminProveedores() {
       </div>
 
       <Paginador pagina={pag.pagina} porPagina={pag.porPagina} total={pag.total} onCambiar={pag.setPagina} className="mb-2" />
-      <div className="glass hidden overflow-hidden rounded-3xl shadow-glass md:block">
+      <div className="glass hidden overflow-hidden rounded-2xl md:block">
         <table className="w-full text-left text-sm">
-          <thead className="bg-white/50 text-xs uppercase tracking-wide text-plum-soft">
+          <thead className="bg-white text-xs uppercase tracking-wide text-plum-soft">
             <tr>
               <th className="px-4 py-3">Nombre</th>
               <th className="px-4 py-3">Contacto</th>
@@ -191,7 +191,7 @@ export default function AdminProveedores() {
                 </td>
                 <td className="px-4 py-3">
                   <span
-                    className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
+                    className={`rounded-md px-2.5 py-1 text-xs font-semibold ${
                       p.activo ? "bg-berry/10 text-berry-dark" : "bg-plum/10 text-plum-soft"
                     }`}
                   >
@@ -220,11 +220,11 @@ export default function AdminProveedores() {
       {/* Tarjetas — solo móvil/tablet */}
       <div className="space-y-3 md:hidden">
         {pag.items.map((p) => (
-          <div key={p.id} className="glass rounded-2xl p-4 shadow-glass">
+          <div key={p.id} className="glass rounded-2xl p-4">
             <div className="flex items-start justify-between gap-2">
               <p className="font-medium text-plum">{p.nombre}</p>
               <span
-                className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold ${
+                className={`shrink-0 rounded-md px-2.5 py-1 text-xs font-semibold ${
                   p.activo ? "bg-berry/10 text-berry-dark" : "bg-plum/10 text-plum-soft"
                 }`}
               >
@@ -248,7 +248,7 @@ export default function AdminProveedores() {
           </div>
         ))}
         {proveedores.length === 0 && (
-          <p className="glass rounded-2xl p-6 text-center text-plum-soft shadow-glass">
+          <p className="glass rounded-2xl p-6 text-center text-plum-soft">
             No hay proveedores todavía.
           </p>
         )}
@@ -268,7 +268,7 @@ export default function AdminProveedores() {
             aria-labelledby="proveedor-form-titulo"
             tabIndex={-1}
             onSubmit={guardar}
-            className="glass-strong relative max-h-[90vh] w-full max-w-md overflow-y-auto rounded-3xl p-6 shadow-glass-lg sm:p-8"
+            className="glass-strong relative max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl p-6 shadow-glass-lg sm:p-8"
           >
             <h2 id="proveedor-form-titulo" className="mb-4 text-xl font-semibold text-plum">
               {editandoId ? "Editar proveedor" : "Nuevo proveedor"}
@@ -285,7 +285,7 @@ export default function AdminProveedores() {
                   maxLength={150}
                   value={form.nombre}
                   onChange={actualizarCampo("nombre")}
-                  className="w-full rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-none"
+                  className="w-full rounded-2xl bg-white px-4 py-2.5 text-plum focus:outline-none"
                 />
               </div>
               <div>
@@ -297,7 +297,7 @@ export default function AdminProveedores() {
                   maxLength={120}
                   value={form.contacto_nombre}
                   onChange={actualizarTexto("contacto_nombre")}
-                  className="w-full rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-none"
+                  className="w-full rounded-2xl bg-white px-4 py-2.5 text-plum focus:outline-none"
                 />
               </div>
               <div className="grid grid-cols-2 gap-3">
@@ -311,7 +311,7 @@ export default function AdminProveedores() {
                     maxLength={9}
                     value={form.telefono}
                     onChange={actualizarTelefono}
-                    className="w-full rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-none"
+                    className="w-full rounded-2xl bg-white px-4 py-2.5 text-plum focus:outline-none"
                   />
                 </div>
                 <div>
@@ -324,7 +324,7 @@ export default function AdminProveedores() {
                     maxLength={11}
                     value={form.ruc}
                     onChange={actualizarRuc}
-                    className="w-full rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-none"
+                    className="w-full rounded-2xl bg-white px-4 py-2.5 text-plum focus:outline-none"
                   />
                 </div>
               </div>
@@ -338,7 +338,7 @@ export default function AdminProveedores() {
                   maxLength={120}
                   value={form.email}
                   onChange={actualizarCampo("email")}
-                  className="w-full rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-none"
+                  className="w-full rounded-2xl bg-white px-4 py-2.5 text-plum focus:outline-none"
                 />
               </div>
               <div>
@@ -350,7 +350,7 @@ export default function AdminProveedores() {
                   maxLength={200}
                   value={form.direccion}
                   onChange={actualizarCampo("direccion")}
-                  className="w-full rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-none"
+                  className="w-full rounded-2xl bg-white px-4 py-2.5 text-plum focus:outline-none"
                 />
               </div>
               <div>
@@ -363,7 +363,7 @@ export default function AdminProveedores() {
                   maxLength={500}
                   value={form.notas}
                   onChange={actualizarCampo("notas")}
-                  className="w-full rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-none"
+                  className="w-full rounded-2xl bg-white px-4 py-2.5 text-plum focus:outline-none"
                 />
               </div>
             </div>
@@ -377,9 +377,9 @@ export default function AdminProveedores() {
                 placeholder="Buscar producto..."
                 value={busquedaProducto}
                 onChange={(e) => setBusquedaProducto(e.target.value)}
-                className="mb-2 w-full rounded-2xl bg-white/70 px-4 py-2 text-sm text-plum shadow-glass focus:outline-none"
+                className="mb-2 w-full rounded-2xl bg-white px-4 py-2 text-sm text-plum focus:outline-none"
               />
-              <div className="max-h-48 space-y-1.5 overflow-y-auto rounded-2xl bg-white/40 p-2">
+              <div className="max-h-48 space-y-1.5 overflow-y-auto rounded-2xl bg-white p-2">
                 {productosFiltrados.length === 0 && (
                   <p className="p-2 text-sm text-plum-soft">No se encontraron productos.</p>
                 )}
@@ -388,7 +388,7 @@ export default function AdminProveedores() {
                   return (
                     <div
                       key={prod.id}
-                      className="flex items-center gap-2 rounded-xl bg-white/70 px-3 py-2"
+                      className="flex items-center gap-2 rounded-xl bg-white px-3 py-2"
                     >
                       <label className="flex flex-1 items-center gap-2 text-sm text-plum">
                         <input
@@ -407,7 +407,7 @@ export default function AdminProveedores() {
                           placeholder="Costo S/"
                           value={seleccion[prod.id].precio_compra}
                           onChange={(e) => cambiarPrecioProducto(prod.id, e.target.value)}
-                          className="w-24 rounded-lg bg-white/90 px-2 py-1 text-xs text-plum shadow-glass focus:outline-none"
+                          className="w-24 rounded-lg bg-white px-2 py-1 text-xs text-plum focus:outline-none"
                         />
                       )}
                     </div>
@@ -422,14 +422,14 @@ export default function AdminProveedores() {
               <button
                 type="submit"
                 disabled={guardando}
-                className="flex-1 rounded-full bg-berry py-2.5 text-sm font-semibold text-white shadow-glass transition hover:bg-berry-dark disabled:opacity-60"
+                className="flex-1 rounded-[10px] bg-berry py-2.5 text-sm font-semibold text-white transition hover:bg-berry-dark disabled:opacity-60"
               >
                 {guardando ? "Guardando..." : editandoId ? "Guardar cambios" : "Crear proveedor"}
               </button>
               <button
                 type="button"
                 onClick={() => setMostrarForm(false)}
-                className="rounded-full bg-white/70 px-5 py-2.5 text-sm font-semibold text-plum shadow-glass"
+                className="rounded-[10px] bg-white px-5 py-2.5 text-sm font-semibold text-plum"
               >
                 Cancelar
               </button>

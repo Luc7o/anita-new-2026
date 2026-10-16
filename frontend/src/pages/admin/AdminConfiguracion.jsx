@@ -13,7 +13,7 @@ const CAMPOS_VACIOS = {
 };
 
 const claseInput =
-  "w-full rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-none disabled:opacity-60";
+  "w-full rounded-2xl bg-white px-4 py-2.5 text-plum focus:outline-none disabled:opacity-60";
 
 function Campo({ id, etiqueta, ayuda, ...props }) {
   return (
@@ -127,7 +127,7 @@ export default function AdminConfiguracion() {
         )}
       </div>
 
-      <form onSubmit={guardar} className="glass max-w-2xl space-y-6 rounded-3xl p-6 shadow-glass sm:p-8">
+      <form onSubmit={guardar} className="glass max-w-2xl space-y-6 rounded-2xl p-6 sm:p-8">
         <fieldset disabled={!puedeEditar || guardando} className="space-y-6">
           <section className="space-y-3">
             <h2 className="text-sm font-semibold uppercase tracking-wide text-plum-soft">Datos de la tienda</h2>
@@ -136,7 +136,7 @@ export default function AdminConfiguracion() {
             <div>
               <span className="mb-1 block text-xs font-medium text-plum-soft">Logo</span>
               <div className="flex flex-wrap items-center gap-4">
-                <div className="flex h-20 w-32 items-center justify-center overflow-hidden rounded-2xl bg-white/70 shadow-glass">
+                <div className="flex h-20 w-32 items-center justify-center overflow-hidden rounded-2xl bg-white">
                   {form.logo_url ? (
                     <img src={form.logo_url} alt="Logo actual" className="max-h-full max-w-full object-contain" />
                   ) : (
@@ -144,7 +144,7 @@ export default function AdminConfiguracion() {
                   )}
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  <label className="cursor-pointer rounded-full bg-white/70 px-4 py-2 text-sm font-semibold text-plum shadow-glass transition hover:bg-white">
+                  <label className="cursor-pointer rounded-[10px] bg-white px-4 py-2 text-sm font-semibold text-plum transition hover:bg-white">
                     {subiendoLogo ? "Subiendo..." : form.logo_url ? "Cambiar logo" : "Elegir imagen"}
                     <input
                       type="file"
@@ -156,7 +156,7 @@ export default function AdminConfiguracion() {
                   </label>
                   {form.logo_url && (
                     <button type="button" onClick={quitarLogo}
-                      className="rounded-full px-4 py-2 text-sm text-plum-soft hover:text-berry-dark">
+                      className="rounded-[10px] px-4 py-2 text-sm text-plum-soft hover:text-berry-dark">
                       Quitar
                     </button>
                   )}
@@ -239,7 +239,7 @@ export default function AdminConfiguracion() {
           <button
             type="submit"
             disabled={guardando}
-            className="rounded-full bg-berry px-6 py-2.5 font-semibold text-white shadow-glass transition hover:bg-berry-dark disabled:opacity-60"
+            className="rounded-[10px] bg-berry px-6 py-2.5 font-semibold text-white transition hover:bg-berry-dark disabled:opacity-60"
           >
             {guardando ? "Guardando..." : "Guardar configuración"}
           </button>

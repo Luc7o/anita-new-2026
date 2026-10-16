@@ -115,7 +115,7 @@ export default function AdminVentaPresencial() {
   if (pedidoConfirmado) {
     return (
       <div className="mx-auto max-w-lg">
-        <div className="glass rounded-3xl p-8 text-center shadow-glass">
+        <div className="glass rounded-2xl p-8 text-center">
           <h1 className="text-xl font-semibold text-plum">Venta registrada</h1>
           <p className="mt-1 text-sm text-plum-soft">
             Pedido {pedidoConfirmado.numero_pedido} · S/ {pedidoConfirmado.total.toFixed(2)}
@@ -124,13 +124,13 @@ export default function AdminVentaPresencial() {
           <button
             onClick={descargarBoleta}
             disabled={descargandoBoleta}
-            className="mt-6 w-full rounded-full bg-berry py-3 text-center font-semibold text-white shadow-glass transition hover:bg-berry-dark disabled:opacity-60"
+            className="mt-6 w-full rounded-[10px] bg-berry py-3 text-center font-semibold text-white transition hover:bg-berry-dark disabled:opacity-60"
           >
             {descargandoBoleta ? "Generando boleta..." : "Descargar boleta"}
           </button>
           <button
             onClick={() => setPedidoConfirmado(null)}
-            className="mt-3 w-full rounded-full bg-white/70 py-3 text-center font-semibold text-plum shadow-glass hover:bg-white"
+            className="mt-3 w-full rounded-[10px] bg-white py-3 text-center font-semibold text-plum hover:bg-white"
           >
             Registrar otra venta
           </button>
@@ -145,7 +145,7 @@ export default function AdminVentaPresencial() {
         ← Volver a pedidos
       </Link>
 
-      <div className="glass mt-4 rounded-3xl p-6 shadow-glass sm:p-8">
+      <div className="glass mt-4 rounded-2xl p-6 sm:p-8">
         <h1 className="text-2xl font-semibold text-plum">Venta presencial</h1>
         <p className="text-sm text-plum-soft">
           Registra una venta hecha en el mostrador — el pago se marca como recibido al momento.
@@ -157,24 +157,24 @@ export default function AdminVentaPresencial() {
             value={busqueda}
             onChange={(e) => setBusqueda(e.target.value)}
             placeholder="Buscar producto por nombre..."
-            className="flex-1 rounded-2xl bg-white/80 px-4 py-2.5 text-sm text-plum shadow-glass focus:outline-none"
+            className="flex-1 rounded-2xl bg-white px-4 py-2.5 text-sm text-plum focus:outline-none"
           />
           <button
             type="submit"
             disabled={buscando}
-            className="flex items-center gap-1 rounded-2xl bg-berry px-4 py-2.5 text-sm font-semibold text-white shadow-glass hover:bg-berry-dark disabled:opacity-60"
+            className="flex items-center gap-1 rounded-2xl bg-berry px-4 py-2.5 text-sm font-semibold text-white hover:bg-berry-dark disabled:opacity-60"
           >
             <IconSearch size={16} /> Buscar
           </button>
         </form>
 
         {resultados.length > 0 && !seleccion && (
-          <div className="mt-3 max-h-60 space-y-1 overflow-y-auto rounded-2xl bg-white/50 p-2">
+          <div className="mt-3 max-h-60 space-y-1 overflow-y-auto rounded-2xl bg-white p-2">
             {resultados.map((p) => (
               <button
                 key={p.id}
                 onClick={() => elegirProducto(p)}
-                className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-sm text-plum hover:bg-white/80"
+                className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-sm text-plum hover:bg-white"
               >
                 <span>{p.nombre}</span>
                 <span className="text-plum-soft">S/ {p.precio_final.toFixed(2)}</span>
@@ -185,7 +185,7 @@ export default function AdminVentaPresencial() {
 
         {/* Producto elegido: talla/color/cantidad */}
         {seleccion && (
-          <div className="mt-4 rounded-2xl bg-white/60 p-4">
+          <div className="mt-4 rounded-2xl bg-white p-4">
             <div className="flex items-center justify-between">
               <p className="text-sm font-semibold text-plum">{seleccion.nombre}</p>
               <button onClick={() => setSeleccion(null)} className="text-plum-soft hover:text-plum">
@@ -199,7 +199,7 @@ export default function AdminVentaPresencial() {
                   <select
                     value={talla}
                     onChange={(e) => setTalla(e.target.value)}
-                    className="mt-1 block rounded-xl bg-white px-3 py-2 text-sm text-plum shadow-glass focus:outline-none"
+                    className="mt-1 block rounded-xl bg-white px-3 py-2 text-sm text-plum focus:outline-none"
                   >
                     {seleccion.tallas.map((t) => (
                       <option key={t} value={t}>{t}</option>
@@ -213,7 +213,7 @@ export default function AdminVentaPresencial() {
                   <select
                     value={color}
                     onChange={(e) => setColor(e.target.value)}
-                    className="mt-1 block rounded-xl bg-white px-3 py-2 text-sm text-plum shadow-glass focus:outline-none"
+                    className="mt-1 block rounded-xl bg-white px-3 py-2 text-sm text-plum focus:outline-none"
                   >
                     {seleccion.colores.map((c) => (
                       <option key={c} value={c}>{c}</option>
@@ -228,12 +228,12 @@ export default function AdminVentaPresencial() {
                   min={1}
                   value={cantidad}
                   onChange={(e) => setCantidad(e.target.value)}
-                  className="mt-1 block w-20 rounded-xl bg-white px-3 py-2 text-sm text-plum shadow-glass focus:outline-none"
+                  className="mt-1 block w-20 rounded-xl bg-white px-3 py-2 text-sm text-plum focus:outline-none"
                 />
               </label>
               <button
                 onClick={agregarAlCarrito}
-                className="rounded-full bg-berry px-4 py-2 text-sm font-semibold text-white shadow-glass hover:bg-berry-dark"
+                className="rounded-[10px] bg-berry px-4 py-2 text-sm font-semibold text-white hover:bg-berry-dark"
               >
                 Agregar
               </button>
@@ -275,7 +275,7 @@ export default function AdminVentaPresencial() {
             <select
               value={metodoPago}
               onChange={(e) => setMetodoPago(e.target.value)}
-              className="mt-1 block w-full rounded-xl bg-white px-3 py-2 text-sm text-plum shadow-glass focus:outline-none"
+              className="mt-1 block w-full rounded-xl bg-white px-3 py-2 text-sm text-plum focus:outline-none"
             >
               {METODOS_PAGO.map((m) => (
                 <option key={m.valor} value={m.valor}>{m.label}</option>
@@ -288,7 +288,7 @@ export default function AdminVentaPresencial() {
             <input
               value={clienteNombre}
               onChange={(e) => setClienteNombre(e.target.value)}
-              className="mt-1 block w-full rounded-xl bg-white px-3 py-2 text-sm text-plum shadow-glass focus:outline-none"
+              className="mt-1 block w-full rounded-xl bg-white px-3 py-2 text-sm text-plum focus:outline-none"
             />
           </label>
           <label className="text-xs text-plum-soft">
@@ -296,7 +296,7 @@ export default function AdminVentaPresencial() {
             <input
               value={clienteTelefono}
               onChange={(e) => setClienteTelefono(e.target.value)}
-              className="mt-1 block w-full rounded-xl bg-white px-3 py-2 text-sm text-plum shadow-glass focus:outline-none"
+              className="mt-1 block w-full rounded-xl bg-white px-3 py-2 text-sm text-plum focus:outline-none"
             />
           </label>
         </div>
@@ -304,7 +304,7 @@ export default function AdminVentaPresencial() {
         <button
           onClick={registrarVenta}
           disabled={registrando || items.length === 0}
-          className="mt-6 w-full rounded-full bg-berry py-3 text-center font-semibold text-white shadow-glass transition hover:bg-berry-dark disabled:opacity-60"
+          className="mt-6 w-full rounded-[10px] bg-berry py-3 text-center font-semibold text-white transition hover:bg-berry-dark disabled:opacity-60"
         >
           {registrando ? "Registrando..." : `Registrar venta${items.length ? ` — S/ ${total.toFixed(2)}` : ""}`}
         </button>

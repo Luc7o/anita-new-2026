@@ -141,7 +141,7 @@ function Pestanas({ vistas, activa, onCambiar }) {
           tabIndex={activa === v.id ? 0 : -1}
           onClick={() => onCambiar(v.id)}
           onKeyDown={(e) => alTeclear(e, i)}
-          className={`shrink-0 rounded-full px-4 py-1.5 text-sm font-medium shadow-glass transition ${
+          className={`shrink-0 rounded-full px-4 py-1.5 text-sm font-medium transition ${
             activa === v.id ? "bg-berry text-white" : "glass text-plum hover:bg-white"
           }`}
         >
@@ -154,7 +154,7 @@ function Pestanas({ vistas, activa, onCambiar }) {
 
 function Cargando({ error, textoError = "No se pudieron cargar las métricas. Recarga la página para intentarlo de nuevo." }) {
   return error ? (
-    <p role="alert" className="glass rounded-3xl p-6 text-sm text-red-700 shadow-glass">{textoError}</p>
+    <p role="alert" className="glass rounded-2xl p-6 text-sm text-red-700">{textoError}</p>
   ) : (
     <p className="text-plum-soft" role="status">Cargando métricas...</p>
   );
@@ -164,7 +164,7 @@ function Cargando({ error, textoError = "No se pudieron cargar las métricas. Re
 // interior (p-6), así títulos, notas y cifras arrancan en la misma línea.
 function SeccionTarjeta({ titulo, nota, children }) {
   return (
-    <div className="glass rounded-3xl p-6 shadow-glass">
+    <div className="glass rounded-2xl p-6">
       <h2 className="text-lg font-semibold text-plum">{titulo}</h2>
       {nota && <p className="text-xs text-plum-soft">{nota}</p>}
       <div className="mt-4">{children}</div>
@@ -189,14 +189,14 @@ function PanelAtencion({ items }) {
   }
   if (items.length === 0) {
     return (
-      <div className="glass rounded-3xl p-6 shadow-glass">
+      <div className="glass rounded-2xl p-6">
         <p className="font-semibold text-plum">Todo al día ✓</p>
         <p className="text-sm text-plum-soft">No tienes nada pendiente por atender ahora mismo.</p>
       </div>
     );
   }
   return (
-    <section aria-labelledby="atencion-titulo" className="glass rounded-3xl p-6 shadow-glass">
+    <section aria-labelledby="atencion-titulo" className="glass rounded-2xl p-6">
       <h2 id="atencion-titulo" className="text-lg font-semibold text-plum">Necesita tu atención</h2>
       <ul className="mt-3 divide-y divide-plum/10">
         {items.map((it) => (
@@ -204,7 +204,7 @@ function PanelAtencion({ items }) {
             <Link to={it.enlace} className="flex items-center justify-between gap-3 py-2.5 text-sm transition hover:text-berry">
               <span className="flex items-center gap-2 text-plum">
                 {it.urgente && (
-                  <span className="rounded-full bg-gold/30 px-2 py-0.5 text-xs font-semibold text-plum">Urgente</span>
+                  <span className="rounded-md bg-gold/30 px-2 py-0.5 text-xs font-semibold text-plum">Urgente</span>
                 )}
                 {it.texto}
               </span>
@@ -289,13 +289,13 @@ function VistaResumen({ atencion, stats, errorStats, tieneEstadisticas }) {
       <div className="flex flex-wrap gap-3">
         <Link
           to="/admin/productos"
-          className="rounded-full bg-berry px-5 py-2.5 text-sm font-semibold text-white shadow-glass transition hover:bg-berry-dark"
+          className="rounded-[10px] bg-berry px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-berry-dark"
         >
           Gestionar productos
         </Link>
         <Link
           to="/admin/pedidos"
-          className="glass rounded-full px-5 py-2.5 text-sm font-semibold text-plum shadow-glass transition hover:bg-white"
+          className="glass rounded-[10px] px-5 py-2.5 text-sm font-semibold text-plum transition hover:bg-white"
         >
           Ver pedidos
         </Link>
@@ -320,7 +320,7 @@ function VistaVentas({ stats, errorStats, kpis, errorKpis, tieneKpis }) {
       </div>
 
       {hayDetalleFinanciero && (
-        <div className="glass rounded-3xl p-6 shadow-glass">
+        <div className="glass rounded-2xl p-6">
           <button
             onClick={() => setVerDetalleFinanciero((v) => !v)}
             aria-expanded={verDetalleFinanciero}
@@ -519,7 +519,7 @@ function VistaSistema({ kpis, errorKpis }) {
 
 function Tarjeta({ label, valor, destacar = false, small = false, detalle }) {
   return (
-    <div className={`glass rounded-3xl shadow-glass ${small ? "p-5" : "p-6"} ${destacar ? "ring-2 ring-inset ring-gold" : ""}`}>
+    <div className={`glass rounded-2xl ${small ? "p-5" : "p-6"} ${destacar ? "ring-2 ring-inset ring-gold" : ""}`}>
       <p className="text-xs uppercase tracking-wide text-plum-soft">{label}</p>
       <p className={`mt-1 font-semibold text-plum ${small ? "text-lg" : "text-2xl"}`}>{valor}</p>
       {detalle && <p className="mt-1 text-xs text-plum-soft">{detalle}</p>}
@@ -544,7 +544,7 @@ function VentasChart({ datos, pie }) {
   const area = `${margen},${alto} ${linea} ${ancho - margen},${alto}`;
 
   return (
-    <div className="glass rounded-3xl p-6 shadow-glass">
+    <div className="glass rounded-2xl p-6">
       <h2 className="text-lg font-semibold text-plum">Ventas de los últimos 6 meses</h2>
       <p className="text-xs text-plum-soft">Ventas confirmadas por mes</p>
 
@@ -576,7 +576,7 @@ function VisitasChart({ datos }) {
   const sinDatos = datos.every((d) => d.visitas === 0);
 
   return (
-    <div className="glass rounded-3xl p-6 shadow-glass">
+    <div className="glass rounded-2xl p-6">
       <h2 className="text-lg font-semibold text-plum">Visitas de los últimos 7 días</h2>
       <p className="text-xs text-plum-soft">Vistas de página totales, visitantes únicos superpuestos</p>
 
@@ -612,7 +612,7 @@ function Embudo({ datos, titulo, nota, intro }) {
   const sinDatos = datos.every((d) => d.cantidad === 0);
 
   return (
-    <div className="glass rounded-3xl p-6 shadow-glass">
+    <div className="glass rounded-2xl p-6">
       {titulo && <h2 className="text-lg font-semibold text-plum">{titulo}</h2>}
       {nota && <p className="text-xs text-plum-soft">{nota}</p>}
       {intro && !sinDatos && <p className="mt-3 text-sm text-plum-soft">{intro}</p>}
@@ -633,7 +633,7 @@ function Embudo({ datos, titulo, nota, intro }) {
                   )}
                 </span>
               </div>
-              <div className="mt-1.5 h-2.5 w-full overflow-hidden rounded-full bg-white/60">
+              <div className="mt-1.5 h-2.5 w-full overflow-hidden rounded-full bg-plum/10">
                 <div
                   className="h-full rounded-full bg-berry"
                   style={{ width: `${Math.max((paso.cantidad / max) * 100, paso.cantidad > 0 ? 3 : 0)}%` }}
@@ -651,7 +651,7 @@ function BarrasHorizontales({ titulo, subtitulo, vacioTexto, datos }) {
   const max = Math.max(...datos.map((d) => d.valor), 1);
 
   return (
-    <div className="glass rounded-3xl p-6 shadow-glass">
+    <div className="glass rounded-2xl p-6">
       <h2 className="text-lg font-semibold text-plum">{titulo}</h2>
       {subtitulo && <p className="text-xs text-plum-soft">{subtitulo}</p>}
 
@@ -668,7 +668,7 @@ function BarrasHorizontales({ titulo, subtitulo, vacioTexto, datos }) {
                   {d.detalle && <span className="ml-1.5 text-xs font-normal text-plum-soft/70">· {d.detalle}</span>}
                 </span>
               </div>
-              <div className="mt-1 h-2 w-full overflow-hidden rounded-full bg-white/60">
+              <div className="mt-1 h-2 w-full overflow-hidden rounded-full bg-plum/10">
                 <div className="h-full rounded-full bg-berry" style={{ width: `${Math.max((d.valor / max) * 100, 3)}%` }} />
               </div>
             </div>
@@ -691,7 +691,7 @@ function TopCategorias({ datos }) {
     .join(", ");
 
   return (
-    <div className="glass rounded-3xl p-6 shadow-glass">
+    <div className="glass rounded-2xl p-6">
       <h2 className="text-lg font-semibold text-plum">Categorías más vendidas</h2>
       <p className="text-xs text-plum-soft">Por unidades vendidas</p>
 
@@ -724,7 +724,7 @@ function TopCategorias({ datos }) {
 
 function PedidosRecientes({ datos }) {
   return (
-    <div className="glass rounded-3xl p-6 shadow-glass">
+    <div className="glass rounded-2xl p-6">
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold text-plum">Pedidos recientes</h2>
         <Link to="/admin/pedidos" className="text-sm font-semibold text-berry-dark hover:underline">
@@ -737,14 +737,14 @@ function PedidosRecientes({ datos }) {
       ) : (
         <div className="mt-4 space-y-2">
           {datos.map((p) => (
-            <div key={p.numero_pedido} className="flex items-center justify-between rounded-2xl bg-white/60 px-4 py-3">
+            <div key={p.numero_pedido} className="flex items-center justify-between rounded-2xl bg-white px-4 py-3">
               <div className="min-w-0">
                 <p className="truncate text-sm font-semibold text-plum">{p.numero_pedido}</p>
                 <p className="truncate text-xs text-plum-soft">{p.cliente} · {p.producto_resumen}</p>
               </div>
               <div className="flex shrink-0 items-center gap-3">
                 <span className="text-sm font-semibold text-plum">S/ {p.total.toFixed(2)}</span>
-                <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${ESTADO_BADGE[p.estado] || "bg-plum/10 text-plum-soft"}`}>
+                <span className={`rounded-md px-2.5 py-1 text-xs font-semibold ${ESTADO_BADGE[p.estado] || "bg-plum/10 text-plum-soft"}`}>
                   {p.estado_label}
                 </span>
               </div>
@@ -758,7 +758,7 @@ function PedidosRecientes({ datos }) {
 
 function ProductosTop({ datos }) {
   return (
-    <div className="glass rounded-3xl p-6 shadow-glass">
+    <div className="glass rounded-2xl p-6">
       <h2 className="text-lg font-semibold text-plum">Productos más vendidos</h2>
 
       {datos.length === 0 ? (

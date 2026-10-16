@@ -110,7 +110,7 @@ export default function App() {
 
   if (esAdmin) {
     return (
-      <div className="min-h-screen pt-8">
+      <div className="min-h-screen">
         {bannerSesionExpirada}        <Suspense fallback={<CargandoPagina />}>
         <Routes>
           <Route
