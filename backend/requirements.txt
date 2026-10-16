@@ -14,3 +14,4 @@ requests==2.32.3
 vercel_blob
 xhtml2pdf
 redis==5.0.8
+google-auth==2.35.0

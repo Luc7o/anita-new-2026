@@ -18,6 +18,8 @@ dependencies = [
     "requests==2.32.3",
     "vercel_blob==0.4.2",
     "xhtml2pdf==0.2.16",
+    "redis==5.0.8",
+    "google-auth==2.35.0",
 ]
 
 [tool.vercel]

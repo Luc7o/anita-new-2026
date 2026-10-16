@@ -96,4 +96,5 @@ export default function GoogleButton({ onSuccess, onError, texto = "continue_wit
       </p>
     </div>
   );
+  return <div ref={contenedor} className="flex w-full justify-center" />;
 }

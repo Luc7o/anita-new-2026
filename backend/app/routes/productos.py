@@ -1,5 +1,6 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
+from sqlalchemy import func
 from sqlalchemy.orm import joinedload, selectinload
 from app.extensions import db, limiter
 from app.models import Producto, Categoria, Resena, DetallePedido, Pedido, VarianteProducto, Talla
@@ -111,6 +112,88 @@ def listar_resenas(producto_id):
         "resenas": [r.to_dict() for r in resenas],
         "promedio": producto.promedio_calificacion,
         "total": producto.total_resenas,
+    })
+
+
+@bp.get("/resenas")
+def listar_resenas_recientes():
+    """Reseñas reales de toda la tienda (página pública "Reviews de clientes").
+
+    Lee directo de la tabla `resenas`, así que una reseña nueva aparece en
+    cuanto se guarda. Solo cuentan productos activos. Del autor se expone
+    únicamente el nombre y la inicial del apellido (nunca correo ni datos
+    de contacto).
+    """
+    limite = min(max(request.args.get("limite", 12, type=int), 1), 50)
+    offset = max(request.args.get("offset", 0, type=int), 0)
+
+    solo_activos = Producto.activo.is_(True)
+
+    total = (
+        db.session.query(func.count(Resena.id))
+        .join(Producto, Producto.id == Resena.producto_id)
+        .filter(solo_activos)
+        .scalar()
+    ) or 0
+
+    promedio = None
+    distribucion = {str(n): 0 for n in range(1, 6)}
+    if total:
+        promedio = (
+            db.session.query(func.avg(Resena.calificacion))
+            .join(Producto, Producto.id == Resena.producto_id)
+            .filter(solo_activos)
+            .scalar()
+        )
+        filas_dist = (
+            db.session.query(Resena.calificacion, func.count(Resena.id))
+            .join(Producto, Producto.id == Resena.producto_id)
+            .filter(solo_activos)
+            .group_by(Resena.calificacion)
+            .all()
+        )
+        for calificacion, cantidad in filas_dist:
+            distribucion[str(calificacion)] = cantidad
+
+    filas = (
+        db.session.query(Resena, Producto)
+        .join(Producto, Producto.id == Resena.producto_id)
+        .filter(solo_activos)
+        .options(joinedload(Resena.usuario), selectinload(Producto.imagenes))
+        .order_by(Resena.fecha_creacion.desc(), Resena.id.desc())
+        .offset(offset)
+        .limit(limite)
+        .all()
+    )
+
+    resenas = []
+    for resena, producto in filas:
+        usuario = resena.usuario
+        if usuario:
+            inicial = f" {usuario.apellido[0]}." if usuario.apellido else ""
+            autor = f"{usuario.nombre}{inicial}"
+        else:
+            autor = "Cliente"
+        resenas.append({
+            "id": resena.id,
+            "autor": autor,
+            "calificacion": resena.calificacion,
+            "comentario": resena.comentario,
+            "compra_verificada": bool(resena.compra_verificada),
+            "fecha_creacion": resena.fecha_creacion.isoformat(),
+            "producto": {
+                "id": producto.id,
+                "nombre": producto.nombre,
+                "imagen_url": producto.imagen_principal,
+            },
+        })
+
+    return jsonify({
+        "resenas": resenas,
+        "total": total,
+        "promedio": round(float(promedio), 1) if promedio is not None else None,
+        "distribucion": distribucion,
+        "hay_mas": offset + len(resenas) < total,
     })
 
 

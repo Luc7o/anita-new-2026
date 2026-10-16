@@ -1,10 +1,11 @@
-# Backend
+# ---------- Backend ----------
 backend/venv/
-backend/.env
 backend/__pycache__/
 backend/**/__pycache__/
 backend/*.pyc
 backend/instance/
+
+# Archivos subidos por usuarios (se conservan solo los .gitkeep)
 backend/app/static/uploads/productos/*
 !backend/app/static/uploads/productos/.gitkeep
 backend/app/static/uploads/comprobantes/*
@@ -12,14 +13,23 @@ backend/app/static/uploads/comprobantes/*
 backend/app/static/uploads/pagos/*
 !backend/app/static/uploads/pagos/.gitkeep
 
-# Frontend
+# ---------- Frontend ----------
 frontend/node_modules/
 frontend/dist/
-frontend/.env
-frontend/.env.local
-frontend/.env.*.local
 
-# Vercel (se crea al correr `vercel link` / `vercel dev`)
+# ---------- Secretos: variables de entorno ----------
+# Con punto (lo normal)
+.env
+.env.*
+!.env.example
+# Sin punto (como están ahora en tu proyecto)
+backend/env
+frontend/env
+
+# ---------- Vercel ----------
+# Se crea al correr `vercel link` / `vercel dev`
 .vercel/
 
+# ---------- Sistema ----------
 .DS_Store
+Thumbs.db
