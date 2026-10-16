@@ -78,6 +78,13 @@ class Config:
     PROVEEDOR_RAZON_SOCIAL = os.getenv("PROVEEDOR_RAZON_SOCIAL", "").strip()
     PROVEEDOR_RUC = os.getenv("PROVEEDOR_RUC", "").strip()
     PROVEEDOR_DOMICILIO = os.getenv("PROVEEDOR_DOMICILIO", "").strip()
+
+    # Datos extra que se imprimen en la cabecera y el pie de la boleta de
+    # venta (además de PROVEEDOR_RUC y PROVEEDOR_DOMICILIO de arriba). Si
+    # alguno queda vacío, esa línea simplemente no aparece en la boleta.
+    BOLETA_TELEFONO = os.getenv("BOLETA_TELEFONO", "").strip()
+    BOLETA_EMAIL = os.getenv("BOLETA_EMAIL", "").strip()
+    BOLETA_POLITICA_CAMBIOS = os.getenv("BOLETA_POLITICA_CAMBIOS", "").strip()
     # Correo donde llega el aviso de cada reclamo nuevo (si se deja vacío, no se envía)
     RECLAMOS_EMAIL_DESTINO = os.getenv("RECLAMOS_EMAIL_DESTINO", "").strip()
 
@@ -85,8 +92,30 @@ class Config:
     # migración al dominio propio, mientras el frontend puede estar servido
     # tanto desde *.vercel.app como desde el dominio custom). Ejemplo:
     # "https://anita-new-2026.vercel.app,https://www.anita-new-style.xyz"
-    _frontend_origin_raw = os.getenv("FRONTEND_ORIGIN", "http://localhost:5173")
-    FRONTEND_ORIGIN = [origen.strip() for origen in _frontend_origin_raw.split(",") if origen.strip()]
+    # Este backend puede servir a DOS frontends (la tienda y un panel de
+    # administración aparte), así que aquí van los orígenes separados por coma.
+    # Ejemplo: "https://www.midominio.com,https://admin.midominio.com".
+    # Default: local (tienda 5173, admin 5174) + el frontend de Vercel. Cada
+    # origen se normaliza (sin espacios ni "/" final): el navegador manda el
+    # header Origin SIN barra final, y flask-cors compara por igualdad exacta,
+    # así que "https://anita-new-2026.vercel.app/" NUNCA coincide con el Origin real.
+    _frontend_origin_raw = os.getenv(
+        "FRONTEND_ORIGIN",
+        "http://localhost:5173,http://localhost:5174,https://anita-new-2026.vercel.app",
+    )
+    FRONTEND_ORIGIN = [
+        origen.strip().rstrip("/")
+        for origen in _frontend_origin_raw.split(",")
+        if origen.strip()
+    ]
+
+    # URL pública de la TIENDA (la que ven los clientes). Se usa para armar los
+    # enlaces que van por correo (por ejemplo "restablecer contraseña"), que
+    # deben abrir la tienda y no el panel de administración. Si no se define,
+    # se usa el primer origen de FRONTEND_ORIGIN.
+    FRONTEND_TIENDA_URL = (
+        os.getenv("FRONTEND_TIENDA_URL", "").strip().rstrip("/") or FRONTEND_ORIGIN[0]
+    )
 
     # Backend de almacenamiento para Flask-Limiter (cuenta los intentos de
     # login, registro, recuperación de contraseña, etc.). En Vercel el
@@ -109,6 +138,11 @@ class Config:
     # producción mientras se confirma que Redis está bien conectado.
     REQUIRE_REDIS_EN_PROD = os.getenv("REQUIRE_REDIS_EN_PROD", "false").lower() == "true"
 
+    # Caché de respuestas públicas (ver app/utils/cache.py). CACHE_EDGE=true
+    # agrega s-maxage para que también el CDN de Vercel las guarde; se deja
+    # apagado por defecto hasta confirmar que el CDN respeta "Vary: Origin"
+    # (las respuestas llevan cabeceras CORS distintas según el origen).
+    CACHE_EDGE = os.getenv("CACHE_EDGE", "false").lower() == "true"
     # KPIs: fracción de requests que se loguean en latencia_requests (1.0 =
     # todos). Bajarlo (ej. "0.2") si el volumen de tráfico hace crecer mucho
     # la tabla.
@@ -129,6 +163,15 @@ class Config:
     # su documento a mano sin que el registro se bloquee.
     API_PERU_TOKEN = os.getenv("API_PERU_TOKEN", "")
     API_PERU_BASE_URL = os.getenv("API_PERU_BASE_URL", "https://api.decolecta.com")
+
+    # Inicio de sesión / registro con Google (Google Identity Services).
+    # Client ID de tipo "Aplicación web": Google Cloud Console -> APIs y
+    # servicios -> Credenciales -> Crear credenciales -> ID de cliente de
+    # OAuth. Es el MISMO valor que VITE_GOOGLE_CLIENT_ID en el frontend (el
+    # backend lo usa para comprobar que el token fue emitido para ESTA app).
+    # No es un secreto, pero si queda vacío /auth/google responde 503 en vez
+    # de aceptar tokens de cualquier aplicación.
+    GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID", "").strip()
 
     # Pasarela de pago Culqi — tarjeta y Yape se cobran en el momento
     # (síncrono: no hay redirección ni webhook, a diferencia de TuPay).

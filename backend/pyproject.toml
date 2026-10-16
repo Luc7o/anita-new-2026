@@ -16,7 +16,7 @@ dependencies = [
     "cryptography==43.0.0",
     "resend==2.7.0",
     "requests==2.32.3",
-    "vercel_blob",
+    "vercel_blob==0.4.2",
     "xhtml2pdf==0.2.16",
 ]
 

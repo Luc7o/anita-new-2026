@@ -13,9 +13,27 @@ en el entorno serverless de Vercel — xhtml2pdf evita ese problema por
 completo, a cambio de soportar un subconjunto más simple de CSS (nada de
 flexbox/grid, pero de sobra para tablas, colores y bordes como los de acá).
 """
+import hashlib
 from io import BytesIO
 
 from xhtml2pdf import pisa
+from xhtml2pdf.xhtml2pdf_reportlab import PmlImageReader
+
+def _repr_por_contenido(self):
+    try:
+        return "PmlImageReader-" + hashlib.md5(self.getRGBData()).hexdigest()
+    except Exception:
+        return object.__repr__(self)
+
+
+# Parche a xhtml2pdf: al dibujar una imagen, ReportLab la nombra con str() del
+# PmlImageReader (que no hereda de ImageReader), y por defecto ese texto lleva
+# la dirección de memoria del objeto. Esos lectores son temporales, así que
+# Python reutiliza la misma dirección para imágenes distintas y ReportLab las
+# toma por la misma: en la boleta las 4 esquinas redondeadas salían idénticas.
+# Nombrarlas por el contenido evita la colisión (y no cambia nada si el logo
+# u otra imagen ya se dibujaban bien).
+PmlImageReader.__str__ = _repr_por_contenido
 
 # Paleta de marca (coincide con los colores berry/plum/plum-soft del frontend)
 COLOR_BERRY = "#8B2C4C"
@@ -132,6 +150,16 @@ def generar_pdf(html_body, titulo="Documento"):
         </p>
     </body>
     </html>
+    """
+    return html_a_pdf(html_completo)
+
+
+def html_a_pdf(html_completo):
+    """
+    Convierte un documento HTML COMPLETO (con su propio <style>) a bytes de
+    PDF. Lo usan los documentos que no comparten el CSS de marca base — por
+    ejemplo el reporte de ventas, que tiene su propia plantilla en blanco y
+    negro con cabecera, pie y numeración de páginas.
     """
     buffer = BytesIO()
     resultado = pisa.CreatePDF(html_completo, dest=buffer)
