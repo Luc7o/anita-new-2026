@@ -4,32 +4,34 @@ export default {
   theme: {
     extend: {
       colors: {
-        ivory: "#FBF7F3",
-        lilac: "#F1E9F7",
+        ivory: "#F7F5F5",
+        lilac: "#F2E4E8",
         plum: {
-          DEFAULT: "#2B1E29",
-          soft: "#5A4756",
+          DEFAULT: "#2C0107",
+          soft: "#6B6A6B",
         },
         berry: {
-          DEFAULT: "#A53694",
-          dark: "#76266A",
-          light: "#CA8AC0",
+          DEFAULT: "#C42759",
+          dark: "#550416",
+          light: "#E58AA6",
         },
         gold: {
-          DEFAULT: "#C9A227",
-          soft: "#E4C765",
+          DEFAULT: "#ABABAB",
+          soft: "#C3C3C3",
         },
       },
       fontFamily: {
-        display: ["'Fraunces'", "serif"],
-        body: ["'Manrope'", "sans-serif"],
+        sans: ['"DM Sans"', "ui-sans-serif", "system-ui", "sans-serif"],
+        display: ['"DM Serif Display"', "Georgia", "serif"],
+        body: ['"DM Sans"', "ui-sans-serif", "system-ui", "sans-serif"],
       },
       backdropBlur: {
         xs: "2px",
       },
       boxShadow: {
-        glass: "0 8px 32px 0 rgba(140, 47, 91, 0.12)",
-        "glass-lg": "0 12px 48px 0 rgba(140, 47, 91, 0.18)",
+        glass: "0 8px 32px 0 rgba(85, 4, 22, 0.14)",
+        "glass-lg": "0 12px 48px 0 rgba(85, 4, 22, 0.22)",
+        pop: "0 12px 32px -8px rgba(44, 1, 7, 0.35)",
       },
       borderRadius: {
         "3xl": "1.75rem",

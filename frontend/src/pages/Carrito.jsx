@@ -4,6 +4,7 @@ import { useCarrito } from "../context/CarritoContext.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
 import { IconCart, IconTrash } from "../components/Icons.jsx";
 import ImagenOptimizada from "../components/ImagenOptimizada.jsx";
+import EstadoVacio from "../components/EstadoVacio.jsx";
 import { Skeleton, SkeletonRegion } from "../components/Skeleton.jsx";
 
 // Carrito "a detalle": vista completa del carrito (foto grande, precio
@@ -78,21 +79,14 @@ export default function Carrito() {
           </div>
         </SkeletonRegion>
       ) : items.length === 0 ? (
-        <div className="glass flex animate-fade-in flex-col items-center gap-4 rounded-3xl p-12 text-center shadow-glass">
-          <span className="flex h-16 w-16 items-center justify-center rounded-full bg-lilac text-berry">
-            <IconCart size={28} />
-          </span>
-          <p className="text-lg font-semibold text-plum">Tu carrito está vacío</p>
-          <p className="max-w-sm text-sm text-plum-soft">
-            Agrega productos y vuelve aquí para revisarlos antes de pagar.
-          </p>
-          <Link
-            to="/tienda"
-            className="rounded-full bg-berry px-6 py-2.5 text-sm font-semibold text-white shadow-glass transition hover:bg-berry-dark active:scale-95"
-          >
-            Explorar tienda
-          </Link>
-        </div>
+        <EstadoVacio
+          icono={IconCart}
+          titulo="Tu carrito está vacío"
+          texto="Mira lo nuevo de la tienda y agrega lo que te guste; aquí lo revisas antes de pagar."
+          enlace="/tienda"
+          etiqueta="Ver lo nuevo"
+          className="p-12"
+        />
       ) : (
         <div className="grid items-start gap-6 md:grid-cols-[1.6fr_1fr]">
           <ul className="space-y-4">

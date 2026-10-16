@@ -1,3 +1,5 @@
+import { useToast } from "../context/ToastContext.jsx";
+import Spinner from "../components/Spinner.jsx";
 import React, { useEffect, useRef, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { api } from "../api/client.js";
@@ -16,6 +18,7 @@ import {
 import { nombreColorAHex } from "../utils/colores.js";
 
 export default function ProductoDetalle() {
+  const toast = useToast();
   const { id } = useParams();
   const navigate = useNavigate();
   const { usuario } = useAuth();
@@ -216,7 +219,7 @@ export default function ProductoDetalle() {
     try {
       await agregar(producto.id, { cantidad, talla, color });
       api.registrarEvento("agregar_carrito", { productoId: producto.id, metadata: { cantidad } });
-      setMensaje("¡Producto agregado al carrito!");
+      toast.success("¡Producto agregado al carrito!");
     } catch (err) {
       setMensaje(err.message);
     } finally {
@@ -533,7 +536,7 @@ export default function ProductoDetalle() {
                 disabled={enviandoResena}
                 className="rounded-full bg-berry px-6 py-2.5 text-sm font-semibold text-white shadow-glass transition hover:bg-berry-dark disabled:opacity-60"
               >
-                {enviandoResena ? "Guardando..." : "Publicar reseña"}
+                {enviandoResena ? <><Spinner />Guardando...</> : "Publicar reseña"}
               </button>
               <p className="text-xs text-plum-soft">
                 Solo puedes reseñar productos que hayas comprado.

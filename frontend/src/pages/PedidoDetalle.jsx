@@ -1,3 +1,6 @@
+import { useConfirm } from "../components/ConfirmDialog.jsx";
+import { useToast } from "../context/ToastContext.jsx";
+import Spinner from "../components/Spinner.jsx";
 import React, { useEffect, useState } from "react";
 import { SkeletonPedidoDetalle } from "../components/Skeleton.jsx";
 import { useParams, Link } from "react-router-dom";
@@ -24,6 +27,8 @@ const ESTADO_PAGO_ESTILOS = {
 const METODOS_PASARELA = new Set(["tarjeta", "yape"]);
 
 export default function PedidoDetalle() {
+  const toast = useToast();
+  const confirmar = useConfirm();
   const { id } = useParams();
   const { usuario, setUsuario } = useAuth();
   const [pedido, setPedido] = useState(null);
@@ -66,6 +71,7 @@ export default function PedidoDetalle() {
       });
       limpiarPagoIdempotencyKey(id);
       setPedido(actualizado);
+      toast.success("¡Pago recibido! Gracias por tu compra");
     } catch (err) {
       setErrorPago(err.message);
     } finally {
@@ -74,15 +80,20 @@ export default function PedidoDetalle() {
   };
 
   const cancelarPedido = async () => {
-    const confirmado = window.confirm(
-      "¿Deseas cancelar este pedido? Esta acción no se puede deshacer."
-    );
+    const confirmado = await confirmar({
+      title: "¿Cancelar este pedido?",
+      message: "Esta acción no se puede deshacer.",
+      tone: "danger",
+      confirmText: "Sí, cancelar pedido",
+      cancelText: "No, volver",
+    });
     if (!confirmado) return;
 
     setCancelando(true);
     setErrorCancelar("");
     try {
       await api.cancelarPedido(id);
+      toast.success("Pedido cancelado");
       cargar();
     } catch (err) {
       setErrorCancelar(err.message);
@@ -232,7 +243,7 @@ export default function PedidoDetalle() {
                     disabled={creandoCuenta}
                     className="shrink-0 rounded-full bg-berry px-5 py-2.5 text-sm font-semibold text-white shadow-glass transition hover:bg-berry-dark disabled:cursor-not-allowed disabled:opacity-50"
                   >
-                    {creandoCuenta ? "Guardando..." : "Guardar"}
+                    {creandoCuenta ? <><Spinner />Guardando...</> : "Guardar"}
                   </button>
                 </div>
                 {errorCuenta && (
@@ -265,7 +276,7 @@ export default function PedidoDetalle() {
                   disabled={pagando}
                   className="w-full rounded-full bg-berry py-3 text-center font-semibold text-white shadow-glass transition hover:bg-berry-dark disabled:opacity-60"
                 >
-                  {pagando ? "Conectando con la pasarela..." : `Pagar con ${pedido.metodo_pago_label}`}
+                  {pagando ? <><Spinner />Conectando con la pasarela...</> : `Pagar con ${pedido.metodo_pago_label}`}
                 </button>
                 {errorPago && <p className="mt-2 text-sm text-berry-dark">{errorPago}</p>}
               </div>
@@ -352,7 +363,7 @@ export default function PedidoDetalle() {
               disabled={descargandoBoleta}
               className="w-full rounded-full bg-white/70 py-3 text-center font-semibold text-berry-dark shadow-glass transition hover:bg-white disabled:opacity-60"
             >
-              {descargandoBoleta ? "Generando boleta..." : "Descargar boleta"}
+              {descargandoBoleta ? <><Spinner />Generando boleta...</> : "Descargar boleta"}
             </button>
             {errorBoleta && <p className="mt-2 text-center text-sm text-berry-dark">{errorBoleta}</p>}
           </div>
@@ -365,7 +376,7 @@ export default function PedidoDetalle() {
               disabled={cancelando}
               className="w-full rounded-full bg-white/70 py-3 text-center font-semibold text-berry-dark shadow-glass transition hover:bg-white disabled:opacity-60"
             >
-              {cancelando ? "Cancelando..." : "Cancelar pedido"}
+              {cancelando ? <><Spinner />Cancelando...</> : "Cancelar pedido"}
             </button>
             {errorCancelar && <p className="mt-2 text-center text-sm text-berry-dark">{errorCancelar}</p>}
           </div>

@@ -1,3 +1,7 @@
+import { useConfirm } from "../../components/ConfirmDialog.jsx";
+import { useToast } from "../../context/ToastContext.jsx";
+import Spinner from "../../components/Spinner.jsx";
+import { SkeletonFilasAdmin } from "../../components/admin/EsqueletosAdmin.jsx";
 import React, { useEffect, useMemo, useState } from "react";
 import { api } from "../../api/client.js";
 import { IconSearch, IconEdit, IconTrash, IconChevronLeft, IconChevronRight, IconTag } from "../../components/Icons.jsx";
@@ -8,7 +12,10 @@ const VACIO = { nombre: "", descripcion: "", icono: "bag" };
 const POR_PAGINA = 10;
 
 export default function AdminCategorias() {
+  const toast = useToast();
+  const confirmar = useConfirm();
   const [categorias, setCategorias] = useState([]);
+  const [cargandoLista, setCargandoLista] = useState(true);
   const [form, setForm] = useState(VACIO);
   const [editandoId, setEditandoId] = useState(null);
   const [mostrarForm, setMostrarForm] = useState(false);
@@ -25,7 +32,7 @@ export default function AdminCategorias() {
   const cargar = () => api.adminCategorias().then(setCategorias);
 
   useEffect(() => {
-    cargar();
+    cargar().finally(() => setCargandoLista(false));
   }, []);
 
   const actualizarCampo = (campo) => (e) => setForm({ ...form, [campo]: e.target.value });
@@ -54,6 +61,7 @@ export default function AdminCategorias() {
       } else {
         await api.adminCrearCategoria(form);
       }
+      toast.success(editandoId ? "Categoría actualizada" : "Categoría creada");
       setMostrarForm(false);
       cargar();
     } catch (err) {
@@ -64,9 +72,19 @@ export default function AdminCategorias() {
   };
 
   const eliminar = async (cat) => {
-    if (!confirm(`¿Eliminar/desactivar "${cat.nombre}"?`)) return;
-    await api.adminEliminarCategoria(cat.id);
-    cargar();
+    const ok = await confirmar({
+      title: `¿Eliminar o desactivar "${cat.nombre}"?`,
+      tone: "danger",
+      confirmText: "Sí, continuar",
+    });
+    if (!ok) return;
+    try {
+      await api.adminEliminarCategoria(cat.id);
+      toast.success("Categoría eliminada o desactivada");
+      cargar();
+    } catch (err) {
+      toast.error(err.message || "No se pudo eliminar la categoría");
+    }
   };
 
   const cambiarEstado = async (cat) => {
@@ -115,7 +133,7 @@ export default function AdminCategorias() {
           <p className="text-sm text-plum-soft">Administra las categorías y subcategorías de productos.</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <div className="glass relative rounded-full shadow-glass">
+          <div className="glass relative rounded-[10px]">
             <IconSearch size={15} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-plum-soft" />
             <input
               placeholder="Buscar categorías..."
@@ -125,12 +143,12 @@ export default function AdminCategorias() {
                 setBusqueda(e.target.value);
                 setPagina(1);
               }}
-              className="w-56 rounded-full bg-transparent py-2 pl-9 pr-4 text-sm text-plum focus:outline-none"
+              className="w-56 rounded-[10px] bg-transparent py-2 pl-9 pr-4 text-sm text-plum focus:outline-none"
             />
           </div>
           <button
             onClick={nuevaCategoria}
-            className="rounded-full bg-berry px-5 py-2.5 text-sm font-semibold text-white shadow-glass transition hover:bg-berry-dark"
+            className="rounded-[10px] bg-berry px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-berry-dark"
           >
             + Añadir categoría
           </button>
@@ -145,7 +163,7 @@ export default function AdminCategorias() {
             setFiltroEstado(e.target.value);
             setPagina(1);
           }}
-          className="glass rounded-full px-4 py-2 text-sm text-plum shadow-glass focus:outline-none"
+          className="glass rounded-[10px] px-4 py-2 text-sm text-plum focus:outline-none"
         >
           <option value="">Estado: Todos</option>
           <option value="activo">Activo</option>
@@ -157,7 +175,7 @@ export default function AdminCategorias() {
             setOrden(e.target.value);
             setPagina(1);
           }}
-          className="glass rounded-full px-4 py-2 text-sm text-plum shadow-glass focus:outline-none"
+          className="glass rounded-[10px] px-4 py-2 text-sm text-plum focus:outline-none"
         >
           <option value="productos_desc">Ordenar: Productos (mayor a menor)</option>
           <option value="productos_asc">Productos (menor a mayor)</option>
@@ -167,9 +185,9 @@ export default function AdminCategorias() {
 
       {/* Tabla — solo desktop/tablet */}
       <Paginador pagina={paginaActual} porPagina={POR_PAGINA} total={listado.length} onCambiar={setPagina} className="mb-2" />
-      <div className="glass hidden overflow-hidden rounded-3xl shadow-glass md:block">
+      <div className="glass hidden overflow-hidden rounded-2xl md:block">
         <table className="w-full text-left text-sm">
-          <thead className="bg-white/50 text-xs uppercase tracking-wide text-plum-soft">
+          <thead className="bg-white text-xs uppercase tracking-wide text-plum-soft">
             <tr>
               <th className="px-4 py-3"></th>
               <th className="px-4 py-3">Categoría</th>
@@ -198,7 +216,7 @@ export default function AdminCategorias() {
                 <td className="px-4 py-3">
                   <button
                     onClick={() => cambiarEstado(cat)}
-                    className={`rounded-full px-2.5 py-1 text-xs font-semibold transition ${
+                    className={`rounded-md px-2.5 py-1 text-xs font-semibold transition ${
                       cat.activo ? "bg-green-100 text-green-700 hover:bg-green-200" : "bg-plum/10 text-plum-soft hover:bg-plum/20"
                     }`}
                   >
@@ -220,7 +238,9 @@ export default function AdminCategorias() {
           </tbody>
         </table>
 
-        {paginados.length === 0 && (
+        {cargandoLista && <SkeletonFilasAdmin etiqueta="Cargando lista" />}
+
+        {!cargandoLista && paginados.length === 0 && (
           <p className="p-6 text-center text-plum-soft">No se encontraron categorías.</p>
         )}
       </div>
@@ -228,7 +248,7 @@ export default function AdminCategorias() {
       {/* Tarjetas — solo móvil */}
       <div className="space-y-3 md:hidden">
         {paginados.map((cat) => (
-          <div key={cat.id} className="glass flex gap-3 rounded-2xl p-4 shadow-glass">
+          <div key={cat.id} className="glass flex gap-3 rounded-2xl p-4">
             <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-lilac to-white text-berry">
               <IconTag size={18} />
             </div>
@@ -237,7 +257,7 @@ export default function AdminCategorias() {
                 <p className="truncate font-medium text-plum">{cat.nombre}</p>
                 <button
                   onClick={() => cambiarEstado(cat)}
-                  className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold ${
+                  className={`shrink-0 rounded-md px-2.5 py-1 text-xs font-semibold ${
                     cat.activo ? "bg-green-100 text-green-700" : "bg-plum/10 text-plum-soft"
                   }`}
                 >
@@ -259,8 +279,9 @@ export default function AdminCategorias() {
             </div>
           </div>
         ))}
-        {paginados.length === 0 && (
-          <p className="glass rounded-2xl p-6 text-center text-plum-soft shadow-glass">
+        {cargandoLista && <SkeletonFilasAdmin etiqueta="Cargando lista" />}
+        {!cargandoLista && paginados.length === 0 && (
+          <p className="glass rounded-2xl p-6 text-center text-plum-soft">
             No se encontraron categorías.
           </p>
         )}
@@ -269,7 +290,7 @@ export default function AdminCategorias() {
       {mostrarForm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <button
-            className="absolute inset-0 bg-plum/30 backdrop-blur-sm"
+            className="absolute inset-0 animate-fade-in bg-plum/30 backdrop-blur-sm"
             onClick={() => setMostrarForm(false)}
             aria-label="Cerrar"
           />
@@ -280,7 +301,7 @@ export default function AdminCategorias() {
             aria-labelledby="categoria-form-titulo"
             tabIndex={-1}
             onSubmit={guardar}
-            className="glass-strong relative w-full max-w-md rounded-3xl p-6 shadow-glass-lg sm:p-8"
+            className="animate-scale-in glass-strong relative w-full max-w-md rounded-2xl p-6 shadow-glass-lg sm:p-8"
           >
             <h2 id="categoria-form-titulo" className="mb-4 text-xl font-semibold text-plum">
               {editandoId ? "Editar categoría" : "Nueva categoría"}
@@ -298,7 +319,7 @@ export default function AdminCategorias() {
                   maxLength={80}
                   value={form.nombre}
                   onChange={actualizarCampo("nombre")}
-                  className="w-full rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-none"
+                  className="w-full rounded-2xl bg-white px-4 py-2.5 text-plum focus:outline-none"
                 />
               </div>
               <div>
@@ -312,7 +333,7 @@ export default function AdminCategorias() {
                   rows={3}
                   value={form.descripcion}
                   onChange={actualizarCampo("descripcion")}
-                  className="w-full rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-none"
+                  className="w-full rounded-2xl bg-white px-4 py-2.5 text-plum focus:outline-none"
                 />
               </div>
             </div>
@@ -323,14 +344,14 @@ export default function AdminCategorias() {
               <button
                 type="submit"
                 disabled={guardando}
-                className="flex-1 rounded-full bg-berry py-2.5 text-sm font-semibold text-white shadow-glass transition hover:bg-berry-dark disabled:opacity-60"
+                className="flex-1 rounded-[10px] bg-berry py-2.5 text-sm font-semibold text-white transition hover:bg-berry-dark disabled:opacity-60"
               >
-                {guardando ? "Guardando..." : editandoId ? "Guardar cambios" : "Crear categoría"}
+                {guardando ? <><Spinner />Guardando...</> : editandoId ? "Guardar cambios" : "Crear categoría"}
               </button>
               <button
                 type="button"
                 onClick={() => setMostrarForm(false)}
-                className="rounded-full bg-white/70 px-5 py-2.5 text-sm font-semibold text-plum shadow-glass"
+                className="rounded-[10px] bg-white px-5 py-2.5 text-sm font-semibold text-plum"
               >
                 Cancelar
               </button>

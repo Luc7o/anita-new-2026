@@ -1,3 +1,6 @@
+import { useToast } from "../../context/ToastContext.jsx";
+import Spinner from "../../components/Spinner.jsx";
+import { SkeletonFilasAdmin } from "../../components/admin/EsqueletosAdmin.jsx";
 import React, { useEffect, useState } from "react";
 import { api } from "../../api/client.js";
 import { soloTexto } from "../../validacion.js";
@@ -9,10 +12,12 @@ import { usePaginacion } from "../../hooks/usePaginacion.js";
 const VACIO = { nombre: "", apellido: "", email: "", password: "", rol: "editor" };
 
 export default function AdminUsuarios() {
+  const toast = useToast();
   const { usuario: usuarioActual } = useAuth();
   const esRRHH = usuarioActual?.rol === "rrhh";
 
   const [usuarios, setUsuarios] = useState([]);
+  const [cargandoLista, setCargandoLista] = useState(true);
   const [roles, setRoles] = useState({});
   const [filtroRol, setFiltroRol] = useState("");
   // Paginación: debe ir DESPUÉS de declarar `usuarios` y `filtroRol`, porque los usa.
@@ -29,7 +34,7 @@ export default function AdminUsuarios() {
 
   useEffect(() => {
     api.adminRolesDisponibles().then(setRoles);
-    cargarUsuarios();
+    cargarUsuarios().finally(() => setCargandoLista(false));
   }, []);
 
   const actualizarCampo = (campo) => (e) => setForm({ ...form, [campo]: e.target.value });
@@ -58,6 +63,7 @@ export default function AdminUsuarios() {
     setGuardando(true);
     try {
       await api.adminCrearUsuarioStaff(form);
+      toast.success("Usuario creado");
       setMostrarForm(false);
       setForm(VACIO);
       cargarUsuarios(filtroRol);
@@ -72,6 +78,7 @@ export default function AdminUsuarios() {
     setAvisoRol("");
     try {
       await api.adminCambiarRol(usuario.id, nuevoRol);
+      toast.success("Rol actualizado");
       cargarUsuarios(filtroRol);
     } catch (err) {
       setAvisoRol(err.message || "No se pudo cambiar el rol.");
@@ -91,7 +98,7 @@ export default function AdminUsuarios() {
         <h1 className="text-2xl font-semibold text-plum">Usuarios y roles</h1>
         <button
           onClick={() => setMostrarForm(true)}
-          className="rounded-full bg-berry px-5 py-2.5 text-sm font-semibold text-white shadow-glass transition hover:bg-berry-dark"
+          className="rounded-[10px] bg-berry px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-berry-dark"
         >
           + Nuevo miembro del staff
         </button>
@@ -100,7 +107,7 @@ export default function AdminUsuarios() {
       {avisoRol && (
         <div
           role="alert"
-          className="glass mb-4 flex items-center justify-between gap-3 rounded-2xl border border-berry/30 px-4 py-3 text-sm text-berry-dark shadow-glass"
+          className="glass mb-4 flex items-center justify-between gap-3 rounded-2xl border border-berry/30 px-4 py-3 text-sm text-berry-dark"
         >
           <span>{avisoRol}</span>
           <button
@@ -119,7 +126,7 @@ export default function AdminUsuarios() {
             setFiltroRol("");
             cargarUsuarios("");
           }}
-          className={`shrink-0 rounded-full px-4 py-1.5 text-sm font-medium shadow-glass ${
+          className={`shrink-0 rounded-full px-4 py-1.5 text-sm font-medium ${
             filtroRol === "" ? "bg-berry text-white" : "glass text-plum"
           }`}
         >
@@ -132,7 +139,7 @@ export default function AdminUsuarios() {
               setFiltroRol(valor);
               cargarUsuarios(valor);
             }}
-            className={`shrink-0 rounded-full px-4 py-1.5 text-sm font-medium shadow-glass ${
+            className={`shrink-0 rounded-full px-4 py-1.5 text-sm font-medium ${
               filtroRol === valor ? "bg-berry text-white" : "glass text-plum"
             }`}
           >
@@ -142,9 +149,9 @@ export default function AdminUsuarios() {
       </div>
 
       <Paginador pagina={pag.pagina} porPagina={pag.porPagina} total={pag.total} onCambiar={pag.setPagina} className="mb-2" />
-      <div className="glass hidden overflow-hidden rounded-3xl shadow-glass md:block">
+      <div className="glass hidden overflow-hidden rounded-2xl md:block">
         <table className="w-full text-left text-sm">
-          <thead className="bg-white/50 text-xs uppercase tracking-wide text-plum-soft">
+          <thead className="bg-white text-xs uppercase tracking-wide text-plum-soft">
             <tr>
               <th className="px-4 py-3">Nombre</th>
               <th className="px-4 py-3">Email</th>
@@ -165,7 +172,7 @@ export default function AdminUsuarios() {
                     disabled={!puedeEditarRolDe(u)}
                     aria-label={`Rol de ${u.nombre_completo}`}
                     title={motivoBloqueo(u)}
-                    className="rounded-full bg-white/70 px-3 py-1 text-xs text-plum shadow-glass focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                    className="rounded-md bg-white px-3 py-1 text-xs text-plum focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     {(puedeEditarRolDe(u) ? rolesAsignables : Object.entries(roles)).map(([valor, label]) => (
                       <option key={valor} value={valor}>
@@ -176,7 +183,7 @@ export default function AdminUsuarios() {
                 </td>
                 <td className="px-4 py-3">
                   <span
-                    className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
+                    className={`rounded-md px-2.5 py-1 text-xs font-semibold ${
                       u.activo !== false ? "bg-berry/10 text-berry-dark" : "bg-plum/10 text-plum-soft"
                     }`}
                   >
@@ -192,7 +199,8 @@ export default function AdminUsuarios() {
             ))}
           </tbody>
         </table>
-        {usuarios.length === 0 && (
+        {cargandoLista && <SkeletonFilasAdmin etiqueta="Cargando lista" />}
+        {!cargandoLista && usuarios.length === 0 && (
           <p className="p-6 text-center text-plum-soft">No hay usuarios con ese filtro.</p>
         )}
       </div>
@@ -200,14 +208,14 @@ export default function AdminUsuarios() {
       {/* Tarjetas — solo móvil/tablet */}
       <div className="space-y-3 md:hidden">
         {pag.items.map((u) => (
-          <div key={u.id} className="glass rounded-2xl p-4 shadow-glass">
+          <div key={u.id} className="glass rounded-2xl p-4">
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0">
                 <p className="truncate font-medium text-plum">{u.nombre_completo}</p>
                 <p className="truncate text-xs text-plum-soft">{u.email}</p>
               </div>
               <span
-                className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold ${
+                className={`shrink-0 rounded-md px-2.5 py-1 text-xs font-semibold ${
                   u.activo !== false ? "bg-berry/10 text-berry-dark" : "bg-plum/10 text-plum-soft"
                 }`}
               >
@@ -222,7 +230,7 @@ export default function AdminUsuarios() {
                 onChange={(e) => cambiarRol(u, e.target.value)}
                 disabled={!puedeEditarRolDe(u)}
                 title={motivoBloqueo(u)}
-                className="rounded-full bg-white/70 px-3 py-1.5 text-xs text-plum shadow-glass focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                className="rounded-[10px] bg-white px-3 py-1.5 text-xs text-plum focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {(puedeEditarRolDe(u) ? rolesAsignables : Object.entries(roles)).map(([valor, label]) => (
                   <option key={valor} value={valor}>
@@ -236,8 +244,9 @@ export default function AdminUsuarios() {
             </div>
           </div>
         ))}
-        {usuarios.length === 0 && (
-          <p className="glass rounded-2xl p-6 text-center text-plum-soft shadow-glass">
+        {cargandoLista && <SkeletonFilasAdmin etiqueta="Cargando lista" />}
+        {!cargandoLista && usuarios.length === 0 && (
+          <p className="glass rounded-2xl p-6 text-center text-plum-soft">
             No hay usuarios con ese filtro.
           </p>
         )}
@@ -246,7 +255,7 @@ export default function AdminUsuarios() {
       {mostrarForm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <button
-            className="absolute inset-0 bg-plum/30 backdrop-blur-sm"
+            className="absolute inset-0 animate-fade-in bg-plum/30 backdrop-blur-sm"
             onClick={() => setMostrarForm(false)}
             aria-label="Cerrar"
           />
@@ -257,7 +266,7 @@ export default function AdminUsuarios() {
             aria-labelledby="nuevo-staff-titulo"
             tabIndex={-1}
             onSubmit={crear}
-            className="glass-strong relative w-full max-w-md rounded-3xl p-6 shadow-glass-lg sm:p-8"
+            className="animate-scale-in glass-strong relative w-full max-w-md rounded-2xl p-6 shadow-glass-lg sm:p-8"
           >
             <h2 id="nuevo-staff-titulo" className="mb-4 text-xl font-semibold text-plum">
               Nuevo miembro del staff
@@ -275,7 +284,7 @@ export default function AdminUsuarios() {
                     maxLength={80}
                     value={form.nombre}
                     onChange={actualizarTexto("nombre")}
-                    className="w-full rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-none"
+                    className="w-full rounded-2xl bg-white px-4 py-2.5 text-plum focus:outline-none"
                   />
                 </div>
                 <div>
@@ -288,7 +297,7 @@ export default function AdminUsuarios() {
                     maxLength={80}
                     value={form.apellido}
                     onChange={actualizarTexto("apellido")}
-                    className="w-full rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-none"
+                    className="w-full rounded-2xl bg-white px-4 py-2.5 text-plum focus:outline-none"
                   />
                 </div>
               </div>
@@ -303,7 +312,7 @@ export default function AdminUsuarios() {
                   maxLength={120}
                   value={form.email}
                   onChange={actualizarCampo("email")}
-                  className="w-full rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-none"
+                  className="w-full rounded-2xl bg-white px-4 py-2.5 text-plum focus:outline-none"
                 />
               </div>
               <div>
@@ -318,7 +327,7 @@ export default function AdminUsuarios() {
                   maxLength={72}
                   value={form.password}
                   onChange={actualizarCampo("password")}
-                  className="w-full rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-none"
+                  className="w-full rounded-2xl bg-white px-4 py-2.5 text-plum focus:outline-none"
                 />
               </div>
               <div>
@@ -329,7 +338,7 @@ export default function AdminUsuarios() {
                   id="staff-rol"
                   value={form.rol}
                   onChange={actualizarCampo("rol")}
-                  className="w-full rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-none"
+                  className="w-full rounded-2xl bg-white px-4 py-2.5 text-plum focus:outline-none"
                 >
                   {rolesAsignables
                     .filter(([valor]) => valor !== "cliente")
@@ -352,14 +361,14 @@ export default function AdminUsuarios() {
               <button
                 type="submit"
                 disabled={guardando}
-                className="flex-1 rounded-full bg-berry py-2.5 text-sm font-semibold text-white shadow-glass transition hover:bg-berry-dark disabled:opacity-60"
+                className="flex-1 rounded-[10px] bg-berry py-2.5 text-sm font-semibold text-white transition hover:bg-berry-dark disabled:opacity-60"
               >
-                {guardando ? "Creando..." : "Crear usuario"}
+                {guardando ? <><Spinner />Creando...</> : "Crear usuario"}
               </button>
               <button
                 type="button"
                 onClick={() => setMostrarForm(false)}
-                className="rounded-full bg-white/70 px-5 py-2.5 text-sm font-semibold text-plum shadow-glass"
+                className="rounded-[10px] bg-white px-5 py-2.5 text-sm font-semibold text-plum"
               >
                 Cancelar
               </button>

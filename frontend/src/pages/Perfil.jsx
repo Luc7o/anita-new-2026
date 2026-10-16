@@ -1,3 +1,5 @@
+import { useToast } from "../context/ToastContext.jsx";
+import Spinner from "../components/Spinner.jsx";
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../api/client.js";
@@ -7,6 +9,7 @@ import SelectorUbicacion from "../components/SelectorUbicacion.jsx";
 import { soloTexto, soloNumeros } from "../validacion.js";
 
 export default function Perfil() {
+  const toast = useToast();
   const { usuario, setUsuario } = useAuth();
   const [form, setForm] = useState({
     nombre: "", apellido: "", telefono: "",
@@ -21,23 +24,34 @@ export default function Perfil() {
   const [mensajeDatos, setMensajeDatos] = useState("");
   const [errorDatos, setErrorDatos] = useState("");
 
+  // Se pide el detalle del perfil solo cuando ya hay sesión. Al recargar la
+  // página el token se recupera de forma asíncrona (ver AuthContext): si se
+  // pedía de inmediato, la petición salía sin token (401 «Debes iniciar
+  // sesión»), el error quedaba sin atrapar y el formulario se quedaba vacío.
   useEffect(() => {
-    api.perfil().then((data) => {
-      setForm({
-        nombre: data.nombre || "",
-        apellido: data.apellido || "",
-        telefono: data.telefono || "",
-        direccion: data.direccion || "",
-        distrito_id: data.distrito_id || "",
-        referencia: data.referencia || "",
-      });
-      setUbicacionInicial({
-        departamento_id: data.departamento_id || "",
-        provincia_id: data.provincia_id || "",
-        distrito_id: data.distrito_id || "",
-      });
-    });
-  }, []);
+    if (!usuario?.id) return;
+    let cancelado = false;
+    api
+      .perfil()
+      .then((data) => {
+        if (cancelado) return;
+        setForm({
+          nombre: data.nombre || "",
+          apellido: data.apellido || "",
+          telefono: data.telefono || "",
+          direccion: data.direccion || "",
+          distrito_id: data.distrito_id || "",
+          referencia: data.referencia || "",
+        });
+        setUbicacionInicial({
+          departamento_id: data.departamento_id || "",
+          provincia_id: data.provincia_id || "",
+          distrito_id: data.distrito_id || "",
+        });
+      })
+      .catch(() => {}); // sin datos el formulario queda vacío; no es un error que mostrar
+    return () => { cancelado = true; };
+  }, [usuario?.id]);
 
   const actualizarCampo = (campo) => (e) => setForm({ ...form, [campo]: e.target.value });
   const actualizarTexto = (campo) => (e) => setForm({ ...form, [campo]: soloTexto(e.target.value) });
@@ -52,7 +66,7 @@ export default function Perfil() {
     try {
       const actualizado = await api.actualizarPerfil(form);
       setUsuario(actualizado);
-      setMensajeDatos("Tus datos se guardaron correctamente.");
+      toast.success("Tus datos se guardaron correctamente");
       setEditando(false);
     } catch (err) {
       setErrorDatos(err.message);
@@ -200,7 +214,7 @@ export default function Perfil() {
               disabled={guardandoDatos}
               className="rounded-full bg-berry px-6 py-2.5 font-semibold text-white shadow-glass transition hover:bg-berry-dark disabled:opacity-60"
             >
-              {guardandoDatos ? "Guardando..." : "Guardar datos"}
+              {guardandoDatos ? <><Spinner />Guardando...</> : "Guardar datos"}
             </button>
           </form>
         )}

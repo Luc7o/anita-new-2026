@@ -2,13 +2,14 @@ import React from "react";
 import { Link } from "react-router-dom";
 import PaginaInfo from "./PaginaInfo.jsx";
 import DatosProveedor from "../components/DatosProveedor.jsx";
-import { EMPRESA } from "../datosEmpresa.js";
+import useConfigTienda from "../hooks/useConfigTienda.js";
 
-// El correo sale de datosEmpresa.js (un solo lugar). Si todavía no hay correo
-// cargado, se manda a la página de Contacto en vez de publicar uno inventado.
+// El correo sale de la configuración de la tienda (panel admin). Si todavía no
+// hay correo cargado, se manda a la página de Contacto en vez de publicar uno inventado.
 function Contactar() {
-  return EMPRESA.correoContacto ? (
-    <>escríbenos a <strong className="text-plum">{EMPRESA.correoContacto}</strong></>
+  const { correo_contacto } = useConfigTienda();
+  return correo_contacto ? (
+    <>escríbenos a <strong className="text-plum">{correo_contacto}</strong></>
   ) : (
     <>escríbenos desde nuestra página de <Link to="/contacto" className="font-semibold text-berry hover:underline">Contacto</Link></>
   );

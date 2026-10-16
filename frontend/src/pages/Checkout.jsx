@@ -13,6 +13,7 @@ import {
   soloDireccion,
 } from "../validacion.js";
 import UbicacionEntrega from "../components/UbicacionEntrega.jsx";
+import Spinner from "../components/Spinner.jsx";
 import { abrirCulqiCheckout } from "../culqi.js";
 import { obtenerPagoIdempotencyKey, limpiarPagoIdempotencyKey } from "../pagoIdempotencia.js";
 
@@ -451,6 +452,18 @@ export default function Checkout() {
 
   return (
     <div className="mx-auto grid max-w-5xl gap-8 px-4 pb-28 md:grid-cols-[1.4fr_1fr] md:pb-16">
+      {/* Aviso mientras se crea el pedido y se abre la pasarela. Es una pastilla
+          inferior (no una capa que tape todo) para no estorbar la ventana de pago. */}
+      {enviando && (
+        <div
+          role="status"
+          aria-live="polite"
+          className="fixed bottom-24 left-1/2 z-40 flex -translate-x-1/2 animate-fade-in-up items-center gap-3 rounded-full bg-plum px-5 py-3 text-sm font-semibold text-white shadow-pop md:bottom-8"
+        >
+          <span aria-hidden="true" className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+          Procesando tu pedido… no cierres esta ventana
+        </div>
+      )}
       <form onSubmit={handleSubmit} className="glass space-y-4 rounded-3xl p-6 shadow-glass sm:p-8">
         {!usuario && (
           <section className="space-y-3 rounded-2xl border border-plum/10 bg-white/60 p-4">
@@ -717,7 +730,7 @@ export default function Checkout() {
           disabled={enviando}
           className="w-full rounded-full bg-berry py-3 font-semibold text-white shadow-glass-lg transition hover:bg-berry-dark disabled:cursor-not-allowed disabled:opacity-50"
         >
-          {enviando ? "Confirmando pedido..." : "Confirmar y pagar"}
+          {enviando ? <><Spinner />Confirmando pedido...</> : "Confirmar y pagar"}
         </button>
       </form>
 

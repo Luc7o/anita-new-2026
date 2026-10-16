@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import RedesAuth from "../components/RedesAuth.jsx";
 import { Link, useLocation } from "react-router-dom";
 import {
   IconFacebook,
@@ -80,21 +81,7 @@ export default function Registro() {
             </ul>
           </div>
           <div className="mt-6 flex items-center gap-4">
-            <a
-              href="https://www.facebook.com/anitanewstyle"
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="Facebook"
-              className="text-plum-soft transition hover:text-berry"
-            >
-              <IconFacebook />
-            </a>
-            <a href="#" aria-label="Instagram" className="text-plum-soft transition hover:text-berry">
-              <IconInstagram />
-            </a>
-            <a href="#" aria-label="WhatsApp" className="text-plum-soft transition hover:text-berry">
-              <IconWhatsApp />
-            </a>
+            <RedesAuth />
           </div>
         </div>
       </div>
