@@ -1,3 +1,4 @@
+import PageHeader from "../components/PageHeader.jsx";
 import React, { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { api } from "../api/client.js";
@@ -86,65 +87,58 @@ export default function Tienda() {
   const fin = Math.min(meta.pagina_actual * 24, meta.total);
 
   return (
-    <div className="mx-auto max-w-6xl px-4 pb-16">
-      {/* Tabs de categoría */}
-      <nav className="mb-6 flex gap-3 overflow-x-auto pb-1">
-        {categorias.map((cat) => {
-          const activo = categoriasActivas.length === 1 && categoriasActivas[0] === cat.slug;
-          return (
-            <button
-              key={cat.id}
-              onClick={() => seleccionarSoloCategoria(cat.slug)}
-              aria-current={activo ? "true" : undefined}
-              className={`flex shrink-0 items-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium shadow-glass transition hover:-translate-y-0.5 ${
-                activo
-                  ? "bg-berry text-white"
-                  : "glass text-plum hover:bg-white/80 hover:text-berry-dark"
-              }`}
-            >
-              {cat.nombre}
-            </button>
-          );
-        })}
-      </nav>
-      <div className="mb-6 border-b border-plum/10" />
+    <div>
+      <PageHeader
+        eyebrow="Anita New Style"
+        titulo={
+          busqueda
+            ? `Resultados para "${busqueda}"`
+            : soloOfertas
+              ? "Ofertas"
+              : categoriaDestacada
+                ? categoriaDestacada.nombre
+                : "Nuestra tienda"
+        }
+        subtitulo={categoriaDestacada?.descripcion || "Filtra por categoría, talla o color y arma tu pedido."}
+      />
 
-      {/* Encabezado */}
-      <div className="mb-6 flex flex-wrap items-end justify-between gap-2">
-        <div>
-          <h1 className="text-3xl font-semibold text-plum">
-            {busqueda ? (
-              `Resultados para "${busqueda}"`
-            ) : soloOfertas ? (
-              "Ofertas"
-            ) : categoriaDestacada ? (
-              categoriaDestacada.nombre
-            ) : (
-              "Tienda"
-            )}
-            {categoriaDestacada && (
-              <span className="text-berry-dark"> de Autor</span>
-            )}
-          </h1>
-          {categoriaDestacada?.descripcion && (
-            <p className="mt-1 text-sm text-plum-soft">{categoriaDestacada.descripcion}</p>
-          )}
-        </div>
+      {/* Barra de categorías fija bajo el menú */}
+      <div className="sticky top-[60px] z-20 border-b border-plum/10 bg-ivory/95 backdrop-blur">
+        <nav className="mx-auto flex max-w-6xl gap-2 overflow-x-auto px-4 py-3">
+          {categorias.map((cat) => {
+            const activo = categoriasActivas.length === 1 && categoriasActivas[0] === cat.slug;
+            return (
+              <button
+                key={cat.id}
+                onClick={() => seleccionarSoloCategoria(cat.slug)}
+                aria-current={activo ? "true" : undefined}
+                className={`shrink-0 ${activo ? "chip-on" : "chip-off"}`}
+              >
+                {cat.nombre}
+              </button>
+            );
+          })}
+        </nav>
+      </div>
+
+      <div className="mx-auto max-w-6xl px-4 pb-16 pt-6">
+      {/* Contador */}
+      <div className="mb-4 flex items-center justify-between text-sm text-plum-soft" aria-live="polite">
         {cargando ? (
           <Skeleton className="h-4 w-44" />
         ) : (
-          <p className="animate-fade-in text-sm text-plum-soft">
+          <span className="animate-fade-in">
             {meta.total > 0
               ? `Mostrando ${inicio}-${fin} de ${meta.total} resultados`
               : "Sin resultados"}
-          </p>
+          </span>
         )}
       </div>
 
       <div className="flex flex-col gap-8 lg:flex-row">
         {/* Sidebar de filtros */}
         <aside className="w-full shrink-0 lg:w-64">
-          <div className="glass sticky top-20 rounded-2xl p-5 shadow-glass">
+          <div className="panel sticky top-36 p-5">
             {/* Ordenar */}
             <div>
               <h2 className="mb-3 text-xs font-bold uppercase tracking-widest text-plum">
@@ -326,6 +320,7 @@ export default function Tienda() {
             </>
           )}
         </div>
+      </div>
       </div>
     </div>
   );

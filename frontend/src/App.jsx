@@ -182,7 +182,7 @@ export default function App() {
     <div className="min-h-screen">
       {bannerSesionExpirada}
       <Navbar />
-      <main className="pt-8">
+      <main className={location.pathname === "/" || location.pathname === "/tienda" ? "" : "pt-8"}>
         {/* key: al cambiar de ruta el contenido se vuelve a montar y entra con
             una animación suave (fundido + leve subida) en vez de "saltar". */}
         <div key={location.pathname} className="animate-fade-in-up">

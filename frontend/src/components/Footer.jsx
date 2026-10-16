@@ -7,47 +7,47 @@ import useConfigTienda, { linkWhatsApp } from "../hooks/useConfigTienda.js";
 export default function Footer() {
   const c = useConfigTienda();
   const wa = linkWhatsApp(c.whatsapp);
-  const claseRed = "text-plum-soft hover:text-berry transition duration-200";
+  const claseRed = "flex h-9 w-9 items-center justify-center rounded-full border border-white/25 text-white/80 transition-colors hover:border-white hover:text-white";
   return (
-    <footer className="mt-16 border-t border-plum/10 bg-gradient-to-b from-transparent to-plum/5">
+    <footer className="mt-20 bg-plum text-white/70">
       <div className="max-w-6xl mx-auto px-4 py-12">
         {/* Grid principal: 3 columnas en desktop, 1 en móvil */}
         <div className="grid grid-cols-1 gap-10 md:grid-cols-3">
           
           {/* Columna 1: Atención al Cliente */}
           <div>
-            <h4 className="font-display text-lg font-semibold text-plum mb-4">
+            <h4 className="font-sans text-xs font-bold uppercase tracking-wider text-white mb-4">
               Atención al cliente
             </h4>
-            <ul className="space-y-2.5 text-sm text-plum-soft">
-              <li><Link to="/formas-de-pago" className="hover:text-berry transition duration-200">Formas de pago</Link></li>
-              <li><Link to="/metodos-de-envio" className="hover:text-berry transition duration-200">Métodos de Envío</Link></li>
-              <li><Link to="/cambios-devoluciones" className="hover:text-berry transition duration-200">Cambios & Devoluciones</Link></li>
-              <li><Link to="/faq" className="hover:text-berry transition duration-200">Preguntas frecuentes (FAQ)</Link></li>
-              <li><Link to="/contacto" className="hover:text-berry transition duration-200">Contáctanos</Link></li>
+            <ul className="space-y-2.5 text-sm text-white/70">
+              <li><Link to="/formas-de-pago" className="hover:text-white transition duration-200">Formas de pago</Link></li>
+              <li><Link to="/metodos-de-envio" className="hover:text-white transition duration-200">Métodos de Envío</Link></li>
+              <li><Link to="/cambios-devoluciones" className="hover:text-white transition duration-200">Cambios & Devoluciones</Link></li>
+              <li><Link to="/faq" className="hover:text-white transition duration-200">Preguntas frecuentes (FAQ)</Link></li>
+              <li><Link to="/contacto" className="hover:text-white transition duration-200">Contáctanos</Link></li>
             </ul>
           </div>
 
           {/* Columna 2: Nosotros */}
           <div>
-            <h4 className="font-display text-lg font-semibold text-plum mb-4">
+            <h4 className="font-sans text-xs font-bold uppercase tracking-wider text-white mb-4">
               Nosotros
             </h4>
-            <ul className="space-y-2.5 text-sm text-plum-soft">
-              <li><Link to="/quienes-somos" className="hover:text-berry transition duration-200">Quienes somos</Link></li>
-              <li><Link to="/reviews" className="hover:text-berry transition duration-200">Reviews de clientes</Link></li>
-              <li><Link to="/tiendas" className="hover:text-berry transition duration-200">Nuestras Tiendas</Link></li>
-              <li><Link to="/mayoristas" className="hover:text-berry transition duration-200">Ventas Mayoristas</Link></li>
-              <li><Link to="/trabaja-con-nosotros" className="hover:text-berry transition duration-200">Trabaja con nosotros</Link></li>
+            <ul className="space-y-2.5 text-sm text-white/70">
+              <li><Link to="/quienes-somos" className="hover:text-white transition duration-200">Quienes somos</Link></li>
+              <li><Link to="/reviews" className="hover:text-white transition duration-200">Reviews de clientes</Link></li>
+              <li><Link to="/tiendas" className="hover:text-white transition duration-200">Nuestras Tiendas</Link></li>
+              <li><Link to="/mayoristas" className="hover:text-white transition duration-200">Ventas Mayoristas</Link></li>
+              <li><Link to="/trabaja-con-nosotros" className="hover:text-white transition duration-200">Trabaja con nosotros</Link></li>
             </ul>
           </div>
 
           {/* Columna 3: Contacto y Legal */}
           <div>
-            <h4 className="font-display text-lg font-semibold text-plum mb-4">
+            <h4 className="font-sans text-xs font-bold uppercase tracking-wider text-white mb-4">
               {c.nombre_comercial}
             </h4>
-            <p className="text-sm text-plum-soft">
+            <p className="text-sm text-white/70">
               Tienda de moda peruana{c.ciudad ? ` con tienda física en ${c.ciudad}` : ""}. Envíos a todo el Perú.
             </p>
             <div className="mt-4 flex items-center gap-4">
@@ -74,15 +74,15 @@ export default function Footer() {
             </div>
             
             {/* Enlace destacado para el Libro de Reclamaciones */}
-            <div className="mt-6 pt-6 border-t border-plum/10">
+            <div className="mt-6 pt-6 border-t border-white/10">
               <Link
                 to="/libro-reclamaciones"
-                className="inline-flex items-center gap-2 rounded-lg border border-berry/30 bg-berry/5 px-3 py-2 text-sm font-semibold text-berry transition hover:bg-berry/10"
+                className="inline-flex items-center gap-2 rounded-[10px] border border-white/25 px-3 py-2 text-sm font-semibold text-white transition hover:bg-white/10"
               >
                 <IconBook size={22} />
                 <span className="leading-tight">
                   Libro de Reclamaciones
-                  <span className="block text-xs font-normal text-plum-soft">Virtual · registra tu reclamo o queja</span>
+                  <span className="block text-xs font-normal text-white/60">Virtual · registra tu reclamo o queja</span>
                 </span>
               </Link>
             </div>
@@ -91,11 +91,11 @@ export default function Footer() {
         </div>
 
         {/* Línea divisoria y copyright */}
-        <div className="mt-12 pt-6 border-t border-plum/10 text-center text-xs text-plum-soft/60">
+        <div className="mt-12 pt-6 border-t border-white/10 text-center text-xs text-white/50">
           <p>© {new Date().getFullYear()} Anita New Style. Todos los derechos reservados.</p>
           <p className="mt-2 flex flex-wrap items-center justify-center gap-x-4 gap-y-1">
-            <Link to="/politica-de-privacidad" className="hover:text-berry transition duration-200">Política de privacidad</Link>
-            <Link to="/terminos-y-condiciones" className="hover:text-berry transition duration-200">Términos y condiciones</Link>
+            <Link to="/politica-de-privacidad" className="hover:text-white transition duration-200">Política de privacidad</Link>
+            <Link to="/terminos-y-condiciones" className="hover:text-white transition duration-200">Términos y condiciones</Link>
           </p>
         </div>
       </div>

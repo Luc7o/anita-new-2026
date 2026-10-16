@@ -23,7 +23,7 @@ export default function UserMenu({ usuario, onLogout }) {
     <div className="relative" ref={contenedorRef}>
       <button
         onClick={() => setAbierto((v) => !v)}
-        className="flex items-center gap-1.5 rounded-full bg-white/60 px-3 py-2 text-plum shadow-glass transition hover:bg-white"
+        className="flex items-center gap-1.5 rounded-[10px] border border-white/25 px-3 py-2.5 text-white transition hover:bg-white/10"
         aria-label="Menú de usuario"
         aria-expanded={abierto}
       >
@@ -32,8 +32,8 @@ export default function UserMenu({ usuario, onLogout }) {
       </button>
 
       {abierto && (
-        <div className="glass-strong absolute right-0 top-full mt-2 w-52 overflow-hidden rounded-2xl py-1.5 shadow-glass-lg">
-          <div className="border-b border-white/50 px-4 py-2">
+        <div className="panel absolute right-0 top-full mt-2 w-52 overflow-hidden py-1.5 shadow-pop">
+          <div className="border-b border-plum/10 px-4 py-2">
             <p className="truncate text-sm font-medium text-plum">{nombreVisible(usuario)}</p>
             {!esNombreProvisional(usuario) && (
               <p className="truncate text-xs text-plum-soft">{usuario.email}</p>
@@ -43,14 +43,14 @@ export default function UserMenu({ usuario, onLogout }) {
           <Link
             to="/perfil"
             onClick={cerrarYNavegar}
-            className="flex items-center gap-2 px-4 py-2.5 text-sm text-plum hover:bg-white/60"
+            className="flex items-center gap-2 px-4 py-2.5 text-sm text-plum hover:bg-ivory"
           >
             <IconUser size={16} /> Perfil
           </Link>
           <Link
             to="/perfil/pedidos"
             onClick={cerrarYNavegar}
-            className="flex items-center gap-2 px-4 py-2.5 text-sm text-plum hover:bg-white/60"
+            className="flex items-center gap-2 px-4 py-2.5 text-sm text-plum hover:bg-ivory"
           >
             <IconPackage size={16} /> Pedidos
           </Link>
@@ -58,7 +58,7 @@ export default function UserMenu({ usuario, onLogout }) {
             <Link
               to="/admin"
               onClick={cerrarYNavegar}
-              className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-berry-dark hover:bg-white/60"
+              className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-berry-dark hover:bg-ivory"
             >
               <IconDashboard size={16} /> Panel admin
             </Link>
@@ -69,7 +69,7 @@ export default function UserMenu({ usuario, onLogout }) {
               cerrarYNavegar();
               onLogout();
             }}
-            className="flex w-full items-center gap-2 border-t border-white/50 px-4 py-2.5 text-left text-sm text-plum-soft hover:bg-white/60"
+            className="flex w-full items-center gap-2 border-t border-plum/10 px-4 py-2.5 text-left text-sm text-plum-soft hover:bg-ivory"
           >
             <IconLogout size={16} /> Cerrar sesión
           </button>

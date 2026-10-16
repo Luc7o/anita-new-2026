@@ -21,8 +21,9 @@ export default {
         },
       },
       fontFamily: {
-        display: ["'Fraunces'", "serif"],
-        body: ["'Manrope'", "sans-serif"],
+        sans: ["Figtree", "ui-sans-serif", "system-ui", "sans-serif"],
+        display: ['"Playfair Display"', "Figtree", "ui-sans-serif", "system-ui", "sans-serif"],
+        body: ["Figtree", "ui-sans-serif", "system-ui", "sans-serif"],
       },
       backdropBlur: {
         xs: "2px",
@@ -30,6 +31,7 @@ export default {
       boxShadow: {
         glass: "0 8px 32px 0 rgba(85, 4, 22, 0.14)",
         "glass-lg": "0 12px 48px 0 rgba(85, 4, 22, 0.22)",
+        pop: "0 12px 32px -8px rgba(44, 1, 7, 0.35)",
       },
       borderRadius: {
         "3xl": "1.75rem",

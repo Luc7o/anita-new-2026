@@ -97,7 +97,7 @@ export default function ProductCard({ producto, indice = 0 }) {
 
   return (
     <div
-      className="group flex animate-fade-in-up flex-col overflow-hidden rounded-2xl border border-plum/10 bg-white transition duration-300 hover:-translate-y-1 hover:shadow-lg"
+      className="panel group flex animate-fade-in-up flex-col overflow-hidden transition-all duration-300 ease-out hover:z-10 hover:scale-[1.03] hover:border-berry hover:shadow-pop"
       style={{ animationDelay: `${Math.min(indice, 12) * 60}ms` }}
     >
       <Link to={`/producto/${producto.id}`} className="flex flex-1 flex-col focus:outline-none focus-visible:ring-2 focus-visible:ring-berry">
@@ -116,11 +116,11 @@ export default function ProductCard({ producto, indice = 0 }) {
           )}
 
           {producto.tiene_oferta ? (
-            <span className="absolute left-3 top-3 rounded-full bg-berry px-3 py-1 text-xs font-semibold uppercase tracking-wide text-white">
+            <span className="absolute left-3 top-3 rounded-md bg-berry px-2 py-1 text-xs font-semibold text-white">
               Oferta
             </span>
           ) : producto.es_nuevo ? (
-            <span className="absolute left-3 top-3 rounded-full bg-white px-3 py-1 text-xs font-semibold uppercase tracking-wide text-plum shadow-sm">
+            <span className="absolute left-3 top-3 rounded-md bg-plum px-2 py-1 text-xs font-semibold text-white">
               Nuevo
             </span>
           ) : null}
@@ -148,7 +148,7 @@ export default function ProductCard({ producto, indice = 0 }) {
 
       <div className="flex items-center justify-between px-5 pb-2.5 pt-2">
         <div className="flex items-baseline gap-2">
-          <span className="text-lg font-bold text-berry">S/{producto.precio_final.toFixed(2)}</span>
+          <span className="font-display text-xl font-bold text-plum">S/{producto.precio_final.toFixed(2)}</span>
           {producto.tiene_oferta && (
             <span className="text-sm text-plum-soft line-through">S/{producto.precio.toFixed(2)}</span>
           )}
@@ -175,7 +175,7 @@ export default function ProductCard({ producto, indice = 0 }) {
             disabled={agregando}
             aria-label={`Agregar ${producto.nombre} al carrito`}
             aria-haspopup={necesitaOpciones ? "dialog" : undefined}
-            className={`flex w-full items-center justify-center gap-2 rounded-full border py-2.5 text-sm font-semibold transition active:scale-[0.97] disabled:opacity-60 ${
+            className={`flex w-full items-center justify-center gap-2 rounded-[10px] border py-2.5 text-sm font-semibold transition active:scale-[0.97] disabled:opacity-60 ${
               agregado
                 ? "border-berry bg-berry text-white"
                 : "border-berry text-berry hover:bg-berry/5"
@@ -194,7 +194,7 @@ export default function ProductCard({ producto, indice = 0 }) {
             onClick={handleComprar}
             disabled={cargando}
             aria-label={`Comprar ${producto.nombre}`}
-            className="flex w-full items-center justify-center gap-2 rounded-full bg-plum py-2.5 text-sm font-semibold text-white transition hover:bg-berry-dark active:scale-[0.97] disabled:opacity-60"
+            className="flex w-full items-center justify-center gap-2 rounded-[10px] bg-berry py-2.5 text-sm font-semibold text-white transition hover:bg-berry-dark active:scale-[0.97] disabled:opacity-60"
           >
             {cargando ? "Procesando..." : "Comprar"}
           </button>
