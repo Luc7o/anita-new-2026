@@ -1,3 +1,4 @@
+import { rutaAdmin, IS_ADMIN_APP, TIENDA_URL } from "../../lib/appMode.js";
 import React from "react";
 import { NavLink, Outlet, Link, useLocation } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext.jsx";
@@ -12,18 +13,38 @@ import {
 } from "../../roles.js";
 
 const TODOS_LOS_ITEMS = [
-  { to: "/admin", label: "Dashboard", Icon: IconDashboard, exact: true, roles: null },
-  { to: "/admin/productos", label: "Productos", Icon: IconBag, roles: PUEDE_VER_PRODUCTOS },
-  { to: "/admin/categorias", label: "Categorías", Icon: IconTag, roles: PUEDE_VER_PRODUCTOS },
-  { to: "/admin/promociones", label: "Promociones", Icon: IconGift, roles: PUEDE_VER_PROMOCIONES },
-  { to: "/admin/proveedores", label: "Proveedores", Icon: IconTruck, roles: PUEDE_VER_PROVEEDORES },
-  { to: "/admin/pedidos", label: "Pedidos", Icon: IconPackage, exact: true, roles: PUEDE_VER_PEDIDOS },
-  { to: "/admin/pedidos/nueva-venta", label: "Nueva venta", Icon: IconCart, roles: PUEDE_GESTIONAR_PEDIDOS },
-  { to: "/admin/reportes", label: "Reportes", Icon: IconReceipt, roles: PUEDE_VER_DASHBOARD },
-  { to: "/admin/reclamaciones", label: "Reclamaciones", Icon: IconBook, roles: PUEDE_VER_RECLAMACIONES },
-  { to: "/admin/usuarios", label: "Usuarios y roles", Icon: IconUsers, roles: PUEDE_GESTIONAR_USUARIOS },
-  { to: "/admin/configuracion", label: "Configuración", Icon: IconSettings, roles: PUEDE_VER_CONFIGURACION },
+  { to: rutaAdmin(), label: "Dashboard", Icon: IconDashboard, exact: true, roles: null },
+  { to: rutaAdmin("/productos"), label: "Productos", Icon: IconBag, roles: PUEDE_VER_PRODUCTOS },
+  { to: rutaAdmin("/categorias"), label: "Categorías", Icon: IconTag, roles: PUEDE_VER_PRODUCTOS },
+  { to: rutaAdmin("/promociones"), label: "Promociones", Icon: IconGift, roles: PUEDE_VER_PROMOCIONES },
+  { to: rutaAdmin("/proveedores"), label: "Proveedores", Icon: IconTruck, roles: PUEDE_VER_PROVEEDORES },
+  { to: rutaAdmin("/pedidos"), label: "Pedidos", Icon: IconPackage, exact: true, roles: PUEDE_VER_PEDIDOS },
+  { to: rutaAdmin("/pedidos/nueva-venta"), label: "Nueva venta", Icon: IconCart, roles: PUEDE_GESTIONAR_PEDIDOS },
+  { to: rutaAdmin("/reportes"), label: "Reportes", Icon: IconReceipt, roles: PUEDE_VER_DASHBOARD },
+  { to: rutaAdmin("/reclamaciones"), label: "Reclamaciones", Icon: IconBook, roles: PUEDE_VER_RECLAMACIONES },
+  { to: rutaAdmin("/usuarios"), label: "Usuarios y roles", Icon: IconUsers, roles: PUEDE_GESTIONAR_USUARIOS },
+  { to: rutaAdmin("/configuracion"), label: "Configuración", Icon: IconSettings, roles: PUEDE_VER_CONFIGURACION },
 ];
+
+function TiendaLink() {
+  const clases =
+    "ml-2 flex items-center gap-2 rounded-[10px] border border-white/25 px-3 py-2 text-sm font-medium text-white hover:bg-white/10";
+  const contenido = (
+    <>
+      <IconStore size={16} />
+      <span className="hidden sm:inline">Ver tienda</span>
+    </>
+  );
+  return IS_ADMIN_APP ? (
+    <a href={TIENDA_URL} target="_blank" rel="noopener noreferrer" className={clases} title="Abrir la tienda">
+      {contenido}
+    </a>
+  ) : (
+    <Link to="/" className={clases} title="Volver a la tienda">
+      {contenido}
+    </Link>
+  );
+}
 
 export default function AdminLayout() {
   const { usuario, logout } = useAuth();
@@ -35,7 +56,7 @@ export default function AdminLayout() {
       {/* Cabecera oscura fija (estructura de Malhu) */}
       <header className="sticky top-0 z-40 bg-plum/95 backdrop-blur">
         <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3">
-          <Link to="/admin" aria-label="Panel de administración">
+          <Link to={rutaAdmin()} aria-label="Panel de administración">
             <Logo tone="light" />
           </Link>
           <span className="rounded bg-white/10 px-2 py-0.5 text-xs font-bold uppercase tracking-wider text-white/80">
@@ -45,14 +66,11 @@ export default function AdminLayout() {
             <span className="hidden max-w-[12rem] truncate text-sm font-semibold text-white sm:inline">
               {usuario?.rol_label}
             </span>
-            <Link
-              to="/"
-              className="ml-2 flex items-center gap-2 rounded-[10px] border border-white/25 px-3 py-2 text-sm font-medium text-white hover:bg-white/10"
-              title="Volver a la tienda"
-            >
-              <IconStore size={16} />
-              <span className="hidden sm:inline">Ver tienda</span>
-            </Link>
+            {/* En el subdominio del admin no hay tienda propia: el botón solo
+                aparece si se definió VITE_TIENDA_URL, y abre la tienda aparte. */}
+            {(!IS_ADMIN_APP || TIENDA_URL) && (
+              <TiendaLink />
+            )}
             <button
               onClick={logout}
               className="rounded-[10px] p-2.5 text-white/70 hover:bg-white/10 hover:text-white"

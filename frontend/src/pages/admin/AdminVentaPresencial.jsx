@@ -1,3 +1,4 @@
+import { rutaAdmin } from "../../lib/appMode.js";
 import Spinner from "../../components/Spinner.jsx";
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
@@ -142,7 +143,7 @@ export default function AdminVentaPresencial() {
 
   return (
     <div>
-      <Link to="/admin/pedidos" className="text-sm text-berry hover:underline">
+      <Link to={rutaAdmin("/pedidos")} className="text-sm text-berry hover:underline">
         ← Volver a pedidos
       </Link>
 

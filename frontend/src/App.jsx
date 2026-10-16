@@ -34,24 +34,25 @@ const Ayuda = lazy(() => import("./pages/Ayuda.jsx"));
 const Checkout = lazy(() => import("./pages/Checkout.jsx"));
 const Pedidos = lazy(() => import("./pages/Pedidos.jsx"));
 const PedidoDetalle = lazy(() => import("./pages/PedidoDetalle.jsx"));
+import { ADMIN_URL } from "./lib/appMode.js";
 import { useAuth } from "./context/AuthContext.jsx";
 import { useCarrito } from "./context/CarritoContext.jsx";
 import { api } from "./api/client.js";
-import RutaAdmin from "./components/admin/RutaAdmin.jsx";
-import AdminLayout from "./components/admin/AdminLayout.jsx";
-const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard.jsx"));
-const AdminProductos = lazy(() => import("./pages/admin/AdminProductos.jsx"));
-const AdminCategorias = lazy(() => import("./pages/admin/AdminCategorias.jsx"));
-const AdminPromociones = lazy(() => import("./pages/admin/AdminPromociones.jsx"));
-const AdminPedidos = lazy(() => import("./pages/admin/AdminPedidos.jsx"));
-const AdminPedidoDetalle = lazy(() => import("./pages/admin/AdminPedidoDetalle.jsx"));
-const AdminVentaPresencial = lazy(() => import("./pages/admin/AdminVentaPresencial.jsx"));
-const AdminReportes = lazy(() => import("./pages/admin/AdminReportes.jsx"));
-const AdminProveedores = lazy(() => import("./pages/admin/AdminProveedores.jsx"));
-const AdminProveedorDetalle = lazy(() => import("./pages/admin/AdminProveedorDetalle.jsx"));
-const AdminUsuarios = lazy(() => import("./pages/admin/AdminUsuarios.jsx"));
-const AdminConfiguracion = lazy(() => import("./pages/admin/AdminConfiguracion.jsx"));
-const AdminReclamaciones = lazy(() => import("./pages/admin/AdminReclamaciones.jsx"));
+
+// Panel de administración: con VITE_ADMIN_URL (panel en otro dominio) el
+// import dinámico queda dentro de una rama muerta y Vite lo descarta, así el
+// build de la tienda no incluye el código del panel.
+const AdminApp = import.meta.env.VITE_ADMIN_URL
+  ? null
+  : lazy(() => import("./AdminApp.jsx"));
+
+function RedirigirAlPanel() {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    window.location.replace(ADMIN_URL + pathname.replace(/^\/admin/, ""));
+  }, [pathname]);
+  return <CargandoPagina />;
+}
 
 export default function App() {
   const { usuario, sesionExpirada, setSesionExpirada } = useAuth();
@@ -104,33 +105,16 @@ export default function App() {
   );
 
   if (esAdmin) {
+    // Panel de administración. Con VITE_ADMIN_URL el panel vive en su propio
+    // dominio: aquí solo se redirige y su código no entra en este build.
+    if (!AdminApp) return <RedirigirAlPanel />;
     return (
       <div className="min-h-screen">
-        {bannerSesionExpirada}        <Suspense fallback={<CargandoPagina />}>
-        <Routes>
-          <Route
-            path="/admin"
-            element={
-              <RutaAdmin>
-                <AdminLayout />
-              </RutaAdmin>
-            }
-          >
-            <Route index element={<AdminDashboard />} />
-            <Route path="productos" element={<AdminProductos />} />
-            <Route path="categorias" element={<AdminCategorias />} />
-            <Route path="promociones" element={<AdminPromociones />} />
-            <Route path="pedidos" element={<AdminPedidos />} />
-            <Route path="pedidos/:id" element={<AdminPedidoDetalle />} />
-            <Route path="pedidos/nueva-venta" element={<AdminVentaPresencial />} />
-            <Route path="reportes" element={<AdminReportes />} />
-            <Route path="proveedores" element={<AdminProveedores />} />
-            <Route path="proveedores/:id" element={<AdminProveedorDetalle />} />
-            <Route path="reclamaciones" element={<AdminReclamaciones />} />
-            <Route path="usuarios" element={<AdminUsuarios />} />
-            <Route path="configuracion" element={<AdminConfiguracion />} />
-          </Route>
-        </Routes>
+        {bannerSesionExpirada}
+        <Suspense fallback={<CargandoPagina />}>
+          <Routes>
+            <Route path="/admin/*" element={<AdminApp />} />
+          </Routes>
         </Suspense>
       </div>
     );

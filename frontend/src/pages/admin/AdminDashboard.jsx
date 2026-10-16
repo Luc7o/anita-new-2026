@@ -1,3 +1,4 @@
+import { rutaAdmin } from "../../lib/appMode.js";
 import { SkeletonFilasAdmin, SkeletonPanelAdmin, SkeletonDetalleAdmin, SkeletonFormularioAdmin } from "../../components/admin/EsqueletosAdmin.jsx";
 import React, { useEffect, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
@@ -289,13 +290,13 @@ function VistaResumen({ atencion, stats, errorStats, tieneEstadisticas }) {
 
       <div className="flex flex-wrap gap-3">
         <Link
-          to="/admin/productos"
+          to={rutaAdmin("/productos")}
           className="rounded-[10px] bg-berry px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-berry-dark"
         >
           Gestionar productos
         </Link>
         <Link
-          to="/admin/pedidos"
+          to={rutaAdmin("/pedidos")}
           className="glass rounded-[10px] px-5 py-2.5 text-sm font-semibold text-plum transition hover:bg-white"
         >
           Ver pedidos
@@ -728,7 +729,7 @@ function PedidosRecientes({ datos }) {
     <div className="glass rounded-2xl p-6">
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold text-plum">Pedidos recientes</h2>
-        <Link to="/admin/pedidos" className="text-sm font-semibold text-berry-dark hover:underline">
+        <Link to={rutaAdmin("/pedidos")} className="text-sm font-semibold text-berry-dark hover:underline">
           Ver todos
         </Link>
       </div>

@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import { ADMIN_URL } from "../lib/appMode.js";
 import { esNombreProvisional, nombreVisible } from "../utils/nombreUsuario.js";
 import { Link } from "react-router-dom";
 import { IconUser, IconChevronDown, IconDashboard, IconPackage, IconLogout } from "./Icons.jsx";
@@ -55,13 +56,23 @@ export default function UserMenu({ usuario, onLogout }) {
             <IconPackage size={16} /> Pedidos
           </Link>
           {usuario.es_admin && (
-            <Link
-              to="/admin"
-              onClick={cerrarYNavegar}
-              className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-berry-dark hover:bg-ivory"
-            >
-              <IconDashboard size={16} /> Panel admin
-            </Link>
+            ADMIN_URL ? (
+              <a
+                href={ADMIN_URL}
+                onClick={cerrarYNavegar}
+                className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-berry-dark hover:bg-ivory"
+              >
+                <IconDashboard size={16} /> Panel admin
+              </a>
+            ) : (
+              <Link
+                to="/admin"
+                onClick={cerrarYNavegar}
+                className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-berry-dark hover:bg-ivory"
+              >
+                <IconDashboard size={16} /> Panel admin
+              </Link>
+            )
           )}
 
           <button
