@@ -78,6 +78,13 @@ class Config:
     PROVEEDOR_RAZON_SOCIAL = os.getenv("PROVEEDOR_RAZON_SOCIAL", "").strip()
     PROVEEDOR_RUC = os.getenv("PROVEEDOR_RUC", "").strip()
     PROVEEDOR_DOMICILIO = os.getenv("PROVEEDOR_DOMICILIO", "").strip()
+
+    # Datos extra que se imprimen en la cabecera y el pie de la boleta de
+    # venta (además de PROVEEDOR_RUC y PROVEEDOR_DOMICILIO de arriba). Si
+    # alguno queda vacío, esa línea simplemente no aparece en la boleta.
+    BOLETA_TELEFONO = os.getenv("BOLETA_TELEFONO", "").strip()
+    BOLETA_EMAIL = os.getenv("BOLETA_EMAIL", "").strip()
+    BOLETA_POLITICA_CAMBIOS = os.getenv("BOLETA_POLITICA_CAMBIOS", "").strip()
     # Correo donde llega el aviso de cada reclamo nuevo (si se deja vacío, no se envía)
     RECLAMOS_EMAIL_DESTINO = os.getenv("RECLAMOS_EMAIL_DESTINO", "").strip()
 
