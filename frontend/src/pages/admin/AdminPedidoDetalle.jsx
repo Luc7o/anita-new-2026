@@ -1,3 +1,8 @@
+import { rutaAdmin } from "../../lib/appMode.js";
+import { useConfirm } from "../../components/ConfirmDialog.jsx";
+import { useToast } from "../../context/ToastContext.jsx";
+import Spinner from "../../components/Spinner.jsx";
+import { SkeletonFilasAdmin, SkeletonPanelAdmin, SkeletonDetalleAdmin, SkeletonFormularioAdmin } from "../../components/admin/EsqueletosAdmin.jsx";
 import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { api } from "../../api/client.js";
@@ -5,6 +10,8 @@ import { ESTADOS_PEDIDO } from "./estadosPedido.js";
 import EstadoPedidoSelect from "../../components/EstadoPedidoSelect.jsx";
 
 export default function AdminPedidoDetalle() {
+  const toast = useToast();
+  const confirmar = useConfirm();
   const { id } = useParams();
   const [pedido, setPedido] = useState(null);
   const [actualizando, setActualizando] = useState(false);
@@ -33,7 +40,7 @@ export default function AdminPedidoDetalle() {
     setMensajeEnvio("");
     try {
       await api.adminActualizarEnvio(id, envio);
-      setMensajeEnvio("Datos de envío guardados.");
+      toast.success("Datos de envío guardados");
       cargar();
     } catch (err) {
       setMensajeEnvio(err.message);
@@ -44,16 +51,20 @@ export default function AdminPedidoDetalle() {
 
   const cambiarEstado = async (nuevoEstado) => {
     if (nuevoEstado === "cancelado") {
-      const confirmado = window.confirm(
-        "¿Desea cancelar esta compra? El stock de los productos se devolverá. " +
-          "Si se cancela, se cancela y ya — esta acción no tiene vuelta atrás."
-      );
+      const confirmado = await confirmar({
+        title: "¿Cancelar esta compra?",
+        message: "El stock de los productos se devolverá. Esta acción no tiene vuelta atrás.",
+        tone: "danger",
+        confirmText: "Sí, cancelar compra",
+        cancelText: "No, volver",
+      });
       if (!confirmado) return;
     }
 
     setActualizando(true);
     try {
       await api.adminCambiarEstadoPedido(id, nuevoEstado);
+      toast.success("Estado del pedido actualizado");
       cargar();
     } finally {
       setActualizando(false);
@@ -64,6 +75,7 @@ export default function AdminPedidoDetalle() {
     setActualizando(true);
     try {
       await api.adminRevisarPago(id, estadoPago);
+      toast.success("Pago revisado");
       cargar();
     } finally {
       setActualizando(false);
@@ -83,30 +95,30 @@ export default function AdminPedidoDetalle() {
   };
 
   if (!pedido) {
-    return <p className="text-plum-soft">Cargando pedido...</p>;
+    return <SkeletonDetalleAdmin etiqueta="Cargando pedido" />;
   }
 
   return (
     <div>
-      <Link to="/admin/pedidos" className="text-sm text-berry hover:underline">
+      <Link to={rutaAdmin("/pedidos")} className="text-sm text-berry hover:underline">
         ← Volver a pedidos
       </Link>
 
-      <div className="glass mt-4 rounded-3xl p-6 shadow-glass sm:p-8">
+      <div className="glass mt-4 rounded-2xl p-6 sm:p-8">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <h1 className="text-2xl font-semibold text-plum">{pedido.numero_pedido}</h1>
             <p className="text-sm text-plum-soft">
               {new Date(pedido.fecha_creacion).toLocaleString("es-PE")}
               {pedido.origen === "presencial" && (
-                <span className="ml-2 rounded-full bg-plum/10 px-2 py-0.5 text-xs font-semibold text-plum-soft">
+                <span className="ml-2 rounded-md bg-plum/10 px-2 py-0.5 text-xs font-semibold text-plum-soft">
                   {pedido.origen_label}
                 </span>
               )}
             </p>
           </div>
           {pedido.estado === "cancelado" ? (
-            <span className="rounded-full bg-plum/10 px-4 py-2 text-sm font-semibold text-plum-soft">
+            <span className="rounded-[10px] bg-plum/10 px-4 py-2 text-sm font-semibold text-plum-soft">
               Cancelado — no se puede modificar
             </span>
           ) : (
@@ -154,13 +166,13 @@ export default function AdminPedidoDetalle() {
         </div>
 
         {pedido.estado_pago !== "no_aplica" && (
-          <div className="mt-6 rounded-2xl bg-white/50 p-4">
+          <div className="mt-6 rounded-2xl bg-white p-4">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <h2 className="text-sm font-semibold uppercase tracking-wide text-plum-soft">
                 {pedido.metodo_pago === "yape" ? "Comprobante de pago" : "Seguimiento de pago"}
               </h2>
               <span
-                className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
+                className={`rounded-md px-2.5 py-1 text-xs font-semibold ${
                   pedido.estado_pago === "reembolso_pendiente"
                     ? "bg-gold/30 text-plum"
                     : pedido.estado_pago === "reembolsado"
@@ -183,7 +195,7 @@ export default function AdminPedidoDetalle() {
                 <img
                   src={pedido.comprobante_url}
                   alt="Comprobante de pago"
-                  className="mt-3 h-40 w-40 rounded-xl object-cover shadow-glass transition hover:opacity-90"
+                  className="mt-3 h-40 w-40 rounded-xl object-cover transition hover:opacity-90"
                 />
               </a>
             )}
@@ -194,14 +206,14 @@ export default function AdminPedidoDetalle() {
                 <button
                   onClick={() => revisarPago("verificado")}
                   disabled={actualizando}
-                  className="rounded-full bg-berry px-4 py-2 text-sm font-semibold text-white shadow-glass transition hover:bg-berry-dark disabled:opacity-60"
+                  className="rounded-[10px] bg-berry px-4 py-2 text-sm font-semibold text-white transition hover:bg-berry-dark disabled:opacity-60"
                 >
                   Verificar pago
                 </button>
                 <button
                   onClick={() => revisarPago("rechazado")}
                   disabled={actualizando}
-                  className="rounded-full bg-white/70 px-4 py-2 text-sm font-semibold text-plum shadow-glass hover:bg-white disabled:opacity-60"
+                  className="rounded-[10px] bg-white px-4 py-2 text-sm font-semibold text-plum hover:bg-white disabled:opacity-60"
                 >
                   Rechazar
                 </button>
@@ -218,7 +230,7 @@ export default function AdminPedidoDetalle() {
                 <button
                   onClick={() => revisarPago("reembolsado")}
                   disabled={actualizando}
-                  className="rounded-full bg-berry px-4 py-2 text-sm font-semibold text-white shadow-glass transition hover:bg-berry-dark disabled:opacity-60"
+                  className="rounded-[10px] bg-berry px-4 py-2 text-sm font-semibold text-white transition hover:bg-berry-dark disabled:opacity-60"
                 >
                   Marcar como reembolsado
                 </button>
@@ -228,7 +240,7 @@ export default function AdminPedidoDetalle() {
         )}
 
         {pedido.estado !== "cancelado" && (
-          <form onSubmit={guardarEnvio} className="mt-6 rounded-2xl bg-white/50 p-4">
+          <form onSubmit={guardarEnvio} className="mt-6 rounded-2xl bg-white p-4">
             <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-plum-soft">
               Seguimiento de envío
             </h2>
@@ -238,23 +250,23 @@ export default function AdminPedidoDetalle() {
                 maxLength={100}
                 value={envio.empresa_envio}
                 onChange={(e) => setEnvio({ ...envio, empresa_envio: e.target.value })}
-                className="rounded-2xl bg-white/80 px-4 py-2 text-sm text-plum shadow-glass focus:outline-none"
+                className="rounded-2xl bg-white px-4 py-2 text-sm text-plum focus:outline-none"
               />
               <input
                 placeholder="Número de seguimiento"
                 maxLength={100}
                 value={envio.numero_seguimiento}
                 onChange={(e) => setEnvio({ ...envio, numero_seguimiento: e.target.value })}
-                className="rounded-2xl bg-white/80 px-4 py-2 text-sm text-plum shadow-glass focus:outline-none"
+                className="rounded-2xl bg-white px-4 py-2 text-sm text-plum focus:outline-none"
               />
             </div>
             <div className="mt-2 flex items-center gap-3">
               <button
                 type="submit"
                 disabled={guardandoEnvio}
-                className="rounded-full bg-berry px-4 py-2 text-sm font-semibold text-white shadow-glass transition hover:bg-berry-dark disabled:opacity-60"
+                className="rounded-[10px] bg-berry px-4 py-2 text-sm font-semibold text-white transition hover:bg-berry-dark disabled:opacity-60"
               >
-                {guardandoEnvio ? "Guardando..." : "Guardar seguimiento"}
+                {guardandoEnvio ? <><Spinner />Guardando...</> : "Guardar seguimiento"}
               </button>
               {mensajeEnvio && <span className="text-sm text-plum-soft">{mensajeEnvio}</span>}
             </div>
@@ -294,9 +306,9 @@ export default function AdminPedidoDetalle() {
             <button
               onClick={descargarBoleta}
               disabled={descargandoBoleta}
-              className="rounded-full bg-white/70 px-4 py-2 text-sm font-semibold text-berry-dark shadow-glass transition hover:bg-white disabled:opacity-60"
+              className="rounded-[10px] bg-white px-4 py-2 text-sm font-semibold text-berry-dark transition hover:bg-white disabled:opacity-60"
             >
-              {descargandoBoleta ? "Generando boleta..." : "Descargar boleta"}
+              {descargandoBoleta ? <><Spinner />Generando boleta...</> : "Descargar boleta"}
             </button>
             {errorBoleta && <p className="mt-2 text-sm text-berry-dark">{errorBoleta}</p>}
           </div>

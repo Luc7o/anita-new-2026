@@ -1,3 +1,5 @@
+import { rutaAdmin } from "../../lib/appMode.js";
+import { SkeletonFilasAdmin, SkeletonPanelAdmin, SkeletonDetalleAdmin, SkeletonFormularioAdmin } from "../../components/admin/EsqueletosAdmin.jsx";
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../../api/client.js";
@@ -30,7 +32,7 @@ export default function AdminPedidos() {
       <div className="mb-4 flex gap-2 overflow-x-auto pb-1">
         <button
           onClick={() => { setEstado(""); setPagina(1); }}
-          className={`shrink-0 rounded-full px-4 py-1.5 text-sm font-medium shadow-glass ${
+          className={`shrink-0 rounded-full px-4 py-1.5 text-sm font-medium ${
             estado === "" ? "bg-berry text-white" : "glass text-plum"
           }`}
         >
@@ -40,7 +42,7 @@ export default function AdminPedidos() {
           <button
             key={valor}
             onClick={() => { setEstado(valor); setPagina(1); }}
-            className={`shrink-0 rounded-full px-4 py-1.5 text-sm font-medium shadow-glass ${
+            className={`shrink-0 rounded-full px-4 py-1.5 text-sm font-medium ${
               estado === valor ? "bg-berry text-white" : "glass text-plum"
             }`}
           >
@@ -50,14 +52,14 @@ export default function AdminPedidos() {
       </div>
 
       {cargando ? (
-        <p className="text-plum-soft">Cargando pedidos...</p>
+        <SkeletonFilasAdmin cantidad={6} etiqueta="Cargando pedidos" />
       ) : (
         <>
           <Paginador pagina={pagina} porPagina={POR_PAGINA} total={total} onCambiar={setPagina} className="mb-2" />
           {/* Tabla — solo desktop */}
-          <div className="glass hidden overflow-hidden rounded-3xl shadow-glass md:block">
+          <div className="glass hidden overflow-hidden rounded-2xl md:block">
             <table className="w-full text-left text-sm">
-              <thead className="bg-white/50 text-xs uppercase tracking-wide text-plum-soft">
+              <thead className="bg-white text-xs uppercase tracking-wide text-plum-soft">
                 <tr>
                   <th className="px-4 py-3">N° Pedido</th>
                   <th className="px-4 py-3">Cliente</th>
@@ -78,14 +80,14 @@ export default function AdminPedidos() {
                     </td>
                     <td className="px-4 py-3 text-plum-soft">S/ {p.total.toFixed(2)}</td>
                     <td className="px-4 py-3">
-                      <span className="rounded-full bg-berry/10 px-2.5 py-1 text-xs font-semibold text-berry-dark">
+                      <span className="rounded-md bg-berry/10 px-2.5 py-1 text-xs font-semibold text-berry-dark">
                         {p.estado_label}
                       </span>
                     </td>
                     <td className="px-4 py-3">
                       {p.estado_pago !== "no_aplica" && (
                         <span
-                          className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
+                          className={`rounded-md px-2.5 py-1 text-xs font-semibold ${
                             p.estado_pago === "en_revision" || p.estado_pago === "reembolso_pendiente"
                               ? "bg-gold/30 text-plum"
                               : p.estado_pago === "verificado"
@@ -100,7 +102,7 @@ export default function AdminPedidos() {
                       )}
                     </td>
                     <td className="px-4 py-3 text-right">
-                      <Link to={`/admin/pedidos/${p.id}`} className="text-berry hover:underline">
+                      <Link to={rutaAdmin(`/pedidos/${p.id}`)} className="text-berry hover:underline">
                         Ver
                       </Link>
                     </td>
@@ -118,8 +120,8 @@ export default function AdminPedidos() {
             {pedidos.map((p) => (
               <Link
                 key={p.id}
-                to={`/admin/pedidos/${p.id}`}
-                className="glass block rounded-2xl p-4 shadow-glass"
+                to={rutaAdmin(`/pedidos/${p.id}`)}
+                className="glass block rounded-2xl p-4"
               >
                 <div className="flex items-start justify-between gap-2">
                   <div>
@@ -134,12 +136,12 @@ export default function AdminPedidos() {
                   <span className="text-xs text-plum-soft">
                     {new Date(p.fecha_creacion).toLocaleDateString("es-PE")}
                   </span>
-                  <span className="rounded-full bg-berry/10 px-2.5 py-1 text-xs font-semibold text-berry-dark">
+                  <span className="rounded-md bg-berry/10 px-2.5 py-1 text-xs font-semibold text-berry-dark">
                     {p.estado_label}
                   </span>
                   {p.estado_pago !== "no_aplica" && (
                     <span
-                      className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
+                      className={`rounded-md px-2.5 py-1 text-xs font-semibold ${
                         p.estado_pago === "en_revision" || p.estado_pago === "reembolso_pendiente"
                           ? "bg-gold/30 text-plum"
                           : p.estado_pago === "verificado"
@@ -156,7 +158,7 @@ export default function AdminPedidos() {
               </Link>
             ))}
             {pedidos.length === 0 && (
-              <p className="glass rounded-2xl p-6 text-center text-plum-soft shadow-glass">
+              <p className="glass rounded-2xl p-6 text-center text-plum-soft">
                 No hay pedidos con ese filtro.
               </p>
             )}

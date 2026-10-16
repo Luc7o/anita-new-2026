@@ -1,3 +1,8 @@
+import { rutaAdmin } from "../../lib/appMode.js";
+import { useConfirm } from "../../components/ConfirmDialog.jsx";
+import { useToast } from "../../context/ToastContext.jsx";
+import Spinner from "../../components/Spinner.jsx";
+import { SkeletonFilasAdmin, SkeletonPanelAdmin, SkeletonDetalleAdmin, SkeletonFormularioAdmin } from "../../components/admin/EsqueletosAdmin.jsx";
 import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { api } from "../../api/client.js";
@@ -5,6 +10,8 @@ import { useAuth } from "../../context/AuthContext.jsx";
 import ImagenOptimizada from "../../components/ImagenOptimizada.jsx";
 
 export default function AdminProveedorDetalle() {
+  const toast = useToast();
+  const confirmar = useConfirm();
   const { id } = useParams();
   const { usuario } = useAuth();
   const puedeGestionar = ["superadmin", "editor"].includes(usuario?.rol);
@@ -39,6 +46,7 @@ export default function AdminProveedorDetalle() {
     setGuardando(true);
     try {
       await api.adminAgregarProductoProveedor(id, seleccion);
+      toast.success("Producto vinculado al proveedor");
       setMostrarForm(false);
       cargar();
     } catch (err) {
@@ -49,13 +57,23 @@ export default function AdminProveedorDetalle() {
   };
 
   const quitarProducto = async (relacion) => {
-    if (!confirm(`¿Quitar "${relacion.producto?.nombre}" de este proveedor?`)) return;
-    await api.adminQuitarProductoProveedor(id, relacion.id);
-    cargar();
+    const ok = await confirmar({
+      title: `¿Quitar "${relacion.producto?.nombre}" de este proveedor?`,
+      tone: "danger",
+      confirmText: "Quitar",
+    });
+    if (!ok) return;
+    try {
+      await api.adminQuitarProductoProveedor(id, relacion.id);
+      toast.success("Producto quitado del proveedor");
+      cargar();
+    } catch (err) {
+      toast.error(err.message || "No se pudo quitar el producto");
+    }
   };
 
   if (!proveedor) {
-    return <p className="text-plum-soft">Cargando proveedor...</p>;
+    return <SkeletonDetalleAdmin etiqueta="Cargando proveedor" />;
   }
 
   const productosYaAsociados = new Set(proveedor.productos.map((pp) => pp.producto_id));
@@ -63,11 +81,11 @@ export default function AdminProveedorDetalle() {
 
   return (
     <div>
-      <Link to="/admin/proveedores" className="text-sm text-berry hover:underline">
+      <Link to={rutaAdmin("/proveedores")} className="text-sm text-berry hover:underline">
         ← Volver a proveedores
       </Link>
 
-      <div className="glass mt-4 rounded-3xl p-6 shadow-glass sm:p-8">
+      <div className="glass mt-4 rounded-2xl p-6 sm:p-8">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <h1 className="text-2xl font-semibold text-plum">{proveedor.nombre}</h1>
@@ -77,7 +95,7 @@ export default function AdminProveedorDetalle() {
             </p>
           </div>
           <span
-            className={`rounded-full px-3 py-1.5 text-xs font-semibold ${
+            className={`rounded-md px-3 py-1.5 text-xs font-semibold ${
               proveedor.activo ? "bg-berry/10 text-berry-dark" : "bg-plum/10 text-plum-soft"
             }`}
           >
@@ -86,7 +104,7 @@ export default function AdminProveedorDetalle() {
         </div>
 
         {proveedor.notas && (
-          <p className="mt-3 rounded-2xl bg-white/50 p-3 text-sm text-plum-soft">{proveedor.notas}</p>
+          <p className="mt-3 rounded-2xl bg-white p-3 text-sm text-plum-soft">{proveedor.notas}</p>
         )}
 
         <div className="mt-6 border-t border-white/50 pt-4">
@@ -97,7 +115,7 @@ export default function AdminProveedorDetalle() {
             {puedeGestionar && (
               <button
                 onClick={abrirForm}
-                className="rounded-full bg-berry px-4 py-2 text-xs font-semibold text-white shadow-glass transition hover:bg-berry-dark"
+                className="rounded-[10px] bg-berry px-4 py-2 text-xs font-semibold text-white transition hover:bg-berry-dark"
               >
                 + Vincular producto
               </button>
@@ -111,7 +129,7 @@ export default function AdminProveedorDetalle() {
               {proveedor.productos.map((pp) => (
                 <div
                   key={pp.id}
-                  className="flex items-center justify-between gap-3 rounded-2xl bg-white/50 px-4 py-3"
+                  className="flex items-center justify-between gap-3 rounded-2xl bg-white px-4 py-3"
                 >
                   <div className="flex items-center gap-3">
                     {pp.producto?.imagen_url && (
@@ -158,7 +176,7 @@ export default function AdminProveedorDetalle() {
           />
           <form
             onSubmit={agregarProducto}
-            className="glass-strong relative w-full max-w-md rounded-3xl p-6 shadow-glass-lg sm:p-8"
+            className="glass-strong relative w-full max-w-md rounded-2xl p-6 shadow-glass-lg sm:p-8"
           >
             <h2 className="mb-4 text-xl font-semibold text-plum">Vincular producto</h2>
 
@@ -166,7 +184,7 @@ export default function AdminProveedorDetalle() {
               <select
                 value={seleccion.producto_id}
                 onChange={(e) => setSeleccion({ ...seleccion, producto_id: e.target.value })}
-                className="w-full rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-none"
+                className="w-full rounded-2xl bg-white px-4 py-2.5 text-plum focus:outline-none"
               >
                 <option value="">Selecciona un producto...</option>
                 {opcionesSelect.map((p) => (
@@ -182,7 +200,7 @@ export default function AdminProveedorDetalle() {
                 placeholder="Precio de compra (opcional)"
                 value={seleccion.precio_compra}
                 onChange={(e) => setSeleccion({ ...seleccion, precio_compra: e.target.value })}
-                className="w-full rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-none"
+                className="w-full rounded-2xl bg-white px-4 py-2.5 text-plum focus:outline-none"
               />
             </div>
 
@@ -192,14 +210,14 @@ export default function AdminProveedorDetalle() {
               <button
                 type="submit"
                 disabled={guardando}
-                className="flex-1 rounded-full bg-berry py-2.5 text-sm font-semibold text-white shadow-glass transition hover:bg-berry-dark disabled:opacity-60"
+                className="flex-1 rounded-[10px] bg-berry py-2.5 text-sm font-semibold text-white transition hover:bg-berry-dark disabled:opacity-60"
               >
-                {guardando ? "Guardando..." : "Vincular"}
+                {guardando ? <><Spinner />Guardando...</> : "Vincular"}
               </button>
               <button
                 type="button"
                 onClick={() => setMostrarForm(false)}
-                className="rounded-full bg-white/70 px-5 py-2.5 text-sm font-semibold text-plum shadow-glass"
+                className="rounded-[10px] bg-white px-5 py-2.5 text-sm font-semibold text-plum"
               >
                 Cancelar
               </button>

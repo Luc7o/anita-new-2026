@@ -1,13 +1,14 @@
-import React, { lazy, Suspense, useEffect } from "react";
+import React, { Suspense, useEffect } from "react";
+import { lazyConReintento as lazy } from "./utils/lazyConReintento.js";
 import { Routes, Route, useLocation, Link } from "react-router-dom";
 import Navbar from "./components/Navbar.jsx";
 import Carrito from "./pages/Carrito.jsx";
 import CartDrawer from "./components/CartDrawer.jsx";
 import Footer from "./components/Footer.jsx";
+import CargandoPagina from "./components/CargandoPagina.jsx";
 const FormasPago = lazy(() => import("./pages/FormasPago.jsx"));
 const MetodosEnvio = lazy(() => import("./pages/MetodosEnvio.jsx"));
 const CambiosDevoluciones = lazy(() => import("./pages/CambiosDevoluciones.jsx"));
-const GuiaTallas = lazy(() => import("./pages/GuiaTallas.jsx"));
 const FAQ = lazy(() => import("./pages/FAQ.jsx"));
 const Contacto = lazy(() => import("./pages/Contacto.jsx"));
 const LibroReclamaciones = lazy(() => import("./pages/LibroReclamaciones.jsx"));
@@ -33,29 +34,24 @@ const Ayuda = lazy(() => import("./pages/Ayuda.jsx"));
 const Checkout = lazy(() => import("./pages/Checkout.jsx"));
 const Pedidos = lazy(() => import("./pages/Pedidos.jsx"));
 const PedidoDetalle = lazy(() => import("./pages/PedidoDetalle.jsx"));
+import { ADMIN_URL } from "./lib/appMode.js";
 import { useAuth } from "./context/AuthContext.jsx";
 import { useCarrito } from "./context/CarritoContext.jsx";
 import { api } from "./api/client.js";
-import RutaAdmin from "./components/admin/RutaAdmin.jsx";
-import AdminLayout from "./components/admin/AdminLayout.jsx";
-const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard.jsx"));
-const AdminProductos = lazy(() => import("./pages/admin/AdminProductos.jsx"));
-const AdminCategorias = lazy(() => import("./pages/admin/AdminCategorias.jsx"));
-const AdminPromociones = lazy(() => import("./pages/admin/AdminPromociones.jsx"));
-const AdminPedidos = lazy(() => import("./pages/admin/AdminPedidos.jsx"));
-const AdminPedidoDetalle = lazy(() => import("./pages/admin/AdminPedidoDetalle.jsx"));
-const AdminVentaPresencial = lazy(() => import("./pages/admin/AdminVentaPresencial.jsx"));
-const AdminReportes = lazy(() => import("./pages/admin/AdminReportes.jsx"));
-const AdminProveedores = lazy(() => import("./pages/admin/AdminProveedores.jsx"));
-const AdminProveedorDetalle = lazy(() => import("./pages/admin/AdminProveedorDetalle.jsx"));
-const AdminUsuarios = lazy(() => import("./pages/admin/AdminUsuarios.jsx"));
-const AdminConfiguracion = lazy(() => import("./pages/admin/AdminConfiguracion.jsx"));
-const AdminReclamaciones = lazy(() => import("./pages/admin/AdminReclamaciones.jsx"));
 
-// Mientras baja el código de una página (se carga bajo demanda, ver los
-// import() de arriba) se deja el espacio reservado en vez de una pantalla en blanco.
-function CargandoPagina() {
-  return <div className="min-h-[60vh]" aria-busy="true" />;
+// Panel de administración: con VITE_ADMIN_URL (panel en otro dominio) el
+// import dinámico queda dentro de una rama muerta y Vite lo descarta, así el
+// build de la tienda no incluye el código del panel.
+const AdminApp = import.meta.env.VITE_ADMIN_URL
+  ? null
+  : lazy(() => import("./AdminApp.jsx"));
+
+function RedirigirAlPanel() {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    window.location.replace(ADMIN_URL + pathname.replace(/^\/admin/, ""));
+  }, [pathname]);
+  return <CargandoPagina />;
 }
 
 export default function App() {
@@ -109,33 +105,16 @@ export default function App() {
   );
 
   if (esAdmin) {
+    // Panel de administración. Con VITE_ADMIN_URL el panel vive en su propio
+    // dominio: aquí solo se redirige y su código no entra en este build.
+    if (!AdminApp) return <RedirigirAlPanel />;
     return (
-      <div className="min-h-screen pt-8">
-        {bannerSesionExpirada}        <Suspense fallback={<CargandoPagina />}>
-        <Routes>
-          <Route
-            path="/admin"
-            element={
-              <RutaAdmin>
-                <AdminLayout />
-              </RutaAdmin>
-            }
-          >
-            <Route index element={<AdminDashboard />} />
-            <Route path="productos" element={<AdminProductos />} />
-            <Route path="categorias" element={<AdminCategorias />} />
-            <Route path="promociones" element={<AdminPromociones />} />
-            <Route path="pedidos" element={<AdminPedidos />} />
-            <Route path="pedidos/:id" element={<AdminPedidoDetalle />} />
-            <Route path="pedidos/nueva-venta" element={<AdminVentaPresencial />} />
-            <Route path="reportes" element={<AdminReportes />} />
-            <Route path="proveedores" element={<AdminProveedores />} />
-            <Route path="proveedores/:id" element={<AdminProveedorDetalle />} />
-            <Route path="reclamaciones" element={<AdminReclamaciones />} />
-            <Route path="usuarios" element={<AdminUsuarios />} />
-            <Route path="configuracion" element={<AdminConfiguracion />} />
-          </Route>
-        </Routes>
+      <div className="min-h-screen">
+        {bannerSesionExpirada}
+        <Suspense fallback={<CargandoPagina />}>
+          <Routes>
+            <Route path="/admin/*" element={<AdminApp />} />
+          </Routes>
         </Suspense>
       </div>
     );
@@ -182,7 +161,7 @@ export default function App() {
     <div className="min-h-screen">
       {bannerSesionExpirada}
       <Navbar />
-      <main className="pt-8">
+      <main className={location.pathname === "/" || location.pathname === "/tienda" ? "" : "pt-8"}>
         {/* key: al cambiar de ruta el contenido se vuelve a montar y entra con
             una animación suave (fundido + leve subida) en vez de "saltar". */}
         <div key={location.pathname} className="animate-fade-in-up">
@@ -198,7 +177,6 @@ export default function App() {
           <Route path="/formas-de-pago" element={<FormasPago />} />
           <Route path="/metodos-de-envio" element={<MetodosEnvio />} />
           <Route path="/cambios-devoluciones" element={<CambiosDevoluciones />} />
-          <Route path="/guia-de-tallas" element={<GuiaTallas />} />
           <Route path="/faq" element={<FAQ />} />
           <Route path="/contacto" element={<Contacto />} />
           <Route path="/libro-reclamaciones" element={<LibroReclamaciones />} />
