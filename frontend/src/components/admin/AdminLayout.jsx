@@ -29,7 +29,7 @@ export default function AdminLayout() {
   const items = TODOS_LOS_ITEMS.filter((item) => !item.roles || item.roles.includes(usuario?.rol));
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="admin-ui flex min-h-screen flex-col">
       {/* Cabecera oscura fija (estructura de Malhu) */}
       <header className="sticky top-0 z-40 bg-plum/95 backdrop-blur">
         <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3">

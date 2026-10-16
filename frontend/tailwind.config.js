@@ -21,9 +21,9 @@ export default {
         },
       },
       fontFamily: {
-        sans: ["Figtree", "ui-sans-serif", "system-ui", "sans-serif"],
-        display: ['"Playfair Display"', "Figtree", "ui-sans-serif", "system-ui", "sans-serif"],
-        body: ["Figtree", "ui-sans-serif", "system-ui", "sans-serif"],
+        sans: ['"DM Sans"', "ui-sans-serif", "system-ui", "sans-serif"],
+        display: ['"DM Serif Display"', "Georgia", "serif"],
+        body: ['"DM Sans"', "ui-sans-serif", "system-ui", "sans-serif"],
       },
       backdropBlur: {
         xs: "2px",
