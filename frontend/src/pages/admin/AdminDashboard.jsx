@@ -5,7 +5,7 @@ import { IconChevronDown } from "../../components/Icons.jsx";
 import { useAuth } from "../../context/AuthContext.jsx";
 import { SUPERADMIN, PUEDE_VER_DASHBOARD } from "../../roles.js";
 
-const COLORES_CATEGORIA = ["#A53694", "#CA8AC0", "#C9A227", "#E4C765", "#5A4756"];
+const COLORES_CATEGORIA = ["#C42759", "#550416", "#ABABAB", "#E58AA6", "#797878"];
 
 const ESTADO_BADGE = {
   pendiente: "bg-plum/10 text-plum-soft",
@@ -552,10 +552,10 @@ function VentasChart({ datos, pie }) {
         <p className="mt-8 text-sm text-plum-soft">Todavía no hay suficientes ventas confirmadas para graficar.</p>
       ) : (
         <svg viewBox={`0 0 ${ancho} ${alto}`} className="mt-4 w-full" preserveAspectRatio="none">
-          <polygon points={area} fill="#A53694" fillOpacity="0.12" />
-          <polyline points={linea} fill="none" stroke="#A53694" strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" />
+          <polygon points={area} fill="#C42759" fillOpacity="0.12" />
+          <polyline points={linea} fill="none" stroke="#C42759" strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" />
           {puntos.map((p, i) => (
-            <circle key={i} cx={p.x} cy={p.y} r="4" fill="#A53694" />
+            <circle key={i} cx={p.x} cy={p.y} r="4" fill="#C42759" />
           ))}
         </svg>
       )}

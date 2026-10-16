@@ -88,11 +88,11 @@ function Hero({ promociones }) {
         )}
 
         {promoActual ? (
-          <h1 className="font-display text-3xl font-semibold leading-tight text-white drop-shadow-[0_2px_10px_rgba(43,30,41,0.55)] sm:text-5xl">
+          <h1 className="font-display text-3xl font-semibold leading-tight text-white drop-shadow-[0_2px_10px_rgba(44,1,7,0.55)] sm:text-5xl">
             {promoActual.titulo}
           </h1>
         ) : (
-          <h1 className="font-display text-3xl font-semibold leading-tight text-white drop-shadow-[0_2px_10px_rgba(43,30,41,0.55)] sm:text-5xl">
+          <h1 className="font-display text-3xl font-semibold leading-tight text-white drop-shadow-[0_2px_10px_rgba(44,1,7,0.55)] sm:text-5xl">
             Estilo que se
             <span className="text-gold-soft"> nota</span>, elegancia que se siente
           </h1>
@@ -100,12 +100,12 @@ function Hero({ promociones }) {
 
         {promoActual ? (
           promoActual.descripcion && (
-            <p className="mx-auto mt-4 max-w-lg text-sm text-white/90 drop-shadow-[0_1px_6px_rgba(43,30,41,0.5)] sm:text-base">
+            <p className="mx-auto mt-4 max-w-lg text-sm text-white/90 drop-shadow-[0_1px_6px_rgba(44,1,7,0.5)] sm:text-base">
               {promoActual.descripcion}
             </p>
           )
         ) : (
-          <p className="mx-auto mt-4 max-w-lg text-sm text-white/90 drop-shadow-[0_1px_6px_rgba(43,30,41,0.5)] sm:text-base">
+          <p className="mx-auto mt-4 max-w-lg text-sm text-white/90 drop-shadow-[0_1px_6px_rgba(44,1,7,0.5)] sm:text-base">
             Calzados, vestidos, carteras y accesorios seleccionados para tu día a día.
             Envíos a todo el país.
           </p>
