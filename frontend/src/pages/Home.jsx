@@ -3,8 +3,9 @@ import { Link } from "react-router-dom";
 import { api } from "../api/client.js";
 import ProductCard from "../components/ProductCard.jsx";
 import { SkeletonPills, SkeletonProductGrid } from "../components/Skeleton.jsx";
-import { IconChevronLeft, IconChevronRight, IconArrowRight, IconSearch, IconCart, IconTruck, IconWhatsApp } from "../components/Icons.jsx";
+import { IconChevronLeft, IconChevronRight, IconArrowRight, IconWhatsApp } from "../components/Icons.jsx";
 import useConfigTienda, { linkWhatsApp } from "../hooks/useConfigTienda.js";
+import ImagenOptimizada from "../components/ImagenOptimizada.jsx";
 import { urlVariante } from "../utils/imagenes.js";
 import heroDefecto1 from "../assets/auth/login-hero.webp";
 import heroDefecto2 from "../assets/auth/registro-hero.webp";
@@ -34,12 +35,6 @@ function SlideHero({ url, visible }) {
     />
   );
 }
-
-const PASOS = [
-  [IconSearch, "Elige", "Explora la tienda y encuentra tu estilo."],
-  [IconCart, "Compra", "Arma tu carrito y paga en línea, sin necesidad de cuenta."],
-  [IconTruck, "Recibe", "Envíos a todo el Perú o recojo en tienda."],
-];
 
 function Hero({ promociones }) {
   // Solo promociones con imagen entran al carrusel; se mantiene el mismo orden
@@ -143,7 +138,7 @@ function Hero({ promociones }) {
 }
 
 // Categorías en círculos sobre una superficie curva (estructura de Malhu).
-function Categorias({ categorias, cargando }) {
+function Categorias({ categorias, cargando, fotos }) {
   if (!cargando && categorias.length === 0) return null;
   return (
     <section className="wood relative -mt-12 rounded-t-[50%_/_70px] pb-14 pt-16 md:-mt-16 md:rounded-t-[50%_/_110px] md:pt-24">
@@ -159,8 +154,17 @@ function Categorias({ categorias, cargando }) {
               to={`/tienda?categoria=${cat.slug}`}
               className="group flex w-36 flex-col items-center text-center md:w-44"
             >
-              <span className="flex h-32 w-32 items-center justify-center overflow-hidden rounded-full border-4 border-berry-dark bg-lilac font-display text-5xl font-semibold text-berry shadow-pop transition-transform duration-300 ease-out group-hover:scale-110 md:h-40 md:w-40">
-                {cat.nombre.slice(0, 1)}
+              <span className="flex h-32 w-32 items-center justify-center overflow-hidden rounded-full border-4 border-plum bg-lilac font-display text-5xl text-plum shadow-pop transition-transform duration-300 ease-out group-hover:scale-110 md:h-40 md:w-40">
+                {fotos[cat.slug] ? (
+                  <ImagenOptimizada
+                    src={fotos[cat.slug]}
+                    variante="thumb"
+                    alt=""
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  cat.nombre.slice(0, 1)
+                )}
               </span>
               <span className="mt-4 text-lg font-bold uppercase leading-tight text-plum-soft transition-colors group-hover:text-berry">
                 {cat.nombre}
@@ -178,38 +182,20 @@ function Categorias({ categorias, cargando }) {
   );
 }
 
-function ComoFunciona() {
-  return (
-    <section className="bg-lilac">
-      <ol className="mx-auto grid max-w-6xl gap-6 px-4 py-10 sm:grid-cols-3">
-        {PASOS.map(([Icono, titulo, texto]) => (
-          <li key={titulo} className="flex flex-col items-center text-center">
-            <span className="flex h-14 w-14 items-center justify-center rounded-full bg-berry text-white">
-              <Icono size={24} />
-            </span>
-            <p className="mt-3 text-sm font-extrabold uppercase tracking-wider text-plum">{titulo}</p>
-            <p className="mt-1 max-w-[16rem] text-sm text-plum-soft">{texto}</p>
-          </li>
-        ))}
-      </ol>
-    </section>
-  );
-}
-
 function BandaContacto() {
   const c = useConfigTienda();
   const wa = linkWhatsApp(c.whatsapp);
   return (
-    <section className="-mb-20 mt-16 bg-berry text-white">
+    <section className="-mb-20 mt-16 bg-plum text-white">
       <div className="mx-auto flex max-w-6xl flex-col items-start justify-between gap-6 px-4 py-12 md:flex-row md:items-center">
         <div>
           <h2 className="font-sans text-2xl font-extrabold uppercase sm:text-3xl">Compras al por mayor</h2>
-          <p className="mt-2 max-w-xl text-white/85">
+          <p className="mt-2 max-w-xl text-white/75">
             ¿Quieres revender o surtir tu negocio? Escríbenos y coordinamos contigo.
           </p>
         </div>
         {wa ? (
-          <a href={wa} target="_blank" rel="noopener noreferrer" className="btn shrink-0 bg-white !px-6 !py-3 text-base text-plum hover:bg-ivory">
+          <a href={wa} target="_blank" rel="noopener noreferrer" className="btn shrink-0 bg-berry !px-6 !py-3 text-base text-white hover:bg-berry-dark">
             <IconWhatsApp size={16} /> Escríbenos por WhatsApp
           </a>
         ) : (
@@ -226,6 +212,8 @@ export default function Home() {
   const [categorias, setCategorias] = useState([]);
   const [destacados, setDestacados] = useState([]);
   const [promociones, setPromociones] = useState([]);
+  const [ofertas, setOfertas] = useState([]);
+  const [fotos, setFotos] = useState({});
   // Mientras llegan los datos se muestran skeletons con la forma del contenido final.
   const [cargandoCategorias, setCargandoCategorias] = useState(true);
   const [cargandoDestacados, setCargandoDestacados] = useState(true);
@@ -242,18 +230,51 @@ export default function Home() {
       .catch(() => {})
       .finally(() => setCargandoDestacados(false));
     api.promocionesActivas().then(setPromociones).catch(() => {});
+    // Ofertas: franja propia arriba, porque suelen ser lo que más convierte.
+    api
+      .productos({ oferta: "true", por_pagina: 4 })
+      .then((data) => setOfertas(data.productos))
+      .catch(() => {});
+    // Foto de cada categoría: se toma de uno de sus productos (las categorías no guardan foto propia).
+    api
+      .productos({ por_pagina: 48 })
+      .then((data) => {
+        const mapa = {};
+        for (const p of data.productos) {
+          if (p.categoria && p.imagen_url && !mapa[p.categoria]) mapa[p.categoria] = p.imagen_url;
+        }
+        setFotos(mapa);
+      })
+      .catch(() => {});
   }, []);
 
   return (
     <div>
       <Hero promociones={promociones} />
-      <Categorias categorias={categorias} cargando={cargandoCategorias} />
-      <ComoFunciona />
+      <Categorias categorias={categorias} cargando={cargandoCategorias} fotos={fotos} />
+
+      {/* Ofertas */}
+      {ofertas.length > 0 && (
+        <section className="mx-auto mt-12 max-w-6xl px-4">
+          <div className="mb-5 flex items-center justify-between">
+            <h2 className="text-2xl text-plum sm:text-3xl">Ofertas</h2>
+            <Link to="/tienda?oferta=true" className="btn-secondary btn !py-2 text-xs">
+              Ver todas
+              <IconArrowRight size={14} />
+            </Link>
+          </div>
+          <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+            {ofertas.map((producto, i) => (
+              <ProductCard key={producto.id} producto={producto} indice={i} />
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Destacados */}
       <section className="mx-auto mt-14 max-w-6xl px-4">
         <div className="mb-5 flex items-center justify-between">
-          <h2 className="text-2xl font-bold text-plum sm:text-3xl">Productos destacados</h2>
+          <h2 className="text-2xl text-plum sm:text-3xl">Productos destacados</h2>
           <Link to="/tienda" className="btn-secondary btn !py-2 text-xs">
             Ver más
             <IconArrowRight size={14} />

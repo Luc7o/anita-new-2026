@@ -1,3 +1,4 @@
+import EstadoVacio from "../components/EstadoVacio.jsx";
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../api/client.js";
@@ -49,16 +50,13 @@ export default function Favoritos() {
       {cargando ? (
         <SkeletonProductGrid cantidad={6} etiqueta="Cargando favoritos" />
       ) : productosVisibles.length === 0 ? (
-        <div className="glass flex flex-col items-center gap-3 rounded-3xl p-10 text-center shadow-glass">
-          <IconHeart size={28} className="text-berry-light" />
-          <p className="text-plum-soft">Todavía no guardaste ningún producto como favorito.</p>
-          <Link
-            to="/tienda"
-            className="mt-1 rounded-full bg-berry px-6 py-2.5 text-sm font-semibold text-white shadow-glass transition hover:bg-berry-dark"
-          >
-            Explorar tienda
-          </Link>
-        </div>
+        <EstadoVacio
+          icono={IconHeart}
+          titulo="Aún no tienes favoritos"
+          texto="Toca el corazón en un producto para guardarlo aquí y encontrarlo después."
+          enlace="/tienda"
+          etiqueta="Explorar tienda"
+        />
       ) : (
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
           {productosVisibles.map((producto, i) => (

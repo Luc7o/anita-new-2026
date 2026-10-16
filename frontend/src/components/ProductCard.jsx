@@ -6,6 +6,7 @@ import { useFavoritos } from "../context/FavoritosContext.jsx";
 import { IconCart, IconCheck, IconStar, IconHeart } from "./Icons.jsx";
 import ImagenOptimizada from "./ImagenOptimizada.jsx";
 import SelectorRapido from "./SelectorRapido.jsx";
+import { nombreColorAHex } from "../utils/colores.js";
 
 // `indice` (opcional) escalona la animación de entrada cuando la tarjeta
 // aparece dentro de una grilla: cada tarjeta entra un poquito después de la
@@ -15,8 +16,7 @@ export default function ProductCard({ producto, indice = 0 }) {
   const { agregar } = useCarrito();
   const favoritos = useFavoritos();
   const navigate = useNavigate();
-  const [cargando, setCargando] = useState(false);
-  const [agregando, setAgregando] = useState(false);
+    const [agregando, setAgregando] = useState(false);
   const [agregado, setAgregado] = useState(false);
   const [errorRapido, setErrorRapido] = useState("");
   const [selectorAbierto, setSelectorAbierto] = useState(false);
@@ -62,27 +62,6 @@ export default function ProductCard({ producto, indice = 0 }) {
   const alAgregarDesdeSelector = () => {
     setSelectorAbierto(false);
     marcarAgregado();
-  };
-
-  // Comprar NO exige cuenta: el carrito funciona sin registrarse y el correo
-  // se pide recién al pagar (ver Checkout). Solo los favoritos requieren cuenta.
-  const handleComprar = async () => {
-    if (necesitaOpciones) {
-      navigate(`/producto/${producto.id}`);
-      return;
-    }
-    setCargando(true);
-    try {
-      // abrirCarrito: false: se va directo al checkout, sin abrir el carrito.
-      await agregar(producto.id, { abrirCarrito: false });
-      navigate("/checkout");
-    } catch {
-      // Sin stock u otro rechazo del servidor: llevamos a la ficha, donde se
-      // ve el detalle y las opciones disponibles.
-      navigate(`/producto/${producto.id}`);
-    } finally {
-      setCargando(false);
-    }
   };
 
   const handleFavorito = (e) => {
@@ -135,6 +114,21 @@ export default function ProductCard({ producto, indice = 0 }) {
         <div className="flex flex-1 flex-col gap-1.5 p-5 pb-0">
           <span className="text-xs uppercase tracking-wide text-plum-soft">Anita New Style</span>
           <h3 className="text-base font-semibold leading-snug text-plum">{producto.nombre}</h3>
+          {producto.colores && producto.colores.length > 0 && (
+            <div className="flex items-center gap-1.5" aria-label={`Colores: ${producto.colores.join(", ")}`}>
+              {producto.colores.slice(0, 5).map((c) => (
+                <span
+                  key={c}
+                  title={c}
+                  className="h-3.5 w-3.5 rounded-full border border-plum/20"
+                  style={{ backgroundColor: nombreColorAHex(c) }}
+                />
+              ))}
+              {producto.colores.length > 5 && (
+                <span className="text-xs text-plum-soft">+{producto.colores.length - 5}</span>
+              )}
+            </div>
+          )}
           {producto.total_resenas > 0 && (
             <div className="flex items-center gap-1">
               <IconStar size={13} relleno className="text-gold" />
@@ -157,7 +151,7 @@ export default function ProductCard({ producto, indice = 0 }) {
           onClick={handleFavorito}
           aria-label={esFavorito ? "Quitar de favoritos" : "Agregar a favoritos"}
           aria-pressed={esFavorito}
-          className={`flex h-8 w-8 items-center justify-center rounded-full border transition hover:scale-110 active:scale-90 ${
+          className={`flex h-11 w-11 items-center justify-center rounded-full border transition hover:scale-110 active:scale-90 ${
             esFavorito ? "border-berry bg-berry text-white" : "border-plum/15 text-plum-soft hover:text-berry"
           }`}
         >
@@ -175,11 +169,7 @@ export default function ProductCard({ producto, indice = 0 }) {
             disabled={agregando}
             aria-label={`Agregar ${producto.nombre} al carrito`}
             aria-haspopup={necesitaOpciones ? "dialog" : undefined}
-            className={`flex w-full items-center justify-center gap-2 rounded-[10px] border py-2.5 text-sm font-semibold transition active:scale-[0.97] disabled:opacity-60 ${
-              agregado
-                ? "border-berry bg-berry text-white"
-                : "border-berry text-berry hover:bg-berry/5"
-            }`}
+            className={`flex w-full items-center justify-center gap-2 rounded-[10px] border py-2.5 text-sm font-semibold transition active:scale-[0.97] disabled:opacity-60 ${agregado ? "border-plum bg-plum text-white" : "border-berry bg-berry text-white hover:border-berry-dark hover:bg-berry-dark"}`}
           >
             {agregado ? (
               <span className="flex animate-pop">
@@ -189,14 +179,6 @@ export default function ProductCard({ producto, indice = 0 }) {
               <IconCart size={14} />
             )}
             {agregando ? "Agregando..." : agregado ? "¡Agregado!" : "Agregar al carrito"}
-          </button>
-          <button
-            onClick={handleComprar}
-            disabled={cargando}
-            aria-label={`Comprar ${producto.nombre}`}
-            className="flex w-full items-center justify-center gap-2 rounded-[10px] bg-berry py-2.5 text-sm font-semibold text-white transition hover:bg-berry-dark active:scale-[0.97] disabled:opacity-60"
-          >
-            {cargando ? "Procesando..." : "Comprar"}
           </button>
           {errorRapido && (
             <p className="text-xs text-berry-dark" role="alert">
