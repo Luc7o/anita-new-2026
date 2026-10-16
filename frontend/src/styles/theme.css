@@ -27,16 +27,29 @@ html {
 }
 
 body {
-  font-family: "Figtree", ui-sans-serif, system-ui, sans-serif;
+  font-family: "DM Sans", ui-sans-serif, system-ui, sans-serif;
   color: #2c0107;
   background: #f7f5f5;
   -webkit-font-smoothing: antialiased;
 }
 
+/* Tienda: títulos en DM Serif Display. Esa fuente solo existe en peso 400,
+   así que se evita la "negrita falsa" del navegador (font-synthesis). */
 h1,
 h2,
-h3 {
-  font-family: "Playfair Display", Figtree, ui-sans-serif, system-ui, sans-serif;
+h3,
+.font-display {
+  font-family: "DM Serif Display", Georgia, serif;
+  font-synthesis-weight: none;
+  letter-spacing: 0;
+}
+
+/* Panel de administración: todo en sans-serif (DM Sans) para leer mejor datos y tablas. */
+.admin-ui h1,
+.admin-ui h2,
+.admin-ui h3,
+.admin-ui .font-display {
+  font-family: "DM Sans", ui-sans-serif, system-ui, sans-serif;
   letter-spacing: -0.01em;
 }
 
