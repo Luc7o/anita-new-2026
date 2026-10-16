@@ -1,3 +1,4 @@
+import { SkeletonFilasAdmin, SkeletonPanelAdmin, SkeletonDetalleAdmin, SkeletonFormularioAdmin } from "../../components/admin/EsqueletosAdmin.jsx";
 import React, { useEffect, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { api } from "../../api/client.js";
@@ -156,7 +157,7 @@ function Cargando({ error, textoError = "No se pudieron cargar las métricas. Re
   return error ? (
     <p role="alert" className="glass rounded-2xl p-6 text-sm text-red-700">{textoError}</p>
   ) : (
-    <p className="text-plum-soft" role="status">Cargando métricas...</p>
+    <SkeletonPanelAdmin etiqueta="Cargando métricas" />
   );
 }
 

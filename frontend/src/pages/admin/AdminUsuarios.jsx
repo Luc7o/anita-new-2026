@@ -1,3 +1,5 @@
+import Spinner from "../../components/Spinner.jsx";
+import { SkeletonFilasAdmin } from "../../components/admin/EsqueletosAdmin.jsx";
 import React, { useEffect, useState } from "react";
 import { api } from "../../api/client.js";
 import { soloTexto } from "../../validacion.js";
@@ -13,6 +15,7 @@ export default function AdminUsuarios() {
   const esRRHH = usuarioActual?.rol === "rrhh";
 
   const [usuarios, setUsuarios] = useState([]);
+  const [cargandoLista, setCargandoLista] = useState(true);
   const [roles, setRoles] = useState({});
   const [filtroRol, setFiltroRol] = useState("");
   // Paginación: debe ir DESPUÉS de declarar `usuarios` y `filtroRol`, porque los usa.
@@ -29,7 +32,7 @@ export default function AdminUsuarios() {
 
   useEffect(() => {
     api.adminRolesDisponibles().then(setRoles);
-    cargarUsuarios();
+    cargarUsuarios().finally(() => setCargandoLista(false));
   }, []);
 
   const actualizarCampo = (campo) => (e) => setForm({ ...form, [campo]: e.target.value });
@@ -192,7 +195,8 @@ export default function AdminUsuarios() {
             ))}
           </tbody>
         </table>
-        {usuarios.length === 0 && (
+        {cargandoLista && <SkeletonFilasAdmin etiqueta="Cargando lista" />}
+        {!cargandoLista && usuarios.length === 0 && (
           <p className="p-6 text-center text-plum-soft">No hay usuarios con ese filtro.</p>
         )}
       </div>
@@ -236,7 +240,8 @@ export default function AdminUsuarios() {
             </div>
           </div>
         ))}
-        {usuarios.length === 0 && (
+        {cargandoLista && <SkeletonFilasAdmin etiqueta="Cargando lista" />}
+        {!cargandoLista && usuarios.length === 0 && (
           <p className="glass rounded-2xl p-6 text-center text-plum-soft">
             No hay usuarios con ese filtro.
           </p>
@@ -246,7 +251,7 @@ export default function AdminUsuarios() {
       {mostrarForm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <button
-            className="absolute inset-0 bg-plum/30 backdrop-blur-sm"
+            className="absolute inset-0 animate-fade-in bg-plum/30 backdrop-blur-sm"
             onClick={() => setMostrarForm(false)}
             aria-label="Cerrar"
           />
@@ -257,7 +262,7 @@ export default function AdminUsuarios() {
             aria-labelledby="nuevo-staff-titulo"
             tabIndex={-1}
             onSubmit={crear}
-            className="glass-strong relative w-full max-w-md rounded-2xl p-6 shadow-glass-lg sm:p-8"
+            className="animate-scale-in glass-strong relative w-full max-w-md rounded-2xl p-6 shadow-glass-lg sm:p-8"
           >
             <h2 id="nuevo-staff-titulo" className="mb-4 text-xl font-semibold text-plum">
               Nuevo miembro del staff
@@ -354,7 +359,7 @@ export default function AdminUsuarios() {
                 disabled={guardando}
                 className="flex-1 rounded-[10px] bg-berry py-2.5 text-sm font-semibold text-white transition hover:bg-berry-dark disabled:opacity-60"
               >
-                {guardando ? "Creando..." : "Crear usuario"}
+                {guardando ? <><Spinner />Creando...</> : "Crear usuario"}
               </button>
               <button
                 type="button"

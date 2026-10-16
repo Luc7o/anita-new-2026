@@ -154,7 +154,11 @@ textarea:focus-visible {
 }
 
 /* ---------- Sistema de componentes (estructura tomada de Malhu) ---------- */
-.btn {
+.btn,
+.btn-primary,
+.btn-secondary,
+.btn-ghost,
+.btn-light {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -165,7 +169,9 @@ textarea:focus-visible {
   font-weight: 600;
   transition: background-color 0.15s, border-color 0.15s, color 0.15s;
 }
-.btn:disabled { cursor: not-allowed; opacity: 0.5; }
+.btn:disabled,
+.btn-primary:disabled,
+.btn-secondary:disabled { cursor: not-allowed; opacity: 0.5; }
 .btn-primary { background: #c42759; color: #fff; }
 .btn-primary:hover { background: #550416; }
 .btn-secondary { background: #fff; color: #2c0107; border: 1px solid rgba(44, 1, 7, 0.15); }
@@ -181,7 +187,16 @@ textarea:focus-visible {
   border-radius: 1rem;
 }
 
-.chip {
+.chip,
+.chip-on,
+.chip-off {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  white-space: nowrap;
+  border-width: 1px;
+  border-style: solid;
+  border-color: rgba(44, 1, 7, 0.15);
   border-radius: 9999px;
   border: 1px solid rgba(44, 1, 7, 0.15);
   padding: 0.375rem 0.875rem;
@@ -190,7 +205,7 @@ textarea:focus-visible {
   transition: background-color 0.15s, border-color 0.15s, color 0.15s;
 }
 .chip-on { background: #2c0107; border-color: #2c0107; color: #fff; }
-.chip-off { background: #fff; color: #6b6a6b; }
+.chip-off { background: #fff; color: #2c0107; }
 .chip-off:hover { border-color: rgba(44, 1, 7, 0.35); }
 
 /* Superficie clara con vetas verticales muy suaves (la "mesa" de Malhu) */
@@ -210,7 +225,24 @@ textarea:focus-visible {
 /* Móvil: zonas táctiles de al menos 44px */
 @media (pointer: coarse) {
   .btn,
-  .chip {
+  .btn-primary,
+  .btn-secondary,
+  .chip,
+  .chip-on,
+  .chip-off {
     min-height: 44px;
   }
 }
+
+
+/* Pantalla de carga de páginas (CargandoPagina) */
+@keyframes barra {
+  0% { transform: translateX(-110%); }
+  100% { transform: translateX(300%); }
+}
+@keyframes latido {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+}
+.animate-barra { animation: barra 1.2s ease-in-out infinite; }
+.animate-latido { animation: latido 1.4s ease-in-out infinite; }

@@ -1,3 +1,4 @@
+import Spinner from "../components/Spinner.jsx";
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../api/client.js";
@@ -211,7 +212,7 @@ export default function Perfil() {
               disabled={guardandoDatos}
               className="rounded-full bg-berry px-6 py-2.5 font-semibold text-white shadow-glass transition hover:bg-berry-dark disabled:opacity-60"
             >
-              {guardandoDatos ? "Guardando..." : "Guardar datos"}
+              {guardandoDatos ? <><Spinner />Guardando...</> : "Guardar datos"}
             </button>
           </form>
         )}

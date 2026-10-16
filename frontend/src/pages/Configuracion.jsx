@@ -1,3 +1,4 @@
+import Spinner from "../components/Spinner.jsx";
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { api, setAccessToken, guardarCsrf } from "../api/client.js";
@@ -184,7 +185,7 @@ function FormularioContrasena() {
         disabled={guardando}
         className="rounded-full bg-berry px-6 py-2.5 text-sm font-semibold text-white shadow-glass transition hover:bg-berry-dark disabled:opacity-60"
       >
-        {guardando ? "Actualizando..." : "Actualizar contraseña"}
+        {guardando ? <><Spinner />Actualizando...</> : "Actualizar contraseña"}
       </button>
     </form>
   );

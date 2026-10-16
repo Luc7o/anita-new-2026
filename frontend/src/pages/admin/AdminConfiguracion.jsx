@@ -1,3 +1,5 @@
+import Spinner from "../../components/Spinner.jsx";
+import { SkeletonFilasAdmin, SkeletonPanelAdmin, SkeletonDetalleAdmin, SkeletonFormularioAdmin } from "../../components/admin/EsqueletosAdmin.jsx";
 import React, { useEffect, useState } from "react";
 import { api } from "../../api/client.js";
 import { useAuth } from "../../context/AuthContext.jsx";
@@ -102,7 +104,7 @@ export default function AdminConfiguracion() {
     }
   };
 
-  if (cargando) return <p className="text-plum-soft">Cargando configuración...</p>;
+  if (cargando) return <SkeletonFormularioAdmin etiqueta="Cargando configuración" />;
 
   if (errorCarga) {
     return (
@@ -145,7 +147,7 @@ export default function AdminConfiguracion() {
                 </div>
                 <div className="flex flex-wrap gap-2">
                   <label className="cursor-pointer rounded-[10px] bg-white px-4 py-2 text-sm font-semibold text-plum transition hover:bg-white">
-                    {subiendoLogo ? "Subiendo..." : form.logo_url ? "Cambiar logo" : "Elegir imagen"}
+                    {subiendoLogo ? <><Spinner />Subiendo...</> : form.logo_url ? "Cambiar logo" : "Elegir imagen"}
                     <input
                       type="file"
                       accept="image/png,image/jpeg,image/webp"
@@ -241,7 +243,7 @@ export default function AdminConfiguracion() {
             disabled={guardando}
             className="rounded-[10px] bg-berry px-6 py-2.5 font-semibold text-white transition hover:bg-berry-dark disabled:opacity-60"
           >
-            {guardando ? "Guardando..." : "Guardar configuración"}
+            {guardando ? <><Spinner />Guardando...</> : "Guardar configuración"}
           </button>
         )}
         <div aria-live="polite">

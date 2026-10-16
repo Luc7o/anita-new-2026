@@ -1,3 +1,4 @@
+import Spinner from "../../components/Spinner.jsx";
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../../api/client.js";
@@ -126,7 +127,7 @@ export default function AdminVentaPresencial() {
             disabled={descargandoBoleta}
             className="mt-6 w-full rounded-[10px] bg-berry py-3 text-center font-semibold text-white transition hover:bg-berry-dark disabled:opacity-60"
           >
-            {descargandoBoleta ? "Generando boleta..." : "Descargar boleta"}
+            {descargandoBoleta ? <><Spinner />Generando boleta...</> : "Descargar boleta"}
           </button>
           <button
             onClick={() => setPedidoConfirmado(null)}
@@ -306,7 +307,7 @@ export default function AdminVentaPresencial() {
           disabled={registrando || items.length === 0}
           className="mt-6 w-full rounded-[10px] bg-berry py-3 text-center font-semibold text-white transition hover:bg-berry-dark disabled:opacity-60"
         >
-          {registrando ? "Registrando..." : `Registrar venta${items.length ? ` — S/ ${total.toFixed(2)}` : ""}`}
+          {registrando ? <><Spinner />Registrando...</> : `Registrar venta${items.length ? ` — S/ ${total.toFixed(2)}` : ""}`}
         </button>
         {error && <p className="mt-2 text-center text-sm text-berry-dark">{error}</p>}
       </div>

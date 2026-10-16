@@ -5,6 +5,7 @@ import Navbar from "./components/Navbar.jsx";
 import Carrito from "./pages/Carrito.jsx";
 import CartDrawer from "./components/CartDrawer.jsx";
 import Footer from "./components/Footer.jsx";
+import CargandoPagina from "./components/CargandoPagina.jsx";
 const FormasPago = lazy(() => import("./pages/FormasPago.jsx"));
 const MetodosEnvio = lazy(() => import("./pages/MetodosEnvio.jsx"));
 const CambiosDevoluciones = lazy(() => import("./pages/CambiosDevoluciones.jsx"));
@@ -51,12 +52,6 @@ const AdminProveedorDetalle = lazy(() => import("./pages/admin/AdminProveedorDet
 const AdminUsuarios = lazy(() => import("./pages/admin/AdminUsuarios.jsx"));
 const AdminConfiguracion = lazy(() => import("./pages/admin/AdminConfiguracion.jsx"));
 const AdminReclamaciones = lazy(() => import("./pages/admin/AdminReclamaciones.jsx"));
-
-// Mientras baja el código de una página (se carga bajo demanda, ver los
-// import() de arriba) se deja el espacio reservado en vez de una pantalla en blanco.
-function CargandoPagina() {
-  return <div className="min-h-[60vh]" aria-busy="true" />;
-}
 
 export default function App() {
   const { usuario, sesionExpirada, setSesionExpirada } = useAuth();

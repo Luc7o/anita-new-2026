@@ -1,3 +1,5 @@
+import Spinner from "../../components/Spinner.jsx";
+import { SkeletonFilasAdmin, SkeletonPanelAdmin, SkeletonDetalleAdmin, SkeletonFormularioAdmin } from "../../components/admin/EsqueletosAdmin.jsx";
 import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { api } from "../../api/client.js";
@@ -55,7 +57,7 @@ export default function AdminProveedorDetalle() {
   };
 
   if (!proveedor) {
-    return <p className="text-plum-soft">Cargando proveedor...</p>;
+    return <SkeletonDetalleAdmin etiqueta="Cargando proveedor" />;
   }
 
   const productosYaAsociados = new Set(proveedor.productos.map((pp) => pp.producto_id));
@@ -194,7 +196,7 @@ export default function AdminProveedorDetalle() {
                 disabled={guardando}
                 className="flex-1 rounded-[10px] bg-berry py-2.5 text-sm font-semibold text-white transition hover:bg-berry-dark disabled:opacity-60"
               >
-                {guardando ? "Guardando..." : "Vincular"}
+                {guardando ? <><Spinner />Guardando...</> : "Vincular"}
               </button>
               <button
                 type="button"

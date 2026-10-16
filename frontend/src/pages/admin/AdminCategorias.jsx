@@ -1,3 +1,5 @@
+import Spinner from "../../components/Spinner.jsx";
+import { SkeletonFilasAdmin } from "../../components/admin/EsqueletosAdmin.jsx";
 import React, { useEffect, useMemo, useState } from "react";
 import { api } from "../../api/client.js";
 import { IconSearch, IconEdit, IconTrash, IconChevronLeft, IconChevronRight, IconTag } from "../../components/Icons.jsx";
@@ -9,6 +11,7 @@ const POR_PAGINA = 10;
 
 export default function AdminCategorias() {
   const [categorias, setCategorias] = useState([]);
+  const [cargandoLista, setCargandoLista] = useState(true);
   const [form, setForm] = useState(VACIO);
   const [editandoId, setEditandoId] = useState(null);
   const [mostrarForm, setMostrarForm] = useState(false);
@@ -25,7 +28,7 @@ export default function AdminCategorias() {
   const cargar = () => api.adminCategorias().then(setCategorias);
 
   useEffect(() => {
-    cargar();
+    cargar().finally(() => setCargandoLista(false));
   }, []);
 
   const actualizarCampo = (campo) => (e) => setForm({ ...form, [campo]: e.target.value });
@@ -220,7 +223,9 @@ export default function AdminCategorias() {
           </tbody>
         </table>
 
-        {paginados.length === 0 && (
+        {cargandoLista && <SkeletonFilasAdmin etiqueta="Cargando lista" />}
+
+        {!cargandoLista && paginados.length === 0 && (
           <p className="p-6 text-center text-plum-soft">No se encontraron categorías.</p>
         )}
       </div>
@@ -259,7 +264,8 @@ export default function AdminCategorias() {
             </div>
           </div>
         ))}
-        {paginados.length === 0 && (
+        {cargandoLista && <SkeletonFilasAdmin etiqueta="Cargando lista" />}
+        {!cargandoLista && paginados.length === 0 && (
           <p className="glass rounded-2xl p-6 text-center text-plum-soft">
             No se encontraron categorías.
           </p>
@@ -269,7 +275,7 @@ export default function AdminCategorias() {
       {mostrarForm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <button
-            className="absolute inset-0 bg-plum/30 backdrop-blur-sm"
+            className="absolute inset-0 animate-fade-in bg-plum/30 backdrop-blur-sm"
             onClick={() => setMostrarForm(false)}
             aria-label="Cerrar"
           />
@@ -280,7 +286,7 @@ export default function AdminCategorias() {
             aria-labelledby="categoria-form-titulo"
             tabIndex={-1}
             onSubmit={guardar}
-            className="glass-strong relative w-full max-w-md rounded-2xl p-6 shadow-glass-lg sm:p-8"
+            className="animate-scale-in glass-strong relative w-full max-w-md rounded-2xl p-6 shadow-glass-lg sm:p-8"
           >
             <h2 id="categoria-form-titulo" className="mb-4 text-xl font-semibold text-plum">
               {editandoId ? "Editar categoría" : "Nueva categoría"}
@@ -325,7 +331,7 @@ export default function AdminCategorias() {
                 disabled={guardando}
                 className="flex-1 rounded-[10px] bg-berry py-2.5 text-sm font-semibold text-white transition hover:bg-berry-dark disabled:opacity-60"
               >
-                {guardando ? "Guardando..." : editandoId ? "Guardar cambios" : "Crear categoría"}
+                {guardando ? <><Spinner />Guardando...</> : editandoId ? "Guardar cambios" : "Crear categoría"}
               </button>
               <button
                 type="button"

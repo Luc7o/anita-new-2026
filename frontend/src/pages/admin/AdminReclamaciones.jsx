@@ -1,3 +1,5 @@
+import Spinner from "../../components/Spinner.jsx";
+import { SkeletonFilasAdmin, SkeletonPanelAdmin, SkeletonDetalleAdmin, SkeletonFormularioAdmin } from "../../components/admin/EsqueletosAdmin.jsx";
 import React, { useEffect, useState } from "react";
 import { api } from "../../api/client.js";
 import { useAuth } from "../../context/AuthContext.jsx";
@@ -135,7 +137,7 @@ function DetalleReclamo({ reclamo, puedeResponder, onCerrar, onRespondido }) {
           {error && <p role="alert" className="text-sm text-red-700">{error}</p>}
           <button type="submit" disabled={enviando}
             className="rounded-[10px] bg-berry px-6 py-2.5 text-sm font-semibold text-white transition hover:opacity-90 disabled:opacity-60">
-            {enviando ? "Enviando..." : "Registrar y enviar respuesta"}
+            {enviando ? <><Spinner />Enviando...</> : "Registrar y enviar respuesta"}
           </button>
         </form>
       )}
@@ -197,7 +199,7 @@ export default function AdminReclamaciones() {
       </div>
 
       {cargando ? (
-        <p className="text-plum-soft">Cargando reclamaciones...</p>
+        <SkeletonFilasAdmin cantidad={5} etiqueta="Cargando reclamaciones" />
       ) : reclamos.length === 0 ? (
         <p className="glass rounded-2xl p-6 text-center text-plum-soft">No hay reclamaciones con ese filtro.</p>
       ) : (

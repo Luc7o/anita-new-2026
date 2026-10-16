@@ -104,21 +104,38 @@ export default function Tienda() {
 
       {/* Barra de categorías fija bajo el menú */}
       <div className="sticky top-[60px] z-20 border-b border-plum/10 bg-ivory/95 backdrop-blur">
-        <nav className="mx-auto flex max-w-6xl gap-2 overflow-x-auto px-4 py-3">
-          {categorias.map((cat) => {
-            const activo = categoriasActivas.length === 1 && categoriasActivas[0] === cat.slug;
-            return (
-              <button
-                key={cat.id}
-                onClick={() => seleccionarSoloCategoria(cat.slug)}
-                aria-current={activo ? "true" : undefined}
-                className={`shrink-0 ${activo ? "chip-on" : "chip-off"}`}
-              >
-                {cat.nombre}
-              </button>
-            );
-          })}
-        </nav>
+        <div className="relative mx-auto max-w-6xl">
+          <nav
+            className="flex snap-x gap-2 overflow-x-auto px-4 py-3 scrollbar-none"
+            aria-label="Categorías"
+          >
+            <button
+              onClick={() => actualizarParams({ categoria: "" })}
+              aria-current={categoriasActivas.length === 0 ? "true" : undefined}
+              className={`shrink-0 snap-start ${categoriasActivas.length === 0 ? "chip-on" : "chip-off"}`}
+            >
+              Todo
+            </button>
+            {categorias.map((cat) => {
+              const activo = categoriasActivas.length === 1 && categoriasActivas[0] === cat.slug;
+              return (
+                <button
+                  key={cat.id}
+                  onClick={() => seleccionarSoloCategoria(cat.slug)}
+                  aria-current={activo ? "true" : undefined}
+                  className={`shrink-0 snap-start ${activo ? "chip-on" : "chip-off"}`}
+                >
+                  {cat.nombre}
+                </button>
+              );
+            })}
+          </nav>
+          {/* Degradado en el borde derecho: avisa que se puede deslizar */}
+          <div
+            className="pointer-events-none absolute inset-y-0 right-0 w-10 bg-gradient-to-l from-ivory to-transparent md:hidden"
+            aria-hidden="true"
+          />
+        </div>
       </div>
 
       <div className="mx-auto max-w-6xl px-4 pb-16 pt-6">

@@ -1,3 +1,5 @@
+import Spinner from "../../components/Spinner.jsx";
+import { SkeletonFilasAdmin } from "../../components/admin/EsqueletosAdmin.jsx";
 import React, { useEffect, useState } from "react";
 import { api } from "../../api/client.js";
 import ImagenOptimizada from "../../components/ImagenOptimizada.jsx";
@@ -35,6 +37,7 @@ function claveCombo(talla, color) {
 
 export default function AdminProductos() {
   const [productos, setProductos] = useState([]);
+  const [cargandoLista, setCargandoLista] = useState(true);
   const [categorias, setCategorias] = useState([]);
   const [form, setForm] = useState(VACIO);
   const [imagenes, setImagenes] = useState([]); // [{ url, color }]
@@ -66,7 +69,7 @@ export default function AdminProductos() {
   };
 
   useEffect(() => {
-    cargarProductos();
+    cargarProductos().finally(() => setCargandoLista(false));
     api.adminCategorias().then(setCategorias);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [busqueda, filtroCategoria, filtroEstado, orden, pagina]);
@@ -324,7 +327,9 @@ export default function AdminProductos() {
           </tbody>
         </table>
 
-        {productos.length === 0 && (
+        {cargandoLista && <SkeletonFilasAdmin etiqueta="Cargando lista" />}
+
+        {!cargandoLista && productos.length === 0 && (
           <p className="p-6 text-center text-plum-soft">No hay productos todavía.</p>
         )}
       </div>
@@ -367,7 +372,8 @@ export default function AdminProductos() {
             </div>
           </div>
         ))}
-        {productos.length === 0 && (
+        {cargandoLista && <SkeletonFilasAdmin etiqueta="Cargando lista" />}
+        {!cargandoLista && productos.length === 0 && (
           <p className="glass rounded-2xl p-6 text-center text-plum-soft">
             No hay productos todavía.
           </p>
@@ -377,7 +383,7 @@ export default function AdminProductos() {
       {mostrarForm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <button
-            className="absolute inset-0 bg-plum/30 backdrop-blur-sm"
+            className="absolute inset-0 animate-fade-in bg-plum/30 backdrop-blur-sm"
             onClick={() => setMostrarForm(false)}
             aria-label="Cerrar"
           />
@@ -388,7 +394,7 @@ export default function AdminProductos() {
             aria-labelledby="producto-form-titulo"
             tabIndex={-1}
             onSubmit={guardar}
-            className="glass-strong relative max-h-[85vh] w-full max-w-lg overflow-y-auto rounded-2xl p-6 shadow-glass-lg sm:p-8"
+            className="animate-scale-in glass-strong relative max-h-[85vh] w-full max-w-lg overflow-y-auto rounded-2xl p-6 shadow-glass-lg sm:p-8"
           >
             <h2 id="producto-form-titulo" className="mb-4 text-xl font-semibold text-plum">
               {editandoId ? "Editar producto" : "Nuevo producto"}
@@ -588,7 +594,7 @@ export default function AdminProductos() {
 
                   <label className="glass flex h-full min-h-[92px] cursor-pointer flex-col items-center justify-center gap-1 rounded-2xl text-xs text-plum hover:bg-white">
                     <IconUpload size={18} />
-                    {subiendoImagen ? "Subiendo..." : "Agregar imagen"}
+                    {subiendoImagen ? <><Spinner />Subiendo...</> : "Agregar imagen"}
                     <input
                       type="file"
                       accept="image/png,image/jpeg,image/webp,image/gif"
@@ -630,7 +636,7 @@ export default function AdminProductos() {
                 disabled={guardando}
                 className="flex-1 rounded-[10px] bg-berry py-2.5 text-sm font-semibold text-white transition hover:bg-berry-dark disabled:opacity-60"
               >
-                {guardando ? "Guardando..." : editandoId ? "Guardar cambios" : "Crear producto"}
+                {guardando ? <><Spinner />Guardando...</> : editandoId ? "Guardar cambios" : "Crear producto"}
               </button>
               <button
                 type="button"

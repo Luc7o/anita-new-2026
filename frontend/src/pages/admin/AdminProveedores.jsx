@@ -1,3 +1,5 @@
+import Spinner from "../../components/Spinner.jsx";
+import { SkeletonFilasAdmin } from "../../components/admin/EsqueletosAdmin.jsx";
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../../api/client.js";
@@ -15,6 +17,7 @@ export default function AdminProveedores() {
   const puedeGestionar = ["superadmin", "editor"].includes(usuario?.rol);
 
   const [proveedores, setProveedores] = useState([]);
+  const [cargandoLista, setCargandoLista] = useState(true);
   const pag = usePaginacion(proveedores, 10);
   const [productosDisponibles, setProductosDisponibles] = useState([]);
   const [form, setForm] = useState(VACIO);
@@ -31,7 +34,7 @@ export default function AdminProveedores() {
   const cargar = () => api.adminProveedores().then(setProveedores);
 
   useEffect(() => {
-    cargar();
+    cargar().finally(() => setCargandoLista(false));
     api.adminProductos({ por_pagina: 200 }).then((data) => setProductosDisponibles(data.productos || []));
   }, []);
 
@@ -212,7 +215,8 @@ export default function AdminProveedores() {
             ))}
           </tbody>
         </table>
-        {proveedores.length === 0 && (
+        {cargandoLista && <SkeletonFilasAdmin etiqueta="Cargando lista" />}
+        {!cargandoLista && proveedores.length === 0 && (
           <p className="p-6 text-center text-plum-soft">No hay proveedores todavía.</p>
         )}
       </div>
@@ -247,7 +251,8 @@ export default function AdminProveedores() {
             )}
           </div>
         ))}
-        {proveedores.length === 0 && (
+        {cargandoLista && <SkeletonFilasAdmin etiqueta="Cargando lista" />}
+        {!cargandoLista && proveedores.length === 0 && (
           <p className="glass rounded-2xl p-6 text-center text-plum-soft">
             No hay proveedores todavía.
           </p>
@@ -257,7 +262,7 @@ export default function AdminProveedores() {
       {mostrarForm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <button
-            className="absolute inset-0 bg-plum/30 backdrop-blur-sm"
+            className="absolute inset-0 animate-fade-in bg-plum/30 backdrop-blur-sm"
             onClick={() => setMostrarForm(false)}
             aria-label="Cerrar"
           />
@@ -268,7 +273,7 @@ export default function AdminProveedores() {
             aria-labelledby="proveedor-form-titulo"
             tabIndex={-1}
             onSubmit={guardar}
-            className="glass-strong relative max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl p-6 shadow-glass-lg sm:p-8"
+            className="animate-scale-in glass-strong relative max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl p-6 shadow-glass-lg sm:p-8"
           >
             <h2 id="proveedor-form-titulo" className="mb-4 text-xl font-semibold text-plum">
               {editandoId ? "Editar proveedor" : "Nuevo proveedor"}
@@ -424,7 +429,7 @@ export default function AdminProveedores() {
                 disabled={guardando}
                 className="flex-1 rounded-[10px] bg-berry py-2.5 text-sm font-semibold text-white transition hover:bg-berry-dark disabled:opacity-60"
               >
-                {guardando ? "Guardando..." : editandoId ? "Guardar cambios" : "Crear proveedor"}
+                {guardando ? <><Spinner />Guardando...</> : editandoId ? "Guardar cambios" : "Crear proveedor"}
               </button>
               <button
                 type="button"
