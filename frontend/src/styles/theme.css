@@ -13,6 +13,10 @@ body,
 }
 
 html {
+  scroll-behavior: smooth;
+}
+
+html {
   /* Reserva siempre el ancho de la barra de scroll vertical, la use o no
      la página actual. Sin esto, páginas cortas (ej. "Productos" sin
      productos todavía) no muestran scrollbar y el contenido centrado
@@ -23,28 +27,33 @@ html {
 }
 
 body {
-  font-family: "Manrope", sans-serif;
+  font-family: "Figtree", ui-sans-serif, system-ui, sans-serif;
   color: #2c0107;
-  background: #ffffff;
+  background: #f7f5f5;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3 {
+  font-family: "Playfair Display", Figtree, ui-sans-serif, system-ui, sans-serif;
+  letter-spacing: -0.01em;
 }
 
 ::selection {
   background: rgba(196, 39, 89, 0.22);
 }
 
-/* Vidrio esmerilado base, reutilizado en tarjetas, navbar, drawer, modales */
+/* Superficies planas (sin vidrio): tarjeta blanca con borde fino, como en Malhu.
+   Se conservan los nombres .glass / .glass-strong para no tocar cada pantalla. */
 .glass {
-  background: rgba(255, 255, 255, 0.55);
-  backdrop-filter: blur(18px) saturate(160%);
-  -webkit-backdrop-filter: blur(18px) saturate(160%);
-  border: 1px solid rgba(255, 255, 255, 0.65);
+  background: #ffffff;
+  border: 1px solid rgba(44, 1, 7, 0.1);
 }
 
 .glass-strong {
-  background: rgba(255, 255, 255, 0.72);
-  backdrop-filter: blur(22px) saturate(160%);
-  -webkit-backdrop-filter: blur(22px) saturate(160%);
-  border: 1px solid rgba(255, 255, 255, 0.8);
+  background: #ffffff;
+  border: 1px solid rgba(44, 1, 7, 0.12);
 }
 
 .glass-berry {
@@ -129,4 +138,52 @@ textarea:focus-visible {
     animation: none !important;
     transition: none !important;
   }
+}
+
+/* ---------- Sistema de componentes (estructura tomada de Malhu) ---------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 10px;
+  padding: 0.625rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  transition: background-color 0.15s, border-color 0.15s, color 0.15s;
+}
+.btn:disabled { cursor: not-allowed; opacity: 0.5; }
+.btn-primary { background: #c42759; color: #fff; }
+.btn-primary:hover { background: #550416; }
+.btn-secondary { background: #fff; color: #2c0107; border: 1px solid rgba(44, 1, 7, 0.15); }
+.btn-secondary:hover { background: #f7f5f5; border-color: rgba(44, 1, 7, 0.3); }
+.btn-ghost { background: transparent; color: #6b6a6b; }
+.btn-ghost:hover { background: rgba(44, 1, 7, 0.06); }
+.btn-light { background: #d8d6d7; color: #2c0107; }
+.btn-light:hover { background: #fff; }
+
+.panel {
+  background: #fff;
+  border: 1px solid rgba(44, 1, 7, 0.1);
+  border-radius: 1rem;
+}
+
+.chip {
+  border-radius: 9999px;
+  border: 1px solid rgba(44, 1, 7, 0.15);
+  padding: 0.375rem 0.875rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: background-color 0.15s, border-color 0.15s, color 0.15s;
+}
+.chip-on { background: #2c0107; border-color: #2c0107; color: #fff; }
+.chip-off { background: #fff; color: #6b6a6b; }
+.chip-off:hover { border-color: rgba(44, 1, 7, 0.35); }
+
+/* Superficie clara con vetas verticales muy suaves (la "mesa" de Malhu) */
+.wood {
+  background-color: #fff;
+  background-image:
+    repeating-linear-gradient(90deg, rgba(44, 1, 7, 0.03) 0 2px, transparent 2px 46px),
+    repeating-linear-gradient(90deg, rgba(44, 1, 7, 0.02) 0 1px, transparent 1px 17px);
 }
