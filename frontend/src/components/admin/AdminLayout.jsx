@@ -1,6 +1,7 @@
 import React from "react";
 import { NavLink, Outlet, Link } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext.jsx";
+import Logo from "../Logo.jsx";
 import {
   IconDashboard, IconBag, IconTag, IconPackage, IconStore, IconLogout, IconTruck, IconUsers, IconSettings,
   IconCart, IconReceipt, IconGift, IconBook,
@@ -33,8 +34,8 @@ export default function AdminLayout() {
       {/* Cabecera oscura fija (estructura de Malhu) */}
       <header className="sticky top-0 z-40 bg-plum/95 backdrop-blur">
         <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3">
-          <Link to="/admin" className="font-display text-xl font-bold" aria-label="Panel de administración">
-            <span className="text-white">Anita</span> <span className="text-berry-light">New Style</span>
+          <Link to="/admin" aria-label="Panel de administración">
+            <Logo tone="light" />
           </Link>
           <span className="rounded bg-white/10 px-2 py-0.5 text-xs font-bold uppercase tracking-wider text-white/80">
             Admin

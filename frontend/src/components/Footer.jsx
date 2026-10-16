@@ -2,6 +2,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { IconFacebook, IconInstagram, IconTikTok, IconWhatsApp, IconBook } from "./Icons.jsx";
+import Logo from "./Logo.jsx";
 import useConfigTienda, { linkWhatsApp } from "../hooks/useConfigTienda.js";
 
 export default function Footer() {
@@ -45,7 +46,7 @@ export default function Footer() {
           {/* Columna 3: Contacto y Legal */}
           <div>
             <h4 className="font-sans text-xs font-bold uppercase tracking-wider text-white mb-4">
-              {c.nombre_comercial}
+              <Logo tone="light" />
             </h4>
             <p className="text-sm text-white/70">
               Tienda de moda peruana{c.ciudad ? ` con tienda física en ${c.ciudad}` : ""}. Envíos a todo el Perú.

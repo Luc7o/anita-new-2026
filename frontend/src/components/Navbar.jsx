@@ -4,6 +4,7 @@ import { useAuth } from "../context/AuthContext.jsx";
 import { useCarrito } from "../context/CarritoContext.jsx";
 import { IconSearch, IconCart, IconClose, IconUser, IconMenu, IconHome } from "./Icons.jsx";
 import UserMenu from "./UserMenu.jsx";
+import Logo from "./Logo.jsx";
 import useConfigTienda from "../hooks/useConfigTienda.js";
 
 const ENLACES = [
@@ -67,13 +68,11 @@ export default function Navbar() {
   return (
     <header className="sticky top-0 z-30 bg-plum/95 backdrop-blur">
       <nav className="mx-auto flex max-w-6xl items-center gap-2 px-4 py-3">
-        <Link to="/" onClick={cerrar} className="mr-3 shrink-0 font-display text-2xl font-bold" aria-label="Anita New Style, ir al inicio">
+        <Link to="/" onClick={cerrar} className="mr-3 shrink-0" aria-label="Anita New Style, ir al inicio">
           {config.logo_url ? (
             <img src={config.logo_url} alt={config.nombre_comercial} className="h-9 w-auto" />
           ) : (
-            <>
-              <span className="text-white">Anita</span> <span className="text-berry-light">New Style</span>
-            </>
+            <Logo tone="light" />
           )}
         </Link>
 
@@ -103,7 +102,7 @@ export default function Navbar() {
 
           <button
             onClick={() => setDrawerAbierto(true)}
-            className="relative flex items-center gap-2 rounded-[10px] border border-white/25 px-3 py-2 text-sm font-medium text-white hover:bg-white/10"
+            className="relative flex min-h-[44px] items-center gap-2 rounded-[10px] border border-white/25 px-3 py-2 text-sm font-medium text-white hover:bg-white/10"
             aria-label="Abrir carrito"
           >
             <IconCart size={16} />
@@ -121,7 +120,7 @@ export default function Navbar() {
 
           <button
             onClick={() => setMenuAbierto((v) => !v)}
-            className="flex h-10 w-10 items-center justify-center rounded-[10px] border border-white/25 text-white lg:hidden"
+            className="flex h-11 w-11 items-center justify-center rounded-[10px] border border-white/25 text-white lg:hidden"
             aria-label={menuAbierto ? "Cerrar menú" : "Abrir menú"}
             aria-expanded={menuAbierto}
           >

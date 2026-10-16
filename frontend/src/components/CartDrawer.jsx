@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useCarrito } from "../context/CarritoContext.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
-import { IconClose } from "./Icons.jsx";
+import { IconClose, IconCart } from "./Icons.jsx";
 import ImagenOptimizada from "./ImagenOptimizada.jsx";
 import { SkeletonLineasCarrito } from "./Skeleton.jsx";
 import { useFocusTrap } from "../hooks/useFocusTrap.js";
@@ -96,13 +96,13 @@ export default function CartDrawer() {
           <SkeletonLineasCarrito cantidad={2} />
         ) : items.length === 0 ? (
           <div className="flex flex-1 flex-col items-center justify-center gap-3 text-center text-plum-soft">
-            <p>Tu carrito está vacío por ahora.</p>
-            <Link
-              to="/tienda"
-              onClick={cerrar}
-              className="rounded-full bg-berry px-5 py-2 text-sm font-semibold text-white shadow-glass transition active:scale-95"
-            >
-              Ver productos
+            <span className="flex h-14 w-14 items-center justify-center rounded-full bg-lilac text-berry">
+              <IconCart size={24} />
+            </span>
+            <p className="font-semibold text-plum">Tu carrito está vacío</p>
+            <p className="max-w-[16rem] text-sm">Mira lo nuevo y agrega lo que te guste.</p>
+            <Link to="/tienda" onClick={cerrar} className="btn-primary btn mt-1 !px-6">
+              Ver lo nuevo
             </Link>
           </div>
         ) : (
