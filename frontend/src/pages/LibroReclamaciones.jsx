@@ -1,3 +1,4 @@
+import Spinner from "../components/Spinner.jsx";
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import PaginaInfo from "./PaginaInfo.jsx";
@@ -305,7 +306,7 @@ export default function LibroReclamaciones() {
 
             <button type="submit" disabled={enviando}
               className="w-full rounded-full bg-berry px-6 py-3 text-sm font-semibold text-white shadow-glass transition hover:opacity-90 disabled:opacity-60 sm:w-auto">
-              {enviando ? "Enviando..." : "Enviar hoja de reclamación"}
+              {enviando ? <><Spinner />Enviando...</> : "Enviar hoja de reclamación"}
             </button>
           </form>
         </div>

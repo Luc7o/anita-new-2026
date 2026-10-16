@@ -1,3 +1,4 @@
+import Spinner from "../components/Spinner.jsx";
 import React, { useState } from "react";
 import RedesAuth from "../components/RedesAuth.jsx";
 import { useSearchParams, useNavigate, Link } from "react-router-dom";
@@ -187,7 +188,7 @@ export default function RestablecerPassword() {
                   disabled={enviando}
                   className="w-full rounded-lg bg-plum py-3.5 font-semibold text-white transition hover:bg-berry-dark disabled:opacity-60"
                 >
-                  {enviando ? "Guardando..." : "Restablecer Contraseña"}
+                  {enviando ? <><Spinner />Guardando...</> : "Restablecer Contraseña"}
                 </button>
               </form>
             </>

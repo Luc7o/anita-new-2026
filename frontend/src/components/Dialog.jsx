@@ -65,14 +65,14 @@ export default function Dialog({ children, className = "", containerClassName = 
       className={`fixed inset-0 z-50 flex items-center justify-center p-4 ${containerClassName}`}
       onMouseDown={() => onCloseRef.current()}
     >
-      <div className="absolute inset-0 bg-plum/30 backdrop-blur-sm" aria-hidden="true" />
+      <div className="absolute inset-0 animate-fade-in bg-plum/30 backdrop-blur-sm" aria-hidden="true" />
       <div
         ref={dialogRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby={labelledBy}
         tabIndex={-1}
-        className={`relative ${className}`}
+        className={`relative animate-scale-in ${className}`}
         onMouseDown={(event) => event.stopPropagation()}
       >
         {children}

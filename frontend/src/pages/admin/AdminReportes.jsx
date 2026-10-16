@@ -1,3 +1,4 @@
+import Spinner from "../../components/Spinner.jsx";
 import React, { useState } from "react";
 import { api } from "../../api/client.js";
 
@@ -72,7 +73,7 @@ export default function AdminReportes() {
           disabled={descargando}
           className="mt-4 w-full rounded-[10px] bg-berry py-3 text-center font-semibold text-white transition hover:bg-berry-dark disabled:opacity-60"
         >
-          {descargando ? "Generando reporte..." : "Descargar reporte PDF"}
+          {descargando ? <><Spinner />Generando reporte...</> : "Descargar reporte PDF"}
         </button>
         {error && <p className="mt-2 text-center text-sm text-berry-dark">{error}</p>}
       </form>

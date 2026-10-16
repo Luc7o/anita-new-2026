@@ -1,3 +1,5 @@
+import Spinner from "../../components/Spinner.jsx";
+import { SkeletonFilasAdmin } from "../../components/admin/EsqueletosAdmin.jsx";
 import React, { useEffect, useState } from "react";
 import { api } from "../../api/client.js";
 import ImagenOptimizada from "../../components/ImagenOptimizada.jsx";
@@ -17,6 +19,7 @@ const VACIO = {
 
 export default function AdminPromociones() {
   const [promociones, setPromociones] = useState([]);
+  const [cargandoLista, setCargandoLista] = useState(true);
   const [form, setForm] = useState(VACIO);
   const [editandoId, setEditandoId] = useState(null);
   const [error, setError] = useState("");
@@ -26,7 +29,7 @@ export default function AdminPromociones() {
   const cargar = () => api.adminPromociones().then(setPromociones);
 
   useEffect(() => {
-    cargar();
+    cargar().finally(() => setCargandoLista(false));
   }, []);
 
   const actualizarCampo = (campo) => (e) => {
@@ -224,7 +227,7 @@ export default function AdminPromociones() {
               disabled={guardando}
               className="flex-1 rounded-[10px] bg-berry py-2.5 text-sm font-semibold text-white transition hover:bg-berry-dark disabled:opacity-60"
             >
-              {guardando ? "Guardando..." : editandoId ? "Guardar cambios" : "Crear promoción"}
+              {guardando ? <><Spinner />Guardando...</> : editandoId ? "Guardar cambios" : "Crear promoción"}
             </button>
             {editandoId && (
               <button
@@ -239,7 +242,8 @@ export default function AdminPromociones() {
         </form>
 
         <div className="space-y-2">
-          {promociones.length === 0 && (
+          {cargandoLista && <SkeletonFilasAdmin etiqueta="Cargando lista" />}
+          {!cargandoLista && promociones.length === 0 && (
             <p className="text-sm text-plum-soft">Aún no creaste ninguna promoción de temporada.</p>
           )}
           {promociones.map((promo) => (

@@ -1,3 +1,5 @@
+import Spinner from "../../components/Spinner.jsx";
+import { SkeletonFilasAdmin, SkeletonPanelAdmin, SkeletonDetalleAdmin, SkeletonFormularioAdmin } from "../../components/admin/EsqueletosAdmin.jsx";
 import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { api } from "../../api/client.js";
@@ -83,7 +85,7 @@ export default function AdminPedidoDetalle() {
   };
 
   if (!pedido) {
-    return <p className="text-plum-soft">Cargando pedido...</p>;
+    return <SkeletonDetalleAdmin etiqueta="Cargando pedido" />;
   }
 
   return (
@@ -254,7 +256,7 @@ export default function AdminPedidoDetalle() {
                 disabled={guardandoEnvio}
                 className="rounded-[10px] bg-berry px-4 py-2 text-sm font-semibold text-white transition hover:bg-berry-dark disabled:opacity-60"
               >
-                {guardandoEnvio ? "Guardando..." : "Guardar seguimiento"}
+                {guardandoEnvio ? <><Spinner />Guardando...</> : "Guardar seguimiento"}
               </button>
               {mensajeEnvio && <span className="text-sm text-plum-soft">{mensajeEnvio}</span>}
             </div>
@@ -296,7 +298,7 @@ export default function AdminPedidoDetalle() {
               disabled={descargandoBoleta}
               className="rounded-[10px] bg-white px-4 py-2 text-sm font-semibold text-berry-dark transition hover:bg-white disabled:opacity-60"
             >
-              {descargandoBoleta ? "Generando boleta..." : "Descargar boleta"}
+              {descargandoBoleta ? <><Spinner />Generando boleta...</> : "Descargar boleta"}
             </button>
             {errorBoleta && <p className="mt-2 text-sm text-berry-dark">{errorBoleta}</p>}
           </div>

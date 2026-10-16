@@ -1,5 +1,5 @@
 import React from "react";
-import { NavLink, Outlet, Link } from "react-router-dom";
+import { NavLink, Outlet, Link, useLocation } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext.jsx";
 import Logo from "../Logo.jsx";
 import {
@@ -27,6 +27,7 @@ const TODOS_LOS_ITEMS = [
 
 export default function AdminLayout() {
   const { usuario, logout } = useAuth();
+  const location = useLocation();
   const items = TODOS_LOS_ITEMS.filter((item) => !item.roles || item.roles.includes(usuario?.rol));
 
   return (
@@ -88,7 +89,10 @@ export default function AdminLayout() {
       </div>
 
       <main className="mx-auto w-full min-w-0 max-w-7xl flex-1 px-4 pb-16 pt-8">
-        <Outlet />
+        {/* key: al cambiar de sección el contenido entra con fundido + leve subida */}
+        <div key={location.pathname} className="animate-fade-in-up">
+          <Outlet />
+        </div>
       </main>
     </div>
   );
