@@ -1,3 +1,4 @@
+import { useToast } from "../context/ToastContext.jsx";
 import Spinner from "../components/Spinner.jsx";
 import React, { useEffect, useRef, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
@@ -17,6 +18,7 @@ import {
 import { nombreColorAHex } from "../utils/colores.js";
 
 export default function ProductoDetalle() {
+  const toast = useToast();
   const { id } = useParams();
   const navigate = useNavigate();
   const { usuario } = useAuth();
@@ -217,7 +219,7 @@ export default function ProductoDetalle() {
     try {
       await agregar(producto.id, { cantidad, talla, color });
       api.registrarEvento("agregar_carrito", { productoId: producto.id, metadata: { cantidad } });
-      setMensaje("¡Producto agregado al carrito!");
+      toast.success("¡Producto agregado al carrito!");
     } catch (err) {
       setMensaje(err.message);
     } finally {

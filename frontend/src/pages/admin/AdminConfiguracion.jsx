@@ -1,3 +1,4 @@
+import { useToast } from "../../context/ToastContext.jsx";
 import Spinner from "../../components/Spinner.jsx";
 import { SkeletonFilasAdmin, SkeletonPanelAdmin, SkeletonDetalleAdmin, SkeletonFormularioAdmin } from "../../components/admin/EsqueletosAdmin.jsx";
 import React, { useEffect, useState } from "react";
@@ -28,6 +29,7 @@ function Campo({ id, etiqueta, ayuda, ...props }) {
 }
 
 export default function AdminConfiguracion() {
+  const toast = useToast();
   const { usuario } = useAuth();
   const puedeEditar = PUEDE_GESTIONAR_CONFIGURACION.includes(usuario?.rol);
 
@@ -96,7 +98,7 @@ export default function AdminConfiguracion() {
     setAviso(null);
     try {
       await api.adminActualizarConfiguracionTienda(form);
-      setAviso({ ok: true, texto: "Configuración guardada. La tienda ya muestra los datos nuevos." });
+      toast.success("Configuración guardada. La tienda ya muestra los datos nuevos.");
     } catch (err) {
       setAviso({ ok: false, texto: err.message });
     } finally {

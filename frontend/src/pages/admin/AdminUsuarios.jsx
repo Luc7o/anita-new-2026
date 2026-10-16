@@ -1,3 +1,4 @@
+import { useToast } from "../../context/ToastContext.jsx";
 import Spinner from "../../components/Spinner.jsx";
 import { SkeletonFilasAdmin } from "../../components/admin/EsqueletosAdmin.jsx";
 import React, { useEffect, useState } from "react";
@@ -11,6 +12,7 @@ import { usePaginacion } from "../../hooks/usePaginacion.js";
 const VACIO = { nombre: "", apellido: "", email: "", password: "", rol: "editor" };
 
 export default function AdminUsuarios() {
+  const toast = useToast();
   const { usuario: usuarioActual } = useAuth();
   const esRRHH = usuarioActual?.rol === "rrhh";
 
@@ -61,6 +63,7 @@ export default function AdminUsuarios() {
     setGuardando(true);
     try {
       await api.adminCrearUsuarioStaff(form);
+      toast.success("Usuario creado");
       setMostrarForm(false);
       setForm(VACIO);
       cargarUsuarios(filtroRol);
@@ -75,6 +78,7 @@ export default function AdminUsuarios() {
     setAvisoRol("");
     try {
       await api.adminCambiarRol(usuario.id, nuevoRol);
+      toast.success("Rol actualizado");
       cargarUsuarios(filtroRol);
     } catch (err) {
       setAvisoRol(err.message || "No se pudo cambiar el rol.");

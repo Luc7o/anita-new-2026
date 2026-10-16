@@ -1,3 +1,4 @@
+import { useToast } from "../context/ToastContext.jsx";
 import Spinner from "../components/Spinner.jsx";
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
@@ -8,6 +9,7 @@ import SelectorUbicacion from "../components/SelectorUbicacion.jsx";
 import { soloTexto, soloNumeros } from "../validacion.js";
 
 export default function Perfil() {
+  const toast = useToast();
   const { usuario, setUsuario } = useAuth();
   const [form, setForm] = useState({
     nombre: "", apellido: "", telefono: "",
@@ -64,7 +66,7 @@ export default function Perfil() {
     try {
       const actualizado = await api.actualizarPerfil(form);
       setUsuario(actualizado);
-      setMensajeDatos("Tus datos se guardaron correctamente.");
+      toast.success("Tus datos se guardaron correctamente");
       setEditando(false);
     } catch (err) {
       setErrorDatos(err.message);
