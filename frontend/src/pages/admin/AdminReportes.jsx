@@ -37,7 +37,7 @@ export default function AdminReportes() {
         origen (en línea / tienda), productos más vendidos, ventas por día y detalle de pedidos.
       </p>
 
-      <form onSubmit={descargar} className="glass mt-6 max-w-lg rounded-3xl p-6 shadow-glass sm:p-8">
+      <form onSubmit={descargar} className="glass mt-6 max-w-lg rounded-2xl p-6 sm:p-8">
         <h2 className="mb-1 text-sm font-semibold uppercase tracking-wide text-plum-soft">
           Reporte de ventas
         </h2>
@@ -49,7 +49,7 @@ export default function AdminReportes() {
               type="date"
               value={desde}
               onChange={(e) => setDesde(e.target.value)}
-              className="mt-1 block w-full rounded-xl bg-white px-3 py-2 text-sm text-plum shadow-glass focus:outline-none"
+              className="mt-1 block w-full rounded-xl bg-white px-3 py-2 text-sm text-plum focus:outline-none"
             />
           </label>
           <label className="text-xs text-plum-soft">
@@ -58,7 +58,7 @@ export default function AdminReportes() {
               type="date"
               value={hasta}
               onChange={(e) => setHasta(e.target.value)}
-              className="mt-1 block w-full rounded-xl bg-white px-3 py-2 text-sm text-plum shadow-glass focus:outline-none"
+              className="mt-1 block w-full rounded-xl bg-white px-3 py-2 text-sm text-plum focus:outline-none"
             />
           </label>
         </div>
@@ -70,7 +70,7 @@ export default function AdminReportes() {
         <button
           type="submit"
           disabled={descargando}
-          className="mt-4 w-full rounded-full bg-berry py-3 text-center font-semibold text-white shadow-glass transition hover:bg-berry-dark disabled:opacity-60"
+          className="mt-4 w-full rounded-[10px] bg-berry py-3 text-center font-semibold text-white transition hover:bg-berry-dark disabled:opacity-60"
         >
           {descargando ? "Generando reporte..." : "Descargar reporte PDF"}
         </button>

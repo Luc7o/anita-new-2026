@@ -28,16 +28,16 @@ function diasParaLimite(fechaLimite) {
 
 function InsigniaPlazo({ reclamo }) {
   if (reclamo.estado === "respondido") {
-    return <span className="rounded-full bg-berry/10 px-2.5 py-1 text-xs font-semibold text-berry-dark">Respondido</span>;
+    return <span className="rounded-md bg-berry/10 px-2.5 py-1 text-xs font-semibold text-berry-dark">Respondido</span>;
   }
   const dias = diasParaLimite(reclamo.fecha_limite);
   if (dias < 0) {
-    return <span className="rounded-full bg-red-100 px-2.5 py-1 text-xs font-semibold text-red-700">Vencido hace {-dias} d</span>;
+    return <span className="rounded-md bg-red-100 px-2.5 py-1 text-xs font-semibold text-red-700">Vencido hace {-dias} d</span>;
   }
   if (dias <= 3) {
-    return <span className="rounded-full bg-gold/30 px-2.5 py-1 text-xs font-semibold text-plum">{dias === 0 ? "Vence hoy" : `Vence en ${dias} d`}</span>;
+    return <span className="rounded-md bg-gold/30 px-2.5 py-1 text-xs font-semibold text-plum">{dias === 0 ? "Vence hoy" : `Vence en ${dias} d`}</span>;
   }
-  return <span className="rounded-full bg-plum/10 px-2.5 py-1 text-xs font-semibold text-plum-soft">{dias} días</span>;
+  return <span className="rounded-md bg-plum/10 px-2.5 py-1 text-xs font-semibold text-plum-soft">{dias} días</span>;
 }
 
 function Dato({ etiqueta, children }) {
@@ -76,7 +76,7 @@ function DetalleReclamo({ reclamo, puedeResponder, onCerrar, onRespondido }) {
 
   return (
     <Dialog labelledBy="reclamo-titulo" onClose={onCerrar}
-      className="max-h-[90vh] w-[min(94vw,720px)] overflow-y-auto rounded-3xl bg-white p-5 shadow-glass sm:p-7">
+      className="max-h-[90vh] w-[min(94vw,720px)] overflow-y-auto rounded-2xl bg-white p-5 sm:p-7">
       <div className="mb-4 flex items-start justify-between gap-3">
         <div>
           <h2 id="reclamo-titulo" className="text-xl font-semibold text-plum">
@@ -134,7 +134,7 @@ function DetalleReclamo({ reclamo, puedeResponder, onCerrar, onRespondido }) {
             className="w-full rounded-md border border-plum/20 bg-white px-3 py-2.5 text-plum focus:border-berry focus:outline-none" />
           {error && <p role="alert" className="text-sm text-red-700">{error}</p>}
           <button type="submit" disabled={enviando}
-            className="rounded-full bg-berry px-6 py-2.5 text-sm font-semibold text-white shadow-glass transition hover:opacity-90 disabled:opacity-60">
+            className="rounded-[10px] bg-berry px-6 py-2.5 text-sm font-semibold text-white transition hover:opacity-90 disabled:opacity-60">
             {enviando ? "Enviando..." : "Registrar y enviar respuesta"}
           </button>
         </form>
@@ -188,7 +188,7 @@ export default function AdminReclamaciones() {
       <div className="mb-4 flex gap-2 overflow-x-auto pb-1">
         {FILTROS.map((f) => (
           <button key={f.label} onClick={() => setFiltro(f.valor)}
-            className={`shrink-0 rounded-full px-4 py-1.5 text-sm font-medium shadow-glass ${
+            className={`shrink-0 rounded-full px-4 py-1.5 text-sm font-medium ${
               filtro === f.valor ? "bg-berry text-white" : "glass text-plum"
             }`}>
             {f.label}
@@ -199,13 +199,13 @@ export default function AdminReclamaciones() {
       {cargando ? (
         <p className="text-plum-soft">Cargando reclamaciones...</p>
       ) : reclamos.length === 0 ? (
-        <p className="glass rounded-3xl p-6 text-center text-plum-soft shadow-glass">No hay reclamaciones con ese filtro.</p>
+        <p className="glass rounded-2xl p-6 text-center text-plum-soft">No hay reclamaciones con ese filtro.</p>
       ) : (
         <>
           <Paginador pagina={pag.pagina} porPagina={pag.porPagina} total={pag.total} onCambiar={pag.setPagina} className="mb-2" />
-          <div className="glass hidden overflow-hidden rounded-3xl shadow-glass md:block">
+          <div className="glass hidden overflow-hidden rounded-2xl md:block">
             <table className="w-full text-left text-sm">
-              <thead className="bg-white/50 text-xs uppercase tracking-wide text-plum-soft">
+              <thead className="bg-white text-xs uppercase tracking-wide text-plum-soft">
                 <tr>
                   <th className="px-4 py-3">N°</th>
                   <th className="px-4 py-3">Consumidor</th>
@@ -237,7 +237,7 @@ export default function AdminReclamaciones() {
           <div className="space-y-3 md:hidden">
             {pag.items.map((r) => (
               <button key={r.id} onClick={() => setSeleccionado(r)}
-                className="glass block w-full rounded-2xl p-4 text-left shadow-glass">
+                className="glass block w-full rounded-2xl p-4 text-left">
                 <div className="flex items-start justify-between gap-2">
                   <div>
                     <p className="font-medium text-plum">{r.codigo}</p>
