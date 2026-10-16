@@ -5,6 +5,8 @@ import App from "./App.jsx";
 import { CarritoProvider } from "./context/CarritoContext.jsx";
 import { AuthProvider } from "./context/AuthContext.jsx";
 import { FavoritosProvider } from "./context/FavoritosContext.jsx";
+import { ToastProvider } from "./context/ToastContext.jsx";
+import { ConfirmProvider } from "./components/ConfirmDialog.jsx";
 import "./styles/theme.css";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
@@ -13,7 +15,11 @@ ReactDOM.createRoot(document.getElementById("root")).render(
       <AuthProvider>
         <FavoritosProvider>
           <CarritoProvider>
-            <App />
+            <ToastProvider>
+              <ConfirmProvider>
+                <App />
+              </ConfirmProvider>
+            </ToastProvider>
           </CarritoProvider>
         </FavoritosProvider>
       </AuthProvider>

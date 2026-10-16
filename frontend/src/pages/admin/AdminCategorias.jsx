@@ -1,3 +1,5 @@
+import { useConfirm } from "../../components/ConfirmDialog.jsx";
+import { useToast } from "../../context/ToastContext.jsx";
 import Spinner from "../../components/Spinner.jsx";
 import { SkeletonFilasAdmin } from "../../components/admin/EsqueletosAdmin.jsx";
 import React, { useEffect, useMemo, useState } from "react";
@@ -10,6 +12,8 @@ const VACIO = { nombre: "", descripcion: "", icono: "bag" };
 const POR_PAGINA = 10;
 
 export default function AdminCategorias() {
+  const toast = useToast();
+  const confirmar = useConfirm();
   const [categorias, setCategorias] = useState([]);
   const [cargandoLista, setCargandoLista] = useState(true);
   const [form, setForm] = useState(VACIO);
@@ -57,6 +61,7 @@ export default function AdminCategorias() {
       } else {
         await api.adminCrearCategoria(form);
       }
+      toast.success(editandoId ? "Categoría actualizada" : "Categoría creada");
       setMostrarForm(false);
       cargar();
     } catch (err) {
@@ -67,9 +72,19 @@ export default function AdminCategorias() {
   };
 
   const eliminar = async (cat) => {
-    if (!confirm(`¿Eliminar/desactivar "${cat.nombre}"?`)) return;
-    await api.adminEliminarCategoria(cat.id);
-    cargar();
+    const ok = await confirmar({
+      title: `¿Eliminar o desactivar "${cat.nombre}"?`,
+      tone: "danger",
+      confirmText: "Sí, continuar",
+    });
+    if (!ok) return;
+    try {
+      await api.adminEliminarCategoria(cat.id);
+      toast.success("Categoría eliminada o desactivada");
+      cargar();
+    } catch (err) {
+      toast.error(err.message || "No se pudo eliminar la categoría");
+    }
   };
 
   const cambiarEstado = async (cat) => {

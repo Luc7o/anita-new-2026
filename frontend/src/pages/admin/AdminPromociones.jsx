@@ -1,3 +1,5 @@
+import { useConfirm } from "../../components/ConfirmDialog.jsx";
+import { useToast } from "../../context/ToastContext.jsx";
 import Spinner from "../../components/Spinner.jsx";
 import { SkeletonFilasAdmin } from "../../components/admin/EsqueletosAdmin.jsx";
 import React, { useEffect, useState } from "react";
@@ -18,6 +20,8 @@ const VACIO = {
 };
 
 export default function AdminPromociones() {
+  const toast = useToast();
+  const confirmar = useConfirm();
   const [promociones, setPromociones] = useState([]);
   const [cargandoLista, setCargandoLista] = useState(true);
   const [form, setForm] = useState(VACIO);
@@ -89,6 +93,7 @@ export default function AdminPromociones() {
       } else {
         await api.adminCrearPromocion(payload);
       }
+      toast.success(editandoId ? "Promoción actualizada" : "Promoción creada");
       cancelar();
       cargar();
     } catch (err) {
@@ -99,9 +104,20 @@ export default function AdminPromociones() {
   };
 
   const eliminar = async (promo) => {
-    if (!confirm(`¿Eliminar la promoción "${promo.titulo}"?`)) return;
-    await api.adminEliminarPromocion(promo.id);
-    cargar();
+    const ok = await confirmar({
+      title: `¿Eliminar la promoción "${promo.titulo}"?`,
+      message: "Esta acción no se puede deshacer.",
+      tone: "danger",
+      confirmText: "Eliminar",
+    });
+    if (!ok) return;
+    try {
+      await api.adminEliminarPromocion(promo.id);
+      toast.success("Promoción eliminada");
+      cargar();
+    } catch (err) {
+      toast.error(err.message || "No se pudo eliminar la promoción");
+    }
   };
 
   const alternarActivo = async (promo) => {

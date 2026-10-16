@@ -1,3 +1,5 @@
+import { useConfirm } from "../../components/ConfirmDialog.jsx";
+import { useToast } from "../../context/ToastContext.jsx";
 import Spinner from "../../components/Spinner.jsx";
 import { SkeletonFilasAdmin } from "../../components/admin/EsqueletosAdmin.jsx";
 import React, { useEffect, useState } from "react";
@@ -36,6 +38,8 @@ function claveCombo(talla, color) {
 }
 
 export default function AdminProductos() {
+  const toast = useToast();
+  const confirmar = useConfirm();
   const [productos, setProductos] = useState([]);
   const [cargandoLista, setCargandoLista] = useState(true);
   const [categorias, setCategorias] = useState([]);
@@ -190,6 +194,7 @@ export default function AdminProductos() {
       } else {
         await api.adminCrearProducto(payload);
       }
+      toast.success(editandoId ? "Producto actualizado" : "Producto creado");
       setMostrarForm(false);
       cargarProductos();
     } catch (err) {
@@ -200,9 +205,20 @@ export default function AdminProductos() {
   };
 
   const eliminar = async (p) => {
-    if (!confirm(`¿Desactivar "${p.nombre}"? Ya no se mostrará en la tienda.`)) return;
-    await api.adminEliminarProducto(p.id);
-    cargarProductos();
+    const ok = await confirmar({
+      title: `¿Desactivar "${p.nombre}"?`,
+      message: "Ya no se mostrará en la tienda.",
+      tone: "danger",
+      confirmText: "Desactivar",
+    });
+    if (!ok) return;
+    try {
+      await api.adminEliminarProducto(p.id);
+      toast.success("Producto desactivado");
+      cargarProductos();
+    } catch (err) {
+      toast.error(err.message || "No se pudo desactivar el producto");
+    }
   };
 
   return (

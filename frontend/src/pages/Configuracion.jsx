@@ -1,3 +1,4 @@
+import { useToast } from "../context/ToastContext.jsx";
 import Spinner from "../components/Spinner.jsx";
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
@@ -109,6 +110,7 @@ function FilaPreferencia({ icono, etiqueta, valor, to }) {
 }
 
 function FormularioContrasena() {
+  const toast = useToast();
   const [form, setForm] = useState({ password_actual: "", password_nueva: "", password_confirmar: "" });
   const [verActual, setVerActual] = useState(false);
   const [verNueva, setVerNueva] = useState(false);
@@ -137,7 +139,7 @@ function FormularioContrasena() {
       // misma pestaña siga funcionando sin pedir volver a loguearse.
       setAccessToken(respuesta.token);
       guardarCsrf(respuesta.csrf);
-      setMensaje("Contraseña actualizada correctamente.");
+      toast.success("Contraseña actualizada correctamente");
       setForm({ password_actual: "", password_nueva: "", password_confirmar: "" });
     } catch (err) {
       setError(err.message);

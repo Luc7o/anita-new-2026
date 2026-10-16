@@ -1,3 +1,5 @@
+import { useConfirm } from "../../components/ConfirmDialog.jsx";
+import { useToast } from "../../context/ToastContext.jsx";
 import Spinner from "../../components/Spinner.jsx";
 import { SkeletonFilasAdmin, SkeletonPanelAdmin, SkeletonDetalleAdmin, SkeletonFormularioAdmin } from "../../components/admin/EsqueletosAdmin.jsx";
 import React, { useEffect, useState } from "react";
@@ -7,6 +9,8 @@ import { useAuth } from "../../context/AuthContext.jsx";
 import ImagenOptimizada from "../../components/ImagenOptimizada.jsx";
 
 export default function AdminProveedorDetalle() {
+  const toast = useToast();
+  const confirmar = useConfirm();
   const { id } = useParams();
   const { usuario } = useAuth();
   const puedeGestionar = ["superadmin", "editor"].includes(usuario?.rol);
@@ -41,6 +45,7 @@ export default function AdminProveedorDetalle() {
     setGuardando(true);
     try {
       await api.adminAgregarProductoProveedor(id, seleccion);
+      toast.success("Producto vinculado al proveedor");
       setMostrarForm(false);
       cargar();
     } catch (err) {
@@ -51,9 +56,19 @@ export default function AdminProveedorDetalle() {
   };
 
   const quitarProducto = async (relacion) => {
-    if (!confirm(`¿Quitar "${relacion.producto?.nombre}" de este proveedor?`)) return;
-    await api.adminQuitarProductoProveedor(id, relacion.id);
-    cargar();
+    const ok = await confirmar({
+      title: `¿Quitar "${relacion.producto?.nombre}" de este proveedor?`,
+      tone: "danger",
+      confirmText: "Quitar",
+    });
+    if (!ok) return;
+    try {
+      await api.adminQuitarProductoProveedor(id, relacion.id);
+      toast.success("Producto quitado del proveedor");
+      cargar();
+    } catch (err) {
+      toast.error(err.message || "No se pudo quitar el producto");
+    }
   };
 
   if (!proveedor) {

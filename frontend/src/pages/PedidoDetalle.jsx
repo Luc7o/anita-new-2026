@@ -1,3 +1,5 @@
+import { useConfirm } from "../components/ConfirmDialog.jsx";
+import { useToast } from "../context/ToastContext.jsx";
 import Spinner from "../components/Spinner.jsx";
 import React, { useEffect, useState } from "react";
 import { SkeletonPedidoDetalle } from "../components/Skeleton.jsx";
@@ -25,6 +27,8 @@ const ESTADO_PAGO_ESTILOS = {
 const METODOS_PASARELA = new Set(["tarjeta", "yape"]);
 
 export default function PedidoDetalle() {
+  const toast = useToast();
+  const confirmar = useConfirm();
   const { id } = useParams();
   const { usuario, setUsuario } = useAuth();
   const [pedido, setPedido] = useState(null);
@@ -67,6 +71,7 @@ export default function PedidoDetalle() {
       });
       limpiarPagoIdempotencyKey(id);
       setPedido(actualizado);
+      toast.success("¡Pago recibido! Gracias por tu compra");
     } catch (err) {
       setErrorPago(err.message);
     } finally {
@@ -75,15 +80,20 @@ export default function PedidoDetalle() {
   };
 
   const cancelarPedido = async () => {
-    const confirmado = window.confirm(
-      "¿Deseas cancelar este pedido? Esta acción no se puede deshacer."
-    );
+    const confirmado = await confirmar({
+      title: "¿Cancelar este pedido?",
+      message: "Esta acción no se puede deshacer.",
+      tone: "danger",
+      confirmText: "Sí, cancelar pedido",
+      cancelText: "No, volver",
+    });
     if (!confirmado) return;
 
     setCancelando(true);
     setErrorCancelar("");
     try {
       await api.cancelarPedido(id);
+      toast.success("Pedido cancelado");
       cargar();
     } catch (err) {
       setErrorCancelar(err.message);

@@ -1,3 +1,5 @@
+import { useConfirm } from "../../components/ConfirmDialog.jsx";
+import { useToast } from "../../context/ToastContext.jsx";
 import Spinner from "../../components/Spinner.jsx";
 import { SkeletonFilasAdmin } from "../../components/admin/EsqueletosAdmin.jsx";
 import React, { useEffect, useState } from "react";
@@ -13,6 +15,8 @@ import { usePaginacion } from "../../hooks/usePaginacion.js";
 const VACIO = { nombre: "", contacto_nombre: "", telefono: "", email: "", direccion: "", ruc: "", notas: "" };
 
 export default function AdminProveedores() {
+  const toast = useToast();
+  const confirmar = useConfirm();
   const { usuario } = useAuth();
   const puedeGestionar = ["superadmin", "editor"].includes(usuario?.rol);
 
@@ -131,6 +135,7 @@ export default function AdminProveedores() {
         }
       }
 
+      toast.success(editandoId ? "Proveedor actualizado" : "Proveedor creado");
       setMostrarForm(false);
       cargar();
     } catch (err) {
@@ -141,9 +146,19 @@ export default function AdminProveedores() {
   };
 
   const eliminar = async (p) => {
-    if (!confirm(`¿Desactivar al proveedor "${p.nombre}"?`)) return;
-    await api.adminEliminarProveedor(p.id);
-    cargar();
+    const ok = await confirmar({
+      title: `¿Desactivar al proveedor "${p.nombre}"?`,
+      tone: "danger",
+      confirmText: "Desactivar",
+    });
+    if (!ok) return;
+    try {
+      await api.adminEliminarProveedor(p.id);
+      toast.success("Proveedor desactivado");
+      cargar();
+    } catch (err) {
+      toast.error(err.message || "No se pudo desactivar el proveedor");
+    }
   };
 
   const productosFiltrados = productosDisponibles.filter((prod) =>

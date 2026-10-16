@@ -1,3 +1,5 @@
+import { useConfirm } from "../../components/ConfirmDialog.jsx";
+import { useToast } from "../../context/ToastContext.jsx";
 import Spinner from "../../components/Spinner.jsx";
 import { SkeletonFilasAdmin, SkeletonPanelAdmin, SkeletonDetalleAdmin, SkeletonFormularioAdmin } from "../../components/admin/EsqueletosAdmin.jsx";
 import React, { useEffect, useState } from "react";
@@ -7,6 +9,8 @@ import { ESTADOS_PEDIDO } from "./estadosPedido.js";
 import EstadoPedidoSelect from "../../components/EstadoPedidoSelect.jsx";
 
 export default function AdminPedidoDetalle() {
+  const toast = useToast();
+  const confirmar = useConfirm();
   const { id } = useParams();
   const [pedido, setPedido] = useState(null);
   const [actualizando, setActualizando] = useState(false);
@@ -35,7 +39,7 @@ export default function AdminPedidoDetalle() {
     setMensajeEnvio("");
     try {
       await api.adminActualizarEnvio(id, envio);
-      setMensajeEnvio("Datos de envío guardados.");
+      toast.success("Datos de envío guardados");
       cargar();
     } catch (err) {
       setMensajeEnvio(err.message);
@@ -46,16 +50,20 @@ export default function AdminPedidoDetalle() {
 
   const cambiarEstado = async (nuevoEstado) => {
     if (nuevoEstado === "cancelado") {
-      const confirmado = window.confirm(
-        "¿Desea cancelar esta compra? El stock de los productos se devolverá. " +
-          "Si se cancela, se cancela y ya — esta acción no tiene vuelta atrás."
-      );
+      const confirmado = await confirmar({
+        title: "¿Cancelar esta compra?",
+        message: "El stock de los productos se devolverá. Esta acción no tiene vuelta atrás.",
+        tone: "danger",
+        confirmText: "Sí, cancelar compra",
+        cancelText: "No, volver",
+      });
       if (!confirmado) return;
     }
 
     setActualizando(true);
     try {
       await api.adminCambiarEstadoPedido(id, nuevoEstado);
+      toast.success("Estado del pedido actualizado");
       cargar();
     } finally {
       setActualizando(false);
@@ -66,6 +74,7 @@ export default function AdminPedidoDetalle() {
     setActualizando(true);
     try {
       await api.adminRevisarPago(id, estadoPago);
+      toast.success("Pago revisado");
       cargar();
     } finally {
       setActualizando(false);
