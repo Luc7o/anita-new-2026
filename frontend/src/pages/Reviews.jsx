@@ -1,10 +1,11 @@
 import React, { useCallback, useEffect, useState } from "react";
+import { SkeletonResenas } from "../components/Skeleton.jsx";
 import { Link } from "react-router-dom";
 import PaginaInfo from "./PaginaInfo.jsx";
 import Estrellas from "../components/Estrellas.jsx";
 import ImagenOptimizada from "../components/ImagenOptimizada.jsx";
 import { api } from "../api/client.js";
-import { EMPRESA } from "../datosEmpresa.js";
+import useConfigTienda from "../hooks/useConfigTienda.js";
 
 const POR_PAGINA = 12;
 
@@ -87,6 +88,7 @@ function TarjetaResena({ r }) {
 // Reseñas reales leídas de la base de datos. No hay ningún texto de ejemplo:
 // si todavía nadie reseñó un producto, se muestra un mensaje de "aún no hay".
 export default function Reviews() {
+  const config = useConfigTienda();
   const [resenas, setResenas] = useState([]);
   const [resumen, setResumen] = useState(null);
   const [hayMas, setHayMas] = useState(false);
@@ -124,11 +126,11 @@ export default function Reviews() {
       contenido={
         <div className="space-y-6">
           <p className="text-lg text-plum-soft">
-            Opiniones reales de clientas de <strong className="text-plum">{EMPRESA.nombre}</strong>.
+            Opiniones reales de clientas de <strong className="text-plum">{config.nombre_comercial}</strong>.
             Solo pueden reseñar quienes compraron el producto.
           </p>
 
-          {cargando && <p className="text-sm text-plum-soft">Cargando reseñas…</p>}
+          {cargando && <SkeletonResenas cantidad={4} />}
 
           {!cargando && error && resenas.length === 0 && (
             <div className="rounded-xl border border-plum/10 bg-plum/5 p-5">

@@ -120,7 +120,7 @@ async function fetchAutenticado(url, construirInit) {
   return res;
 }
 
-async function request(path, { method = "GET", body, auth = false } = {}) {
+async function pedirRed(path, { method = "GET", body, auth = false } = {}) {
   const construirInit = (token) => ({
     method,
     headers: {
@@ -153,6 +153,78 @@ async function request(path, { method = "GET", body, auth = false } = {}) {
     throw err;
   }
   return data;
+}
+
+// ---------------------------------------------------------------------------
+// Caché en memoria de lecturas PÚBLICAS (catálogo, categorías, reseñas,
+// promociones, ubicaciones). Tres efectos:
+//  - Dedupe: si dos componentes piden lo mismo a la vez, sale UNA sola
+//    petición.
+//  - Fresco (< ttl): se responde al instante, sin red.
+//  - Vencido pero reciente (< ttl * 5): se responde al instante con la copia
+//    vieja y se refresca en segundo plano (stale-while-revalidate), así
+//    volver a una página nunca espera a la red.
+// Solo vive mientras la pestaña esté abierta. Nada privado se cachea acá:
+// únicamente GET sin sesión y de esta lista.
+// ---------------------------------------------------------------------------
+const REGLAS_CACHE = [
+  { prefijo: "/ubicaciones", ttl: 24 * 60 * 60 * 1000 }, // catálogo INEI: casi no cambia
+  { prefijo: "/categorias", ttl: 5 * 60 * 1000 },
+  { prefijo: "/promociones/activas", ttl: 60 * 1000 },
+  { prefijo: "/configuracion/tienda", ttl: 60 * 1000 },
+  { prefijo: "/productos", ttl: 60 * 1000 },
+  { prefijo: "/resenas", ttl: 2 * 60 * 1000 },
+];
+// Mutaciones que pueden cambiar lo que muestra el catálogo (stock, precios,
+// reseñas): espejo de _PREFIJOS_QUE_INVALIDAN en backend/app/utils/cache.py.
+const PREFIJOS_QUE_INVALIDAN = ["/admin", "/pedidos", "/productos"];
+
+const cachePublico = new Map(); // path -> { datos, guardadoEn }
+const peticionesEnVuelo = new Map(); // path -> Promise
+
+function reglaDeCache(path) {
+  const ruta = path.split("?")[0];
+  return REGLAS_CACHE.find((r) => ruta === r.prefijo || ruta.startsWith(`${r.prefijo}/`));
+}
+
+function leerPublicoConCache(path, regla) {
+  const entrada = cachePublico.get(path);
+  const edad = entrada ? Date.now() - entrada.guardadoEn : Infinity;
+
+  const refrescar = () => {
+    if (peticionesEnVuelo.has(path)) return peticionesEnVuelo.get(path);
+    const p = pedirRed(path)
+      .then((datos) => {
+        cachePublico.set(path, { datos, guardadoEn: Date.now() });
+        return datos;
+      })
+      .finally(() => peticionesEnVuelo.delete(path));
+    peticionesEnVuelo.set(path, p);
+    return p;
+  };
+
+  if (entrada && edad < regla.ttl) return Promise.resolve(structuredClone(entrada.datos));
+  if (entrada && edad < regla.ttl * 5) {
+    refrescar().catch(() => {}); // en segundo plano; si falla, queda la copia vieja
+    return Promise.resolve(structuredClone(entrada.datos));
+  }
+  return refrescar().then((datos) => structuredClone(datos));
+}
+
+async function request(path, opciones = {}) {
+  const { method = "GET", auth = false } = opciones;
+
+  if (method === "GET" && !auth) {
+    const regla = reglaDeCache(path);
+    if (regla) return leerPublicoConCache(path, regla);
+  }
+
+  const datos = await pedirRed(path, opciones);
+
+  if (method !== "GET" && PREFIJOS_QUE_INVALIDAN.some((p) => path.startsWith(p))) {
+    cachePublico.clear();
+  }
+  return datos;
 }
 
 // Para subidas multipart (comprobantes, imágenes) — misma lógica de
@@ -246,6 +318,8 @@ export const api = {
   // Auth
   registro: (payload) => request("/auth/registro", { method: "POST", body: payload }),
   continuarComoInvitado: (payload) => request("/auth/invitado", { method: "POST", body: payload }),
+  // Registro solo con correo: NO inicia sesión, solo envía el enlace para crear la contraseña.
+  registroConEmail: (email) => request("/auth/registro-email", { method: "POST", body: { email } }),
   completarCuenta: (payload) =>
     request("/auth/completar-cuenta", { method: "POST", body: payload, auth: true }),
   refrescarToken: () => refrescarAccessToken(),
@@ -305,6 +379,13 @@ export const api = {
 
   // Carrito
   verCarrito: () => request("/carrito", { auth: true }),
+  // Carrito de invitado (sin cuenta): el navegador guarda las líneas y el
+  // servidor las valida/hidrata (precio, stock) sin guardar nada.
+  validarCarritoInvitado: (items) =>
+    request("/carrito/invitado/validar", { method: "POST", body: { items } }),
+  // Al registrarse/iniciar sesión, pasa esas líneas al carrito real de la cuenta.
+  fusionarCarrito: (items) =>
+    request("/carrito/fusionar", { method: "POST", body: { items }, auth: true }),
   agregarAlCarrito: (payload) =>
     request("/carrito/agregar", { method: "POST", body: payload, auth: true }),
   actualizarItemCarrito: (itemId, payload) =>
@@ -371,7 +452,13 @@ export const api = {
     return descargarPdf(`/admin/reportes/ventas${query ? `?${query}` : ""}`, nombre);
   },
 
+  // Datos públicos de la tienda (contacto, dirección, redes)
+  configuracionTienda: () => request("/configuracion/tienda"),
+
   // Admin — configuración
+  adminConfiguracionTienda: () => request("/admin/configuracion/tienda", { auth: true }),
+  adminActualizarConfiguracionTienda: (payload) =>
+    request("/admin/configuracion/tienda", { method: "PUT", body: payload, auth: true }),
   adminProbarCorreo: (email) =>
     request("/admin/configuracion/probar-correo", { method: "POST", body: { email }, auth: true }),
 
@@ -416,6 +503,13 @@ export const api = {
     const formData = new FormData();
     formData.append("imagen", archivo);
     return subirArchivo("/admin/uploads/producto-imagen", formData, "No se pudo subir la imagen");
+  },
+
+  // Admin — logo de la tienda (archivo, no enlace)
+  adminSubirLogoTienda: (archivo) => {
+    const formData = new FormData();
+    formData.append("imagen", archivo);
+    return subirArchivo("/admin/uploads/logo-tienda", formData, "No se pudo subir el logo");
   },
 
   // Admin — promociones de temporada

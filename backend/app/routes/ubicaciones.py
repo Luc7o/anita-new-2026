@@ -1,5 +1,6 @@
 from flask import Blueprint, request, jsonify
 from app.models import UbigeoDepartamento, UbigeoProvincia, UbigeoDistrito
+from app.utils.cache import cache_publico
 
 bp = Blueprint("ubicaciones", __name__, url_prefix="/api/ubicaciones")
 
@@ -10,12 +11,14 @@ bp = Blueprint("ubicaciones", __name__, url_prefix="/api/ubicaciones")
 
 
 @bp.get("/departamentos")
+@cache_publico(ttl=86400, navegador=3600, swr=86400)
 def listar_departamentos():
     departamentos = UbigeoDepartamento.query.order_by(UbigeoDepartamento.nombre).all()
     return jsonify([d.to_dict() for d in departamentos])
 
 
 @bp.get("/provincias")
+@cache_publico(ttl=86400, navegador=3600, swr=86400)
 def listar_provincias():
     departamento_id = request.args.get("departamento_id", type=int)
     if not departamento_id:
@@ -30,6 +33,7 @@ def listar_provincias():
 
 
 @bp.get("/distritos")
+@cache_publico(ttl=86400, navegador=3600, swr=86400)
 def listar_distritos():
     provincia_id = request.args.get("provincia_id", type=int)
     if not provincia_id:

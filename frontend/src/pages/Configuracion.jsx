@@ -1,31 +1,23 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { api, setAccessToken, guardarCsrf } from "../api/client.js";
 import { useAuth } from "../context/AuthContext.jsx";
 import CuentaLayout from "../components/CuentaLayout.jsx";
 import {
   IconLock,
   IconShield,
-  IconKey,
   IconEye,
   IconEyeOff,
   IconGlobe,
-  IconInfo,
   IconFileText,
-  IconRefresh,
-  IconUsers,
   IconLogout,
   IconChevronRight,
-  IconApple,
-  IconPlay,
 } from "../components/Icons.jsx";
 
 export default function Configuracion() {
   const { logout } = useAuth();
   const navigate = useNavigate();
-  const [seccionAbierta, setSeccionAbierta] = useState(null);
-
-  const alternarSeccion = (id) => setSeccionAbierta((actual) => (actual === id ? null : id));
+  const [seguridadAbierta, setSeguridadAbierta] = useState(false);
 
   const cerrarSesion = () => {
     logout();
@@ -36,46 +28,15 @@ export default function Configuracion() {
     <CuentaLayout>
       <div className="space-y-8">
         <div>
-          <h2 className="mb-4 text-xl font-semibold text-plum">Seguridad &amp; Privacidad</h2>
-          <div className="grid gap-3 sm:grid-cols-2">
-            <TarjetaConfig
-              icono={<IconLock size={18} />}
-              titulo="Seguridad de la Cuenta"
-              descripcion="Contraseña, autenticación y accesos verificados"
-              abierta={seccionAbierta === "seguridad"}
-              onClick={() => alternarSeccion("seguridad")}
-            />
-            <TarjetaConfig
-              icono={<IconShield size={18} />}
-              titulo="Privacidad de Datos"
-              descripcion="Preferencias sobre cómo protegemos tu información"
-              abierta={seccionAbierta === "privacidad"}
-              onClick={() => alternarSeccion("privacidad")}
-            />
-            <TarjetaConfig
-              icono={<IconKey size={18} />}
-              titulo="Permisos Autorizados"
-              descripcion="Aplicaciones de terceros conectadas"
-              abierta={seccionAbierta === "permisos"}
-              onClick={() => alternarSeccion("permisos")}
-            />
-            <TarjetaConfig
-              icono={<IconUsers size={18} />}
-              titulo="Centro de Seguridad"
-              descripcion="Reportar incidentes o bloquear actividades"
-              abierta={seccionAbierta === "centro"}
-              onClick={() => alternarSeccion("centro")}
-            />
-          </div>
-
-          {seccionAbierta === "seguridad" && <FormularioContrasena />}
-          {(seccionAbierta === "privacidad" ||
-            seccionAbierta === "permisos" ||
-            seccionAbierta === "centro") && (
-            <div className="glass mt-3 rounded-2xl p-5 text-sm text-plum-soft shadow-glass">
-              Esta sección estará disponible próximamente.
-            </div>
-          )}
+          <h2 className="mb-4 text-xl font-semibold text-plum">Seguridad</h2>
+          <TarjetaConfig
+            icono={<IconLock size={18} />}
+            titulo="Seguridad de la Cuenta"
+            descripcion="Cambia tu contraseña"
+            abierta={seguridadAbierta}
+            onClick={() => setSeguridadAbierta((v) => !v)}
+          />
+          {seguridadAbierta && <FormularioContrasena />}
         </div>
 
         <div>
@@ -83,28 +44,16 @@ export default function Configuracion() {
           <div className="glass divide-y divide-plum/10 overflow-hidden rounded-2xl shadow-glass">
             <FilaPreferencia icono={<IconGlobe size={16} />} etiqueta="Idioma" valor="Español (PE)" />
             <FilaPreferencia
-              icono={<IconInfo size={16} />}
-              etiqueta="Acerca de Anita New Style"
-              onClick={() => alternarSeccion("acerca")}
+              icono={<IconShield size={16} />}
+              etiqueta="Política de privacidad"
+              to="/politica-de-privacidad"
             />
             <FilaPreferencia
               icono={<IconFileText size={16} />}
-              etiqueta="Términos y políticas legales"
-              onClick={() => alternarSeccion("terminos")}
-            />
-            <FilaPreferencia
-              icono={<IconRefresh size={16} />}
-              etiqueta="Cambiar cuenta"
-              onClick={() => alternarSeccion("cuenta")}
+              etiqueta="Términos y condiciones"
+              to="/terminos-y-condiciones"
             />
           </div>
-          {(seccionAbierta === "acerca" ||
-            seccionAbierta === "terminos" ||
-            seccionAbierta === "cuenta") && (
-            <div className="glass mt-3 rounded-2xl p-5 text-sm text-plum-soft shadow-glass">
-              Esta sección estará disponible próximamente.
-            </div>
-          )}
         </div>
 
         <button
@@ -114,40 +63,6 @@ export default function Configuracion() {
           <IconLogout size={16} />
           Cerrar sesión
         </button>
-
-        {/* Promoción de la app (contenido visual, sin enlaces reales todavía) */}
-        <div className="glass flex flex-col items-center gap-6 overflow-hidden rounded-3xl p-6 shadow-glass sm:flex-row sm:p-8">
-          <div className="flex-1">
-            <span className="mb-3 inline-block rounded-full bg-berry px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-white">
-              Nueva experiencia
-            </span>
-            <h3 className="text-xl font-semibold text-plum">
-              Lleva la moda peruana en tu bolsillo
-            </h3>
-            <p className="mt-2 max-w-sm text-sm text-plum-soft">
-              Descarga nuestra app oficial para iOS y Android. Obtén notificaciones exclusivas,
-              ofertas flash y un checkout ultrarrápido desde donde estés.
-            </p>
-            <div className="mt-5 flex flex-wrap gap-3">
-              <a
-                href="#"
-                className="flex items-center gap-2 rounded-full bg-plum px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-plum/90"
-              >
-                <IconApple size={16} /> App Store
-              </a>
-              <a
-                href="#"
-                className="flex items-center gap-2 rounded-full border border-plum/20 px-5 py-2.5 text-sm font-semibold text-plum transition hover:bg-white"
-              >
-                <IconPlay size={16} /> Google Play
-              </a>
-            </div>
-          </div>
-          <div className="flex h-40 w-28 shrink-0 items-start justify-center rounded-[1.75rem] border-4 border-plum/80 bg-white p-1.5 sm:h-48 sm:w-32">
-            <div className="h-2 w-10 rounded-full bg-plum/20" />
-          </div>
-        </div>
-
       </div>
     </CuentaLayout>
   );
@@ -174,19 +89,20 @@ function TarjetaConfig({ icono, titulo, descripcion, abierta, onClick }) {
   );
 }
 
-function FilaPreferencia({ icono, etiqueta, valor, onClick }) {
-  const Contenedor = onClick ? "button" : "div";
+function FilaPreferencia({ icono, etiqueta, valor, to }) {
+  const Contenedor = to ? Link : "div";
+  const props = to ? { to } : {};
   return (
     <Contenedor
-      onClick={onClick}
+      {...props}
       className={`flex w-full items-center gap-3 px-5 py-3.5 text-left ${
-        onClick ? "transition hover:bg-white/60" : ""
+        to ? "transition hover:bg-white/60" : ""
       }`}
     >
       <span className="text-plum-soft">{icono}</span>
       <span className="flex-1 text-sm text-plum">{etiqueta}</span>
       {valor && <span className="text-sm text-plum-soft">{valor}</span>}
-      <IconChevronRight size={15} className="text-plum-soft" />
+      {to && <IconChevronRight size={15} className="text-plum-soft" />}
     </Contenedor>
   );
 }

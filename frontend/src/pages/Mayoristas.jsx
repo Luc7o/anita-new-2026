@@ -1,5 +1,6 @@
 import React from "react";
 import PaginaInfo from "./PaginaInfo.jsx";
+import BotonesContacto from "../components/BotonesContacto.jsx";
 
 export default function Mayoristas() {
   return (
@@ -26,15 +27,18 @@ export default function Mayoristas() {
               <h3 className="font-semibold text-plum">Requisitos</h3>
               <ul className="mt-2 space-y-1 text-sm text-plum-soft list-disc pl-4">
                 <li>RUC activo y documento de identidad.</li>
-                <li>Pedido mínimo de S/ 500 (aplica para todo el Perú).</li>
                 <li>Número de contacto y correo para coordinación.</li>
               </ul>
             </div>
           </div>
 
           <div className="mt-4 rounded-xl bg-plum/5 p-5 border border-plum/10">
-            <p className="text-sm font-medium text-plum">📩 ¿Cómo empezar?</p>
-            <p className="text-sm text-plum-soft">Escríbenos a <strong>mayoristas@anitanewstyle.com</strong> o por WhatsApp al +51 987 654 321. Te responderemos en menos de 24 horas.</p>
+            <p className="text-sm font-medium text-plum">¿Cómo empezar?</p>
+            <p className="mb-3 text-sm text-plum-soft">Escríbenos contándonos qué productos te interesan y coordinamos contigo.</p>
+            <BotonesContacto
+              mensaje="Hola, quiero información sobre ventas mayoristas."
+              asunto="Consulta de ventas mayoristas"
+            />
           </div>
         </div>
       }

@@ -33,8 +33,8 @@ export default function AdminReportes() {
     <div>
       <h1 className="text-2xl font-semibold text-plum">Reportes</h1>
       <p className="text-sm text-plum-soft">
-        Descarga un resumen de ventas en PDF: total vendido, desglose por método de pago,
-        por origen (en línea / tienda) y productos más vendidos.
+        Descarga el reporte de ventas en PDF: totales con IGV, desglose por método de pago y
+        origen (en línea / tienda), productos más vendidos, ventas por día y detalle de pedidos.
       </p>
 
       <form onSubmit={descargar} className="glass mt-6 max-w-lg rounded-3xl p-6 shadow-glass sm:p-8">

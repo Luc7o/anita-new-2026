@@ -5,6 +5,7 @@ import { useAuth } from "../context/AuthContext.jsx";
 import { useFavoritos } from "../context/FavoritosContext.jsx";
 import CuentaLayout from "../components/CuentaLayout.jsx";
 import ProductCard from "../components/ProductCard.jsx";
+import { SkeletonProductGrid } from "../components/Skeleton.jsx";
 import { IconHeart } from "../components/Icons.jsx";
 
 export default function Favoritos() {
@@ -46,7 +47,7 @@ export default function Favoritos() {
       <h2 className="mb-5 text-xl font-semibold text-plum">Mis favoritos</h2>
 
       {cargando ? (
-        <p className="text-plum-soft">Cargando favoritos...</p>
+        <SkeletonProductGrid cantidad={6} etiqueta="Cargando favoritos" />
       ) : productosVisibles.length === 0 ? (
         <div className="glass flex flex-col items-center gap-3 rounded-3xl p-10 text-center shadow-glass">
           <IconHeart size={28} className="text-berry-light" />
@@ -60,8 +61,8 @@ export default function Favoritos() {
         </div>
       ) : (
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-          {productosVisibles.map((producto) => (
-            <ProductCard key={producto.id} producto={producto} />
+          {productosVisibles.map((producto, i) => (
+            <ProductCard key={producto.id} producto={producto} indice={i} />
           ))}
         </div>
       )}

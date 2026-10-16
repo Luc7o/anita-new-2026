@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import { esNombreProvisional } from "../utils/nombreUsuario.js";
 import { useNavigate, Link } from "react-router-dom";
 import { api } from "../api/client.js";
 import { useCarrito } from "../context/CarritoContext.jsx";
@@ -11,6 +12,7 @@ import {
   soloCarnetExtranjeria,
   soloDireccion,
 } from "../validacion.js";
+import UbicacionEntrega from "../components/UbicacionEntrega.jsx";
 import { abrirCulqiCheckout } from "../culqi.js";
 import { obtenerPagoIdempotencyKey, limpiarPagoIdempotencyKey } from "../pagoIdempotencia.js";
 
@@ -47,24 +49,36 @@ const TIPOS_DOCUMENTO = [
 const DOC_SIN_VALIDAR = { estado: "idle", mensaje: "" };
 
 export default function Checkout() {
-  const { items, total, vaciarLocal, eliminar } = useCarrito();
-  const { usuario } = useAuth();
+  const { items, total, totalItems, vaciarLocal, eliminar, refrescar } = useCarrito();
+  const { usuario, continuarComoInvitado } = useAuth();
   const navigate = useNavigate();
+
+  // Compra sin cuenta: si no hay sesión, se pide solo el correo. Al confirmar,
+  // se crea la cuenta con ese correo (sin contraseña), el carrito del
+  // navegador pasa a esa cuenta y se le envía un correo para crear su
+  // contraseña cuando quiera volver a entrar.
+  const [cuentaExistente, setCuentaExistente] = useState(false);
 
   const [form, setForm] = useState({
     // El pedido guarda un solo "envio_nombre", pero en pantalla se pide por
     // partes según el documento: nombres + apellidos (DNI / carné) o
     // razón social (RUC). Al enviar se junta todo en envio_nombre.
-    nombres: usuario?.nombre || "",
-    apellidos: usuario?.apellido || "",
+    // Si el nombre es provisional ("Cliente 3FA9") no se precarga: se pide el real.
+    nombres: esNombreProvisional(usuario) ? "" : usuario?.nombre || "",
+    apellidos: esNombreProvisional(usuario) ? "" : usuario?.apellido || "",
     razon_social: "",
     envio_tipo_documento: "dni",
     envio_numero_documento: "",
     envio_telefono: "",
+    // Correo obligatorio para todos: si ya hay sesión se precarga el de la
+    // cuenta (y se puede cambiar); si no, es el correo con el que se crea
+    // la cuenta de invitado.
+    envio_email: usuario?.email || "",
     envio_direccion: "",
     envio_distrito: "",
     envio_provincia: "",
     envio_dpto: "",
+    distrito_id: null,
     envio_referencia: "",
     tipo_entrega: "delivery",
     metodo_pago: "yape",
@@ -260,6 +274,36 @@ export default function Checkout() {
     setEnviando(true);
 
     try {
+      // 0) Sin sesión: se crea la cuenta solo con el correo y el carrito del
+      //    navegador se pasa a esa cuenta, para poder crear el pedido normal.
+      let usuarioActual = usuario;
+      let cuentaNueva = false;
+      if (!usuarioActual) {
+        setCuentaExistente(false);
+        try {
+          usuarioActual = await continuarComoInvitado({ email: form.envio_email.trim() });
+          cuentaNueva = true;
+        } catch (err) {
+          if (err.status === 409) setCuentaExistente(true);
+          setError(err.message);
+          return; // el finally de abajo vuelve a habilitar el botón
+        }
+        const unidadesAntes = totalItems;
+        const resumenFusionado = await refrescar();
+        if (resumenFusionado.total_items !== unidadesAntes) {
+          // Entre que armó el carrito y pagó, algo se agotó: mejor que lo
+          // vea antes de pagar a que se le cobre algo distinto a lo que vio.
+          setError(
+            resumenFusionado.ajustes?.length
+              ? `Ajustamos tu carrito por falta de stock: ${resumenFusionado.ajustes
+                  .map((a) => a.mensaje)
+                  .join(" ")} Revisa el resumen y confirma de nuevo.`
+              : "Ajustamos tu carrito por falta de stock. Revisa el resumen y confirma de nuevo."
+          );
+          return;
+        }
+      }
+
       // 1) Se crea el pedido (reserva el stock, calcula el total) con
       //    estado_pago "pendiente".
       // Se separan los campos de pantalla (nombres, apellidos, razón social)
@@ -275,6 +319,20 @@ export default function Checkout() {
       } catch {
         // no-op: si sessionStorage no está disponible tampoco se llegó a usar
       }
+      if ((cuentaNueva || esNombreProvisional(usuarioActual)) && form.envio_tipo_documento !== "ruc") {
+        // La cuenta se creó solo con el correo (nombre provisional). Ahora
+        // que ya dio sus datos reales, los guardamos en su perfil. Si falla
+        // no importa: el pedido ya quedó creado con sus datos de entrega.
+        try {
+          await api.actualizarPerfil({
+            nombre: nombres.trim(),
+            apellido: apellidos.trim(),
+            telefono: form.envio_telefono,
+          });
+        } catch {
+          // no-op
+        }
+      }
       vaciarLocal();
       api.registrarEvento("compra_completada", {
         metadata: { pedido_id: pedido.id, total: pedido.total, metodo_pago: pedido.metodo_pago },
@@ -287,7 +345,7 @@ export default function Checkout() {
         try {
           const { tokenId, email } = await abrirCulqiCheckout({
             amountCentavos: Math.round(pedido.total * 100),
-            email: usuario?.email,
+            email: form.envio_email.trim() || usuarioActual.email,
             metodoPago: pedido.metodo_pago,
           });
           const idempotencyKeyPago = obtenerPagoIdempotencyKey(pedido.id);
@@ -394,6 +452,36 @@ export default function Checkout() {
   return (
     <div className="mx-auto grid max-w-5xl gap-8 px-4 pb-28 md:grid-cols-[1.4fr_1fr] md:pb-16">
       <form onSubmit={handleSubmit} className="glass space-y-4 rounded-3xl p-6 shadow-glass sm:p-8">
+        {!usuario && (
+          <section className="space-y-3 rounded-2xl border border-plum/10 bg-white/60 p-4">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <h2 className="text-lg font-semibold text-plum">Compra sin cuenta</h2>
+                <p className="mt-0.5 text-xs text-plum-soft">
+                  No necesitas crear una cuenta para comprar. Al correo que escribas abajo
+                  te enviaremos la confirmación y un enlace para crear tu contraseña cuando quieras.
+                </p>
+              </div>
+              <Link
+                to="/ingresar"
+                state={{ from: "/checkout" }}
+                className="shrink-0 text-xs font-semibold text-berry hover:underline"
+              >
+                ¿Ya tienes cuenta? Ingresa
+              </Link>
+            </div>
+            {cuentaExistente && (
+              <Link
+                to="/ingresar"
+                state={{ from: "/checkout" }}
+                className="inline-block rounded-full bg-plum px-4 py-2 text-sm font-semibold text-white hover:bg-berry-dark"
+              >
+                Iniciar sesión para continuar
+              </Link>
+            )}
+          </section>
+        )}
+
         <h1 className="text-2xl font-semibold text-plum">Datos de entrega</h1>
 
         <div role="radiogroup" aria-label="Tipo de entrega" className="grid grid-cols-2 gap-3">
@@ -522,6 +610,25 @@ export default function Checkout() {
           />
         </div>
 
+        <div>
+          <label htmlFor="chk-email" className="sr-only">Correo electrónico</label>
+          <input
+            id="chk-email"
+            type="email"
+            inputMode="email"
+            autoComplete="email"
+            placeholder="Correo electrónico"
+            required
+            maxLength={120}
+            value={form.envio_email}
+            onChange={(e) => {
+              setForm({ ...form, envio_email: e.target.value });
+              setCuentaExistente(false);
+            }}
+            className="w-full rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-none"
+          />
+        </div>
+
         {form.tipo_entrega === "delivery" && (
           <>
             <div>
@@ -537,41 +644,9 @@ export default function Checkout() {
                 className="w-full rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-none"
               />
             </div>
-            <div className="grid grid-cols-3 gap-3">
-              <div>
-                <label htmlFor="chk-distrito" className="sr-only">Distrito</label>
-                <input
-                  id="chk-distrito"
-                  placeholder="Distrito"
-                  maxLength={100}
-                  value={form.envio_distrito}
-                  onChange={actualizarTexto("envio_distrito")}
-                  className="w-full rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-none"
-                />
-              </div>
-              <div>
-                <label htmlFor="chk-provincia" className="sr-only">Provincia</label>
-                <input
-                  id="chk-provincia"
-                  placeholder="Provincia"
-                  maxLength={100}
-                  value={form.envio_provincia}
-                  onChange={actualizarTexto("envio_provincia")}
-                  className="w-full rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-none"
-                />
-              </div>
-              <div>
-                <label htmlFor="chk-dpto" className="sr-only">Departamento</label>
-                <input
-                  id="chk-dpto"
-                  placeholder="Depto."
-                  maxLength={100}
-                  value={form.envio_dpto}
-                  onChange={actualizarTexto("envio_dpto")}
-                  className="w-full rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-none"
-                />
-              </div>
-            </div>
+            <UbicacionEntrega
+              onChange={(ubic) => setForm((f) => ({ ...f, ...ubic }))}
+            />
             <div>
               <label htmlFor="chk-referencia" className="sr-only">Referencia</label>
               <input

@@ -2,9 +2,10 @@ import React, { useEffect, useMemo, useState } from "react";
 import { api } from "../../api/client.js";
 import { IconSearch, IconEdit, IconTrash, IconChevronLeft, IconChevronRight, IconTag } from "../../components/Icons.jsx";
 import { useFocusTrap } from "../../hooks/useFocusTrap.js";
+import Paginador from "../../components/Paginador.jsx";
 
 const VACIO = { nombre: "", descripcion: "", icono: "bag" };
-const POR_PAGINA = 7;
+const POR_PAGINA = 10;
 
 export default function AdminCategorias() {
   const [categorias, setCategorias] = useState([]);
@@ -165,6 +166,7 @@ export default function AdminCategorias() {
       </div>
 
       {/* Tabla — solo desktop/tablet */}
+      <Paginador pagina={paginaActual} porPagina={POR_PAGINA} total={listado.length} onCambiar={setPagina} className="mb-2" />
       <div className="glass hidden overflow-hidden rounded-3xl shadow-glass md:block">
         <table className="w-full text-left text-sm">
           <thead className="bg-white/50 text-xs uppercase tracking-wide text-plum-soft">
@@ -218,47 +220,6 @@ export default function AdminCategorias() {
           </tbody>
         </table>
 
-        {paginados.length > 0 && (
-          <div className="flex items-center justify-between border-t border-white/40 px-4 py-3">
-            <p className="text-xs text-plum-soft">
-              Mostrando {paginados.length} de {listado.length} categorías
-            </p>
-            {totalPaginas > 1 && (
-              <div className="flex items-center gap-1.5">
-                <button
-                  onClick={() => setPagina((p) => Math.max(1, p - 1))}
-                  disabled={paginaActual <= 1}
-                  aria-label="Página anterior"
-                  className="flex h-8 w-8 items-center justify-center rounded-lg border border-plum/15 text-plum transition hover:border-berry/40 disabled:opacity-30"
-                >
-                  <IconChevronLeft size={14} />
-                </button>
-                {Array.from({ length: totalPaginas }, (_, i) => i + 1).map((n) => (
-                  <button
-                    key={n}
-                    onClick={() => setPagina(n)}
-                    aria-current={n === paginaActual ? "page" : undefined}
-                    className={`flex h-8 min-w-8 items-center justify-center rounded-lg px-2 text-xs font-semibold transition ${
-                      n === paginaActual
-                        ? "bg-berry/10 text-berry-dark"
-                        : "border border-plum/15 text-plum-soft hover:border-berry/40"
-                    }`}
-                  >
-                    {n}
-                  </button>
-                ))}
-                <button
-                  onClick={() => setPagina((p) => Math.min(totalPaginas, p + 1))}
-                  disabled={paginaActual >= totalPaginas}
-                  aria-label="Página siguiente"
-                  className="flex h-8 w-8 items-center justify-center rounded-lg border border-plum/15 text-plum transition hover:border-berry/40 disabled:opacity-30"
-                >
-                  <IconChevronRight size={14} />
-                </button>
-              </div>
-            )}
-          </div>
-        )}
         {paginados.length === 0 && (
           <p className="p-6 text-center text-plum-soft">No se encontraron categorías.</p>
         )}
@@ -302,29 +263,6 @@ export default function AdminCategorias() {
           <p className="glass rounded-2xl p-6 text-center text-plum-soft shadow-glass">
             No se encontraron categorías.
           </p>
-        )}
-        {paginados.length > 0 && totalPaginas > 1 && (
-          <div className="flex items-center justify-center gap-1.5 pt-2">
-            <button
-              onClick={() => setPagina((p) => Math.max(1, p - 1))}
-              disabled={paginaActual <= 1}
-              aria-label="Página anterior"
-              className="flex h-8 w-8 items-center justify-center rounded-lg border border-plum/15 text-plum disabled:opacity-30"
-            >
-              <IconChevronLeft size={14} />
-            </button>
-            <span className="px-2 text-xs text-plum-soft">
-              {paginaActual} / {totalPaginas}
-            </span>
-            <button
-              onClick={() => setPagina((p) => Math.min(totalPaginas, p + 1))}
-              disabled={paginaActual >= totalPaginas}
-              aria-label="Página siguiente"
-              className="flex h-8 w-8 items-center justify-center rounded-lg border border-plum/15 text-plum disabled:opacity-30"
-            >
-              <IconChevronRight size={14} />
-            </button>
-          </div>
         )}
       </div>
 

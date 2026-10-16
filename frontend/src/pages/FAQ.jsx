@@ -1,5 +1,6 @@
 import React from "react";
 import PaginaInfo from "./PaginaInfo.jsx";
+import BotonesContacto from "../components/BotonesContacto.jsx";
 
 export default function FAQ() {
   return (
@@ -29,7 +30,11 @@ export default function FAQ() {
             </div>
             <div className="rounded-xl border border-plum/10 bg-white/50 p-5 shadow-sm">
               <h3 className="font-semibold text-plum">¿Cómo puedo contactar con atención al cliente?</h3>
-              <p className="mt-1 text-sm text-plum-soft">Puedes escribirnos a <strong>contacto@anitanewstyle.com</strong> o por WhatsApp al +51 987 654 321.</p>
+              <p className="mt-1 mb-3 text-sm text-plum-soft">Puedes escribirnos por estos medios:</p>
+              <BotonesContacto
+                mensaje="Hola, tengo una consulta."
+                asunto="Consulta de atención al cliente"
+              />
             </div>
           </div>
         </div>

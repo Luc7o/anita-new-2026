@@ -2,9 +2,17 @@ import React from "react";
 import CuentaLayout from "../components/CuentaLayout.jsx";
 import { IconWhatsApp, IconMail } from "../components/Icons.jsx";
 import { armarLinkWhatsApp } from "../whatsapp.js";
+import useConfigTienda, { linkWhatsApp as linkWaConfig } from "../hooks/useConfigTienda.js";
 
 export default function Ayuda() {
-  const linkWhatsApp = armarLinkWhatsApp("Hola, tengo una consulta sobre mi cuenta en Anita New Style");
+  const c = useConfigTienda();
+  const mensaje = "Hola, tengo una consulta sobre mi cuenta en Anita New Style";
+  // Primero el WhatsApp de Configuración; si está vacío, el de soporte del entorno.
+  const baseWa = linkWaConfig(c.whatsapp);
+  const linkWhatsApp = baseWa ? `${baseWa}?text=${encodeURIComponent(mensaje)}` : armarLinkWhatsApp(mensaje);
+  const mailto = c.correo_contacto
+    ? `mailto:${c.correo_contacto}?subject=${encodeURIComponent("Consulta sobre mi cuenta")}`
+    : null;
 
   return (
     <CuentaLayout>
@@ -26,13 +34,15 @@ export default function Ayuda() {
               Escribir por WhatsApp
             </a>
           )}
-          <a
-            href="#"
-            className="flex flex-1 items-center gap-3 rounded-2xl bg-white/70 px-4 py-3.5 text-sm font-medium text-plum shadow-glass transition hover:bg-white"
-          >
-            <IconMail size={18} className="text-berry" />
-            Escribir un correo
-          </a>
+          {mailto && (
+            <a
+              href={mailto}
+              className="flex flex-1 items-center gap-3 rounded-2xl bg-white/70 px-4 py-3.5 text-sm font-medium text-plum shadow-glass transition hover:bg-white"
+            >
+              <IconMail size={18} className="text-berry" />
+              Escribir un correo
+            </a>
+          )}
         </div>
       </div>
     </CuentaLayout>

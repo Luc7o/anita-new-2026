@@ -1,9 +1,13 @@
 // src/components/Footer.jsx
 import React from "react";
 import { Link } from "react-router-dom";
-import { IconFacebook, IconInstagram, IconWhatsApp, IconBook } from "./Icons.jsx";
+import { IconFacebook, IconInstagram, IconTikTok, IconWhatsApp, IconBook } from "./Icons.jsx";
+import useConfigTienda, { linkWhatsApp } from "../hooks/useConfigTienda.js";
 
 export default function Footer() {
+  const c = useConfigTienda();
+  const wa = linkWhatsApp(c.whatsapp);
+  const claseRed = "text-plum-soft hover:text-berry transition duration-200";
   return (
     <footer className="mt-16 border-t border-plum/10 bg-gradient-to-b from-transparent to-plum/5">
       <div className="max-w-6xl mx-auto px-4 py-12">
@@ -19,7 +23,6 @@ export default function Footer() {
               <li><Link to="/formas-de-pago" className="hover:text-berry transition duration-200">Formas de pago</Link></li>
               <li><Link to="/metodos-de-envio" className="hover:text-berry transition duration-200">Métodos de Envío</Link></li>
               <li><Link to="/cambios-devoluciones" className="hover:text-berry transition duration-200">Cambios & Devoluciones</Link></li>
-              <li><Link to="/guia-de-tallas" className="hover:text-berry transition duration-200">Guía de Tallas</Link></li>
               <li><Link to="/faq" className="hover:text-berry transition duration-200">Preguntas frecuentes (FAQ)</Link></li>
               <li><Link to="/contacto" className="hover:text-berry transition duration-200">Contáctanos</Link></li>
             </ul>
@@ -42,21 +45,32 @@ export default function Footer() {
           {/* Columna 3: Contacto y Legal */}
           <div>
             <h4 className="font-display text-lg font-semibold text-plum mb-4">
-              Anita New Style
+              {c.nombre_comercial}
             </h4>
             <p className="text-sm text-plum-soft">
-              Tienda de moda peruana con tienda física en Huancayo. Envíos a todo el Perú.
+              Tienda de moda peruana{c.ciudad ? ` con tienda física en ${c.ciudad}` : ""}. Envíos a todo el Perú.
             </p>
             <div className="mt-4 flex items-center gap-4">
-              <a href="https://www.facebook.com/anitanewstyle" target="_blank" rel="noopener noreferrer" aria-label="Facebook" className="text-plum-soft hover:text-berry transition duration-200">
-                <IconFacebook />
-              </a>
-              <a href="#" aria-label="Instagram" className="text-plum-soft hover:text-berry transition duration-200">
-                <IconInstagram />
-              </a>
-              <a href="#" aria-label="WhatsApp" className="text-plum-soft hover:text-berry transition duration-200">
-                <IconWhatsApp />
-              </a>
+              {c.facebook_url && (
+                <a href={c.facebook_url} target="_blank" rel="noopener noreferrer" aria-label="Facebook" className={claseRed}>
+                  <IconFacebook />
+                </a>
+              )}
+              {c.instagram_url && (
+                <a href={c.instagram_url} target="_blank" rel="noopener noreferrer" aria-label="Instagram" className={claseRed}>
+                  <IconInstagram />
+                </a>
+              )}
+              {c.tiktok_url && (
+                <a href={c.tiktok_url} target="_blank" rel="noopener noreferrer" aria-label="TikTok" className={claseRed}>
+                  <IconTikTok />
+                </a>
+              )}
+              {wa && (
+                <a href={wa} target="_blank" rel="noopener noreferrer" aria-label="WhatsApp" className={claseRed}>
+                  <IconWhatsApp />
+                </a>
+              )}
             </div>
             
             {/* Enlace destacado para el Libro de Reclamaciones */}

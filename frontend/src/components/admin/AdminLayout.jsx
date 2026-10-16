@@ -7,7 +7,7 @@ import {
 } from "../Icons.jsx";
 import {
   PUEDE_VER_PRODUCTOS, PUEDE_VER_PEDIDOS, PUEDE_GESTIONAR_PEDIDOS, PUEDE_VER_PROVEEDORES,
-  PUEDE_GESTIONAR_USUARIOS, PUEDE_VER_DASHBOARD, PUEDE_VER_PROMOCIONES, PUEDE_VER_RECLAMACIONES,
+  PUEDE_GESTIONAR_USUARIOS, PUEDE_VER_CONFIGURACION, PUEDE_VER_DASHBOARD, PUEDE_VER_PROMOCIONES, PUEDE_VER_RECLAMACIONES,
 } from "../../roles.js";
 import { useFocusTrap } from "../../hooks/useFocusTrap.js";
 
@@ -22,7 +22,7 @@ const TODOS_LOS_ITEMS = [
   { to: "/admin/reportes", label: "Reportes", Icon: IconReceipt, roles: PUEDE_VER_DASHBOARD },
   { to: "/admin/reclamaciones", label: "Reclamaciones", Icon: IconBook, roles: PUEDE_VER_RECLAMACIONES },
   { to: "/admin/usuarios", label: "Usuarios y roles", Icon: IconUsers, roles: PUEDE_GESTIONAR_USUARIOS },
-  { to: "/admin/configuracion", label: "Configuración", Icon: IconSettings, roles: PUEDE_GESTIONAR_USUARIOS },
+  { to: "/admin/configuracion", label: "Configuración", Icon: IconSettings, roles: PUEDE_VER_CONFIGURACION },
 ];
 
 function ContenidoNav({ items, usuario, logout, alNavegar }) {
