@@ -60,11 +60,11 @@ export default function Tienda() {
   };
 
   const alternarCategoria = (slug) => {
-    actualizarParams({ categoria: alternarEnLista(categoriasActivas, slug).join(",") });
+    actualizarParams({ q: "", categoria: alternarEnLista(categoriasActivas, slug).join(",") });
   };
 
-  // Los botones de categoría de arriba son para "navegar": al usarlos se deja
-  // la búsqueda escrita (si no, "mochilas" + "Calzados" nunca devolvería nada).
+  // Elegir una categoría (arriba o en la barra lateral) empieza una nueva
+  // búsqueda por categoría: se borra el texto buscado para que no se sumen.
   const seleccionarSoloCategoria = (slug) => {
     actualizarParams({ q: "", categoria: categoriasActivas.length === 1 && categoriasActivas[0] === slug ? "" : slug });
   };
