@@ -3,8 +3,7 @@ import { Link } from "react-router-dom";
 import { api } from "../api/client.js";
 import ProductCard from "../components/ProductCard.jsx";
 import { SkeletonPills, SkeletonProductGrid } from "../components/Skeleton.jsx";
-import { IconChevronLeft, IconChevronRight, IconArrowRight, IconWhatsApp } from "../components/Icons.jsx";
-import useConfigTienda, { linkWhatsApp } from "../hooks/useConfigTienda.js";
+import { IconChevronLeft, IconChevronRight, IconArrowRight } from "../components/Icons.jsx";
 import ImagenOptimizada from "../components/ImagenOptimizada.jsx";
 import { urlVariante } from "../utils/imagenes.js";
 import heroDefecto1 from "../assets/auth/login-hero.webp";
@@ -182,32 +181,6 @@ function Categorias({ categorias, cargando, fotos }) {
   );
 }
 
-function BandaContacto() {
-  const c = useConfigTienda();
-  const wa = linkWhatsApp(c.whatsapp);
-  return (
-    <section className="-mb-20 mt-16 bg-plum text-white">
-      <div className="mx-auto flex max-w-6xl flex-col items-start justify-between gap-6 px-4 py-12 md:flex-row md:items-center">
-        <div>
-          <h2 className="font-sans text-2xl font-extrabold uppercase sm:text-3xl">Compras al por mayor</h2>
-          <p className="mt-2 max-w-xl text-white/75">
-            ¿Quieres revender o surtir tu negocio? Escríbenos y coordinamos contigo.
-          </p>
-        </div>
-        {wa ? (
-          <a href={wa} target="_blank" rel="noopener noreferrer" className="btn shrink-0 bg-berry !px-6 !py-3 text-base text-white hover:bg-berry-dark">
-            <IconWhatsApp size={16} /> Escríbenos por WhatsApp
-          </a>
-        ) : (
-          <Link to="/mayoristas" className="btn shrink-0 bg-white !px-6 !py-3 text-base text-plum hover:bg-ivory">
-            Ver ventas mayoristas
-          </Link>
-        )}
-      </div>
-    </section>
-  );
-}
-
 export default function Home() {
   const [categorias, setCategorias] = useState([]);
   const [destacados, setDestacados] = useState([]);
@@ -295,7 +268,6 @@ export default function Home() {
         )}
       </section>
 
-      <BandaContacto />
     </div>
   );
 }

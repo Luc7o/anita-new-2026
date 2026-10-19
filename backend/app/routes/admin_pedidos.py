@@ -669,6 +669,8 @@ def venta_presencial():
         producto = Producto.query.get(producto_id)
         if not producto:
             return jsonify({"error": f"El producto con id {producto_id} ya no existe"}), 400
+        if not producto.activo:
+            return jsonify({"error": f"«{producto.nombre}» está desactivado y no se puede vender"}), 400
 
         items.append(_ItemVentaPresencial(
             producto_id=producto_id,

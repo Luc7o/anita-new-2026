@@ -38,7 +38,6 @@ export default function Footer() {
               <li><Link to="/quienes-somos" className="hover:text-white transition duration-200">Quienes somos</Link></li>
               <li><Link to="/reviews" className="hover:text-white transition duration-200">Reviews de clientes</Link></li>
               <li><Link to="/tiendas" className="hover:text-white transition duration-200">Nuestras Tiendas</Link></li>
-              <li><Link to="/mayoristas" className="hover:text-white transition duration-200">Ventas Mayoristas</Link></li>
               <li><Link to="/trabaja-con-nosotros" className="hover:text-white transition duration-200">Trabaja con nosotros</Link></li>
             </ul>
           </div>
