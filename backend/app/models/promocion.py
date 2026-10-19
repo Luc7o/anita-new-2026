@@ -1,4 +1,4 @@
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 from app.extensions import db
 
 
@@ -40,7 +40,9 @@ class Promocion(db.Model):
     def vigente(self):
         if not self.activo:
             return False
-        hoy = date.today()
+        # Día de Lima (UTC-5): el servidor corre en UTC y, con date.today(), una
+        # promoción que termina hoy se apagaría a las 7 pm hora de Perú.
+        hoy = (datetime.utcnow() - timedelta(hours=5)).date()
         if self.fecha_inicio and hoy < self.fecha_inicio:
             return False
         if self.fecha_fin and hoy > self.fecha_fin:

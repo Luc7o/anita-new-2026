@@ -17,6 +17,13 @@ def _parsear_fecha(valor):
         return None
 
 
+def _enlace_valido(link):
+    """Enlace interno (/tienda...) o externo https://. Evita rutas rotas como "tienda"
+    y esquemas peligrosos como javascript:."""
+    link = (link or "").strip()
+    return link.startswith("/") and not link.startswith("//") or link.startswith(("https://", "http://"))
+
+
 def _parsear_producto_id(data):
     """None = "sin producto vinculado" (válido). Si viene un id, tiene que
     ser un producto real — devuelve (producto_id, error)."""
@@ -50,6 +57,8 @@ def crear():
     producto_id, error = _parsear_producto_id(data)
     if error:
         return jsonify({"error": error}), 400
+    if not _enlace_valido(data.get("boton_link") or "/tienda"):
+        return jsonify({"error": "El enlace del botón debe empezar con / o con https://"}), 400
 
     promocion = Promocion(
         etiqueta=(data.get("etiqueta") or "").strip()[:60],
@@ -86,6 +95,8 @@ def actualizar(promocion_id):
     if "boton_texto" in data:
         promocion.boton_texto = (data["boton_texto"] or "Ver Todo").strip()[:60]
     if "boton_link" in data:
+        if not _enlace_valido(data["boton_link"] or "/tienda"):
+            return jsonify({"error": "El enlace del botón debe empezar con / o con https://"}), 400
         promocion.boton_link = (data["boton_link"] or "/tienda").strip()[:200]
     if "producto_id" in data:
         producto_id, error = _parsear_producto_id(data)
