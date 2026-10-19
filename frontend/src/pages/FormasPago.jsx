@@ -22,10 +22,6 @@ export default function FormasPago() {
               <p className="mt-1 text-sm text-plum-soft">Pago inmediato desde tu celular. Sin comisiones adicionales.</p>
             </div>
             <div className="rounded-xl border border-plum/10 bg-white/50 p-5 shadow-sm">
-              <h3 className="font-semibold text-plum">Transferencia bancaria</h3>
-              <p className="mt-1 text-sm text-plum-soft">BCP, BBVA, Interbank. Recibirás nuestros datos al confirmar tu pedido.</p>
-            </div>
-            <div className="rounded-xl border border-plum/10 bg-white/50 p-5 shadow-sm">
               <h3 className="font-semibold text-plum">Pago contraentrega</h3>
               <p className="mt-1 text-sm text-plum-soft">Disponible solo en Huancayo. Consulta disponibilidad antes de comprar.</p>
             </div>

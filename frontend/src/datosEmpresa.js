@@ -1,5 +1,5 @@
 // Datos de la empresa en UN solo lugar. Completa lo que falte: las páginas
-// (Quiénes somos, Tiendas, Mayoristas, Trabaja con nosotros) solo muestran
+// (Quiénes somos, Tiendas) solo muestran
 // un dato si aquí tiene valor, así nunca se publica algo vacío o falso.
 export const EMPRESA = {
   nombre: "Anita New Style",
@@ -15,7 +15,6 @@ export const EMPRESA = {
   // Correos (déjalos vacíos si todavía no existen)
   correoContacto: "",   // ej: "contacto@tudominio.com"
   correoMayoristas: "", // ej: "mayoristas@tudominio.com"
-  correoEmpleo: "",     // ej: "rrhh@tudominio.com"
 
   // Redes sociales (links completos)
   facebook: "https://www.facebook.com/anitanewstyle",
