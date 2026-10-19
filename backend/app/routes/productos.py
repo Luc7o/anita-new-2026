@@ -10,6 +10,41 @@ from app.utils.cache import cache_publico
 bp = Blueprint("productos", __name__, url_prefix="/api")
 
 
+def _variantes_termino(termino):
+    """Formas a buscar de una palabra: ella misma y su singular simple
+    (mochilas -> mochila, carteras -> cartera, vestidos -> vestido), así
+    buscar en plural encuentra productos nombrados en singular."""
+    formas = {termino}
+    if len(termino) > 3 and termino.endswith("es"):
+        formas.add(termino[:-2])
+    if len(termino) > 3 and termino.endswith("s"):
+        formas.add(termino[:-1])
+    return formas
+
+
+def _filtro_busqueda(texto):
+    """
+    Búsqueda del catálogo: cada palabra escrita debe aparecer en el nombre,
+    la descripción, el SKU o el nombre de la categoría del producto. Ejemplos:
+    "mochilas" encuentra "Mochila Urbana" (por plural y por categoría),
+    "rop-000012" encuentra por SKU y "botines negros" exige ambas palabras.
+    """
+    condiciones = []
+    for palabra in texto.split()[:6]:
+        palabra = palabra.lower()
+        opciones = []
+        for forma in _variantes_termino(palabra):
+            patron = "%" + forma.replace("/", "//").replace("%", "/%").replace("_", "/_") + "%"
+            opciones += [
+                Producto.nombre.ilike(patron, escape="/"),
+                Producto.descripcion.ilike(patron, escape="/"),
+                Producto.sku.ilike(patron, escape="/"),
+                Producto.categoria.has(Categoria.nombre.ilike(patron, escape="/")),
+            ]
+        condiciones.append(db.or_(*opciones))
+    return db.and_(*condiciones)
+
+
 @bp.get("/categorias")
 @cache_publico(ttl=300, navegador=60)
 def listar_categorias():
@@ -47,9 +82,9 @@ def listar_productos():
                 .distinct()
             )
 
-    busqueda = (request.args.get("q") or "")[:100] or None
+    busqueda = (request.args.get("q") or "").strip()[:100] or None
     if busqueda:
-        query = query.filter(Producto.nombre.ilike(f"%{busqueda}%"))
+        query = query.filter(_filtro_busqueda(busqueda))
 
     if request.args.get("destacado") == "true":
         query = query.filter_by(destacado=True)
