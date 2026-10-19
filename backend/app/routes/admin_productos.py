@@ -3,6 +3,7 @@ from sqlalchemy.orm import joinedload, selectinload
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy import or_, case
 from app.extensions import db
+from app.models.producto import GENEROS
 from app.models import Producto, Categoria, ImagenProducto, VarianteProducto
 from app.utils.decorators import requiere_roles
 from app.roles import PUEDE_VER_PRODUCTOS, PUEDE_GESTIONAR_PRODUCTOS, PUEDE_GESTIONAR_STOCK
@@ -203,6 +204,9 @@ def crear():
     if error_imagenes:
         return jsonify({"error": error_imagenes}), 400
 
+    if (data.get("genero") or None) not in (None, *GENEROS):
+        return jsonify({"error": "Género no válido"}), 400
+
     tallas = data.get("tallas") or []
     colores = data.get("colores") or []
     error_variantes = _validar_variantes(tallas, colores, data.get("variantes"))
@@ -218,6 +222,7 @@ def crear():
         categoria_id=data["categoria_id"],
         destacado=bool(data.get("destacado", False)),
         es_nuevo=bool(data.get("es_nuevo", True)),
+        genero=data.get("genero") or None,
         activo=bool(data.get("activo", True)),
     )
     db.session.add(producto)
@@ -268,10 +273,12 @@ def actualizar(producto_id):
     error_precio = _validar_precio_stock(data)
     if error_precio:
         return jsonify({"error": error_precio}), 400
+    if "genero" in data and (data["genero"] or None) not in (None, *GENEROS):
+        return jsonify({"error": "Género no válido"}), 400
 
     campos_directos = [
         "nombre", "descripcion", "precio", "precio_oferta", "stock",
-        "categoria_id", "destacado", "es_nuevo", "activo",
+        "categoria_id", "destacado", "es_nuevo", "genero", "activo",
     ]
     for campo in campos_directos:
         if campo in data:
