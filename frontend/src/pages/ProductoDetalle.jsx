@@ -685,7 +685,7 @@ export default function ProductoDetalle() {
           <h4 className="font-display text-lg font-semibold text-plum">Métodos de pago</h4>
           <ul className="mt-3 space-y-1.5 text-sm text-plum-soft">
             <li>• Tarjetas de crédito/débito (Visa, Mastercard, American Express).</li>
-            <li>• Yape, Plin y transferencias bancarias.</li>
+            <li>• Yape y Plin.</li>
             <li>• Pago contraentrega en Huancayo (consulta disponibilidad).</li>
           </ul>
         </div>
