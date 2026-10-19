@@ -1,6 +1,6 @@
 import { rutaAdmin } from "../../lib/appMode.js";
 import { SkeletonFilasAdmin, SkeletonPanelAdmin, SkeletonDetalleAdmin, SkeletonFormularioAdmin } from "../../components/admin/EsqueletosAdmin.jsx";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { api } from "../../api/client.js";
 import { IconChevronDown } from "../../components/Icons.jsx";
@@ -315,6 +315,8 @@ function VistaVentas({ stats, errorStats, kpis, errorKpis, tieneKpis }) {
 
   return (
     <div className="space-y-6">
+      <PanelVentasPeriodo />
+
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
         <Tarjeta label="Ventas confirmadas" valor={soles(stats.ventas_confirmadas)} detalle="Total desde que abriste la tienda" />
         <Tarjeta label="Pedidos" valor={stats.total_pedidos} />
@@ -373,6 +375,198 @@ function VistaVentas({ stats, errorStats, kpis, errorKpis, tieneKpis }) {
             }))}
           />
         ))}
+    </div>
+  );
+}
+
+
+// ------------------------------------------------- Ventas por periodo
+const fechaISO = (d) =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+
+function rangoDeMes(anio, mes0) {
+  return { desde: fechaISO(new Date(anio, mes0, 1)), hasta: fechaISO(new Date(anio, mes0 + 1, 0)) };
+}
+
+function presetsDeVentas() {
+  const hoy = new Date();
+  const a = hoy.getFullYear();
+  const m = hoy.getMonth();
+  return [
+    { id: "mes", label: "Este mes", rango: rangoDeMes(a, m) },
+    { id: "mes_anterior", label: "Mes anterior", rango: rangoDeMes(a, m - 1) },
+    { id: "3m", label: "Últimos 3 meses", rango: { desde: fechaISO(new Date(a, m - 2, 1)), hasta: fechaISO(hoy) } },
+    { id: "anio", label: "Este año", rango: { desde: `${a}-01-01`, hasta: fechaISO(hoy) } },
+    { id: "todo", label: "Total histórico", rango: { desde: "", hasta: "" } },
+  ];
+}
+
+function PanelVentasPeriodo() {
+  const presets = useMemo(presetsDeVentas, []);
+  const [activo, setActivo] = useState("mes");
+  const [mesElegido, setMesElegido] = useState("");
+  const [desdeP, setDesdeP] = useState("");
+  const [hastaP, setHastaP] = useState("");
+  const [rango, setRango] = useState(presets[0].rango);
+  const [datos, setDatos] = useState(null);
+  const [cargandoDatos, setCargandoDatos] = useState(true);
+  const [error, setError] = useState("");
+  const [descargando, setDescargando] = useState(false);
+  const pedido = useRef(0);
+
+  useEffect(() => {
+    const id = ++pedido.current;
+    setCargandoDatos(true);
+    setError("");
+    api
+      .adminVentasPeriodo(rango)
+      .then((d) => { if (id === pedido.current) setDatos(d); })
+      .catch((err) => { if (id === pedido.current) setError(err.message || "No se pudieron cargar las ventas."); })
+      .finally(() => { if (id === pedido.current) setCargandoDatos(false); });
+  }, [rango]);
+
+  const elegirPreset = (p) => {
+    setActivo(p.id);
+    setMesElegido("");
+    setRango(p.rango);
+  };
+
+  const elegirMes = (valor) => {
+    setMesElegido(valor);
+    if (!valor) return;
+    const [a, m] = valor.split("-").map(Number);
+    setActivo("mes_elegido");
+    setRango(rangoDeMes(a, m - 1));
+  };
+
+  const aplicarPersonalizado = (d, h) => {
+    setActivo("personalizado");
+    setMesElegido("");
+    if (d && h && d <= h) setRango({ desde: d, hasta: h });
+  };
+
+  const descargar = async () => {
+    setDescargando(true);
+    try {
+      await api.adminReporteVentas(rango.desde, rango.hasta);
+    } finally {
+      setDescargando(false);
+    }
+  };
+
+  const titulo = (() => {
+    if (activo === "todo") return "Ventas totales (desde que abriste la tienda)";
+    if (rango.desde && rango.hasta) return `Ventas del ${rango.desde} al ${rango.hasta}`;
+    return "Ventas del periodo";
+  })();
+
+  const maxMes = datos ? Math.max(...datos.por_mes.map((m) => m.total), 1) : 1;
+  const chip = (sel) =>
+    `rounded-full px-4 py-1.5 text-sm font-medium transition ${sel ? "bg-berry text-white" : "bg-white text-plum hover:bg-berry/10"}`;
+  const entrada = "rounded-xl bg-white px-3 py-1.5 text-sm text-plum ring-1 ring-plum/15 focus:outline-none focus:ring-2 focus:ring-berry/40";
+
+  return (
+    <div className="glass rounded-2xl p-6">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h2 className="text-lg font-semibold text-plum">Ventas por periodo</h2>
+          <p className="text-xs text-plum-soft">Elige un mes, un rango de fechas o el total histórico. Solo ventas confirmadas.</p>
+        </div>
+        <button
+          type="button"
+          onClick={descargar}
+          disabled={descargando || !datos || datos.pedidos === 0}
+          className="rounded-[10px] bg-white px-4 py-2 text-sm font-semibold text-berry ring-1 ring-berry/30 transition hover:bg-berry/5 disabled:opacity-50"
+        >
+          {descargando ? "Generando…" : "Descargar reporte PDF"}
+        </button>
+      </div>
+
+      <div className="mt-4 flex flex-wrap items-center gap-2">
+        {presets.map((p) => (
+          <button key={p.id} type="button" onClick={() => elegirPreset(p)} aria-pressed={activo === p.id} className={chip(activo === p.id)}>
+            {p.label}
+          </button>
+        ))}
+      </div>
+
+      <div className="mt-3 flex flex-wrap items-end gap-4">
+        <label className="text-xs text-plum-soft">
+          Elegir un mes
+          <input type="month" value={mesElegido} max={fechaISO(new Date()).slice(0, 7)} onChange={(e) => elegirMes(e.target.value)} className={`mt-1 block ${entrada}`} />
+        </label>
+        <label className="text-xs text-plum-soft">
+          Desde
+          <input type="date" value={desdeP} max={hastaP || undefined} onChange={(e) => { setDesdeP(e.target.value); aplicarPersonalizado(e.target.value, hastaP); }} className={`mt-1 block ${entrada}`} />
+        </label>
+        <label className="text-xs text-plum-soft">
+          Hasta
+          <input type="date" value={hastaP} min={desdeP || undefined} onChange={(e) => { setHastaP(e.target.value); aplicarPersonalizado(desdeP, e.target.value); }} className={`mt-1 block ${entrada}`} />
+        </label>
+      </div>
+
+      {error ? (
+        <p role="alert" className="mt-6 text-sm text-red-700">{error}</p>
+      ) : !datos ? (
+        <p className="mt-6 text-sm text-plum-soft">Cargando ventas…</p>
+      ) : (
+        <div className={`mt-6 transition ${cargandoDatos ? "opacity-60" : ""}`} aria-busy={cargandoDatos}>
+          <p className="text-xs uppercase tracking-wide text-plum-soft">{titulo}</p>
+          <p className="mt-1 text-3xl font-semibold text-plum">{soles(datos.total)}</p>
+
+          <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-4">
+            <Dato label="Pedidos" valor={datos.pedidos} />
+            <Dato label="Ticket promedio" valor={soles(datos.ticket_promedio)} />
+            {datos.por_origen.map((o) => (
+              <Dato key={o.origen} label={o.label} valor={soles(o.total)} />
+            ))}
+          </div>
+
+          {datos.pedidos === 0 ? (
+            <p className="mt-6 text-sm text-plum-soft">No hay ventas confirmadas en este periodo.</p>
+          ) : (
+            <div className="mt-6 grid gap-6 lg:grid-cols-[1.6fr_1fr]">
+              <div>
+                <p className="text-sm font-semibold text-plum">Por mes</p>
+                <div className="mt-2 max-h-72 space-y-2 overflow-y-auto pr-1">
+                  {datos.por_mes.map((m) => (
+                    <div key={m.clave} className="text-sm">
+                      <div className="flex justify-between text-plum">
+                        <span>{m.etiqueta}</span>
+                        <span className="font-semibold">
+                          {soles(m.total)} <span className="font-normal text-plum-soft">· {m.pedidos} pedido{m.pedidos === 1 ? "" : "s"}</span>
+                        </span>
+                      </div>
+                      <div className="mt-1 h-2 rounded-full bg-plum/10">
+                        <div className="h-2 rounded-full bg-berry" style={{ width: `${Math.max((m.total / maxMes) * 100, m.total > 0 ? 2 : 0)}%` }} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                {datos.mejor_mes && datos.por_mes.length > 1 && (
+                  <p className="mt-3 text-xs text-plum-soft">
+                    Mejor mes: <strong className="text-plum">{datos.mejor_mes.etiqueta}</strong> con {soles(datos.mejor_mes.total)}.
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <p className="text-sm font-semibold text-plum">Por método de pago</p>
+                <div className="mt-2 space-y-2">
+                  {datos.por_metodo.map((m) => (
+                    <div key={m.metodo} className="flex justify-between text-sm text-plum">
+                      <span>{m.label}</span>
+                      <span className="font-semibold">
+                        {soles(m.total)} <span className="font-normal text-plum-soft">· {m.pedidos}</span>
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
