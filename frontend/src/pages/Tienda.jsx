@@ -63,9 +63,14 @@ export default function Tienda() {
     actualizarParams({ categoria: alternarEnLista(categoriasActivas, slug).join(",") });
   };
 
+  // Los botones de categoría de arriba son para "navegar": al usarlos se deja
+  // la búsqueda escrita (si no, "mochilas" + "Calzados" nunca devolvería nada).
   const seleccionarSoloCategoria = (slug) => {
-    actualizarParams({ categoria: categoriasActivas.length === 1 && categoriasActivas[0] === slug ? "" : slug });
+    actualizarParams({ q: "", categoria: categoriasActivas.length === 1 && categoriasActivas[0] === slug ? "" : slug });
   };
+
+  const hayFiltros = Boolean(busqueda || categoriasActivas.length || tallasActivas.length || soloOfertas);
+  const quitarFiltros = () => setSearchParams(new URLSearchParams());
 
   const alternarTalla = (talla) => {
     actualizarParams({ tallas: alternarEnLista(tallasActivas, talla).join(",") });
@@ -110,7 +115,7 @@ export default function Tienda() {
             aria-label="Categorías"
           >
             <button
-              onClick={() => actualizarParams({ categoria: "" })}
+              onClick={() => actualizarParams({ q: "", categoria: "" })}
               aria-current={categoriasActivas.length === 0 ? "true" : undefined}
               className={`shrink-0 snap-start ${categoriasActivas.length === 0 ? "chip-on" : "chip-off"}`}
             >
@@ -291,7 +296,18 @@ export default function Tienda() {
           {cargando ? (
             <SkeletonProductGrid cantidad={9} />
           ) : productos.length === 0 ? (
-            <p className="text-plum-soft">No encontramos productos con esos filtros.</p>
+            <div className="text-plum-soft">
+              <p>
+                {busqueda
+                  ? `No encontramos productos para "${busqueda}"${categoriasActivas.length || tallasActivas.length || soloOfertas ? " con los filtros elegidos" : ""}.`
+                  : "No encontramos productos con esos filtros."}
+              </p>
+              {hayFiltros && (
+                <button type="button" onClick={quitarFiltros} className="mt-3 text-sm font-semibold text-berry hover:underline">
+                  Quitar todos los filtros
+                </button>
+              )}
+            </div>
           ) : (
             <>
               <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
