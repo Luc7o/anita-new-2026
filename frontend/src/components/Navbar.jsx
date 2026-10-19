@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { Link, NavLink, useNavigate } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
 import { useCarrito } from "../context/CarritoContext.jsx";
 import { IconSearch, IconCart, IconClose, IconUser, IconMenu, IconHome } from "./Icons.jsx";
@@ -39,7 +39,15 @@ export default function Navbar() {
   const [busqueda, setBusqueda] = useState("");
   const [menuAbierto, setMenuAbierto] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
   const cerrar = () => setMenuAbierto(false);
+
+  // El cuadro de búsqueda refleja lo que realmente se está buscando: si la URL
+  // cambia (por ejemplo al elegir una categoría, que borra la búsqueda), se vacía.
+  useEffect(() => {
+    const q = location.pathname === "/tienda" ? new URLSearchParams(location.search).get("q") : "";
+    setBusqueda(q || "");
+  }, [location.pathname, location.search]);
 
   const buscar = (e) => {
     e.preventDefault();
