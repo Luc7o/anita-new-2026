@@ -1,3 +1,4 @@
+import { rutaAdmin } from "../../lib/appMode.js";
 import { SkeletonFilasAdmin, SkeletonPanelAdmin, SkeletonDetalleAdmin, SkeletonFormularioAdmin } from "../../components/admin/EsqueletosAdmin.jsx";
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
@@ -101,7 +102,7 @@ export default function AdminPedidos() {
                       )}
                     </td>
                     <td className="px-4 py-3 text-right">
-                      <Link to={`/admin/pedidos/${p.id}`} className="text-berry hover:underline">
+                      <Link to={rutaAdmin(`/pedidos/${p.id}`)} className="text-berry hover:underline">
                         Ver
                       </Link>
                     </td>
@@ -119,7 +120,7 @@ export default function AdminPedidos() {
             {pedidos.map((p) => (
               <Link
                 key={p.id}
-                to={`/admin/pedidos/${p.id}`}
+                to={rutaAdmin(`/pedidos/${p.id}`)}
                 className="glass block rounded-2xl p-4"
               >
                 <div className="flex items-start justify-between gap-2">

@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify, g
 from sqlalchemy.orm import joinedload, selectinload
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy import or_, case
 from app.extensions import db
 from app.models import Producto, Categoria, ImagenProducto, VarianteProducto
 from app.utils.decorators import requiere_roles
@@ -137,10 +138,20 @@ def listar():
 
     busqueda = (request.args.get("q") or "")[:100] or None
     if busqueda:
-        query = query.filter(Producto.nombre.ilike(f"%{busqueda}%"))
+        # Busca por nombre o por código SKU (parcial, sin distinguir mayúsculas)
+        query = query.filter(or_(
+            Producto.nombre.ilike(f"%{busqueda}%"),
+            Producto.sku.ilike(f"%{busqueda}%"),
+        ))
 
     orden = request.args.get("orden")
-    if orden == "precio_asc":
+    if busqueda and not orden:
+        # Una coincidencia exacta de SKU va primero (lectores de código / tecleo rápido)
+        query = query.order_by(
+            case((Producto.sku.ilike(busqueda), 0), else_=1),
+            Producto.nombre.asc(),
+        )
+    elif orden == "precio_asc":
         query = query.order_by(Producto.precio.asc())
     elif orden == "precio_desc":
         query = query.order_by(Producto.precio.desc())
@@ -154,7 +165,10 @@ def listar():
     paginado = query.paginate(page=pagina, per_page=por_pagina, error_out=False)
 
     return jsonify({
-        "productos": [p.to_dict(resumen=True) for p in paginado.items],
+        "productos": [
+            {**p.to_dict(resumen=True), "sku": p.sku, "variantes": p.variantes_lista}
+            for p in paginado.items
+        ],
         "total": paginado.total,
         "paginas": paginado.pages,
         "pagina_actual": paginado.page,

@@ -1,3 +1,4 @@
+import { rutaAdmin } from "../../lib/appMode.js";
 import { useConfirm } from "../../components/ConfirmDialog.jsx";
 import { useToast } from "../../context/ToastContext.jsx";
 import Spinner from "../../components/Spinner.jsx";
@@ -203,7 +204,7 @@ export default function AdminProveedores() {
                 <td className="px-4 py-3 text-plum-soft">{p.telefono || "—"}</td>
                 <td className="px-4 py-3 text-plum-soft">{p.email || "—"}</td>
                 <td className="px-4 py-3">
-                  <Link to={`/admin/proveedores/${p.id}`} className="text-berry hover:underline">
+                  <Link to={rutaAdmin(`/proveedores/${p.id}`)} className="text-berry hover:underline">
                     {p.cantidad_productos} producto{p.cantidad_productos === 1 ? "" : "s"}
                   </Link>
                 </td>

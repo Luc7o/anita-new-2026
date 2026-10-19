@@ -1,3 +1,4 @@
+import { rutaAdmin } from "../../lib/appMode.js";
 import { useConfirm } from "../../components/ConfirmDialog.jsx";
 import { useToast } from "../../context/ToastContext.jsx";
 import Spinner from "../../components/Spinner.jsx";
@@ -80,7 +81,7 @@ export default function AdminProveedorDetalle() {
 
   return (
     <div>
-      <Link to="/admin/proveedores" className="text-sm text-berry hover:underline">
+      <Link to={rutaAdmin("/proveedores")} className="text-sm text-berry hover:underline">
         ← Volver a proveedores
       </Link>
 

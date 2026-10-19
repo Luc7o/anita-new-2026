@@ -5,6 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:admin": "vite --mode admin --port 5174",
+    "build:admin": "vite build --mode admin",
     "build": "vite build",
     "preview": "vite preview"
   },
