@@ -317,3 +317,19 @@ def eliminar(producto_id):
     producto.activo = False
     db.session.commit()
     return jsonify({"mensaje": "Producto desactivado"})
+
+
+@bp.patch("/<int:producto_id>/activo")
+@requiere_roles(*PUEDE_GESTIONAR_PRODUCTOS)
+def cambiar_activo(producto_id):
+    """Activa o desactiva un producto (visible o no en la tienda)."""
+    producto = Producto.query.get_or_404(producto_id)
+    data = request.get_json(force=True) or {}
+    if not isinstance(data.get("activo"), bool):
+        return jsonify({"error": "Indica si el producto debe quedar activo (true/false)"}), 400
+    producto.activo = data["activo"]
+    db.session.commit()
+    return jsonify({
+        "mensaje": "Producto activado" if producto.activo else "Producto desactivado",
+        "activo": producto.activo,
+    })
