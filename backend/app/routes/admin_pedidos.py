@@ -416,6 +416,103 @@ _CLAVES_TECNICAS = (
 )
 
 
+_OFFSET_UTC_LIMA = timedelta(hours=5)
+_MESES_CORTO = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"]
+_ETIQUETA_METODO = {"efectivo": "Efectivo", "yape": "Yape", "tarjeta": "Tarjeta"}
+
+
+@bp.get("/resumen/ventas-periodo")
+@requiere_roles(*sorted(set(PUEDE_VER_DASHBOARD_VENTAS)))
+def ventas_periodo():
+    """
+    Ventas confirmadas de un periodo cualquiera (?desde=YYYY-MM-DD&hasta=YYYY-MM-DD,
+    ambos opcionales e inclusivos; sin ninguno = total histórico).
+    Mismo criterio de "venta confirmada" que el dashboard y los reportes PDF,
+    y los días se toman en hora de Lima (UTC-5) como en los reportes.
+    """
+    desde_str = (request.args.get("desde") or "").strip() or None
+    hasta_str = (request.args.get("hasta") or "").strip() or None
+    try:
+        desde = datetime.strptime(desde_str, "%Y-%m-%d") if desde_str else None
+        hasta = datetime.strptime(hasta_str, "%Y-%m-%d") if hasta_str else None
+    except ValueError:
+        return jsonify({"error": "Fechas inválidas, usa el formato YYYY-MM-DD"}), 400
+    if desde and hasta and desde > hasta:
+        return jsonify({"error": "La fecha \"desde\" no puede ser posterior a \"hasta\""}), 400
+
+    query = db.session.query(
+        Pedido.fecha_creacion, Pedido.total, Pedido.origen, Pedido.metodo_pago
+    ).filter(
+        db.or_(
+            Pedido.estado_pago == "verificado",
+            db.and_(Pedido.estado_pago == "no_aplica", Pedido.estado == "entregado"),
+        )
+    )
+    if desde:
+        query = query.filter(Pedido.fecha_creacion >= desde + _OFFSET_UTC_LIMA)
+    if hasta:
+        query = query.filter(Pedido.fecha_creacion < hasta + timedelta(days=1) + _OFFSET_UTC_LIMA)
+    filas = query.all()
+
+    total = 0.0
+    por_mes = {}
+    por_origen = {}
+    por_metodo = {}
+    for fecha, monto, origen, metodo in filas:
+        monto = float(monto or 0)
+        total += monto
+        lima = fecha - _OFFSET_UTC_LIMA
+        for grupo, clave in (
+            (por_mes, (lima.year, lima.month)),
+            (por_origen, origen or "online"),
+            (por_metodo, metodo or "—"),
+        ):
+            acc = grupo.setdefault(clave, {"total": 0.0, "pedidos": 0})
+            acc["total"] += monto
+            acc["pedidos"] += 1
+
+    # Todos los meses del rango (incluso los que no tuvieron ventas), para que el gráfico no tenga huecos.
+    meses = []
+    if filas:
+        ahora_lima = datetime.utcnow() - _OFFSET_UTC_LIMA
+        primero = min(por_mes)
+        ultimo = max(por_mes)
+        inicio = (desde.year, desde.month) if desde else primero
+        fin = (hasta.year, hasta.month) if hasta else max(ultimo, (ahora_lima.year, ahora_lima.month))
+        anio, mes = inicio
+        while (anio, mes) <= fin and len(meses) < 240:
+            acc = por_mes.get((anio, mes), {"total": 0.0, "pedidos": 0})
+            meses.append({
+                "clave": f"{anio}-{mes:02d}",
+                "etiqueta": f"{_MESES_CORTO[mes - 1]} {anio}",
+                "total": round(acc["total"], 2),
+                "pedidos": acc["pedidos"],
+            })
+            mes += 1
+            if mes == 13:
+                anio, mes = anio + 1, 1
+
+    n = len(filas)
+    mejor = max(meses, key=lambda m: m["total"]) if meses and total > 0 else None
+    return jsonify({
+        "desde": desde_str,
+        "hasta": hasta_str,
+        "total": round(total, 2),
+        "pedidos": n,
+        "ticket_promedio": round(total / n, 2) if n else 0,
+        "por_mes": meses,
+        "mejor_mes": mejor,
+        "por_origen": [
+            {"origen": k, "label": Pedido.ORIGENES.get(k, k), "total": round(v["total"], 2), "pedidos": v["pedidos"]}
+            for k, v in sorted(por_origen.items(), key=lambda kv: -kv[1]["total"])
+        ],
+        "por_metodo": [
+            {"metodo": k, "label": _ETIQUETA_METODO.get(k, k), "total": round(v["total"], 2), "pedidos": v["pedidos"]}
+            for k, v in sorted(por_metodo.items(), key=lambda kv: -kv[1]["total"])
+        ],
+    })
+
+
 @bp.get("/resumen/kpis-avanzados")
 @requiere_roles(*PUEDE_VER_DASHBOARD)
 def kpis_avanzados():
