@@ -5,7 +5,7 @@ import { SkeletonFilasAdmin } from "../../components/admin/EsqueletosAdmin.jsx";
 import React, { useEffect, useState } from "react";
 import { api } from "../../api/client.js";
 import ImagenOptimizada from "../../components/ImagenOptimizada.jsx";
-import { IconUpload, IconClose, IconEdit, IconTrash, IconChevronLeft, IconChevronRight } from "../../components/Icons.jsx";
+import { IconUpload, IconClose, IconEdit, IconEye, IconEyeOff, IconChevronLeft, IconChevronRight } from "../../components/Icons.jsx";
 import { useFocusTrap } from "../../hooks/useFocusTrap.js";
 import Paginador from "../../components/Paginador.jsx";
 
@@ -204,20 +204,23 @@ export default function AdminProductos() {
     }
   };
 
-  const eliminar = async (p) => {
-    const ok = await confirmar({
-      title: `¿Desactivar "${p.nombre}"?`,
-      message: "Ya no se mostrará en la tienda.",
-      tone: "danger",
-      confirmText: "Desactivar",
-    });
-    if (!ok) return;
+  // Activa o desactiva el producto (no se borra: los pedidos históricos lo siguen necesitando).
+  const alternarActivo = async (p) => {
+    if (p.activo) {
+      const ok = await confirmar({
+        title: `¿Desactivar "${p.nombre}"?`,
+        message: "Ya no se mostrará en la tienda. Podrás activarlo de nuevo cuando quieras.",
+        tone: "danger",
+        confirmText: "Desactivar",
+      });
+      if (!ok) return;
+    }
     try {
-      await api.adminEliminarProducto(p.id);
-      toast.success("Producto desactivado");
+      await api.adminCambiarActivoProducto(p.id, !p.activo);
+      toast.success(p.activo ? "Producto desactivado" : "Producto activado");
       cargarProductos();
     } catch (err) {
-      toast.error(err.message || "No se pudo desactivar el producto");
+      toast.error(err.message || "No se pudo cambiar el estado del producto");
     }
   };
 
@@ -333,8 +336,13 @@ export default function AdminProductos() {
                     <button onClick={() => editar(p)} aria-label={`Editar ${p.nombre}`} className="text-plum-soft hover:text-berry">
                       <IconEdit size={16} />
                     </button>
-                    <button onClick={() => eliminar(p)} aria-label={`Desactivar ${p.nombre}`} className="text-plum-soft hover:text-berry">
-                      <IconTrash size={16} />
+                    <button
+                      onClick={() => alternarActivo(p)}
+                      aria-label={`${p.activo ? "Desactivar" : "Activar"} ${p.nombre}`}
+                      title={p.activo ? "Desactivar (ocultar de la tienda)" : "Activar (mostrar en la tienda)"}
+                      className="text-plum-soft hover:text-berry"
+                    >
+                      {p.activo ? <IconEyeOff size={16} /> : <IconEye size={16} />}
                     </button>
                   </div>
                 </td>
@@ -381,8 +389,8 @@ export default function AdminProductos() {
                 <button onClick={() => editar(p)} className="text-berry hover:underline">
                   Editar
                 </button>
-                <button onClick={() => eliminar(p)} className="text-plum-soft hover:text-berry">
-                  Desactivar
+                <button onClick={() => alternarActivo(p)} className="text-plum-soft hover:text-berry">
+                  {p.activo ? "Desactivar" : "Activar"}
                 </button>
               </div>
             </div>

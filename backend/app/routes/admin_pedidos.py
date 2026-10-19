@@ -1,3 +1,4 @@
+import re
 from datetime import datetime, timedelta
 from flask import Blueprint, request, jsonify, Response, g
 from sqlalchemy.orm import selectinload, joinedload
@@ -659,6 +660,11 @@ def venta_presencial():
     if metodo_pago not in Pedido.METODOS_PAGO:
         return jsonify({"error": "Método de pago inválido"}), 400
 
+    # DNI del cliente (opcional): si viene, debe tener exactamente 8 dígitos
+    dni = (data.get("cliente_dni") or "").strip()
+    if dni and not re.fullmatch(r"\d{8}", dni):
+        return jsonify({"error": "El DNI debe tener 8 dígitos"}), 400
+
     items = []
     for p in productos_data:
         producto_id = p.get("producto_id")
@@ -699,6 +705,8 @@ def venta_presencial():
         costo_envio=0,
         total=subtotal,
         envio_nombre=(data.get("cliente_nombre") or "").strip()[:160] or None,
+        envio_tipo_documento="dni" if dni else None,
+        envio_numero_documento=dni or None,
         envio_telefono=(data.get("cliente_telefono") or "").strip()[:20] or None,
     )
     db.session.add(pedido)

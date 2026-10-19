@@ -415,6 +415,8 @@ export const api = {
     request(`/admin/productos/${id}`, { method: "PUT", body: payload, auth: true }),
   adminEliminarProducto: (id) =>
     request(`/admin/productos/${id}`, { method: "DELETE", auth: true }),
+  adminCambiarActivoProducto: (id, activo) =>
+    request(`/admin/productos/${id}/activo`, { method: "PATCH", body: { activo }, auth: true }),
 
   // Admin — categorías
   adminCategorias: () => request("/admin/categorias", { auth: true }),

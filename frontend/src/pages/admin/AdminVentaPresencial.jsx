@@ -4,6 +4,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../../api/client.js";
 import { IconSearch, IconClose, IconTrash } from "../../components/Icons.jsx";
+import { soloDni } from "../../validacion.js";
 
 const METODOS_PAGO = [
   { valor: "efectivo", label: "Efectivo" },
@@ -46,6 +47,9 @@ export default function AdminVentaPresencial() {
   const [montoRecibido, setMontoRecibido] = useState("");
   const [clienteNombre, setClienteNombre] = useState("");
   const [clienteTelefono, setClienteTelefono] = useState("");
+  const [clienteDni, setClienteDni] = useState("");
+  const [consultandoDni, setConsultandoDni] = useState(false);
+  const [avisoDni, setAvisoDni] = useState("");
 
   const [registrando, setRegistrando] = useState(false);
   const [error, setError] = useState("");
@@ -211,17 +215,38 @@ export default function AdminVentaPresencial() {
         metodo_pago: metodoPago,
         cliente_nombre: clienteNombre || undefined,
         cliente_telefono: clienteTelefono || undefined,
+        cliente_dni: clienteDni || undefined,
       });
       setPedidoConfirmado(pedido);
       setItems([]);
       setMontoRecibido("");
       setClienteNombre("");
       setClienteTelefono("");
+      setClienteDni("");
+      setAvisoDni("");
       setAviso("");
     } catch (err) {
       setError(err.message);
     } finally {
       setRegistrando(false);
+    }
+  };
+
+  // Autocompleta el nombre con RENIEC (solo cuando el cajero lo pide, así no
+  // se gastan consultas de la API en cada tecleo).
+  const consultarDni = async () => {
+    if (clienteDni.length !== 8) return;
+    setConsultandoDni(true);
+    setAvisoDni("");
+    try {
+      const d = await api.consultarDocumento("dni", clienteDni);
+      const nombre = [d.nombres, d.apellido_paterno, d.apellido_materno].filter(Boolean).join(" ");
+      if (nombre) setClienteNombre(nombre);
+      setAvisoDni(nombre ? "DNI verificado." : "");
+    } catch (err) {
+      setAvisoDni(err.status === 404 ? "No se encontró ese DNI." : "No se pudo consultar ahora; puedes escribir el nombre a mano.");
+    } finally {
+      setConsultandoDni(false);
     }
   };
 
@@ -266,7 +291,7 @@ export default function AdminVentaPresencial() {
   const yaSel = seleccion ? enCarrito(seleccion, talla, color) : 0;
   const maxSel = Math.max(stockSel - yaSel, 0);
 
-  const campo = "mt-1 block w-full rounded-xl bg-white px-3 py-2 text-sm text-plum focus:outline-none focus:ring-2 focus:ring-berry/40";
+  const campo = "mt-1 block w-full rounded-xl bg-white px-3 py-2 text-sm text-plum ring-1 ring-plum/15 focus:outline-none focus:ring-2 focus:ring-berry/40";
 
   return (
     <div>
@@ -290,7 +315,7 @@ export default function AdminVentaPresencial() {
                 onChange={(e) => setBusqueda(e.target.value)}
                 placeholder="Buscar por nombre o código SKU (ej. ROP-000123)…"
                 autoComplete="off"
-                className="w-full rounded-2xl bg-white px-4 py-2.5 pr-9 text-sm text-plum focus:outline-none focus:ring-2 focus:ring-berry/40"
+                className="w-full rounded-2xl bg-white px-4 py-2.5 pr-9 text-sm text-plum ring-1 ring-plum/15 focus:outline-none focus:ring-2 focus:ring-berry/40"
               />
               {busqueda && (
                 <button
@@ -514,6 +539,34 @@ export default function AdminVentaPresencial() {
               </div>
             )}
 
+            <div className="mt-3">
+              <label className="text-xs text-plum-soft" htmlFor="venta-dni">DNI del cliente (opcional)</label>
+              <div className="mt-1 flex gap-2">
+                <input
+                  id="venta-dni"
+                  value={clienteDni}
+                  onChange={(e) => { setClienteDni(soloDni(e.target.value)); setAvisoDni(""); }}
+                  inputMode="numeric"
+                  maxLength={8}
+                  pattern="[0-9]{8}"
+                  placeholder="8 dígitos"
+                  className="block w-full rounded-xl bg-white px-3 py-2 text-sm text-plum ring-1 ring-plum/15 focus:outline-none focus:ring-2 focus:ring-berry/40"
+                />
+                <button
+                  type="button"
+                  onClick={consultarDni}
+                  disabled={clienteDni.length !== 8 || consultandoDni}
+                  className="shrink-0 rounded-xl bg-white px-3 py-2 text-sm font-medium text-berry ring-1 ring-berry/30 hover:bg-berry/5 disabled:opacity-50"
+                >
+                  {consultandoDni ? <Spinner /> : "Autocompletar"}
+                </button>
+              </div>
+              {clienteDni && clienteDni.length < 8 && (
+                <p className="mt-1 text-xs text-berry-dark">El DNI debe tener 8 dígitos.</p>
+              )}
+              {avisoDni && <p className="mt-1 text-xs text-plum-soft">{avisoDni}</p>}
+            </div>
+
             <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
               <label className="text-xs text-plum-soft">
                 Nombre del cliente (opcional)
@@ -528,7 +581,7 @@ export default function AdminVentaPresencial() {
 
           <button
             onClick={registrarVenta}
-            disabled={registrando || items.length === 0 || (vuelto !== null && vuelto < 0)}
+            disabled={registrando || items.length === 0 || (vuelto !== null && vuelto < 0) || (clienteDni !== "" && clienteDni.length !== 8)}
             className="mt-6 w-full rounded-[10px] bg-berry py-3 text-center font-semibold text-white transition hover:bg-berry-dark disabled:opacity-60"
           >
             {registrando ? <><Spinner />Registrando...</> : `Registrar venta${items.length ? ` — ${soles(total)}` : ""}`}
