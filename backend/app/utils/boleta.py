@@ -352,10 +352,16 @@ def _bloque_cabecera(data, tienda):
 def _bloque_cliente(data):
     nombre = escape(data.get("envio_nombre") or "Cliente mostrador")
     telefono = escape(data.get("envio_telefono") or "—")
+    doc = (data.get("envio_numero_documento") or "").strip()
+    etiqueta_doc = escape((data.get("envio_tipo_documento") or "DNI").upper())
+    fila_doc = (
+        f'<tr><td class="etq">{etiqueta_doc}</td><td>: {escape(doc)}</td></tr>' if doc else ""
+    )
     return _recuadro(
         f"""
         <table class="cliente">
             <tr><td class="etq">Cliente</td><td>: {nombre}</td></tr>
+            {fila_doc}
             <tr><td class="etq">Teléfono</td><td>: {telefono}</td></tr>
         </table>
         """
