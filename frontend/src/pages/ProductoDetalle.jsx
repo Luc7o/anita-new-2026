@@ -327,6 +327,11 @@ export default function ProductoDetalle() {
                 {producto.nombre}
                 {talla && ` ${talla}`}
               </h1>
+              {producto.sku && (
+                <p className="mt-1 text-xs text-plum-soft">
+                  SKU: <span className="font-mono tracking-wide text-plum">{producto.sku}</span>
+                </p>
+              )}
             </div>
             <button
               onClick={handleFavorito}
