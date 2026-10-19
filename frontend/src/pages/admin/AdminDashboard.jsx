@@ -203,7 +203,7 @@ function PanelAtencion({ items }) {
       <ul className="mt-3 divide-y divide-plum/10">
         {items.map((it) => (
           <li key={it.clave}>
-            <Link to={it.enlace} className="flex items-center justify-between gap-3 py-2.5 text-sm transition hover:text-berry">
+            <Link to={rutaAdmin(String(it.enlace || "").replace(/^\/admin(?=\/|$)/, ""))} className="flex items-center justify-between gap-3 py-2.5 text-sm transition hover:text-berry">
               <span className="flex items-center gap-2 text-plum">
                 {it.urgente && (
                   <span className="rounded-md bg-gold/30 px-2 py-0.5 text-xs font-semibold text-plum">Urgente</span>
