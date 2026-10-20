@@ -11,7 +11,6 @@ import {
   IconShield,
   IconEye,
   IconEyeOff,
-  IconGlobe,
   IconFileText,
   IconLogout,
   IconChevronRight,
@@ -45,7 +44,6 @@ export default function Configuracion() {
         <div>
           <h2 className="mb-4 text-xl font-semibold text-plum">Preferencias del Sistema</h2>
           <div className="glass divide-y divide-plum/10 overflow-hidden rounded-2xl shadow-glass">
-            <FilaPreferencia icono={<IconGlobe size={16} />} etiqueta="Idioma" valor="Español (PE)" />
             <FilaPreferencia
               icono={<IconShield size={16} />}
               etiqueta="Política de privacidad"
