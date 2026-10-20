@@ -16,6 +16,20 @@ function alternarEnLista(lista, valor) {
 }
 
 const OPCIONES_CALIFICACION = [4, 3, 2];
+const POR_PAGINA_BUSQUEDA = 5; // cuando se busca algo, resultados de 5 en 5
+const POR_PAGINA_CATALOGO = 24;
+
+// Números de página a mostrar: primera, última y las cercanas a la actual ("1 … 4 5 6 … 12").
+function paginasVisibles(actual, total) {
+  const set = new Set([1, total, actual - 1, actual, actual + 1]);
+  const orden = [...set].filter((n) => n >= 1 && n <= total).sort((a, b) => a - b);
+  const salida = [];
+  orden.forEach((n, i) => {
+    if (i > 0 && n - orden[i - 1] > 1) salida.push("…");
+    salida.push(n);
+  });
+  return salida;
+}
 
 function SeccionFiltro({ titulo, children, primera = false }) {
   return (
@@ -62,6 +76,7 @@ export default function Tienda() {
   const tallasActivas = (searchParams.get("tallas") || "").split(",").filter(Boolean);
   const soloOfertas = searchParams.get("oferta") === "true";
   const pagina = Number(searchParams.get("pagina")) || 1;
+  const porPagina = (searchParams.get("q") || "").trim() ? POR_PAGINA_BUSQUEDA : POR_PAGINA_CATALOGO;
   const precioDesde = searchParams.get("precio_min") !== null ? Number(searchParams.get("precio_min")) : null;
   const precioHasta = searchParams.get("precio_max") !== null ? Number(searchParams.get("precio_max")) : null;
   const coloresActivos = (searchParams.get("colores") || "").split(",").filter(Boolean);
@@ -83,7 +98,7 @@ export default function Tienda() {
 
   useEffect(() => {
     setCargando(true);
-    const params = { por_pagina: 24, pagina };
+    const params = { por_pagina: porPagina, pagina };
     ["categoria", "tallas", "colores", "genero", "precio_min", "precio_max", "calificacion", "q"].forEach((clave) => {
       const valor = searchParams.get(clave);
       if (valor) params[clave] = valor;
@@ -147,8 +162,14 @@ export default function Tienda() {
       ? categorias.find((c) => c.slug === categoriasActivas[0])
       : null;
 
-  const inicio = meta.total === 0 ? 0 : (meta.pagina_actual - 1) * 24 + 1;
-  const fin = Math.min(meta.pagina_actual * 24, meta.total);
+  // Si la página pedida ya no existe (enlace viejo, o hay menos resultados), se vuelve a la primera.
+  useEffect(() => {
+    if (!cargando && productos.length === 0 && meta.total > 0 && pagina > 1) irAPagina(1);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cargando]);
+
+  const inicio = meta.total === 0 ? 0 : (meta.pagina_actual - 1) * porPagina + 1;
+  const fin = Math.min(meta.pagina_actual * porPagina, meta.total);
 
   return (
     <div>
@@ -280,6 +301,13 @@ export default function Tienda() {
             {/* Calificación */}
             <SeccionFiltro titulo="Calificación">
               <div className="space-y-2.5">
+                <OpcionFiltro
+                  tipo="radio"
+                  nombre="calificacion"
+                  marcado={calificacionMin === 0}
+                  onChange={() => actualizarParams({ calificacion: "" })}
+                  etiqueta="Todas"
+                />
                 {OPCIONES_CALIFICACION.map((n) => (
                   <OpcionFiltro
                     key={n}
@@ -402,7 +430,7 @@ export default function Tienda() {
         {/* Resultados */}
         <div className="min-w-0 flex-1">
           {cargando ? (
-            <SkeletonProductGrid cantidad={9} />
+            <SkeletonProductGrid cantidad={porPagina === POR_PAGINA_BUSQUEDA ? POR_PAGINA_BUSQUEDA : 9} />
           ) : productos.length === 0 ? (
             <div className="text-plum-soft">
               <p>
@@ -425,38 +453,41 @@ export default function Tienda() {
               </div>
 
               {meta.paginas > 1 && (
-                <div className="mt-10 flex items-center justify-center gap-2">
+                <nav aria-label="Paginación de resultados" className="mt-10 flex flex-wrap items-center justify-center gap-2">
                   <button
                     onClick={() => irAPagina(Math.max(1, meta.pagina_actual - 1))}
                     disabled={meta.pagina_actual <= 1}
-                    aria-label="Página anterior"
-                    className="flex h-9 w-9 items-center justify-center rounded-full border border-plum/15 text-plum transition hover:border-berry/40 disabled:opacity-30"
+                    className="inline-flex h-9 items-center gap-1 rounded-full border border-plum/15 px-3 text-sm font-medium text-plum transition hover:border-berry/40 disabled:opacity-30"
                   >
-                    <IconChevronLeft size={16} />
+                    <IconChevronLeft size={14} /> Anterior
                   </button>
-                  {Array.from({ length: meta.paginas }, (_, i) => i + 1).map((n) => (
-                    <button
-                      key={n}
-                      onClick={() => irAPagina(n)}
-                      aria-current={n === meta.pagina_actual ? "page" : undefined}
-                      className={`flex h-9 w-9 items-center justify-center rounded-full border text-sm font-medium transition ${
-                        n === meta.pagina_actual
-                          ? "border-berry text-berry-dark"
-                          : "border-plum/15 text-plum-soft hover:border-berry/40"
-                      }`}
-                    >
-                      {n}
-                    </button>
-                  ))}
+                  {paginasVisibles(meta.pagina_actual, meta.paginas).map((n, i) =>
+                    n === "…" ? (
+                      <span key={`p${i}`} className="px-1 text-plum-soft" aria-hidden="true">…</span>
+                    ) : (
+                      <button
+                        key={n}
+                        onClick={() => irAPagina(n)}
+                        aria-label={`Página ${n}`}
+                        aria-current={n === meta.pagina_actual ? "page" : undefined}
+                        className={`flex h-9 w-9 items-center justify-center rounded-full border text-sm font-medium transition ${
+                          n === meta.pagina_actual
+                            ? "border-berry bg-berry/10 text-berry-dark"
+                            : "border-plum/15 text-plum-soft hover:border-berry/40"
+                        }`}
+                      >
+                        {n}
+                      </button>
+                    )
+                  )}
                   <button
                     onClick={() => irAPagina(Math.min(meta.paginas, meta.pagina_actual + 1))}
                     disabled={meta.pagina_actual >= meta.paginas}
-                    aria-label="Página siguiente"
-                    className="flex h-9 w-9 items-center justify-center rounded-full border border-plum/15 text-plum transition hover:border-berry/40 disabled:opacity-30"
+                    className="inline-flex h-9 items-center gap-1 rounded-full bg-berry px-4 text-sm font-semibold text-white transition hover:bg-berry-dark disabled:opacity-30"
                   >
-                    <IconChevronRight size={16} />
+                    Página siguiente <IconChevronRight size={14} />
                   </button>
-                </div>
+                </nav>
               )}
             </>
           )}
