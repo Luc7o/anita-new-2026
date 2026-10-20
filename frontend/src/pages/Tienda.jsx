@@ -16,8 +16,9 @@ function alternarEnLista(lista, valor) {
 }
 
 const OPCIONES_CALIFICACION = [4, 3, 2];
-const POR_PAGINA_BUSQUEDA = 5; // cuando se busca algo, resultados de 5 en 5
-const POR_PAGINA_CATALOGO = 24;
+// Productos por página: 2 filas de 5 (en pantallas angostas se acomodan en menos columnas).
+const POR_PAGINA = 10;
+const COLUMNAS_PRODUCTOS = "grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5";
 
 // Números de página a mostrar: primera, última y las cercanas a la actual ("1 … 4 5 6 … 12").
 function paginasVisibles(actual, total) {
@@ -76,7 +77,7 @@ export default function Tienda() {
   const tallasActivas = (searchParams.get("tallas") || "").split(",").filter(Boolean);
   const soloOfertas = searchParams.get("oferta") === "true";
   const pagina = Number(searchParams.get("pagina")) || 1;
-  const porPagina = (searchParams.get("q") || "").trim() ? POR_PAGINA_BUSQUEDA : POR_PAGINA_CATALOGO;
+  const porPagina = POR_PAGINA;
   const precioDesde = searchParams.get("precio_min") !== null ? Number(searchParams.get("precio_min")) : null;
   const precioHasta = searchParams.get("precio_max") !== null ? Number(searchParams.get("precio_max")) : null;
   const coloresActivos = (searchParams.get("colores") || "").split(",").filter(Boolean);
@@ -187,7 +188,7 @@ export default function Tienda() {
         subtitulo={categoriaDestacada?.descripcion || "Filtra por categoría, talla o color y arma tu pedido."}
       />
 
-      <div className="mx-auto max-w-6xl px-4 pb-16 pt-6">
+      <div className="mx-auto max-w-[88rem] px-4 pb-16 pt-6">
       {/* Contador */}
       <div className="mb-4 flex items-center justify-between gap-3 text-sm text-plum-soft">
         <div aria-live="polite">
@@ -430,7 +431,7 @@ export default function Tienda() {
         {/* Resultados */}
         <div className="min-w-0 flex-1">
           {cargando ? (
-            <SkeletonProductGrid cantidad={porPagina === POR_PAGINA_BUSQUEDA ? POR_PAGINA_BUSQUEDA : 9} />
+            <SkeletonProductGrid cantidad={porPagina} className={COLUMNAS_PRODUCTOS} />
           ) : productos.length === 0 ? (
             <div className="text-plum-soft">
               <p>
@@ -446,9 +447,9 @@ export default function Tienda() {
             </div>
           ) : (
             <>
-              <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+              <div className={COLUMNAS_PRODUCTOS}>
                 {productos.map((producto, i) => (
-                  <ProductCard key={producto.id} producto={producto} indice={i} />
+                  <ProductCard key={producto.id} producto={producto} indice={i} compacto />
                 ))}
               </div>
 
