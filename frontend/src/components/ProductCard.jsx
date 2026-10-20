@@ -11,7 +11,8 @@ import { nombreColorAHex } from "../utils/colores.js";
 // `indice` (opcional) escalona la animación de entrada cuando la tarjeta
 // aparece dentro de una grilla: cada tarjeta entra un poquito después de la
 // anterior, en vez de todas de golpe.
-export default function ProductCard({ producto, indice = 0 }) {
+// `compacto` (opcional) reduce espacios y textos para grillas de 5 por fila.
+export default function ProductCard({ producto, indice = 0, compacto = false }) {
   const { usuario } = useAuth();
   const { agregar } = useCarrito();
   const favoritos = useFavoritos();
@@ -111,9 +112,9 @@ export default function ProductCard({ producto, indice = 0 }) {
           )}
         </div>
 
-        <div className="flex flex-1 flex-col gap-1.5 p-5 pb-0">
+        <div className={`flex flex-1 flex-col gap-1.5 pb-0 ${compacto ? "p-3" : "p-5"}`}>
           <span className="text-xs uppercase tracking-wide text-plum-soft">Anita New Style</span>
-          <h3 className="text-base font-semibold leading-snug text-plum">{producto.nombre}</h3>
+          <h3 className={`font-semibold leading-snug text-plum ${compacto ? "text-sm" : "text-base"}`}>{producto.nombre}</h3>
           {producto.colores && producto.colores.length > 0 && (
             <div className="flex items-center gap-1.5" aria-label={`Colores: ${producto.colores.join(", ")}`}>
               {producto.colores.slice(0, 5).map((c) => (
@@ -140,18 +141,18 @@ export default function ProductCard({ producto, indice = 0 }) {
         </div>
       </Link>
 
-      <div className="flex items-center justify-between px-5 pb-2.5 pt-2">
-        <div className="flex items-baseline gap-2">
-          <span className="font-display text-xl font-bold text-plum">S/{producto.precio_final.toFixed(2)}</span>
+      <div className={`flex items-center justify-between gap-2 ${compacto ? "px-3 pb-2 pt-1.5" : "px-5 pb-2.5 pt-2"}`}>
+        <div className="flex flex-wrap items-baseline gap-x-2">
+          <span className={`font-display font-bold text-plum ${compacto ? "text-lg" : "text-xl"}`}>S/{producto.precio_final.toFixed(2)}</span>
           {producto.tiene_oferta && (
-            <span className="text-sm text-plum-soft line-through">S/{producto.precio.toFixed(2)}</span>
+            <span className={`text-plum-soft line-through ${compacto ? "text-xs" : "text-sm"}`}>S/{producto.precio.toFixed(2)}</span>
           )}
         </div>
         <button
           onClick={handleFavorito}
           aria-label={esFavorito ? "Quitar de favoritos" : "Agregar a favoritos"}
           aria-pressed={esFavorito}
-          className={`flex h-11 w-11 items-center justify-center rounded-full border transition hover:scale-110 active:scale-90 ${
+          className={`flex shrink-0 items-center justify-center rounded-full border transition hover:scale-110 active:scale-90 ${compacto ? "h-9 w-9" : "h-11 w-11"} ${
             esFavorito ? "border-berry bg-berry text-white" : "border-plum/15 text-plum-soft hover:text-berry"
           }`}
         >
@@ -163,7 +164,7 @@ export default function ProductCard({ producto, indice = 0 }) {
       </div>
 
       {!producto.sin_stock && (
-        <div className="space-y-2 px-5 pb-5 pt-1">
+        <div className={`space-y-2 pt-1 ${compacto ? "px-3 pb-3" : "px-5 pb-5"}`}>
           <button
             onClick={handleAgregar}
             disabled={agregando}
