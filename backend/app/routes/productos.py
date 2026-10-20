@@ -69,7 +69,7 @@ def opciones_filtros():
         db.session.query(Color.nombre)
         .join(VarianteProducto, VarianteProducto.color_id == Color.id)
         .join(Producto, Producto.id == VarianteProducto.producto_id)
-        .filter(Producto.activo.is_(True), Color.nombre != "")
+        .filter(Producto.activo.is_(True), VarianteProducto.stock > 0, Color.nombre != "")
         .distinct()
         .order_by(Color.nombre)
         .all()
@@ -113,20 +113,6 @@ def listar_productos():
         if slugs:
             query = query.join(Categoria).filter(Categoria.slug.in_(slugs))
 
-    tallas_param = request.args.get("tallas")
-    if tallas_param:
-        tallas_pedidas = [t.strip() for t in tallas_param.split(",") if t.strip()]
-        if tallas_pedidas:
-            # Antes: Producto.tallas.ilike('%"talla"%') sobre una columna de
-            # texto/JSON redundante. Ahora se busca contra las variantes
-            # reales, uniendo por el catálogo de tallas (case-insensitive).
-            query = (
-                query.join(VarianteProducto, VarianteProducto.producto_id == Producto.id)
-                .join(Talla, Talla.id == VarianteProducto.talla_id)
-                .filter(db.func.lower(Talla.nombre).in_([t.lower() for t in tallas_pedidas]))
-                .distinct()
-            )
-
     # --- Precio (sobre el precio que realmente paga el cliente: oferta si hay)
     precio_final = func.coalesce(Producto.precio_oferta, Producto.precio)
     precio_min = _numero(request.args.get("precio_min"))
@@ -136,14 +122,19 @@ def listar_productos():
     if precio_max is not None:
         query = query.filter(precio_final <= precio_max)
 
-    # --- Colores (el producto tiene alguna variante de ese color)
+    # --- Tallas y colores: tiene que existir UNA misma variante con stock que
+    # cumpla todo lo elegido. Así "talla 35 + color Vino" solo muestra productos
+    # que hoy tienen la 35 en Vino disponible (no una 39 en Vino y una 35 en
+    # Negro), y una talla o color agotados no cuentan.
+    tallas_pedidas = [t.strip().lower() for t in (request.args.get("tallas") or "").split(",") if t.strip()]
     colores = [c.strip().lower() for c in (request.args.get("colores") or "").split(",") if c.strip()]
-    if colores:
-        query = query.filter(
-            Producto.variantes.any(
-                VarianteProducto.color_obj.has(func.lower(Color.nombre).in_(colores))
-            )
-        )
+    if tallas_pedidas or colores:
+        condiciones = [VarianteProducto.stock > 0]
+        if tallas_pedidas:
+            condiciones.append(VarianteProducto.talla_obj.has(func.lower(Talla.nombre).in_(tallas_pedidas)))
+        if colores:
+            condiciones.append(VarianteProducto.color_obj.has(func.lower(Color.nombre).in_(colores)))
+        query = query.filter(Producto.variantes.any(db.and_(*condiciones)))
 
     # --- Calificación promedio mínima (1 a 5). Sin reseñas no tiene promedio.
     calificacion = request.args.get("calificacion", type=int)
