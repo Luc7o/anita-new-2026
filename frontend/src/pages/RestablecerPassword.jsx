@@ -1,6 +1,7 @@
 import Spinner from "../components/Spinner.jsx";
 import React, { useState } from "react";
 import RedesAuth from "../components/RedesAuth.jsx";
+import MedidorPassword from "../components/MedidorPassword.jsx";
 import { useSearchParams, useNavigate, Link } from "react-router-dom";
 import { api } from "../api/client.js";
 import {
@@ -150,6 +151,7 @@ export default function RestablecerPassword() {
                       {verPassword ? <IconEyeOff /> : <IconEye />}
                     </button>
                   </div>
+                  <MedidorPassword password={password} />
                 </div>
 
                 <div>
@@ -175,6 +177,14 @@ export default function RestablecerPassword() {
                       {verPassword ? <IconEyeOff /> : <IconEye />}
                     </button>
                   </div>
+                  {confirmar && (
+                    <p
+                      className={`mt-1.5 text-xs ${confirmar === password ? "font-medium text-green-700" : "text-berry-dark"}`}
+                      aria-live="polite"
+                    >
+                      {confirmar === password ? "✓ Las contraseñas coinciden." : "Las contraseñas aún no coinciden."}
+                    </p>
+                  )}
                 </div>
 
                 {error && (
