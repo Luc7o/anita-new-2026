@@ -37,6 +37,15 @@ class Categoria(db.Model):
         return f"<Categoria {self.nombre}>"
 
 
+GENEROS = {
+    "mujer": "Mujer",
+    "hombre": "Hombre",
+    "unisex": "Unisex",
+    "nina": "Niña",
+    "nino": "Niño",
+}
+
+
 class Producto(db.Model):
     __tablename__ = "productos"
 
@@ -49,6 +58,8 @@ class Producto(db.Model):
 
     stock = db.Column(db.Integer, default=0)
     sku = db.Column(db.String(60), unique=True)
+    # Género al que va dirigido (filtro de la tienda). NULL = sin definir.
+    genero = db.Column(db.String(20))
 
     categoria_id = db.Column(db.Integer, db.ForeignKey("categorias.id"), nullable=False)
 
@@ -183,6 +194,7 @@ class Producto(db.Model):
             "categoria_nombre": self.categoria.nombre if self.categoria else None,
             "destacado": self.destacado,
             "es_nuevo": self.es_nuevo,
+            "genero": self.genero,
             "activo": self.activo,
             "sin_stock": self.sin_stock,
             "tallas": self.tallas_lista,

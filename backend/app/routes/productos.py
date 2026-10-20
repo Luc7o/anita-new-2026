@@ -3,7 +3,8 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 from sqlalchemy import func
 from sqlalchemy.orm import joinedload, selectinload
 from app.extensions import db, limiter
-from app.models import Producto, Categoria, Resena, DetallePedido, Pedido, VarianteProducto, Talla
+from app.models import Producto, Categoria, Resena, DetallePedido, Pedido, VarianteProducto, Talla, Color
+from app.models.producto import GENEROS
 from app.utils.decorators import requiere_activo
 from app.utils.cache import cache_publico
 
@@ -45,6 +46,50 @@ def _filtro_busqueda(texto):
     return db.and_(*condiciones)
 
 
+def _numero(valor):
+    """Número >= 0 de un parámetro de la URL, o None si falta o no es válido."""
+    try:
+        n = float(valor)
+    except (TypeError, ValueError):
+        return None
+    return n if n >= 0 else None
+
+
+@bp.get("/filtros")
+@cache_publico(ttl=300, navegador=60)
+def opciones_filtros():
+    """Lo que la tienda necesita para armar sus filtros: rango de precios real,
+    colores y géneros que realmente existen entre los productos activos."""
+    precio_final = func.coalesce(Producto.precio_oferta, Producto.precio)
+    minimo, maximo = db.session.query(func.min(precio_final), func.max(precio_final)).filter(
+        Producto.activo.is_(True)
+    ).one()
+
+    colores = (
+        db.session.query(Color.nombre)
+        .join(VarianteProducto, VarianteProducto.color_id == Color.id)
+        .join(Producto, Producto.id == VarianteProducto.producto_id)
+        .filter(Producto.activo.is_(True), Color.nombre != "")
+        .distinct()
+        .order_by(Color.nombre)
+        .all()
+    )
+    generos = [
+        g for (g,) in db.session.query(Producto.genero)
+        .filter(Producto.activo.is_(True), Producto.genero.isnot(None))
+        .distinct()
+        .all()
+    ]
+    return jsonify({
+        "precio": {
+            "min": int(float(minimo)) if minimo is not None else 0,
+            "max": int(-(-float(maximo) // 1)) if maximo is not None else 0,
+        },
+        "colores": [c for (c,) in colores],
+        "generos": [{"valor": k, "etiqueta": v} for k, v in GENEROS.items() if k in generos],
+    })
+
+
 @bp.get("/categorias")
 @cache_publico(ttl=300, navegador=60)
 def listar_categorias():
@@ -81,6 +126,39 @@ def listar_productos():
                 .filter(db.func.lower(Talla.nombre).in_([t.lower() for t in tallas_pedidas]))
                 .distinct()
             )
+
+    # --- Precio (sobre el precio que realmente paga el cliente: oferta si hay)
+    precio_final = func.coalesce(Producto.precio_oferta, Producto.precio)
+    precio_min = _numero(request.args.get("precio_min"))
+    precio_max = _numero(request.args.get("precio_max"))
+    if precio_min is not None:
+        query = query.filter(precio_final >= precio_min)
+    if precio_max is not None:
+        query = query.filter(precio_final <= precio_max)
+
+    # --- Colores (el producto tiene alguna variante de ese color)
+    colores = [c.strip().lower() for c in (request.args.get("colores") or "").split(",") if c.strip()]
+    if colores:
+        query = query.filter(
+            Producto.variantes.any(
+                VarianteProducto.color_obj.has(func.lower(Color.nombre).in_(colores))
+            )
+        )
+
+    # --- Calificación promedio mínima (1 a 5). Sin reseñas no tiene promedio.
+    calificacion = request.args.get("calificacion", type=int)
+    if calificacion and 1 <= calificacion <= 5:
+        con_promedio = (
+            db.session.query(Resena.producto_id)
+            .group_by(Resena.producto_id)
+            .having(func.avg(Resena.calificacion) >= calificacion)
+        )
+        query = query.filter(Producto.id.in_(con_promedio))
+
+    # --- Género
+    generos = [g.strip() for g in (request.args.get("genero") or "").split(",") if g.strip() in GENEROS]
+    if generos:
+        query = query.filter(Producto.genero.in_(generos))
 
     busqueda = (request.args.get("q") or "").strip()[:100] or None
     if busqueda:

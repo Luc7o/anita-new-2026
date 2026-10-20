@@ -354,6 +354,7 @@ export const api = {
     const query = new URLSearchParams(params).toString();
     return request(`/productos${query ? `?${query}` : ""}`);
   },
+  filtrosTienda: () => request("/filtros"),
   producto: (id) => request(`/productos/${id}`),
   resenas: (productoId) => request(`/productos/${productoId}/resenas`),
   // Reseñas de toda la tienda (página pública de Reviews)

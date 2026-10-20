@@ -11,9 +11,17 @@ import Paginador from "../../components/Paginador.jsx";
 
 const MINIMO_IMAGENES = 4;
 
+const GENEROS = [
+  { valor: "mujer", etiqueta: "Mujer" },
+  { valor: "hombre", etiqueta: "Hombre" },
+  { valor: "unisex", etiqueta: "Unisex" },
+  { valor: "nina", etiqueta: "Niña" },
+  { valor: "nino", etiqueta: "Niño" },
+];
+
 const VACIO = {
   nombre: "", descripcion: "", precio: "", precio_oferta: "", stock: 0,
-  sku: "", categoria_id: "", tallas: "", colores: "",
+  sku: "", categoria_id: "", genero: "", tallas: "", colores: "",
   destacado: false, es_nuevo: true, activo: true,
 };
 
@@ -115,6 +123,7 @@ export default function AdminProductos() {
       stock: p.stock,
       sku: p.sku || "",
       categoria_id: categorias.find((c) => c.slug === p.categoria)?.id || "",
+      genero: p.genero || "",
       tallas: (p.tallas || []).join(", "),
       colores: (p.colores || []).join(", "),
       destacado: p.destacado,
@@ -522,6 +531,23 @@ export default function AdminProductos() {
                     <option key={c.id} value={c.id}>
                       {c.nombre}
                     </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label htmlFor="prod-genero" className="mb-1 block text-xs font-medium text-plum-soft">
+                  Género (para el filtro de la tienda)
+                </label>
+                <select
+                  id="prod-genero"
+                  value={form.genero}
+                  onChange={actualizarCampo("genero")}
+                  className="w-full rounded-2xl bg-white px-4 py-2.5 text-plum focus:outline-none"
+                >
+                  <option value="">Sin definir</option>
+                  {GENEROS.map((g) => (
+                    <option key={g.valor} value={g.valor}>{g.etiqueta}</option>
                   ))}
                 </select>
               </div>

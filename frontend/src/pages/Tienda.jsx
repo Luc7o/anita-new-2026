@@ -4,13 +4,55 @@ import { useSearchParams } from "react-router-dom";
 import { api } from "../api/client.js";
 import ProductCard from "../components/ProductCard.jsx";
 import { Skeleton, SkeletonProductGrid } from "../components/Skeleton.jsx";
-import { IconCheck, IconChevronLeft, IconChevronRight } from "../components/Icons.jsx";
+import FiltroPrecio from "../components/FiltroPrecio.jsx";
+import { nombreColorAHex } from "../utils/colores.js";
+import { IconCheck, IconChevronLeft, IconChevronRight, IconStar, IconClose } from "../components/Icons.jsx";
 
 const TALLAS_PRENDA = ["XS", "S", "M", "L", "XL"];
 const TALLAS_CALZADO = ["35", "36", "37", "38", "39", "40", "41", "42"];
 
 function alternarEnLista(lista, valor) {
   return lista.includes(valor) ? lista.filter((v) => v !== valor) : [...lista, valor];
+}
+
+const OPCIONES_CALIFICACION = [4, 3, 2];
+
+function SeccionFiltro({ titulo, children, primera = false }) {
+  return (
+    <div className={primera ? "" : "mt-6 border-t border-plum/10 pt-5"}>
+      <h2 className="mb-3 text-xs font-bold uppercase tracking-widest text-plum">{titulo}</h2>
+      {children}
+    </div>
+  );
+}
+
+// Casilla (varias a la vez) o botón de opción (una sola) con el mismo diseño de la tienda.
+function OpcionFiltro({ marcado, onChange, etiqueta, tipo = "checkbox", nombre, children }) {
+  return (
+    <label className="flex cursor-pointer items-center gap-2.5 text-sm text-plum">
+      <input type={tipo} name={nombre} checked={marcado} onChange={onChange} className="sr-only" />
+      {tipo === "radio" ? (
+        <span className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full border-2 ${marcado ? "border-berry" : "border-plum/25"}`}>
+          {marcado && <span className="h-2 w-2 rounded-full bg-berry" />}
+        </span>
+      ) : (
+        <span className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border-2 transition ${marcado ? "border-berry bg-berry text-white" : "border-plum/30 bg-white"}`}>
+          {marcado && <IconCheck size={10} />}
+        </span>
+      )}
+      <span className={marcado ? "font-medium text-berry-dark" : ""}>{children || etiqueta}</span>
+    </label>
+  );
+}
+
+function Estrellas({ cantidad }) {
+  return (
+    <span className="inline-flex items-center gap-0.5 text-berry" aria-hidden="true">
+      {[1, 2, 3, 4, 5].map((n) => (
+        <IconStar key={n} size={13} relleno={n <= cantidad} className={n <= cantidad ? "" : "text-plum/25"} />
+      ))}
+    </span>
+  );
 }
 
 export default function Tienda() {
@@ -20,24 +62,33 @@ export default function Tienda() {
   const tallasActivas = (searchParams.get("tallas") || "").split(",").filter(Boolean);
   const soloOfertas = searchParams.get("oferta") === "true";
   const pagina = Number(searchParams.get("pagina")) || 1;
+  const precioDesde = searchParams.get("precio_min") !== null ? Number(searchParams.get("precio_min")) : null;
+  const precioHasta = searchParams.get("precio_max") !== null ? Number(searchParams.get("precio_max")) : null;
+  const coloresActivos = (searchParams.get("colores") || "").split(",").filter(Boolean);
+  const generosActivos = (searchParams.get("genero") || "").split(",").filter(Boolean);
+  const calificacionMin = Number(searchParams.get("calificacion")) || 0;
 
   const [categorias, setCategorias] = useState([]);
   const [productos, setProductos] = useState([]);
   const [meta, setMeta] = useState({ total: 0, paginas: 1, pagina_actual: 1 });
   const [orden, setOrden] = useState("");
   const [cargando, setCargando] = useState(true);
+  const [opciones, setOpciones] = useState(null); // rango de precios, colores y géneros que existen
+  const [filtrosAbiertos, setFiltrosAbiertos] = useState(false); // solo en celular
 
   useEffect(() => {
     api.categorias().then(setCategorias).catch(() => {});
+    api.filtrosTienda().then(setOpciones).catch(() => {});
   }, []);
 
   useEffect(() => {
     setCargando(true);
     const params = { por_pagina: 24, pagina };
-    if (categoriasActivas.length) params.categoria = categoriasActivas.join(",");
-    if (tallasActivas.length) params.tallas = tallasActivas.join(",");
+    ["categoria", "tallas", "colores", "genero", "precio_min", "precio_max", "calificacion", "q"].forEach((clave) => {
+      const valor = searchParams.get(clave);
+      if (valor) params[clave] = valor;
+    });
     if (soloOfertas) params.oferta = "true";
-    if (busqueda) params.q = busqueda;
     if (orden) params.orden = orden;
 
     api
@@ -47,7 +98,8 @@ export default function Tienda() {
         setMeta({ total: data.total, paginas: data.paginas, pagina_actual: data.pagina_actual });
       })
       .finally(() => setCargando(false));
-  }, [categoriasActivas.join(","), tallasActivas.join(","), soloOfertas, busqueda, orden, pagina]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams.toString(), orden]);
 
   const actualizarParams = (cambios) => {
     const nuevos = new URLSearchParams(searchParams);
@@ -63,13 +115,20 @@ export default function Tienda() {
     actualizarParams({ q: "", categoria: alternarEnLista(categoriasActivas, slug).join(",") });
   };
 
-  // Elegir una categoría (arriba o en la barra lateral) empieza una nueva
-  // búsqueda por categoría: se borra el texto buscado para que no se sumen.
-  const seleccionarSoloCategoria = (slug) => {
-    actualizarParams({ q: "", categoria: categoriasActivas.length === 1 && categoriasActivas[0] === slug ? "" : slug });
-  };
+  // Elegir una categoría empieza una nueva búsqueda por categoría: se borra el
+  // texto buscado para que no se sumen.
+  const elegirTodasLasCategorias = () => actualizarParams({ q: "", categoria: "" });
 
-  const hayFiltros = Boolean(busqueda || categoriasActivas.length || tallasActivas.length || soloOfertas);
+  const alternarColor = (color) => actualizarParams({ colores: alternarEnLista(coloresActivos, color).join(",") });
+  const alternarGenero = (g) => actualizarParams({ genero: alternarEnLista(generosActivos, g).join(",") });
+  const elegirCalificacion = (n) => actualizarParams({ calificacion: calificacionMin === n ? "" : String(n) });
+  const cambiarPrecio = (desde, hasta) =>
+    actualizarParams({ precio_min: desde === null ? "" : String(desde), precio_max: hasta === null ? "" : String(hasta) });
+
+  const cantidadFiltros =
+    categoriasActivas.length + tallasActivas.length + coloresActivos.length + generosActivos.length +
+    (soloOfertas ? 1 : 0) + (calificacionMin ? 1 : 0) + (precioDesde !== null || precioHasta !== null ? 1 : 0);
+  const hayFiltros = Boolean(busqueda) || cantidadFiltros > 0;
   const quitarFiltros = () => setSearchParams(new URLSearchParams());
 
   const alternarTalla = (talla) => {
@@ -107,60 +166,45 @@ export default function Tienda() {
         subtitulo={categoriaDestacada?.descripcion || "Filtra por categoría, talla o color y arma tu pedido."}
       />
 
-      {/* Barra de categorías fija bajo el menú */}
-      <div className="sticky top-[60px] z-20 border-b border-plum/10 bg-ivory/95 backdrop-blur">
-        <div className="relative mx-auto max-w-6xl">
-          <nav
-            className="flex snap-x gap-2 overflow-x-auto px-4 py-3 scrollbar-none"
-            aria-label="Categorías"
-          >
-            <button
-              onClick={() => actualizarParams({ q: "", categoria: "" })}
-              aria-current={categoriasActivas.length === 0 ? "true" : undefined}
-              className={`shrink-0 snap-start ${categoriasActivas.length === 0 ? "chip-on" : "chip-off"}`}
-            >
-              Todo
-            </button>
-            {categorias.map((cat) => {
-              const activo = categoriasActivas.length === 1 && categoriasActivas[0] === cat.slug;
-              return (
-                <button
-                  key={cat.id}
-                  onClick={() => seleccionarSoloCategoria(cat.slug)}
-                  aria-current={activo ? "true" : undefined}
-                  className={`shrink-0 snap-start ${activo ? "chip-on" : "chip-off"}`}
-                >
-                  {cat.nombre}
-                </button>
-              );
-            })}
-          </nav>
-          {/* Degradado en el borde derecho: avisa que se puede deslizar */}
-          <div
-            className="pointer-events-none absolute inset-y-0 right-0 w-10 bg-gradient-to-l from-ivory to-transparent md:hidden"
-            aria-hidden="true"
-          />
-        </div>
-      </div>
-
       <div className="mx-auto max-w-6xl px-4 pb-16 pt-6">
       {/* Contador */}
-      <div className="mb-4 flex items-center justify-between text-sm text-plum-soft" aria-live="polite">
-        {cargando ? (
-          <Skeleton className="h-4 w-44" />
-        ) : (
-          <span className="animate-fade-in">
-            {meta.total > 0
-              ? `Mostrando ${inicio}-${fin} de ${meta.total} resultados`
-              : "Sin resultados"}
-          </span>
-        )}
+      <div className="mb-4 flex items-center justify-between gap-3 text-sm text-plum-soft">
+        <div aria-live="polite">
+          {cargando ? (
+            <Skeleton className="h-4 w-44" />
+          ) : (
+            <span className="animate-fade-in">
+              {meta.total > 0
+                ? `Mostrando ${inicio}-${fin} de ${meta.total} resultados`
+                : "Sin resultados"}
+            </span>
+          )}
+        </div>
+        <div className="flex items-center gap-3">
+          {hayFiltros && (
+            <button type="button" onClick={quitarFiltros} className="inline-flex items-center gap-1 font-semibold text-berry hover:underline">
+              <IconClose size={12} /> Limpiar filtros
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={() => setFiltrosAbiertos((v) => !v)}
+            aria-expanded={filtrosAbiertos}
+            aria-controls="panel-filtros"
+            className="rounded-[10px] border border-plum/15 bg-white px-4 py-2 text-sm font-semibold text-plum lg:hidden"
+          >
+            Filtros{cantidadFiltros > 0 ? ` (${cantidadFiltros})` : ""}
+          </button>
+        </div>
       </div>
 
       <div className="flex flex-col gap-8 lg:flex-row">
         {/* Sidebar de filtros */}
         <aside className="w-full shrink-0 lg:w-64">
-          <div className="panel sticky top-36 p-5">
+          <div
+            id="panel-filtros"
+            className={`panel p-5 lg:sticky lg:top-20 lg:block lg:max-h-[calc(100vh-6rem)] lg:overflow-y-auto ${filtrosAbiertos ? "block" : "hidden"}`}
+          >
             {/* Ordenar */}
             <div>
               <h2 className="mb-3 text-xs font-bold uppercase tracking-widest text-plum">
@@ -202,40 +246,104 @@ export default function Tienda() {
             </div>
 
             {/* Categorías */}
-            <div className="mt-6 border-t border-plum/10 pt-5">
-              <h2 className="mb-3 text-xs font-bold uppercase tracking-widest text-plum">
-                Categorías
-              </h2>
+            <SeccionFiltro titulo="Categorías">
               <div className="space-y-2.5">
-                {categorias.map((cat) => {
-                  const marcado = categoriasActivas.includes(cat.slug);
-                  return (
-                    <label
-                      key={cat.id}
-                      className="flex cursor-pointer items-center gap-2.5 text-sm text-plum"
-                    >
-                      <input
-                        type="checkbox"
-                        checked={marcado}
-                        onChange={() => alternarCategoria(cat.slug)}
-                        className="sr-only"
-                      />
-                      <span
-                        className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border-2 transition ${
-                          marcado ? "border-berry bg-berry text-white" : "border-plum/30 bg-white"
+                <OpcionFiltro
+                  marcado={categoriasActivas.length === 0}
+                  onChange={elegirTodasLasCategorias}
+                  etiqueta="Todo"
+                />
+                {categorias.map((cat) => (
+                  <OpcionFiltro
+                    key={cat.id}
+                    marcado={categoriasActivas.includes(cat.slug)}
+                    onChange={() => alternarCategoria(cat.slug)}
+                    etiqueta={cat.nombre}
+                  />
+                ))}
+              </div>
+            </SeccionFiltro>
+
+            {/* Precio */}
+            {opciones?.precio && opciones.precio.max > opciones.precio.min && (
+              <SeccionFiltro titulo="Precio">
+                <FiltroPrecio
+                  minimo={opciones.precio.min}
+                  maximo={opciones.precio.max}
+                  desde={precioDesde}
+                  hasta={precioHasta}
+                  onCambio={cambiarPrecio}
+                />
+              </SeccionFiltro>
+            )}
+
+            {/* Calificación */}
+            <SeccionFiltro titulo="Calificación">
+              <div className="space-y-2.5">
+                {OPCIONES_CALIFICACION.map((n) => (
+                  <OpcionFiltro
+                    key={n}
+                    tipo="radio"
+                    nombre="calificacion"
+                    marcado={calificacionMin === n}
+                    onChange={() => elegirCalificacion(n)}
+                  >
+                    <span className="inline-flex items-center gap-2">
+                      <Estrellas cantidad={n} />
+                      <span>y más</span>
+                    </span>
+                  </OpcionFiltro>
+                ))}
+              </div>
+              {calificacionMin > 0 && (
+                <p className="mt-2 text-[11px] text-plum-soft">Solo productos con reseñas.</p>
+              )}
+            </SeccionFiltro>
+
+            {/* Colores */}
+            {opciones?.colores?.length > 0 && (
+              <SeccionFiltro titulo="Colores">
+                <div className="flex flex-wrap gap-2">
+                  {opciones.colores.map((color) => {
+                    const marcado = coloresActivos.some((c) => c.toLowerCase() === color.toLowerCase());
+                    return (
+                      <button
+                        key={color}
+                        type="button"
+                        onClick={() => alternarColor(color)}
+                        aria-pressed={marcado}
+                        className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium transition ${
+                          marcado ? "border-berry bg-berry/10 text-berry-dark" : "border-plum/15 bg-white text-plum hover:border-berry/40"
                         }`}
                       >
-                        {marcado && <IconCheck size={10} />}
-                      </span>
-                      <span className={marcado ? "font-medium text-berry-dark" : ""}>
-                        {cat.nombre}
-                      </span>
-                    </label>
-                  );
-                })}
-              </div>
-            </div>
+                        <span
+                          className="h-3.5 w-3.5 shrink-0 rounded-full border border-plum/20"
+                          style={{ backgroundColor: nombreColorAHex(color) }}
+                          aria-hidden="true"
+                        />
+                        {color}
+                      </button>
+                    );
+                  })}
+                </div>
+              </SeccionFiltro>
+            )}
 
+            {/* Género (solo si ya hay productos con género asignado) */}
+            {opciones?.generos?.length > 0 && (
+              <SeccionFiltro titulo="Género">
+                <div className="space-y-2.5">
+                  {opciones.generos.map((g) => (
+                    <OpcionFiltro
+                      key={g.valor}
+                      marcado={generosActivos.includes(g.valor)}
+                      onChange={() => alternarGenero(g.valor)}
+                      etiqueta={g.etiqueta}
+                    />
+                  ))}
+                </div>
+              </SeccionFiltro>
+            )}
 
             {/* Tallas prenda */}
             <div className="mt-6 border-t border-plum/10 pt-5">
