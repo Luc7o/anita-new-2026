@@ -5,6 +5,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { api, setAccessToken, guardarCsrf } from "../api/client.js";
 import { useAuth } from "../context/AuthContext.jsx";
 import CuentaLayout from "../components/CuentaLayout.jsx";
+import MedidorPassword from "../components/MedidorPassword.jsx";
 import {
   IconLock,
   IconShield,
@@ -160,22 +161,35 @@ function FormularioContrasena() {
         visible={verActual}
         onToggle={() => setVerActual((v) => !v)}
       />
-      <CampoPassword
-        id="config-password-nueva"
-        placeholder="Contraseña nueva"
-        value={form.password_nueva}
-        onChange={(v) => setForm({ ...form, password_nueva: v })}
-        visible={verNueva}
-        onToggle={() => setVerNueva((v) => !v)}
-      />
-      <CampoPassword
-        id="config-password-confirmar"
-        placeholder="Confirmar contraseña nueva"
-        value={form.password_confirmar}
-        onChange={(v) => setForm({ ...form, password_confirmar: v })}
-        visible={verNueva}
-        onToggle={() => setVerNueva((v) => !v)}
-      />
+      <div>
+        <CampoPassword
+          id="config-password-nueva"
+          placeholder="Contraseña nueva"
+          value={form.password_nueva}
+          onChange={(v) => setForm({ ...form, password_nueva: v })}
+          visible={verNueva}
+          onToggle={() => setVerNueva((v) => !v)}
+        />
+        <MedidorPassword password={form.password_nueva} />
+      </div>
+      <div>
+        <CampoPassword
+          id="config-password-confirmar"
+          placeholder="Confirmar contraseña nueva"
+          value={form.password_confirmar}
+          onChange={(v) => setForm({ ...form, password_confirmar: v })}
+          visible={verNueva}
+          onToggle={() => setVerNueva((v) => !v)}
+        />
+        {form.password_confirmar && (
+          <p
+            className={`mt-1.5 text-xs ${form.password_confirmar === form.password_nueva ? "font-medium text-green-700" : "text-berry-dark"}`}
+            aria-live="polite"
+          >
+            {form.password_confirmar === form.password_nueva ? "✓ Las contraseñas coinciden." : "Las contraseñas aún no coinciden."}
+          </p>
+        )}
+      </div>
 
       <div aria-live="polite">
         {error && <p className="text-sm text-berry-dark" role="alert">{error}</p>}
