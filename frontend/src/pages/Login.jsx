@@ -12,12 +12,13 @@ import {
   IconArrowLeft,
 } from "../components/Icons.jsx";
 import GoogleButton from "../components/GoogleButton.jsx";
+import PasoDosFactores from "../components/PasoDosFactores.jsx";
 import loginHero from "../assets/auth/login-hero.webp";
 
 const CLAVE_RECORDAR = "ans_recordar_email";
 
 export default function Login() {
-  const { login } = useAuth();
+  const { login, segundoPaso, verificarSegundoPaso, cancelarSegundoPaso } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [email, setEmail] = useState(() => localStorage.getItem(CLAVE_RECORDAR) || "");
@@ -34,7 +35,8 @@ export default function Login() {
     setError("");
     setEnviando(true);
     try {
-      await login(email, password);
+      const resultado = await login(email, password);
+      if (resultado?.requiere2fa) return; // falta el código de la app: se muestra abajo
       if (recordar) {
         localStorage.setItem(CLAVE_RECORDAR, email);
       } else {
@@ -46,6 +48,13 @@ export default function Login() {
     } finally {
       setEnviando(false);
     }
+  };
+
+  const verificarCodigo = async (codigo) => {
+    await verificarSegundoPaso(codigo);
+    if (recordar) localStorage.setItem(CLAVE_RECORDAR, email);
+    else localStorage.removeItem(CLAVE_RECORDAR);
+    navigate(destino);
   };
 
   return (
@@ -88,6 +97,10 @@ export default function Login() {
       {/* Columna de formulario */}
       <div className="flex flex-1 flex-col items-center justify-center bg-white px-6 py-16 sm:px-16 lg:w-1/2">
         <div className="w-full max-w-[420px]">
+          {segundoPaso ? (
+            <PasoDosFactores onVerificar={verificarCodigo} onCancelar={cancelarSegundoPaso} />
+          ) : (
+          <>
           <div className="mb-8 text-center">
             <h2 className="text-3xl font-semibold text-plum sm:text-4xl">
               Iniciar Sesión
@@ -188,7 +201,7 @@ export default function Login() {
               </div>
               <GoogleButton
                 texto="signin_with"
-                onSuccess={() => navigate(destino)}
+                onSuccess={(u) => { if (!u?.requiere2fa) navigate(destino); }}
                 onError={setError}
               />
             </>
@@ -199,6 +212,8 @@ export default function Login() {
               Seguir comprando sin cuenta
             </Link>
           </p>
+          </>
+          )}
         </div>
       </div>
     </div>

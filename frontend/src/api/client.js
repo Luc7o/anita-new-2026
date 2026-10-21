@@ -326,6 +326,15 @@ export const api = {
   consultarDocumento: (tipo, numero) =>
     request(`/documentos/consultar?tipo=${encodeURIComponent(tipo)}&numero=${encodeURIComponent(numero)}`),
   login: (payload) => request("/auth/login", { method: "POST", body: payload }),
+  login2fa: (payload) => request("/auth/login-2fa", { method: "POST", body: payload }),
+  preferenciasCuenta: () => request("/auth/preferencias", { auth: true }),
+  actualizarPreferenciasCuenta: (payload) => request("/auth/preferencias", { method: "PUT", body: payload, auth: true }),
+  iniciar2fa: () => request("/auth/2fa/iniciar", { method: "POST", auth: true }),
+  activar2fa: (codigo) => request("/auth/2fa/activar", { method: "POST", body: { codigo }, auth: true }),
+  desactivar2fa: (codigo) => request("/auth/2fa/desactivar", { method: "POST", body: { codigo }, auth: true }),
+  codigosNuevos2fa: (codigo) => request("/auth/2fa/codigos-nuevos", { method: "POST", body: { codigo }, auth: true }),
+  misDatos: () => request("/auth/mis-datos", { auth: true }),
+  eliminarCuenta: (payload) => request("/auth/cuenta", { method: "DELETE", body: payload, auth: true }),
   loginGoogle: (credential) => request("/auth/google", { method: "POST", body: { credential } }),
   perfil: () => request("/auth/perfil", { auth: true }),
   actualizarPerfil: (payload) =>

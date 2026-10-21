@@ -80,6 +80,18 @@ class Usuario(db.Model):
     bloqueado_hasta = db.Column(db.DateTime, nullable=True)
     fecha_registro = db.Column(db.DateTime, default=datetime.utcnow)
 
+    # --- Preferencias y seguridad de la cuenta (Mi Cuenta > Configuración) ---
+    # Consentimiento para recibir correos de promociones (opt-in: por defecto NO).
+    # Los correos de sus pedidos y de seguridad se envían siempre.
+    acepta_promociones = db.Column(db.Boolean, nullable=False, default=False)
+    # Verificación en dos pasos (TOTP). El secreto se guarda CIFRADO.
+    totp_secreto = db.Column(db.String(255), nullable=True)
+    totp_activo = db.Column(db.Boolean, nullable=False, default=False)
+    totp_ultimo_paso = db.Column(db.BigInteger, nullable=True)  # evita reutilizar un código
+    codigos_respaldo = db.Column(db.Text, nullable=True)        # JSON con hashes, no los códigos
+    # Cuando la persona eliminó su cuenta (los datos personales se anonimizan).
+    eliminado_en = db.Column(db.DateTime, nullable=True)
+
     rol_obj = db.relationship("Rol", lazy="joined")
     distrito_obj = db.relationship("UbigeoDistrito", lazy="joined")
 
