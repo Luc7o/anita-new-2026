@@ -104,7 +104,7 @@ export default function Registro() {
                 <>
                   <GoogleButton
                     texto="signup_with"
-                    onSuccess={() => navigate("/")}
+                    onSuccess={(u) => navigate(u?.requiere2fa ? "/ingresar" : "/")}
                     onError={setError}
                   />
                   <div className="my-6 flex items-center gap-3 text-xs font-medium uppercase tracking-wide text-plum-soft/70">

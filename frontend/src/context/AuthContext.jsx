@@ -33,23 +33,46 @@ export function AuthProvider({ children }) {
     return () => window.removeEventListener("ans:sesion-expirada", alExpirar);
   }, []);
 
-  const login = async (email, password) => {
-    const data = await api.login({ email, password });
+  // Cuenta con verificación en dos pasos: el servidor aún no entrega sesión,
+  // solo un pase de 5 minutos. Se guarda acá para que la pantalla de ingreso
+  // (o el panel) pida el código, venga el login de la contraseña o de Google.
+  const [segundoPaso, setSegundoPaso] = useState(null); // null | { token }
+
+  const abrirSesion = (data) => {
     setAccessToken(data.token);
     guardarCsrf(data.csrf);
     setUsuario(data.usuario);
     setSesionExpirada(false);
+    setSegundoPaso(null);
     return data.usuario;
+  };
+
+  // Devuelve el usuario, o { requiere2fa: true } si falta el código.
+  const login = async (email, password) => {
+    const data = await api.login({ email, password });
+    if (data.requiere_2fa) {
+      setSegundoPaso({ token: data.token_2fa });
+      return { requiere2fa: true };
+    }
+    return abrirSesion(data);
   };
 
   const loginConGoogle = async (credential) => {
     const data = await api.loginGoogle(credential);
-    setAccessToken(data.token);
-    guardarCsrf(data.csrf);
-    setUsuario(data.usuario);
-    setSesionExpirada(false);
-    return data.usuario;
+    if (data.requiere_2fa) {
+      setSegundoPaso({ token: data.token_2fa });
+      return { requiere2fa: true };
+    }
+    return abrirSesion(data);
   };
+
+  const verificarSegundoPaso = async (codigo) => {
+    const data = await api.login2fa({ token_2fa: segundoPaso?.token, codigo });
+    const u = abrirSesion(data);
+    return { usuario: u, codigosRespaldoRestantes: data.codigos_respaldo_restantes };
+  };
+
+  const cancelarSegundoPaso = () => setSegundoPaso(null);
 
   const registro = async (payload) => {
     const data = await api.registro(payload);
@@ -95,6 +118,9 @@ export function AuthProvider({ children }) {
         setSesionExpirada,
         login,
         loginConGoogle,
+        segundoPaso,
+        verificarSegundoPaso,
+        cancelarSegundoPaso,
         registro,
         registroConEmail,
         continuarComoInvitado,

@@ -5,12 +5,13 @@ import { useToast } from "../context/ToastContext.jsx";
 import { ROLES_ADMIN } from "../roles.js";
 import Logo from "../components/Logo.jsx";
 import Spinner from "../components/Spinner.jsx";
+import PasoDosFactores from "../components/PasoDosFactores.jsx";
 import { IconEye, IconEyeOff } from "../components/Icons.jsx";
 
 // Inicio de sesión del panel (solo en el subdominio del admin). Sin registro,
 // sin Google y sin recomendaciones de tienda: solo entra personal autorizado.
 export default function AdminLogin() {
-  const { usuario, login, logout } = useAuth();
+  const { usuario, login, logout, segundoPaso, verificarSegundoPaso, cancelarSegundoPaso } = useAuth();
   const toast = useToast();
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
@@ -27,6 +28,7 @@ export default function AdminLogin() {
     setEnviando(true);
     try {
       const u = await login(email.trim(), password);
+      if (u?.requiere2fa) return; // falta el código de la app: se pide abajo
       if (!ROLES_ADMIN.includes(u?.rol)) {
         // Se cierra la sesión recién abierta: una cuenta de cliente no debe
         // quedar iniciada en el panel.
@@ -43,11 +45,28 @@ export default function AdminLogin() {
     }
   };
 
+  const verificarCodigo = async (codigo) => {
+    const { usuario: u } = await verificarSegundoPaso(codigo);
+    if (!ROLES_ADMIN.includes(u?.rol)) {
+      logout();
+      cancelarSegundoPaso();
+      setError("Esta cuenta no tiene acceso al panel de administración.");
+      return;
+    }
+    toast.success("Sesión iniciada");
+    navigate("/", { replace: true });
+  };
+
   return (
     <div className="admin-ui flex min-h-screen flex-col items-center justify-center bg-plum px-4 py-10">
       <div className="mb-8">
         <Logo tone="light" />
       </div>
+      {segundoPaso ? (
+        <div className="panel w-full max-w-sm p-6 sm:p-8">
+          <PasoDosFactores estilo="panel" onVerificar={verificarCodigo} onCancelar={cancelarSegundoPaso} />
+        </div>
+      ) : (
       <form onSubmit={enviar} className="panel w-full max-w-sm space-y-5 p-6 sm:p-8" noValidate>
         <div>
           <h1 className="text-2xl font-semibold text-plum">Panel de administración</h1>
@@ -105,6 +124,7 @@ export default function AdminLogin() {
           {enviando ? "Ingresando…" : "Ingresar"}
         </button>
       </form>
+      )}
     </div>
   );
 }

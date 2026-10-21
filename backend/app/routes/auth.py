@@ -1,5 +1,7 @@
+import json
 import secrets
 from datetime import datetime, timedelta
+from itsdangerous import BadSignature, SignatureExpired, URLSafeTimedSerializer
 from email_validator import validate_email, EmailNotValidError
 from flask import Blueprint, request, jsonify, current_app
 from flask_jwt_extended import (
@@ -17,6 +19,7 @@ from app.models import Usuario, TokenRecuperacion, UbigeoDistrito
 from app.utils.decorators import requiere_activo
 from app.utils.correo import enviar_correo
 from app.utils.google_auth import verificar_token_google, TokenGoogleInvalido
+from app.utils import totp
 
 bp = Blueprint("auth", __name__, url_prefix="/api/auth")
 
@@ -30,6 +33,49 @@ def _crear_par_tokens(usuario):
     access_token = create_access_token(identity=str(usuario.id), additional_claims=claims)
     refresh_token = create_refresh_token(identity=str(usuario.id), additional_claims=claims)
     return access_token, refresh_token
+
+
+# ---- Segundo paso del login (verificación en dos pasos) -------------------
+# Si la cuenta tiene 2FA, el login con contraseña (o con Google) NO entrega
+# sesión: devuelve un "pase" firmado y de corta duración que solo sirve para
+# /auth/login-2fa. No es un JWT, así que ningún otro endpoint lo acepta.
+SEGUNDOS_VALIDEZ_PASE_2FA = 5 * 60
+
+
+def _serializador_2fa():
+    return URLSafeTimedSerializer(current_app.config["SECRET_KEY"], salt="login-2fa")
+
+
+def _respuesta_pide_segundo_paso(usuario):
+    pase = _serializador_2fa().dumps({"uid": usuario.id, "sv": usuario.sesion_version})
+    return jsonify({"requiere_2fa": True, "token_2fa": pase})
+
+
+def _respuesta_con_sesion(usuario, codigo_estado=200, extra=None):
+    token, refresh_token = _crear_par_tokens(usuario)
+    cuerpo = {"token": token, "csrf": get_csrf_token(refresh_token), "usuario": usuario.to_dict()}
+    if extra:
+        cuerpo.update(extra)
+    respuesta = jsonify(cuerpo)
+    set_refresh_cookies(respuesta, refresh_token)
+    return respuesta, codigo_estado
+
+
+def _verificar_segundo_factor(usuario, codigo):
+    """Valida un código de la app (6 dígitos) o uno de respaldo. Si es válido
+    lo deja registrado (paso usado / código de respaldo gastado) y devuelve
+    (True, usó_respaldo); si no, (False, False). No hace commit."""
+    secreto = totp.descifrar(usuario.totp_secreto) if usuario.totp_secreto else None
+    if secreto:
+        paso = totp.verificar_codigo(secreto, codigo, usuario.totp_ultimo_paso)
+        if paso is not None:
+            usuario.totp_ultimo_paso = paso
+            return True, False
+    restantes = totp.consumir_codigo_respaldo(usuario.codigos_respaldo, codigo)
+    if restantes is not None:
+        usuario.codigos_respaldo = restantes
+        return True, True
+    return False, False
 
 
 # Cuánto dura el enlace para crear la contraseña de una cuenta nueva. Más
@@ -327,12 +373,51 @@ def login():
     if not usuario.activo:
         return jsonify({"error": "Cuenta desactivada"}), 403
 
+    # La contraseña es correcta, pero si tiene verificación en dos pasos todavía
+    # falta el segundo factor: los intentos fallidos se limpian recién cuando lo pasa.
+    if usuario.totp_activo:
+        return _respuesta_pide_segundo_paso(usuario)
+
     usuario.resetear_intentos_fallidos()
     db.session.commit()
 
-    token, refresh_token = _crear_par_tokens(usuario)
-    respuesta = jsonify({"token": token, "csrf": get_csrf_token(refresh_token), "usuario": usuario.to_dict()})
-    set_refresh_cookies(respuesta, refresh_token)
+    respuesta, _ = _respuesta_con_sesion(usuario)
+    return respuesta
+
+
+@bp.post("/login-2fa")
+@limiter.limit("10 per minute")
+def login_2fa():
+    """Segundo paso del inicio de sesión: código de la app de autenticación
+    (6 dígitos) o un código de respaldo."""
+    data = request.get_json(force=True) or {}
+    try:
+        pase = _serializador_2fa().loads(data.get("token_2fa") or "", max_age=SEGUNDOS_VALIDEZ_PASE_2FA)
+    except SignatureExpired:
+        return jsonify({"error": "Pasaron más de 5 minutos. Vuelve a iniciar sesión.", "code": "pase_expirado"}), 401
+    except BadSignature:
+        return jsonify({"error": "Solicitud no válida. Vuelve a iniciar sesión.", "code": "pase_expirado"}), 401
+
+    usuario = Usuario.query.get(pase.get("uid"))
+    if not usuario or not usuario.activo or not usuario.totp_activo or usuario.sesion_version != pase.get("sv"):
+        return jsonify({"error": "Solicitud no válida. Vuelve a iniciar sesión.", "code": "pase_expirado"}), 401
+
+    if usuario.esta_bloqueado:
+        minutos_restantes = max(1, int((usuario.bloqueado_hasta - datetime.utcnow()).total_seconds() // 60) + 1)
+        return jsonify({"error": f"Demasiados intentos fallidos. Intenta de nuevo en {minutos_restantes} minuto(s)."}), 429
+
+    valido, uso_respaldo = _verificar_segundo_factor(usuario, data.get("codigo"))
+    if not valido:
+        usuario.registrar_intento_fallido()
+        db.session.commit()
+        return jsonify({"error": "El código no es correcto. Revisa tu app de autenticación e inténtalo de nuevo."}), 401
+
+    usuario.resetear_intentos_fallidos()
+    db.session.commit()
+    extra = None
+    if uso_respaldo:
+        extra = {"codigos_respaldo_restantes": totp.cantidad_codigos_respaldo(usuario.codigos_respaldo)}
+    respuesta, _ = _respuesta_con_sesion(usuario, extra=extra)
     return respuesta
 
 
@@ -420,10 +505,10 @@ def login_google():
             ),
         )
 
-    token, refresh_token = _crear_par_tokens(usuario)
-    respuesta = jsonify({"token": token, "csrf": get_csrf_token(refresh_token), "usuario": usuario.to_dict()})
-    set_refresh_cookies(respuesta, refresh_token)
-    return respuesta, 201 if nueva else 200
+    if usuario.totp_activo:
+        return _respuesta_pide_segundo_paso(usuario)
+
+    return _respuesta_con_sesion(usuario, 201 if nueva else 200)
 
 
 @bp.post("/refrescar-token")
@@ -614,3 +699,279 @@ def restablecer_password():
     usuario.sesion_version += 1
     db.session.commit()
     return jsonify({"mensaje": "Contraseña restablecida correctamente, ya puedes ingresar"})
+
+
+# =========================================================================
+# Mi Cuenta > Configuración: preferencias, verificación en dos pasos,
+# descarga de datos y eliminación de la cuenta.
+# =========================================================================
+
+def _estado_seguridad(usuario):
+    return {
+        "acepta_promociones": bool(usuario.acepta_promociones),
+        "totp_activo": bool(usuario.totp_activo),
+        "codigos_respaldo_restantes": totp.cantidad_codigos_respaldo(usuario.codigos_respaldo) if usuario.totp_activo else 0,
+        # Las cuentas creadas con Google o como invitado no tienen contraseña
+        # propia: para eliminarlas se confirma escribiendo ELIMINAR.
+        "requiere_password": bool(usuario.password_hash),
+    }
+
+
+@bp.get("/preferencias")
+@requiere_activo
+def obtener_preferencias():
+    usuario = Usuario.query.get_or_404(int(get_jwt_identity()))
+    return jsonify(_estado_seguridad(usuario))
+
+
+@bp.put("/preferencias")
+@requiere_activo
+def actualizar_preferencias():
+    usuario = Usuario.query.get_or_404(int(get_jwt_identity()))
+    data = request.get_json(force=True) or {}
+    if not isinstance(data.get("acepta_promociones"), bool):
+        return jsonify({"error": "Indica si quieres recibir promociones (sí o no)"}), 400
+    usuario.acepta_promociones = data["acepta_promociones"]
+    db.session.commit()
+    return jsonify(_estado_seguridad(usuario))
+
+
+# ---------------------------------------------------- verificación en dos pasos
+@bp.post("/2fa/iniciar")
+@requiere_activo
+@limiter.limit("10 per hour")
+def iniciar_2fa():
+    """Paso 1: genera un secreto nuevo (todavía NO activo) para escanear en la app."""
+    usuario = Usuario.query.get_or_404(int(get_jwt_identity()))
+    if usuario.totp_activo:
+        return jsonify({"error": "La verificación en dos pasos ya está activada"}), 400
+    secreto = totp.generar_secreto()
+    usuario.totp_secreto = totp.cifrar(secreto)
+    usuario.totp_ultimo_paso = None
+    db.session.commit()
+    return jsonify({"secreto": secreto, "uri": totp.uri_otpauth(secreto, usuario.email)})
+
+
+@bp.post("/2fa/activar")
+@requiere_activo
+@limiter.limit("10 per 10 minutes")
+def activar_2fa():
+    """Paso 2: confirma con un código de la app. Devuelve los códigos de respaldo (una sola vez)."""
+    usuario = Usuario.query.get_or_404(int(get_jwt_identity()))
+    if usuario.totp_activo:
+        return jsonify({"error": "La verificación en dos pasos ya está activada"}), 400
+    secreto = totp.descifrar(usuario.totp_secreto) if usuario.totp_secreto else None
+    if not secreto:
+        return jsonify({"error": "Primero genera el código QR para configurar la app"}), 400
+
+    data = request.get_json(force=True) or {}
+    paso = totp.verificar_codigo(secreto, data.get("codigo"))
+    if paso is None:
+        return jsonify({"error": "El código no es correcto. Revisa que la hora de tu celular sea automática e inténtalo de nuevo."}), 400
+
+    codigos, guardados = totp.generar_codigos_respaldo()
+    usuario.totp_activo = True
+    usuario.totp_ultimo_paso = paso
+    usuario.codigos_respaldo = guardados
+    db.session.commit()
+
+    enviar_correo(
+        destinatario=usuario.email,
+        asunto="Activaste la verificación en dos pasos",
+        texto=(
+            f"Hola {usuario.nombre},\n\n"
+            "Se activó la verificación en dos pasos en tu cuenta de Anita New Style. "
+            "Desde ahora, además de tu contraseña, te pediremos un código de tu app de autenticación al iniciar sesión.\n\n"
+            "Si no fuiste tú, cambia tu contraseña de inmediato."
+        ),
+    )
+    return jsonify({**_estado_seguridad(usuario), "codigos_respaldo": codigos})
+
+
+@bp.post("/2fa/desactivar")
+@requiere_activo
+@limiter.limit("10 per 10 minutes")
+def desactivar_2fa():
+    usuario = Usuario.query.get_or_404(int(get_jwt_identity()))
+    if not usuario.totp_activo:
+        return jsonify({"error": "La verificación en dos pasos no está activada"}), 400
+    data = request.get_json(force=True) or {}
+    if usuario.esta_bloqueado:
+        return jsonify({"error": "Demasiados intentos fallidos. Intenta de nuevo en unos minutos."}), 429
+
+    valido, _ = _verificar_segundo_factor(usuario, data.get("codigo"))
+    if not valido:
+        usuario.registrar_intento_fallido()
+        db.session.commit()
+        return jsonify({"error": "El código no es correcto"}), 400
+
+    usuario.resetear_intentos_fallidos()
+    usuario.totp_activo = False
+    usuario.totp_secreto = None
+    usuario.totp_ultimo_paso = None
+    usuario.codigos_respaldo = None
+    db.session.commit()
+
+    enviar_correo(
+        destinatario=usuario.email,
+        asunto="Desactivaste la verificación en dos pasos",
+        texto=(
+            f"Hola {usuario.nombre},\n\n"
+            "Se desactivó la verificación en dos pasos de tu cuenta de Anita New Style.\n\n"
+            "Si no fuiste tú, cambia tu contraseña de inmediato."
+        ),
+    )
+    return jsonify(_estado_seguridad(usuario))
+
+
+@bp.post("/2fa/codigos-nuevos")
+@requiere_activo
+@limiter.limit("10 per 10 minutes")
+def regenerar_codigos_respaldo():
+    """Reemplaza los códigos de respaldo (los anteriores dejan de servir)."""
+    usuario = Usuario.query.get_or_404(int(get_jwt_identity()))
+    if not usuario.totp_activo:
+        return jsonify({"error": "La verificación en dos pasos no está activada"}), 400
+    data = request.get_json(force=True) or {}
+    if usuario.esta_bloqueado:
+        return jsonify({"error": "Demasiados intentos fallidos. Intenta de nuevo en unos minutos."}), 429
+
+    valido, _ = _verificar_segundo_factor(usuario, data.get("codigo"))
+    if not valido:
+        usuario.registrar_intento_fallido()
+        db.session.commit()
+        return jsonify({"error": "El código no es correcto"}), 400
+
+    usuario.resetear_intentos_fallidos()
+    codigos, guardados = totp.generar_codigos_respaldo()
+    usuario.codigos_respaldo = guardados
+    db.session.commit()
+    return jsonify({**_estado_seguridad(usuario), "codigos_respaldo": codigos})
+
+
+# ------------------------------------------------------------ descargar datos
+@bp.get("/mis-datos")
+@requiere_activo
+@limiter.limit("10 per hour")
+def descargar_mis_datos():
+    """Copia de la información de la cuenta de quien la pide (JSON)."""
+    from app.models import Pedido, Favorito, Resena
+
+    usuario = Usuario.query.get_or_404(int(get_jwt_identity()))
+    pedidos = usuario.pedidos.order_by(Pedido.fecha_creacion.desc()).all()
+    favoritos = Favorito.query.filter_by(usuario_id=usuario.id).all()
+    resenas = Resena.query.filter_by(usuario_id=usuario.id).all()
+
+    return jsonify({
+        "generado_en": datetime.utcnow().isoformat() + "Z",
+        "cuenta": {
+            **usuario.to_dict(incluir_direccion=True),
+            "fecha_registro": usuario.fecha_registro.isoformat() if usuario.fecha_registro else None,
+            "recibe_promociones": bool(usuario.acepta_promociones),
+            "verificacion_en_dos_pasos": bool(usuario.totp_activo),
+        },
+        "pedidos": [p.to_dict() for p in pedidos],
+        "favoritos": [
+            {"producto": f.producto.nombre if f.producto else None, "agregado_en": f.fecha_creacion.isoformat() if f.fecha_creacion else None}
+            for f in favoritos
+        ],
+        "resenas": [
+            {
+                "producto_id": r.producto_id,
+                "calificacion": r.calificacion,
+                "comentario": r.comentario,
+                "fecha": r.fecha_creacion.isoformat() if r.fecha_creacion else None,
+            }
+            for r in resenas
+        ],
+    })
+
+
+# ---------------------------------------------------------- eliminar la cuenta
+@bp.delete("/cuenta")
+@requiere_activo
+@limiter.limit("5 per hour")
+def eliminar_cuenta():
+    """
+    Elimina la cuenta de quien la pide. No se borra la fila: los pedidos ya
+    hechos se conservan (los necesita la tienda para su contabilidad y
+    postventa), pero los datos personales de la cuenta se anonimizan y la
+    cuenta queda inutilizable. Las reseñas quedan como "Cuenta eliminada".
+    """
+    from app.models import Pedido, Favorito, ItemCarrito
+
+    usuario = Usuario.query.get_or_404(int(get_jwt_identity()))
+    data = request.get_json(force=True) or {}
+
+    if usuario.rol != "cliente" or usuario.es_admin:
+        return jsonify({"error": "Las cuentas del equipo se eliminan desde el panel de usuarios, no desde aquí"}), 403
+
+    if (data.get("confirmacion") or "").strip().upper() != "ELIMINAR":
+        return jsonify({"error": "Escribe ELIMINAR para confirmar"}), 400
+
+    if usuario.esta_bloqueado:
+        return jsonify({"error": "Demasiados intentos fallidos. Intenta de nuevo en unos minutos."}), 429
+
+    en_curso = usuario.pedidos.filter(Pedido.estado.notin_(["entregado", "cancelado"])).count()
+    if en_curso:
+        return jsonify({
+            "error": f"Tienes {en_curso} pedido(s) en curso. Podrás eliminar tu cuenta cuando se entreguen o se cancelen.",
+            "code": "pedidos_en_curso",
+        }), 409
+
+    if usuario.password_hash and not usuario.check_password(data.get("password") or ""):
+        usuario.registrar_intento_fallido()
+        db.session.commit()
+        return jsonify({"error": "Tu contraseña no es correcta"}), 400
+
+    if usuario.totp_activo:
+        valido, _ = _verificar_segundo_factor(usuario, data.get("codigo_2fa"))
+        if not valido:
+            usuario.registrar_intento_fallido()
+            db.session.commit()
+            return jsonify({"error": "El código de verificación no es correcto"}), 400
+
+    correo_anterior, nombre_anterior = usuario.email, usuario.nombre
+
+    # Se quitan los datos personales (el correo se reemplaza por uno inválido y
+    # único, porque la columna es única) y se cierra toda sesión abierta.
+    usuario.nombre = "Cuenta"
+    usuario.apellido = "eliminada"
+    usuario.email = f"eliminado-{usuario.id}-{secrets.token_hex(4)}@cuenta-eliminada.invalid"
+    usuario.telefono = None
+    usuario.google_id = None
+    usuario.tipo_documento = None
+    usuario.numero_documento = None
+    usuario.direccion = None
+    usuario.referencia = None
+    usuario.distrito_id = None
+    usuario.distrito_legacy = usuario.provincia_legacy = usuario.departamento_legacy = None
+    usuario.password_hash = None
+    usuario.activo = False
+    usuario.acepta_promociones = False
+    usuario.totp_activo = False
+    usuario.totp_secreto = None
+    usuario.totp_ultimo_paso = None
+    usuario.codigos_respaldo = None
+    usuario.es_invitado = False
+    usuario.sesion_version += 1
+    usuario.eliminado_en = datetime.utcnow()
+
+    ItemCarrito.query.filter_by(usuario_id=usuario.id).delete()
+    Favorito.query.filter_by(usuario_id=usuario.id).delete()
+    TokenRecuperacion.query.filter_by(usuario_id=usuario.id).delete()
+    db.session.commit()
+
+    enviar_correo(
+        destinatario=correo_anterior,
+        asunto="Tu cuenta de Anita New Style fue eliminada",
+        texto=(
+            f"Hola {nombre_anterior},\n\n"
+            "Confirmamos que tu cuenta de Anita New Style fue eliminada y que ya no podrás iniciar sesión con ella. "
+            "Conservamos el historial de pedidos ya realizados solo para fines contables y de postventa.\n\n"
+            "Si no pediste esto, escríbenos cuanto antes."
+        ),
+    )
+    respuesta = jsonify({"mensaje": "Tu cuenta fue eliminada"})
+    unset_jwt_cookies(respuesta)
+    return respuesta

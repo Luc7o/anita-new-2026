@@ -6,6 +6,7 @@ import { api } from "../api/client.js";
 import { useAuth } from "../context/AuthContext.jsx";
 import CuentaLayout from "../components/CuentaLayout.jsx";
 import SelectorUbicacion from "../components/SelectorUbicacion.jsx";
+import FormularioContrasena from "../components/FormularioContrasena.jsx";
 import { soloTexto, soloNumeros } from "../validacion.js";
 
 export default function Perfil() {
@@ -20,6 +21,7 @@ export default function Perfil() {
     departamento_id: "", provincia_id: "", distrito_id: "",
   });
   const [editando, setEditando] = useState(false);
+  const [tienePassword, setTienePassword] = useState(null); // null = cargando
   const [guardandoDatos, setGuardandoDatos] = useState(false);
   const [mensajeDatos, setMensajeDatos] = useState("");
   const [errorDatos, setErrorDatos] = useState("");
@@ -51,6 +53,11 @@ export default function Perfil() {
       })
       .catch(() => {}); // sin datos el formulario queda vacío; no es un error que mostrar
     return () => { cancelado = true; };
+  }, [usuario?.id]);
+
+  useEffect(() => {
+    if (!usuario?.id) return;
+    api.preferenciasCuenta().then((e) => setTienePassword(e.requiere_password)).catch(() => setTienePassword(true));
   }, [usuario?.id]);
 
   const actualizarCampo = (campo) => (e) => setForm({ ...form, [campo]: e.target.value });
@@ -218,6 +225,19 @@ export default function Perfil() {
             </button>
           </form>
         )}
+
+        {/* Seguridad: cambiar contraseña */}
+        <section aria-labelledby="perfil-seguridad">
+          <h2 id="perfil-seguridad" className="mb-1 text-lg font-semibold text-plum">Seguridad</h2>
+          {tienePassword === false ? (
+            <p className="glass mt-3 rounded-2xl p-5 text-sm text-plum-soft shadow-glass">
+              Tu cuenta no tiene contraseña: entras con Google o con un enlace enviado a tu correo.
+              Si quieres usar contraseña, cierra sesión y usa «¿Olvidaste tu contraseña?» en la pantalla de ingreso.
+            </p>
+          ) : (
+            <FormularioContrasena />
+          )}
+        </section>
       </div>
     </CuentaLayout>
   );
