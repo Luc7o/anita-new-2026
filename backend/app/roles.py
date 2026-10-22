@@ -58,10 +58,6 @@ PUEDE_GESTIONAR_REEMBOLSOS = [SUPERADMIN, VENTAS]
 # --- Venta presencial ---
 PUEDE_REGISTRAR_VENTA = [SUPERADMIN, VENTAS]
 
-# --- Reseñas ---
-PUEDE_GESTIONAR_RESENAS = [SUPERADMIN, VENTAS, SOPORTE]
-PUEDE_VER_RESENAS = PUEDE_GESTIONAR_RESENAS + [AUDITOR]
-
 # --- Dashboard y reportes ---
 # Dashboard general (ingresos, ventas): superadmin, administrativo, auditor
 PUEDE_VER_DASHBOARD = [SUPERADMIN, ADMINISTRATIVO, AUDITOR]
@@ -70,12 +66,10 @@ PUEDE_VER_DASHBOARD_VENTAS = [SUPERADMIN, ADMINISTRATIVO, VENTAS, AUDITOR]
 # Dashboard de stock/almacén (sin cifras de ingresos)
 PUEDE_VER_DASHBOARD_STOCK = [SUPERADMIN, ADMINISTRATIVO, ALMACEN, AUDITOR]
 
-PUEDE_VER_REPORTES = [SUPERADMIN, ADMINISTRATIVO, VENTAS, ALMACEN, AUDITOR]
 
 # --- Usuarios, roles y configuración ---
 # Gestión de usuarios y roles: superadmin y RRHH
 PUEDE_GESTIONAR_USUARIOS = [SUPERADMIN, RRHH]
-PUEDE_VER_USUARIOS = PUEDE_GESTIONAR_USUARIOS + [AUDITOR]
 
 # Configuración del sistema: exclusivo de superadmin (auditor solo puede ver)
 PUEDE_GESTIONAR_CONFIGURACION = [SUPERADMIN]

@@ -3,6 +3,7 @@ import Spinner from "../../components/Spinner.jsx";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../../api/client.js";
+import { soles } from "../../formato.js";
 import { IconSearch, IconClose, IconTrash } from "../../components/Icons.jsx";
 import { soloDni } from "../../validacion.js";
 
@@ -12,7 +13,6 @@ const METODOS_PAGO = [
   { valor: "tarjeta", label: "Tarjeta física" },
 ];
 
-const soles = (n) => `S/ ${Number(n || 0).toFixed(2)}`;
 const claveItem = (id, talla, color) => `${id}|${talla || ""}|${color || ""}`;
 
 // Stock disponible de un producto para una talla/color (misma regla que el backend)

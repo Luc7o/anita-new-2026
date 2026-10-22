@@ -1,4 +1,3 @@
-import json
 import secrets
 from datetime import datetime, timedelta
 from itsdangerous import BadSignature, SignatureExpired, URLSafeTimedSerializer
@@ -51,9 +50,12 @@ def _respuesta_pide_segundo_paso(usuario):
     return jsonify({"requiere_2fa": True, "token_2fa": pase})
 
 
-def _respuesta_con_sesion(usuario, codigo_estado=200, extra=None):
+def _respuesta_con_sesion(usuario, codigo_estado=200, extra=None, con_usuario=True):
+    """Arma la respuesta con sesión nueva (token + csrf + cookie de refresh)."""
     token, refresh_token = _crear_par_tokens(usuario)
-    cuerpo = {"token": token, "csrf": get_csrf_token(refresh_token), "usuario": usuario.to_dict()}
+    cuerpo = {"token": token, "csrf": get_csrf_token(refresh_token)}
+    if con_usuario:
+        cuerpo["usuario"] = usuario.to_dict()
     if extra:
         cuerpo.update(extra)
     respuesta = jsonify(cuerpo)
@@ -164,6 +166,21 @@ def _enviar_correo_crear_password(usuario, cuenta_existente=False):
     return True
 
 
+def _conflicto_cuenta_existente(mensaje):
+    return jsonify({"error": mensaje, "code": "cuenta_existente"}), 409
+
+
+def _crear_cuenta_sin_password(**campos):
+    """Crea una cuenta de invitado (contraseña aleatoria), la guarda y le envía el
+    enlace para que cree su contraseña real cuando quiera."""
+    usuario = Usuario(es_invitado=True, **campos)
+    _asignar_password_aleatoria(usuario)
+    db.session.add(usuario)
+    db.session.commit()
+    _enviar_correo_crear_password(usuario)
+    return usuario
+
+
 @bp.post("/registro")
 @limiter.limit("10 per hour")
 def registro():
@@ -213,10 +230,7 @@ def registro():
         ),
     )
 
-    token, refresh_token = _crear_par_tokens(usuario)
-    respuesta = jsonify({"token": token, "csrf": get_csrf_token(refresh_token), "usuario": usuario.to_dict()})
-    set_refresh_cookies(respuesta, refresh_token)
-    return respuesta, 201
+    return _respuesta_con_sesion(usuario, 201)
 
 
 @bp.post("/invitado")
@@ -241,31 +255,18 @@ def continuar_como_invitado():
     if Usuario.query.filter_by(email=email).first():
         # No decimos si esa cuenta ya tiene contraseña o sigue siendo de
         # invitado: en cualquier caso ya existe, y la salida es la misma.
-        return jsonify({
-            "error": (
-                "Ese correo ya tiene una cuenta. Inicia sesión para continuar con tu compra "
-                "(si aún no creaste tu contraseña, usa «¿Olvidaste tu contraseña?»)."
-            ),
-            "code": "cuenta_existente",
-        }), 409
+        return _conflicto_cuenta_existente(
+            "Ese correo ya tiene una cuenta. Inicia sesión para continuar con tu compra "
+            "(si aún no creaste tu contraseña, usa «¿Olvidaste tu contraseña?»)."
+        )
 
-    usuario = Usuario(
+    usuario = _crear_cuenta_sin_password(
         nombre=(data.get("nombre") or "").strip()[:80] or _nombre_aleatorio(),
         apellido=(data.get("apellido") or "").strip()[:80],
         email=email,
         telefono=(data.get("telefono") or "").strip()[:20] or None,
-        es_invitado=True,
     )
-    _asignar_password_aleatoria(usuario)
-    db.session.add(usuario)
-    db.session.commit()
-
-    _enviar_correo_crear_password(usuario)
-
-    token, refresh_token = _crear_par_tokens(usuario)
-    respuesta = jsonify({"token": token, "csrf": get_csrf_token(refresh_token), "usuario": usuario.to_dict()})
-    set_refresh_cookies(respuesta, refresh_token)
-    return respuesta, 201
+    return _respuesta_con_sesion(usuario, 201)
 
 
 @bp.post("/registro-email")
@@ -291,34 +292,13 @@ def registro_con_email():
         return jsonify({"error": error}), 400
 
     if Usuario.query.filter_by(email=email).first():
-        return jsonify({
-            "error": (
-                "Ese correo ya tiene una cuenta. Inicia sesión "
-                "(si aún no creaste tu contraseña, usa «¿Olvidaste tu contraseña?»)."
-            ),
-            "code": "cuenta_existente",
-        }), 409
+        return _conflicto_cuenta_existente(
+            "Ese correo ya tiene una cuenta. Inicia sesión "
+            "(si aún no creaste tu contraseña, usa «¿Olvidaste tu contraseña?»)."
+        )
 
-    usuario = Usuario(
-        nombre=_nombre_aleatorio(),
-        apellido="",
-        email=email,
-        es_invitado=True,
-    )
-    _asignar_password_aleatoria(usuario)
-    db.session.add(usuario)
-    db.session.commit()
-
-    _enviar_correo_crear_password(usuario)
-
-    token, refresh_token = _crear_par_tokens(usuario)
-    respuesta = jsonify({
-        "token": token,
-        "csrf": get_csrf_token(refresh_token),
-        "usuario": usuario.to_dict(),
-    })
-    set_refresh_cookies(respuesta, refresh_token)
-    return respuesta, 201
+    usuario = _crear_cuenta_sin_password(nombre=_nombre_aleatorio(), apellido="", email=email)
+    return _respuesta_con_sesion(usuario, 201)
 
 
 @bp.post("/completar-cuenta")
@@ -534,9 +514,7 @@ def refrescar_token():
     if not usuario or not usuario.activo:
         return jsonify({"error": "Cuenta no disponible"}), 403
 
-    token, refresh_token = _crear_par_tokens(usuario)
-    respuesta = jsonify({"token": token, "csrf": get_csrf_token(refresh_token)})
-    set_refresh_cookies(respuesta, refresh_token)
+    respuesta, _ = _respuesta_con_sesion(usuario, con_usuario=False)
     return respuesta
 
 
@@ -631,9 +609,9 @@ def cambiar_password():
     usuario.sesion_version += 1
     db.session.commit()
 
-    token, refresh_token = _crear_par_tokens(usuario)
-    respuesta = jsonify({"mensaje": "Contraseña actualizada correctamente", "token": token, "csrf": get_csrf_token(refresh_token)})
-    set_refresh_cookies(respuesta, refresh_token)
+    respuesta, _ = _respuesta_con_sesion(
+        usuario, con_usuario=False, extra={"mensaje": "Contraseña actualizada correctamente"}
+    )
     return respuesta
 
 
@@ -788,24 +766,38 @@ def activar_2fa():
     return jsonify({**_estado_seguridad(usuario), "codigos_respaldo": codigos})
 
 
-@bp.post("/2fa/desactivar")
-@requiere_activo
-@limiter.limit("10 per 10 minutes")
-def desactivar_2fa():
+def _validar_codigo_2fa_activo():
+    """Para acciones sensibles sobre una cuenta con 2FA ya activo (desactivarlo,
+    pedir códigos nuevos): carga al usuario, exige 2FA activo, respeta el bloqueo
+    por intentos y valida el código enviado.
+
+    Devuelve (usuario, None) si todo está bien (intentos ya reseteados, sin commit)
+    o (None, (respuesta, código_http)) si hay que cortar con un error."""
     usuario = Usuario.query.get_or_404(int(get_jwt_identity()))
     if not usuario.totp_activo:
-        return jsonify({"error": "La verificación en dos pasos no está activada"}), 400
+        return None, (jsonify({"error": "La verificación en dos pasos no está activada"}), 400)
     data = request.get_json(force=True) or {}
     if usuario.esta_bloqueado:
-        return jsonify({"error": "Demasiados intentos fallidos. Intenta de nuevo en unos minutos."}), 429
+        return None, (jsonify({"error": "Demasiados intentos fallidos. Intenta de nuevo en unos minutos."}), 429)
 
     valido, _ = _verificar_segundo_factor(usuario, data.get("codigo"))
     if not valido:
         usuario.registrar_intento_fallido()
         db.session.commit()
-        return jsonify({"error": "El código no es correcto"}), 400
+        return None, (jsonify({"error": "El código no es correcto"}), 400)
 
     usuario.resetear_intentos_fallidos()
+    return usuario, None
+
+
+@bp.post("/2fa/desactivar")
+@requiere_activo
+@limiter.limit("10 per 10 minutes")
+def desactivar_2fa():
+    usuario, error = _validar_codigo_2fa_activo()
+    if error:
+        return error
+
     usuario.totp_activo = False
     usuario.totp_secreto = None
     usuario.totp_ultimo_paso = None
@@ -829,20 +821,10 @@ def desactivar_2fa():
 @limiter.limit("10 per 10 minutes")
 def regenerar_codigos_respaldo():
     """Reemplaza los códigos de respaldo (los anteriores dejan de servir)."""
-    usuario = Usuario.query.get_or_404(int(get_jwt_identity()))
-    if not usuario.totp_activo:
-        return jsonify({"error": "La verificación en dos pasos no está activada"}), 400
-    data = request.get_json(force=True) or {}
-    if usuario.esta_bloqueado:
-        return jsonify({"error": "Demasiados intentos fallidos. Intenta de nuevo en unos minutos."}), 429
+    usuario, error = _validar_codigo_2fa_activo()
+    if error:
+        return error
 
-    valido, _ = _verificar_segundo_factor(usuario, data.get("codigo"))
-    if not valido:
-        usuario.registrar_intento_fallido()
-        db.session.commit()
-        return jsonify({"error": "El código no es correcto"}), 400
-
-    usuario.resetear_intentos_fallidos()
     codigos, guardados = totp.generar_codigos_respaldo()
     usuario.codigos_respaldo = guardados
     db.session.commit()

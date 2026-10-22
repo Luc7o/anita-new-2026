@@ -1,4 +1,4 @@
-from datetime import datetime, date, timedelta
+from datetime import datetime, timedelta
 from app.extensions import db
 
 

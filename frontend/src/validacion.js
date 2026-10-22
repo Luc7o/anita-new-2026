@@ -26,11 +26,6 @@ export function soloCarnetExtranjeria(valor) {
   return valor.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 15);
 }
 
-// SKU / códigos: letras, números y guiones, en mayúsculas
-export function soloCodigo(valor) {
-  return valor.toUpperCase().replace(/[^A-Z0-9-]/g, "");
-}
-
 // Dirección: letras (con tildes/ñ), números, espacios y SOLO estos símbolos: . * ° #
 export function soloDireccion(valor) {
   return valor.replace(/[^A-Za-zÀ-ÿ\u00f1\u00d10-9\s.*°#]/g, "");

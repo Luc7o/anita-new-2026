@@ -1,6 +1,6 @@
 import re
 from datetime import datetime, timedelta
-from flask import Blueprint, request, jsonify, Response, g
+from flask import Blueprint, request, jsonify, g
 from sqlalchemy.orm import selectinload, joinedload
 from app.extensions import db
 from app.models import (
@@ -20,7 +20,7 @@ from app.roles import (
     SUPERADMIN,
 )
 from app.utils.stock import restaurar_stock_de_pedido, agrupar_por_producto, validar_stock_disponible, descontar_stock
-from app.utils.boleta import generar_pdf_boleta
+from app.utils.boleta import responder_boleta
 from app.utils.culqi import reembolsar_en_culqi
 from app.utils.historial import cambiar_estado_pedido
 from app.models import IntentoPago
@@ -835,13 +835,4 @@ def venta_presencial():
 @requiere_roles(*PUEDE_VER_PEDIDOS)
 def boleta_pedido(pedido_id):
     pedido = Pedido.query.get_or_404(pedido_id)
-
-    if pedido.estado_pago != "verificado":
-        return jsonify({"error": "Este pedido todavía no tiene el pago verificado"}), 400
-
-    pdf_bytes = generar_pdf_boleta(pedido)
-    return Response(
-        pdf_bytes,
-        mimetype="application/pdf",
-        headers={"Content-Disposition": f"inline; filename=boleta-{pedido.numero_pedido}.pdf"},
-    )
+    return responder_boleta(pedido)

@@ -1,8 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { api } from "../api/client.js";
-
-const claseSelect =
-  "w-full rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-none disabled:opacity-50";
+import CampoUbicacion from "./CampoUbicacion.jsx";
 
 // Selector de dirección en cascada: departamento -> provincia -> distrito,
 // contra el catálogo normalizado (GET /api/ubicaciones/*). Lo único que
@@ -78,53 +76,29 @@ export default function SelectorUbicacion({ departamentoId, provinciaId, distrit
 
   return (
     <div className="grid grid-cols-3 gap-3">
-      <div>
-        <label htmlFor="ubic-departamento" className="sr-only">Departamento</label>
-        <select
-          id="ubic-departamento"
-          required
-          value={depSeleccionado}
-          onChange={elegirDepartamento}
-          className={claseSelect}
-        >
-          <option value="">Departamento</option>
-          {departamentos.map((d) => (
-            <option key={d.id} value={d.id}>{d.nombre}</option>
-          ))}
-        </select>
-      </div>
-      <div>
-        <label htmlFor="ubic-provincia" className="sr-only">Provincia</label>
-        <select
-          id="ubic-provincia"
-          required
-          disabled={!depSeleccionado}
-          value={provSeleccionada}
-          onChange={elegirProvincia}
-          className={claseSelect}
-        >
-          <option value="">Provincia</option>
-          {provincias.map((p) => (
-            <option key={p.id} value={p.id}>{p.nombre}</option>
-          ))}
-        </select>
-      </div>
-      <div>
-        <label htmlFor="ubic-distrito" className="sr-only">Distrito</label>
-        <select
-          id="ubic-distrito"
-          required
-          disabled={!provSeleccionada}
-          value={distSeleccionado}
-          onChange={elegirDistrito}
-          className={claseSelect}
-        >
-          <option value="">Distrito</option>
-          {distritos.map((d) => (
-            <option key={d.id} value={d.id}>{d.nombre}</option>
-          ))}
-        </select>
-      </div>
+      <CampoUbicacion
+        id="ubic-departamento"
+        etiqueta="Departamento"
+        valor={depSeleccionado}
+        onChange={elegirDepartamento}
+        opciones={departamentos}
+      />
+      <CampoUbicacion
+        id="ubic-provincia"
+        etiqueta="Provincia"
+        valor={provSeleccionada}
+        onChange={elegirProvincia}
+        opciones={provincias}
+        disabled={!depSeleccionado}
+      />
+      <CampoUbicacion
+        id="ubic-distrito"
+        etiqueta="Distrito"
+        valor={distSeleccionado}
+        onChange={elegirDistrito}
+        opciones={distritos}
+        disabled={!provSeleccionada}
+      />
     </div>
   );
 }

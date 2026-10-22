@@ -3,6 +3,7 @@ import { SkeletonFilasAdmin, SkeletonPanelAdmin, SkeletonDetalleAdmin, SkeletonF
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { api } from "../../api/client.js";
+import { soles } from "../../formato.js";
 import { IconChevronDown } from "../../components/Icons.jsx";
 import { useAuth } from "../../context/AuthContext.jsx";
 import { SUPERADMIN, PUEDE_VER_DASHBOARD } from "../../roles.js";
@@ -40,8 +41,6 @@ function vistasDelRol(rol) {
 
 // Roles que pueden consultar estadísticas (el resto solo ve el panel de pendientes).
 const ROLES_CON_ESTADISTICAS = ["superadmin", "administrativo", "auditor", "ventas", "almacen"];
-
-const soles = (n) => `S/ ${Number(n).toFixed(2)}`;
 
 export default function AdminDashboard() {
   const { cargando, usuario } = useAuth();

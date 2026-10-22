@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import RedesAuth from "../components/RedesAuth.jsx";
+import AuthLayout from "../components/AuthLayout.jsx";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
 import {
@@ -9,7 +9,6 @@ import {
   IconInstagram,
   IconWhatsApp,
   IconCheck,
-  IconArrowLeft,
 } from "../components/Icons.jsx";
 import GoogleButton from "../components/GoogleButton.jsx";
 import PasoDosFactores from "../components/PasoDosFactores.jsx";
@@ -58,164 +57,144 @@ export default function Login() {
   };
 
   return (
-    <div className="relative flex min-h-screen w-full flex-col lg:flex-row">
-      {/* Flecha de regreso con tooltip */}
-      <Link
-        to="/"
-        aria-label="Volver al inicio"
-        className="absolute left-4 top-4 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-white/70 text-plum shadow-glass backdrop-blur transition hover:bg-white hover:text-berry sm:left-6 sm:top-6 group"
-        title="Regresar a la tienda"
-      >
-        <IconArrowLeft size={18} />
-        <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 whitespace-nowrap rounded bg-plum/80 px-2 py-1 text-[10px] text-white opacity-0 transition-opacity group-hover:opacity-100 pointer-events-none">
-          Regresar a la tienda
-        </span>
-      </Link>
-
-      {/* Columna de marca */}
-      <div
-        className="relative flex min-h-[320px] flex-col justify-end gap-6 overflow-hidden bg-cover p-6 sm:p-10 lg:w-1/2"
-        style={{ backgroundImage: `url(${loginHero})`, backgroundPosition: "18% 20%" }}
-      >
-        <div className="absolute inset-0 bg-plum/25" />
-        <div className="glass relative z-10 rounded-2xl p-6 sm:p-8">
-          <h1 className="text-4xl font-semibold leading-tight text-plum sm:text-5xl">
-            Bienvenido a
-            <br />
-            Anita New Style
-          </h1>
-          <p className="mt-4 max-w-sm text-sm text-plum-soft sm:text-base">
-            Tu tienda de moda en Huancayo. Encuentra carteras, mochilas, vestidos y accesorios con estilo.
-            <span className="block mt-2 text-berry font-medium">¡Envíos a todo el Perú!</span>
-          </p>
-          <div className="mt-6 flex items-center gap-4">
-            <RedesAuth />
-          </div>
-        </div>
+    <AuthLayout
+      imagen={loginHero}
+      posicionImagen="18% 20%"
+      conAtras
+      altoMarca={320}
+      anchoForm={420}
+      padY={16}
+      titulo={
+        <>
+          Bienvenido a
+          <br />
+          Anita New Style
+        </>
+      }
+      marca={
+        <p className="mt-4 max-w-sm text-sm text-plum-soft sm:text-base">
+          Tu tienda de moda en Huancayo. Encuentra carteras, mochilas, vestidos y accesorios con estilo.
+          <span className="block mt-2 text-berry font-medium">¡Envíos a todo el Perú!</span>
+        </p>
+      }
+    >
+      {segundoPaso ? (
+        <PasoDosFactores onVerificar={verificarCodigo} onCancelar={cancelarSegundoPaso} />
+      ) : (
+      <>
+      <div className="mb-8 text-center">
+        <h2 className="text-3xl font-semibold text-plum sm:text-4xl">
+          Iniciar Sesión
+        </h2>
+        <p className="mt-3 text-sm text-plum-soft">
+          ¿Aún no tienes cuenta?{" "}
+          <Link to="/registro" className="font-semibold text-berry hover:underline">
+            Crea una cuenta solo con tu correo
+          </Link>
+        </p>
       </div>
 
-      {/* Columna de formulario */}
-      <div className="flex flex-1 flex-col items-center justify-center bg-white px-6 py-16 sm:px-16 lg:w-1/2">
-        <div className="w-full max-w-[420px]">
-          {segundoPaso ? (
-            <PasoDosFactores onVerificar={verificarCodigo} onCancelar={cancelarSegundoPaso} />
-          ) : (
-          <>
-          <div className="mb-8 text-center">
-            <h2 className="text-3xl font-semibold text-plum sm:text-4xl">
-              Iniciar Sesión
-            </h2>
-            <p className="mt-3 text-sm text-plum-soft">
-              ¿Aún no tienes cuenta?{" "}
-              <Link to="/registro" className="font-semibold text-berry hover:underline">
-                Crea una cuenta solo con tu correo
-              </Link>
-            </p>
-          </div>
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div>
+          <label htmlFor="login-email" className="mb-1.5 block text-sm font-semibold text-plum">
+            Correo electrónico
+          </label>
+          <input
+            id="login-email"
+            type="email"
+            required
+            maxLength={120}
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="ejemplo@correo.com"
+            className="w-full rounded-md border border-plum/20 bg-white px-4 py-3 text-plum placeholder:text-plum-soft/50 focus:outline-none"
+          />
+        </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div>
-              <label htmlFor="login-email" className="mb-1.5 block text-sm font-semibold text-plum">
-                Correo electrónico
-              </label>
-              <input
-                id="login-email"
-                type="email"
-                required
-                maxLength={120}
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="ejemplo@correo.com"
-                className="w-full rounded-md border border-plum/20 bg-white px-4 py-3 text-plum placeholder:text-plum-soft/50 focus:outline-none"
-              />
-            </div>
-
-            <div>
-              <div className="mb-1.5 flex items-center justify-between gap-2">
-                <label htmlFor="login-password" className="block text-sm font-semibold text-plum">
-                  Contraseña
-                </label>
-                <Link to="/olvide-password" className="text-xs font-medium text-berry hover:underline">
-                  ¿Olvidaste tu contraseña?
-                </Link>
-              </div>
-              <div className="relative">
-                <input
-                  id="login-password"
-                  type={verPassword ? "text" : "password"}
-                  required
-                  maxLength={128}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full rounded-md border border-plum/20 bg-white px-4 py-3 pr-11 text-plum focus:outline-none"
-                />
-                <button
-                  type="button"
-                  onClick={() => setVerPassword((v) => !v)}
-                  className="absolute inset-y-0 right-3 flex items-center text-plum-soft hover:text-berry"
-                  aria-label={verPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
-                >
-                  {verPassword ? <IconEyeOff /> : <IconEye />}
-                </button>
-              </div>
-            </div>
-
-            <label className="flex cursor-pointer items-center gap-2 text-sm text-plum hover:text-berry transition-colors">
-              <input
-                type="checkbox"
-                checked={recordar}
-                onChange={(e) => setRecordar(e.target.checked)}
-                className="w-4 h-4 accent-berry rounded border-plum/20"
-              />
-              Recordarme en este dispositivo
+        <div>
+          <div className="mb-1.5 flex items-center justify-between gap-2">
+            <label htmlFor="login-password" className="block text-sm font-semibold text-plum">
+              Contraseña
             </label>
-
-            {error && (
-              <p className="text-sm text-berry-dark" role="alert">
-                {error}
-              </p>
-            )}
-
-            <button
-              type="submit"
-              disabled={enviando}
-              className="w-full rounded-lg bg-plum py-3.5 font-semibold text-white transition hover:bg-berry-dark disabled:opacity-60 flex items-center justify-center gap-2"
-            >
-              {enviando ? (
-                <>
-                  <span className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
-                  Ingresando...
-                </>
-              ) : (
-                "Ingresar"
-              )}
-            </button>
-          </form>
-
-          {import.meta.env.VITE_GOOGLE_CLIENT_ID && (
-            <>
-              <div className="my-6 flex items-center gap-3 text-xs font-medium uppercase tracking-wide text-plum-soft/70">
-                <span className="h-px flex-1 bg-plum/10" />
-                o
-                <span className="h-px flex-1 bg-plum/10" />
-              </div>
-              <GoogleButton
-                texto="signin_with"
-                onSuccess={(u) => { if (!u?.requiere2fa) navigate(destino); }}
-                onError={setError}
-              />
-            </>
-          )}
-
-          <p className="mt-8 text-center text-sm">
-            <Link to="/tienda" className="font-medium text-plum-soft transition hover:text-berry hover:underline">
-              Seguir comprando sin cuenta
+            <Link to="/olvide-password" className="text-xs font-medium text-berry hover:underline">
+              ¿Olvidaste tu contraseña?
             </Link>
-          </p>
-          </>
-          )}
+          </div>
+          <div className="relative">
+            <input
+              id="login-password"
+              type={verPassword ? "text" : "password"}
+              required
+              maxLength={128}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full rounded-md border border-plum/20 bg-white px-4 py-3 pr-11 text-plum focus:outline-none"
+            />
+            <button
+              type="button"
+              onClick={() => setVerPassword((v) => !v)}
+              className="absolute inset-y-0 right-3 flex items-center text-plum-soft hover:text-berry"
+              aria-label={verPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+            >
+              {verPassword ? <IconEyeOff /> : <IconEye />}
+            </button>
+          </div>
         </div>
-      </div>
-    </div>
+
+        <label className="flex cursor-pointer items-center gap-2 text-sm text-plum hover:text-berry transition-colors">
+          <input
+            type="checkbox"
+            checked={recordar}
+            onChange={(e) => setRecordar(e.target.checked)}
+            className="w-4 h-4 accent-berry rounded border-plum/20"
+          />
+          Recordarme en este dispositivo
+        </label>
+
+        {error && (
+          <p className="text-sm text-berry-dark" role="alert">
+            {error}
+          </p>
+        )}
+
+        <button
+          type="submit"
+          disabled={enviando}
+          className="w-full rounded-lg bg-plum py-3.5 font-semibold text-white transition hover:bg-berry-dark disabled:opacity-60 flex items-center justify-center gap-2"
+        >
+          {enviando ? (
+            <>
+              <span className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
+              Ingresando...
+            </>
+          ) : (
+            "Ingresar"
+          )}
+        </button>
+      </form>
+
+      {import.meta.env.VITE_GOOGLE_CLIENT_ID && (
+        <>
+          <div className="my-6 flex items-center gap-3 text-xs font-medium uppercase tracking-wide text-plum-soft/70">
+            <span className="h-px flex-1 bg-plum/10" />
+            o
+            <span className="h-px flex-1 bg-plum/10" />
+          </div>
+          <GoogleButton
+            texto="signin_with"
+            onSuccess={(u) => { if (!u?.requiere2fa) navigate(destino); }}
+            onError={setError}
+          />
+        </>
+      )}
+
+      <p className="mt-8 text-center text-sm">
+        <Link to="/tienda" className="font-medium text-plum-soft transition hover:text-berry hover:underline">
+          Seguir comprando sin cuenta
+        </Link>
+      </p>
+      </>
+      )}
+    </AuthLayout>
   );
 }

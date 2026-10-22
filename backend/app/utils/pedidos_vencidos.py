@@ -23,10 +23,9 @@ from app.models import Pedido
 from app.utils.stock import restaurar_stock_de_pedido
 from app.utils.historial import cambiar_estado_pedido
 
-# Mismo set que METODOS_PAGO_PASARELA en app/routes/pedidos.py — se
-# duplica acá (en vez de importarlo) para no crear un import circular
-# entre pedidos.py y este módulo.
-_METODOS_PAGO_PASARELA = {"tarjeta", "yape"}
+# Tarjeta y Yape se cobran por la pasarela Culqi (cargo único, síncrono).
+# Única definición: la usan el checkout (routes/pedidos.py) y este módulo.
+METODOS_PAGO_PASARELA = {"tarjeta", "yape"}
 
 
 def _cancelar_uno(pedido):
@@ -39,7 +38,7 @@ def _cancelar_uno(pedido):
 def _query_vencidos(usuario_id=None):
     query = Pedido.query.filter(
         Pedido.estado_pago == "pendiente",
-        Pedido.metodo_pago.in_(_METODOS_PAGO_PASARELA),
+        Pedido.metodo_pago.in_(METODOS_PAGO_PASARELA),
         Pedido.fecha_limite_pago.isnot(None),
         Pedido.fecha_limite_pago < datetime.utcnow(),
     )

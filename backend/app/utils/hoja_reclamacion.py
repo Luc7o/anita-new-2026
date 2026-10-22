@@ -12,12 +12,13 @@ y las notas al pie (definiciones de reclamo/queja y plazo de 15 días hábiles).
 Se genera tanto al registrar el reclamo (sección 4 vacía) como al responderlo
 (sección 4 completa), y es la copia que recibe el consumidor.
 """
-from datetime import timedelta
 from html import escape
 from io import BytesIO
 
 from flask import current_app
 from xhtml2pdf import pisa
+
+from app.utils.formato import a_lima
 
 _CSS = """
     @page { size: A4; margin: 1.0cm 1.5cm; }
@@ -42,11 +43,6 @@ def _txt(valor):
     return escape(str(valor)).replace("\n", "<br/>")
 
 
-def _lima(dt):
-    # Las fechas se guardan en UTC; Perú es UTC-5 todo el año (sin horario de verano).
-    return dt - timedelta(hours=5) if dt else None
-
-
 def _marca(activo):
     return "[ X ]" if activo else "[&nbsp;&nbsp;&nbsp;]"
 
@@ -58,12 +54,12 @@ def generar_pdf_hoja(r):
     ruc = _txt(cfg.get("PROVEEDOR_RUC"))
     domicilio = _txt(cfg.get("PROVEEDOR_DOMICILIO"))
 
-    fecha = _lima(r.fecha_registro)
+    fecha = a_lima(r.fecha_registro)
     fecha_txt = fecha.strftime("%d/%m/%Y %H:%M") if fecha else "-"
     monto = f"S/ {float(r.monto_reclamado):,.2f}" if r.monto_reclamado is not None else "-"
 
     respondido = r.estado == "respondido"
-    fecha_resp = _lima(r.fecha_respuesta)
+    fecha_resp = a_lima(r.fecha_respuesta)
     fecha_resp_txt = fecha_resp.strftime("%d/%m/%Y %H:%M") if (respondido and fecha_resp) else ""
     texto_resp = _txt(r.respuesta) if respondido else ""
 

@@ -6,10 +6,10 @@ import { api } from "../api/client.js";
 import { useAuth } from "../context/AuthContext.jsx";
 import { IconBook } from "../components/Icons.jsx";
 import { soloTexto, soloNumeros, soloDni, soloCarnetExtranjeria } from "../validacion.js";
+import { claseLabel } from "../estilos.js";
 
 const claseInput =
   "w-full rounded-md border border-plum/20 bg-white px-3 py-2.5 text-plum placeholder:text-plum-soft/50 focus:outline-none focus:border-berry";
-const claseLabel = "mb-1.5 block text-sm font-semibold text-plum";
 
 const FORM_INICIAL = {
   consumidor_nombre: "",

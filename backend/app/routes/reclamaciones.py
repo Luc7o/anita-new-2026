@@ -11,7 +11,7 @@ quedó registrado en la base de datos.
 """
 import base64
 import re
-from datetime import datetime, timedelta
+from datetime import datetime
 from decimal import Decimal, InvalidOperation
 
 from flask import Blueprint, current_app, jsonify, request
@@ -25,6 +25,7 @@ from app.models.reclamacion import (
     sumar_dias_habiles,
 )
 from app.utils.correo import enviar_correo
+from app.utils.formato import a_lima
 from app.utils.hoja_reclamacion import generar_pdf_hoja
 
 bp = Blueprint("reclamaciones", __name__, url_prefix="/api/reclamaciones")
@@ -117,10 +118,6 @@ def _validar(data):
     return campos, None
 
 
-def _a_lima(dt):
-    return dt - timedelta(hours=5)
-
-
 @bp.get("/info")
 def info():
     cfg = current_app.config
@@ -146,7 +143,7 @@ def registrar():
         return jsonify({"error": error}), 400
 
     ahora = datetime.utcnow()
-    hoy_lima = _a_lima(ahora)
+    hoy_lima = a_lima(ahora)
 
     reclamo = Reclamacion(
         fecha_registro=ahora,

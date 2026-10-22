@@ -373,8 +373,6 @@ export const api = {
   },
   guardarResena: (productoId, payload) =>
     request(`/productos/${productoId}/resenas`, { method: "POST", body: payload, auth: true }),
-  eliminarResena: (productoId) =>
-    request(`/productos/${productoId}/resenas`, { method: "DELETE", auth: true }),
 
   // Favoritos
   favoritos: () => request("/favoritos", { auth: true }),
@@ -423,8 +421,6 @@ export const api = {
     request("/admin/productos", { method: "POST", body: payload, auth: true }),
   adminActualizarProducto: (id, payload) =>
     request(`/admin/productos/${id}`, { method: "PUT", body: payload, auth: true }),
-  adminEliminarProducto: (id) =>
-    request(`/admin/productos/${id}`, { method: "DELETE", auth: true }),
   adminCambiarActivoProducto: (id, activo) =>
     request(`/admin/productos/${id}/activo`, { method: "PATCH", body: { activo }, auth: true }),
 
@@ -475,8 +471,6 @@ export const api = {
   adminConfiguracionTienda: () => request("/admin/configuracion/tienda", { auth: true }),
   adminActualizarConfiguracionTienda: (payload) =>
     request("/admin/configuracion/tienda", { method: "PUT", body: payload, auth: true }),
-  adminProbarCorreo: (email) =>
-    request("/admin/configuracion/probar-correo", { method: "POST", body: { email }, auth: true }),
 
   // Admin — proveedores
   adminProveedores: () => request("/admin/proveedores", { auth: true }),

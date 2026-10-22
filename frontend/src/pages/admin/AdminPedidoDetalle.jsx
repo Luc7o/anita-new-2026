@@ -8,6 +8,7 @@ import { useParams, Link } from "react-router-dom";
 import { api } from "../../api/client.js";
 import { ESTADOS_PEDIDO } from "./estadosPedido.js";
 import EstadoPedidoSelect from "../../components/EstadoPedidoSelect.jsx";
+import { LineasPedido, TotalesPedido } from "../../components/ResumenPedido.jsx";
 
 export default function AdminPedidoDetalle() {
   const toast = useToast();
@@ -257,33 +258,9 @@ export default function AdminPedidoDetalle() {
           </form>
         )}
 
-        <div className="mt-6 space-y-2 border-t border-white/50 pt-4">
-          {pedido.detalles.map((d) => (
-            <div key={d.id} className="flex justify-between text-sm text-plum-soft">
-              <span>
-                {d.cantidad}× {d.producto_nombre}
-                {d.talla && ` · Talla ${d.talla}`}
-                {d.color && ` · ${d.color}`}
-              </span>
-              <span>S/ {d.subtotal.toFixed(2)}</span>
-            </div>
-          ))}
-        </div>
+        <LineasPedido detalles={pedido.detalles} conVariantes className="border-t border-white/50 pt-4" />
 
-        <div className="mt-4 space-y-1 border-t border-white/50 pt-4 text-sm text-plum-soft">
-          <div className="flex justify-between">
-            <span>Subtotal</span>
-            <span>S/ {pedido.subtotal.toFixed(2)}</span>
-          </div>
-          <div className="flex justify-between">
-            <span>Envío</span>
-            <span>S/ {pedido.costo_envio.toFixed(2)}</span>
-          </div>
-          <div className="flex justify-between text-base font-semibold text-plum">
-            <span>Total</span>
-            <span>S/ {pedido.total.toFixed(2)}</span>
-          </div>
-        </div>
+        <TotalesPedido pedido={pedido} />
 
         {pedido.estado_pago === "verificado" && (
           <div className="mt-4">

@@ -11,6 +11,7 @@ import { obtenerPagoIdempotencyKey, limpiarPagoIdempotencyKey } from "../pagoIde
 import { armarLinkWhatsApp } from "../whatsapp.js";
 import SeguimientoPedido from "../components/SeguimientoPedido.jsx";
 import { IconCheckCircle, IconCopy, IconCheck, IconClock, IconWhatsApp } from "../components/Icons.jsx";
+import { LineasPedido, TotalesPedido } from "../components/ResumenPedido.jsx";
 
 const ESTADO_PAGO_ESTILOS = {
   pendiente: "bg-gold/20 text-plum",
@@ -322,31 +323,9 @@ export default function PedidoDetalle() {
           </div>
         )}
 
-        <div className="mt-6 space-y-2">
-          {pedido.detalles.map((d) => (
-            <div key={d.id} className="flex justify-between text-sm text-plum-soft">
-              <span>
-                {d.cantidad}× {d.producto_nombre}
-              </span>
-              <span>S/ {d.subtotal.toFixed(2)}</span>
-            </div>
-          ))}
-        </div>
+        <LineasPedido detalles={pedido.detalles} />
 
-        <div className="mt-4 space-y-1 border-t border-white/50 pt-4 text-sm text-plum-soft">
-          <div className="flex justify-between">
-            <span>Subtotal</span>
-            <span>S/ {pedido.subtotal.toFixed(2)}</span>
-          </div>
-          <div className="flex justify-between">
-            <span>Envío</span>
-            <span>S/ {pedido.costo_envio.toFixed(2)}</span>
-          </div>
-          <div className="flex justify-between font-display text-base font-semibold text-plum">
-            <span>Total</span>
-            <span>S/ {pedido.total.toFixed(2)}</span>
-          </div>
-        </div>
+        <TotalesPedido pedido={pedido} claseTotal="font-display" />
 
         {pedido.estado_pago === "verificado" && (
           <div className="mt-4">

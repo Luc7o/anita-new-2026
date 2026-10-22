@@ -1,13 +1,13 @@
 // src/components/Footer.jsx
 import React from "react";
 import { Link } from "react-router-dom";
-import { IconFacebook, IconInstagram, IconTikTok, IconWhatsApp, IconBook } from "./Icons.jsx";
+import { IconBook } from "./Icons.jsx";
 import Logo from "./Logo.jsx";
-import useConfigTienda, { linkWhatsApp } from "../hooks/useConfigTienda.js";
+import RedesAuth from "./RedesAuth.jsx";
+import useConfigTienda from "../hooks/useConfigTienda.js";
 
 export default function Footer() {
   const c = useConfigTienda();
-  const wa = linkWhatsApp(c.whatsapp);
   const claseRed = "flex h-9 w-9 items-center justify-center rounded-full border border-white/25 text-white/80 transition-colors hover:border-white hover:text-white";
   return (
     <footer className="mt-20 bg-plum text-white/70">
@@ -50,26 +50,7 @@ export default function Footer() {
               Tienda de moda peruana{c.ciudad ? ` con tienda física en ${c.ciudad}` : ""}. Envíos a todo el Perú.
             </p>
             <div className="mt-4 flex items-center gap-4">
-              {c.facebook_url && (
-                <a href={c.facebook_url} target="_blank" rel="noopener noreferrer" aria-label="Facebook" className={claseRed}>
-                  <IconFacebook />
-                </a>
-              )}
-              {c.instagram_url && (
-                <a href={c.instagram_url} target="_blank" rel="noopener noreferrer" aria-label="Instagram" className={claseRed}>
-                  <IconInstagram />
-                </a>
-              )}
-              {c.tiktok_url && (
-                <a href={c.tiktok_url} target="_blank" rel="noopener noreferrer" aria-label="TikTok" className={claseRed}>
-                  <IconTikTok />
-                </a>
-              )}
-              {wa && (
-                <a href={wa} target="_blank" rel="noopener noreferrer" aria-label="WhatsApp" className={claseRed}>
-                  <IconWhatsApp />
-                </a>
-              )}
+              <RedesAuth clase={claseRed} />
             </div>
             
             {/* Enlace destacado para el Libro de Reclamaciones */}

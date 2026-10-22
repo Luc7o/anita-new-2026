@@ -5,7 +5,7 @@ export const IS_ADMIN_APP = import.meta.env.VITE_APP_MODE === "admin";
 
 // En la app de admin las rutas cuelgan de "/" (admin.tudominio.com/pedidos).
 // En la tienda, si no hay subdominio, siguen bajo "/admin" (tudominio.com/admin/pedidos).
-export const ADMIN_BASE = IS_ADMIN_APP ? "" : "/admin";
+const ADMIN_BASE = IS_ADMIN_APP ? "" : "/admin";
 
 // URL del panel en su propio dominio (opcional, solo en el build de la tienda).
 // Si existe, el enlace "Panel admin" apunta allí y la tienda NO incluye el

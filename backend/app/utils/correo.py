@@ -30,7 +30,7 @@ def enviar_correo(destinatario, asunto, texto, html=None, adjuntos=None):
     (para no romper flujos como "olvidé mi contraseña" mientras se desarrolla).
     """
     if not resend_configurado():
-        print(f"\n[DEV-CORREO] RESEND_API_KEY no configurada, no se envía nada de verdad.")
+        print("\n[DEV-CORREO] RESEND_API_KEY no configurada, no se envía nada de verdad.")
         print(f"[DEV-CORREO] Para: {destinatario}")
         print(f"[DEV-CORREO] Asunto: {asunto}")
         if adjuntos:

@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import PaginaInfo from "./PaginaInfo.jsx";
 import DatosProveedor from "../components/DatosProveedor.jsx";
 import useConfigTienda from "../hooks/useConfigTienda.js";
+import SeccionLegal from "../components/SeccionLegal.jsx";
 
 // El correo sale de la configuración de la tienda (panel admin). Si todavía no
 // hay correo cargado, se manda a la página de Contacto en vez de publicar uno inventado.
@@ -12,15 +13,6 @@ function Contactar() {
     <>escríbenos a <strong className="text-plum">{correo_contacto}</strong></>
   ) : (
     <>escríbenos desde nuestra página de <Link to="/contacto" className="font-semibold text-berry hover:underline">Contacto</Link></>
-  );
-}
-
-function Seccion({ titulo, children }) {
-  return (
-    <section className="space-y-2">
-      <h2 className="text-lg font-semibold text-plum">{titulo}</h2>
-      {children}
-    </section>
   );
 }
 
@@ -39,12 +31,12 @@ export default function PoliticaPrivacidad() {
             Reglamento.
           </p>
 
-          <Seccion titulo="1. Quién es el responsable de tus datos">
+          <SeccionLegal titulo="1. Quién es el responsable de tus datos">
             <DatosProveedor />
             <p>Para consultas sobre tus datos, <Contactar />.</p>
-          </Seccion>
+          </SeccionLegal>
 
-          <Seccion titulo="2. Qué datos recopilamos">
+          <SeccionLegal titulo="2. Qué datos recopilamos">
             <ul className="list-disc space-y-1 pl-5">
               <li><strong className="text-plum">Tu cuenta:</strong> nombre, apellido, correo electrónico y contraseña (la guardamos cifrada, nunca en texto legible).</li>
               <li><strong className="text-plum">Tus compras y envíos:</strong> documento de identidad (DNI o RUC, según el comprobante), teléfono, dirección y distrito de entrega, y el detalle de tus pedidos.</li>
@@ -53,9 +45,9 @@ export default function PoliticaPrivacidad() {
               <li><strong className="text-plum">Uso del sitio:</strong> información básica de navegación, como páginas y productos vistos o acciones en el carrito, para entender cómo se usa la tienda y mejorarla.</li>
               <li><strong className="text-plum">Cookies y almacenamiento del navegador:</strong> usamos una cookie de sesión y almacenamiento local, solo con fines técnicos y de seguridad, para mantener tu sesión iniciada y protegerla.</li>
             </ul>
-          </Seccion>
+          </SeccionLegal>
 
-          <Seccion titulo="3. Para qué usamos tus datos">
+          <SeccionLegal titulo="3. Para qué usamos tus datos">
             <ul className="list-disc space-y-1 pl-5">
               <li>Crear y administrar tu cuenta.</li>
               <li>Procesar tus pedidos, pagos y envíos, y emitir tus comprobantes.</li>
@@ -65,9 +57,9 @@ export default function PoliticaPrivacidad() {
               <li>Mejorar la tienda con estadísticas de uso.</li>
             </ul>
             <p>No vendemos tus datos personales.</p>
-          </Seccion>
+          </SeccionLegal>
 
-          <Seccion titulo="4. Con quién los compartimos">
+          <SeccionLegal titulo="4. Con quién los compartimos">
             <p>Solo compartimos los datos necesarios con proveedores que nos ayudan a operar la tienda:</p>
             <ul className="list-disc space-y-1 pl-5">
               <li><strong className="text-plum">Culqi:</strong> procesa los pagos con tarjeta y Yape. Los datos de tu tarjeta los recibe Culqi directamente y nosotros no los almacenamos.</li>
@@ -82,42 +74,42 @@ export default function PoliticaPrivacidad() {
               El uso que hacemos de la información recibida de Google se ajusta a la Política de datos de usuario de
               los servicios de API de Google, incluidos los requisitos de uso limitado.
             </p>
-          </Seccion>
+          </SeccionLegal>
 
-          <Seccion titulo="5. Cuánto tiempo los conservamos">
+          <SeccionLegal titulo="5. Cuánto tiempo los conservamos">
             <p>
               Conservamos tus datos mientras tengas una cuenta activa y durante el tiempo necesario para cumplir
               las finalidades descritas y las obligaciones legales, por ejemplo las tributarias y de atención de
               reclamos.
             </p>
-          </Seccion>
+          </SeccionLegal>
 
-          <Seccion titulo="6. Cómo protegemos tus datos">
+          <SeccionLegal titulo="6. Cómo protegemos tus datos">
             <p>
               Tu conexión con la tienda va cifrada (HTTPS), las contraseñas se guardan cifradas y el acceso a la
               información interna está limitado según el rol de cada persona del equipo. Ningún sistema es
               infalible, pero trabajamos para mantener tus datos protegidos.
             </p>
-          </Seccion>
+          </SeccionLegal>
 
-          <Seccion titulo="7. Tus derechos">
+          <SeccionLegal titulo="7. Tus derechos">
             <p>
               Puedes ejercer tus derechos de acceso, rectificación, cancelación y oposición sobre tus datos
               personales: <Contactar />, indicando tu nombre, el correo de tu cuenta y qué quieres hacer. Si consideras que no atendimos tu solicitud,
               puedes acudir a la Autoridad Nacional de Protección de Datos Personales.
             </p>
-          </Seccion>
+          </SeccionLegal>
 
-          <Seccion titulo="8. Menores de edad">
+          <SeccionLegal titulo="8. Menores de edad">
             <p>La tienda no está dirigida a menores de 18 años. Si eres menor de edad, usa la tienda con el permiso de tu padre, madre o apoderado.</p>
-          </Seccion>
+          </SeccionLegal>
 
-          <Seccion titulo="9. Cambios en esta política">
+          <SeccionLegal titulo="9. Cambios en esta política">
             <p>
               Podemos actualizar esta política. Publicaremos siempre la versión vigente en esta página, con su
               fecha de actualización.
             </p>
-          </Seccion>
+          </SeccionLegal>
 
           <p>
             Consulta también nuestros <Link to="/terminos-y-condiciones" className="font-semibold text-berry hover:underline">Términos y condiciones</Link>.
