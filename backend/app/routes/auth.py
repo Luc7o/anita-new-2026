@@ -945,7 +945,6 @@ def eliminar_cuenta():
     usuario.direccion = None
     usuario.referencia = None
     usuario.distrito_id = None
-    usuario.distrito_legacy = usuario.provincia_legacy = usuario.departamento_legacy = None
     usuario.password_hash = None
     usuario.activo = False
     usuario.acepta_promociones = False

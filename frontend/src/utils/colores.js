@@ -7,6 +7,8 @@ export const MAPA_COLORES = {
   rojo: "#DC2626",
   guindo: "#7C1D2E",
   vino: "#7C1D2E",
+  borgoña: "#800020",
+  borgona: "#800020",
   azul: "#2563EB",
   "azul marino": "#1E3A8A",
   "azul rey": "#1D4ED8",

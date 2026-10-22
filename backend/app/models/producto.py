@@ -63,7 +63,6 @@ class Producto(db.Model):
 
     categoria_id = db.Column(db.Integer, db.ForeignKey("categorias.id"), nullable=False)
 
-    imagen_url = db.Column(db.String(400), default="")
 
     destacado = db.Column(db.Boolean, default=False)
     es_nuevo = db.Column(db.Boolean, default=True)
@@ -110,7 +109,7 @@ class Producto(db.Model):
     def imagen_principal(self):
         if self.imagenes:
             return self.imagenes[0].url
-        return self.imagen_url  # compatibilidad con productos antiguos
+        return ""  # sin imágenes todavía
 
     @property
     def precio_final(self):

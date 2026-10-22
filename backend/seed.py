@@ -79,7 +79,6 @@ def seed():
                     categoria_id=categorias_map[slug].id,
                     destacado=(i % 3 == 0),
                     es_nuevo=(i % 2 == 0),
-                    imagen_url="",
                 )
                 if tallas or colores:
                     # Con variantes, el stock real vive en cada variante.

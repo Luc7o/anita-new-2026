@@ -49,10 +49,6 @@ class Usuario(db.Model):
     # Respaldo de texto libre de antes de la migración 022, por si algún
     # registro no calzó exacto con el catálogo oficial. Ya no se usa en la
     # aplicación, solo queda como histórico.
-    distrito_legacy = db.Column(db.String(100))
-    provincia_legacy = db.Column(db.String(100))
-    departamento_legacy = db.Column(db.String(100))
-    rol_legacy = db.Column(db.String(20))
 
     activo = db.Column(db.Boolean, default=True)
     es_admin = db.Column(db.Boolean, default=False)  # legado, se mantiene por compatibilidad

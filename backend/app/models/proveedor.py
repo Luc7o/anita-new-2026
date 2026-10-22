@@ -68,7 +68,7 @@ class ProveedorProducto(db.Model):
                 "id": self.producto.id,
                 "nombre": self.producto.nombre,
                 "sku": self.producto.sku,
-                "imagen_url": self.producto.imagen_url,
+                "imagen_url": self.producto.imagen_principal,
                 "precio": float(self.producto.precio),
                 "stock": self.producto.stock,
             } if self.producto else None,

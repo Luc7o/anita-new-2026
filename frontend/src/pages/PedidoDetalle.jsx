@@ -282,14 +282,6 @@ export default function PedidoDetalle() {
               </div>
             )}
 
-            {pedido.comprobante_url && (
-              <img
-                src={pedido.comprobante_url}
-                alt="Comprobante de pago"
-                className="mt-3 h-32 w-32 rounded-xl object-cover shadow-glass"
-              />
-            )}
-
             {pedido.estado_pago === "en_revision" && (
               <p className="mt-3 text-sm text-plum-soft">
                 Tu pago está en revisión. Te avisaremos apenas se confirme.

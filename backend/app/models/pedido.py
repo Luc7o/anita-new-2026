@@ -68,7 +68,6 @@ class Pedido(db.Model):
 
     estado = db.Column(db.String(20), default="pendiente")
     estado_pago = db.Column(db.String(20), default="pendiente")
-    comprobante_url = db.Column(db.String(400))
     metodo_pago = db.Column(db.String(20), nullable=False)
     tipo_entrega = db.Column(db.String(20), default="delivery")
     origen = db.Column(db.String(20), nullable=False, default="online")
@@ -93,8 +92,6 @@ class Pedido(db.Model):
     numero_seguimiento = db.Column(db.String(100))
 
     # Solo referencia visual — NUNCA se guarda número completo ni CVV
-    tarjeta_titular = db.Column(db.String(160))
-    tarjeta_ultimos4 = db.Column(db.String(4))
 
     # Identificador del cargo en Culqi ("chr_..."), cuando el pago se hizo
     # por la pasarela — sirve para conciliar y consultar el cargo después.
@@ -187,7 +184,6 @@ class Pedido(db.Model):
             "estado_label": self.estado_label,
             "estado_pago": self.estado_pago,
             "estado_pago_label": self.estado_pago_label,
-            "comprobante_url": self.comprobante_url,
             "metodo_pago": self.metodo_pago,
             "metodo_pago_label": self.metodo_pago_label,
             "tipo_entrega": self.tipo_entrega,
@@ -208,8 +204,6 @@ class Pedido(db.Model):
             "envio_dpto": self.envio_dpto,
             "envio_referencia": self.envio_referencia,
             "nota": self.nota,
-            "tarjeta_titular": self.tarjeta_titular,
-            "tarjeta_ultimos4": self.tarjeta_ultimos4,
             "culqi_cargo_id": self.culqi_cargo_id,
             "empresa_envio": self.empresa_envio,
             "numero_seguimiento": self.numero_seguimiento,
