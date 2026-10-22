@@ -22,7 +22,7 @@ export function SkeletonRegion({ etiqueta = "Cargando", className = "", children
 
 // Misma estructura y proporciones que ProductCard (imagen 4:5, textos,
 // precio y los dos botones) para evitar saltos de layout.
-export function SkeletonProductCard() {
+function SkeletonProductCard() {
   return (
     <div
       aria-hidden="true"
@@ -108,16 +108,6 @@ export function SkeletonFilas({ cantidad = 3, etiqueta = "Cargando" }) {
           </div>
           <Skeleton className="h-5 w-16" />
         </div>
-      ))}
-    </SkeletonRegion>
-  );
-}
-
-export function SkeletonTexto({ lineas = 3, className = "" }) {
-  return (
-    <SkeletonRegion etiqueta="Cargando" className={`space-y-2 ${className}`}>
-      {Array.from({ length: lineas }, (_, i) => (
-        <Skeleton key={i} className={`h-4 ${i === lineas - 1 ? "w-2/3" : "w-full"}`} />
       ))}
     </SkeletonRegion>
   );

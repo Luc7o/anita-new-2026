@@ -1,20 +1,19 @@
 import re
 from datetime import datetime, timedelta
-from flask import Blueprint, request, jsonify, Response, current_app
-from flask_jwt_extended import jwt_required, get_jwt_identity
+from flask import Blueprint, request, jsonify, current_app
+from flask_jwt_extended import get_jwt_identity
 from app.extensions import db, limiter
-from app.models import ItemCarrito, Pedido, DetallePedido, Producto, Usuario
+from app.models import ItemCarrito, Pedido, DetallePedido, Usuario
 from app.utils.stock import (
     agrupar_por_producto,
-    validar_stock_disponible,
     validar_stock_disponible_items,
     descontar_stock,
     restaurar_stock_de_pedido,
 )
 from app.utils.decorators import requiere_activo
 from app.utils.culqi import culqi_configurado, crear_cargo
-from app.utils.boleta import generar_pdf_boleta
-from app.utils.pedidos_vencidos import cancelar_pedidos_vencidos_del_usuario
+from app.utils.boleta import responder_boleta
+from app.utils.pedidos_vencidos import METODOS_PAGO_PASARELA, cancelar_pedidos_vencidos_del_usuario
 from app.utils.historial import cambiar_estado_pedido
 from app.models import IntentoPago
 
@@ -38,10 +37,6 @@ DOCUMENTO_ERRORES = {
 }
 # Dirección: letras (con tildes/ñ), números, espacios y SOLO . * ° #
 DIRECCION_RE = re.compile(r"^[A-Za-zÀ-ÿñÑ0-9\s.*°#]+$")
-
-# Tarjeta y Yape se cobran por la pasarela Culqi (cargo único, síncrono).
-METODOS_PAGO_PASARELA = {"tarjeta", "yape"}
-
 
 @bp.post("/checkout")
 @requiere_activo
@@ -381,13 +376,4 @@ def pagar_pedido(pedido_id):
 def boleta_pedido(pedido_id):
     usuario_id = int(get_jwt_identity())
     pedido = Pedido.query.filter_by(id=pedido_id, usuario_id=usuario_id).first_or_404()
-
-    if pedido.estado_pago != "verificado":
-        return jsonify({"error": "Este pedido todavía no tiene el pago verificado"}), 400
-
-    pdf_bytes = generar_pdf_boleta(pedido)
-    return Response(
-        pdf_bytes,
-        mimetype="application/pdf",
-        headers={"Content-Disposition": f"inline; filename=boleta-{pedido.numero_pedido}.pdf"},
-    )
+    return responder_boleta(pedido)

@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { api } from "../api/client.js";
-
-const claseSelect =
-  "w-full rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-none disabled:opacity-60";
+import { claseSelect } from "../estilos.js";
+import CampoUbicacion from "./CampoUbicacion.jsx";
 
 // Departamento al que por ahora se despacha. Se busca por nombre en el
 // catálogo (GET /api/ubicaciones/departamentos) en vez de fijar un id, así
@@ -78,38 +77,22 @@ export default function UbicacionEntrega({ onChange }) {
             <option value={departamento?.id || ""}>{departamento ? "Junín" : "Cargando..."}</option>
           </select>
         </div>
-        <div>
-          <label htmlFor="chk-provincia" className="sr-only">Provincia</label>
-          <select
-            id="chk-provincia"
-            required
-            disabled={!provincias.length}
-            value={provinciaId}
-            onChange={elegirProvincia}
-            className={claseSelect}
-          >
-            <option value="">Provincia</option>
-            {provincias.map((p) => (
-              <option key={p.id} value={p.id}>{p.nombre}</option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label htmlFor="chk-distrito" className="sr-only">Distrito</label>
-          <select
-            id="chk-distrito"
-            required
-            disabled={!provinciaId}
-            value={distritoId}
-            onChange={elegirDistrito}
-            className={claseSelect}
-          >
-            <option value="">Distrito</option>
-            {distritos.map((d) => (
-              <option key={d.id} value={d.id}>{d.nombre}</option>
-            ))}
-          </select>
-        </div>
+        <CampoUbicacion
+          id="chk-provincia"
+          etiqueta="Provincia"
+          valor={provinciaId}
+          onChange={elegirProvincia}
+          opciones={provincias}
+          disabled={!provincias.length}
+        />
+        <CampoUbicacion
+          id="chk-distrito"
+          etiqueta="Distrito"
+          valor={distritoId}
+          onChange={elegirDistrito}
+          opciones={distritos}
+          disabled={!provinciaId}
+        />
       </div>
       {errorCarga && (
         <p className="mt-1 text-xs text-berry-dark">

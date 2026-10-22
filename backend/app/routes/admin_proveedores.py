@@ -73,6 +73,20 @@ def eliminar(proveedor_id):
     return jsonify({"mensaje": "Proveedor desactivado"})
 
 
+def _leer_precio_compra(valor):
+    """Valida el precio de compra de un proveedor. Devuelve (precio | None, None)
+    o (None, (respuesta, 400)) si no es válido. Vacío significa "sin precio"."""
+    if valor in (None, ""):
+        return None, None
+    try:
+        precio = float(valor)
+    except (TypeError, ValueError):
+        return None, (jsonify({"error": "El precio de compra no es un número válido"}), 400)
+    if precio < 0:
+        return None, (jsonify({"error": "El precio de compra no puede ser negativo"}), 400)
+    return precio, None
+
+
 @bp.post("/<int:proveedor_id>/productos")
 @requiere_roles(*PUEDE_GESTIONAR_PROVEEDORES)
 def agregar_producto(proveedor_id):
@@ -86,16 +100,9 @@ def agregar_producto(proveedor_id):
     if not producto:
         return jsonify({"error": "El producto no existe"}), 404
 
-    precio_compra = data.get("precio_compra")
-    if precio_compra not in (None, ""):
-        try:
-            precio_compra = float(precio_compra)
-            if precio_compra < 0:
-                return jsonify({"error": "El precio de compra no puede ser negativo"}), 400
-        except (TypeError, ValueError):
-            return jsonify({"error": "El precio de compra no es un número válido"}), 400
-    else:
-        precio_compra = None
+    precio_compra, error = _leer_precio_compra(data.get("precio_compra"))
+    if error:
+        return error
 
     existente = ProveedorProducto.query.filter_by(
         proveedor_id=proveedor.id, producto_id=producto.id
@@ -129,16 +136,9 @@ def actualizar_producto(proveedor_id, relacion_id):
     data = request.get_json(force=True) or {}
 
     if "precio_compra" in data:
-        precio_compra = data["precio_compra"]
-        if precio_compra not in (None, ""):
-            try:
-                precio_compra = float(precio_compra)
-                if precio_compra < 0:
-                    return jsonify({"error": "El precio de compra no puede ser negativo"}), 400
-            except (TypeError, ValueError):
-                return jsonify({"error": "El precio de compra no es un número válido"}), 400
-        else:
-            precio_compra = None
+        precio_compra, error = _leer_precio_compra(data["precio_compra"])
+        if error:
+            return error
         relacion.precio_compra = precio_compra
 
     if "activo" in data:

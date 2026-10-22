@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from flask_jwt_extended import jwt_required, get_jwt_identity
+from flask_jwt_extended import get_jwt_identity
 from sqlalchemy import func
 from sqlalchemy.orm import joinedload, selectinload
 from app.extensions import db, limiter
@@ -312,7 +312,7 @@ def listar_resenas_recientes():
 @limiter.limit("20 per hour")
 def crear_o_editar_resena(producto_id):
     usuario_id = int(get_jwt_identity())
-    producto = Producto.query.get_or_404(producto_id)
+    Producto.query.get_or_404(producto_id)
     data = request.get_json(force=True) or {}
 
     calificacion = data.get("calificacion")

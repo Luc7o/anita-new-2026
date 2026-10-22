@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify
 from flask_jwt_extended import get_jwt_identity
-from sqlalchemy.orm import joinedload, selectinload
+from sqlalchemy.orm import joinedload
 from app.extensions import db
 from app.models import Favorito, Producto
 from app.utils.decorators import requiere_activo

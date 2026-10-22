@@ -239,15 +239,6 @@ export function IconMail({ size = 18, className = "" }) {
   );
 }
 
-export function IconLock({ size = 18, className = "" }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" {...base} className={className}>
-      <rect x="4" y="11" width="16" height="10" rx="2" />
-      <path d="M8 11V7a4 4 0 0 1 8 0v4" />
-    </svg>
-  );
-}
-
 export function IconArrowLeft({ size = 18, className = "" }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" {...base} className={className}>
@@ -324,79 +315,6 @@ export function IconHelp({ size = 18, className = "" }) {
       <circle cx="12" cy="12" r="9" />
       <path d="M9.3 9a2.7 2.7 0 1 1 3.9 2.4c-.8.5-1.2 1-1.2 1.9" />
       <circle cx="12" cy="17" r="0.3" fill="currentColor" stroke="none" />
-    </svg>
-  );
-}
-
-export function IconShield({ size = 18, className = "" }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" {...base} className={className}>
-      <path d="M12 3 4 6v6c0 4.5 3 8 8 9 5-1 8-4.5 8-9V6l-8-3Z" />
-    </svg>
-  );
-}
-
-export function IconKey({ size = 18, className = "" }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" {...base} className={className}>
-      <circle cx="7.5" cy="15.5" r="4.5" />
-      <path d="m11 12 8-8" />
-      <path d="m17 6 3 3" />
-      <path d="m14 9 2.5 2.5" />
-    </svg>
-  );
-}
-
-export function IconGlobe({ size = 18, className = "" }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" {...base} className={className}>
-      <circle cx="12" cy="12" r="9" />
-      <path d="M3 12h18" />
-      <path d="M12 3c2.5 2.5 3.8 5.8 3.8 9s-1.3 6.5-3.8 9c-2.5-2.5-3.8-5.8-3.8-9S9.5 5.5 12 3Z" />
-    </svg>
-  );
-}
-
-export function IconInfo({ size = 18, className = "" }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" {...base} className={className}>
-      <circle cx="12" cy="12" r="9" />
-      <path d="M12 11v6" />
-      <circle cx="12" cy="7.5" r="0.3" fill="currentColor" stroke="none" />
-    </svg>
-  );
-}
-
-export function IconFileText({ size = 18, className = "" }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" {...base} className={className}>
-      <path d="M6 3h9l4 4v14a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z" />
-      <path d="M9 12h6M9 16h6M9 8h3" />
-    </svg>
-  );
-}
-
-export function IconRefresh({ size = 18, className = "" }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" {...base} className={className}>
-      <path d="M20 11a8 8 0 0 0-14.9-3.5M4 13a8 8 0 0 0 14.9 3.5" />
-      <path d="M5 4v4h4M19 20v-4h-4" />
-    </svg>
-  );
-}
-
-export function IconApple({ size = 16, className = "" }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" className={className}>
-      <path d="M16.4 1.4c.1 1.1-.3 2.2-1 3-.7.8-1.9 1.5-3 1.4-.1-1.1.4-2.3 1-3 .8-.9 2-1.5 3-1.4Zm3.2 16.6c-.5 1.1-.7 1.6-1.4 2.6-.9 1.4-2.2 3.1-3.8 3.1-1.4 0-1.8-.9-3.7-.9-1.9 0-2.4.9-3.7.9-1.6 0-2.8-1.6-3.7-3-2.5-3.9-2.8-8.5-1.2-10.9 1.1-1.7 2.8-2.7 4.5-2.7 1.7 0 2.8 1 4.2 1 1.4 0 2.2-1 4.2-1 1.5 0 3 .8 4.1 2.2-3.6 2-3 7.2.5 8.7Z" />
-    </svg>
-  );
-}
-
-export function IconPlay({ size = 16, className = "" }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" className={className}>
-      <path d="M5 3.5c0-1 1.1-1.7 2-1.2l13 9.7c.8.6.8 1.9 0 2.5l-13 9.7c-.9.5-2-.2-2-1.2V3.5Z" />
     </svg>
   );
 }

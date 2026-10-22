@@ -19,15 +19,14 @@ imprime en la boleta):
 """
 import base64
 import io
-from datetime import datetime, timedelta
-from decimal import Decimal, ROUND_HALF_UP
+from decimal import Decimal
 from functools import lru_cache
 from html import escape
-from pathlib import Path
 
-from flask import current_app
+from flask import Response, current_app, jsonify
 from PIL import Image, ImageDraw
 
+from app.utils.formato import a_2_decimales as _2d, a_lima, logo_html, num as _num
 from app.utils.pdf import html_a_pdf
 
 NOMBRE_TIENDA = "ANITA NEW STYLE"
@@ -36,10 +35,6 @@ IGV_TASA = Decimal("0.18")
 
 # Lima no tiene horario de verano: siempre UTC-5 (offset fijo, sin depender
 # de la base de datos tz del entorno serverless).
-OFFSET_LIMA = timedelta(hours=-5)
-
-_LOGO_PATH = Path(__file__).resolve().parent.parent / "static" / "logo-reporte.png"
-
 # Alto aproximado (en puntos) que debe ocupar la zona de detalle para que la
 # boleta se vea como una hoja completa; el espacio que no usan las filas se
 # rellena con una fila vacía (ver _bloque_items). Con muchos ítems la fila de
@@ -129,25 +124,6 @@ _CSS = """
 # ---------------------------------------------------------------------------
 # Utilidades
 # ---------------------------------------------------------------------------
-
-def _dec(valor):
-    return Decimal(str(valor))
-
-
-def _2d(valor):
-    """Decimal redondeado a 2 decimales (mitad hacia arriba, como en caja)."""
-    return _dec(valor).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
-
-
-def _num(valor):
-    """1234.5 -> '1,234.50' (sin 'S/', los encabezados ya dicen (S/))."""
-    return f"{_2d(valor):,.2f}"
-
-
-def _a_lima(fecha_iso):
-    """Los pedidos se guardan en UTC; la boleta muestra la hora de Lima."""
-    return datetime.fromisoformat(fecha_iso) + OFFSET_LIMA
-
 
 _UNIDADES = [
     "", "UNO", "DOS", "TRES", "CUATRO", "CINCO", "SEIS", "SIETE", "OCHO", "NUEVE",
@@ -258,15 +234,6 @@ def _recuadro(contenido):
     """
 
 
-def _logo_html():
-    try:
-        b64 = base64.b64encode(_LOGO_PATH.read_bytes()).decode()
-        return f'<img src="data:image/png;base64,{b64}" width="132" height="132" />'
-    except OSError:
-        # Sin logo la boleta igual se genera: solo se deja el espacio vacío.
-        return ""
-
-
 # ---------------------------------------------------------------------------
 # Piezas de la boleta
 # ---------------------------------------------------------------------------
@@ -339,7 +306,7 @@ def _bloque_cabecera(data, tienda):
 
     return f"""
     <table class="cab"><tr>
-        <td style="width: 146px;">{_logo_html()}</td>
+        <td style="width: 146px;">{logo_html(132)}</td>
         <td style="padding: 0 6px;">
             <p class="tienda">{NOMBRE_TIENDA}</p>
             {"".join(lineas)}
@@ -375,7 +342,7 @@ def _bloque_observaciones(data):
 
 
 def _bloque_meta(data):
-    fecha = _a_lima(data["fecha_creacion"]).strftime("%d/%m/%Y")
+    fecha = a_lima(data["fecha_creacion"]).strftime("%d/%m/%Y")
     # Venta presencial en efectivo: el modelo la guarda como "efectivo" con
     # origen "presencial" (el label genérico diría "Pago contra entrega").
     if data["metodo_pago"] == "efectivo" and data["origen"] == "presencial":
@@ -505,3 +472,15 @@ def generar_pdf_boleta(pedido):
 </body></html>"""
 
     return html_a_pdf(html)
+
+
+def responder_boleta(pedido):
+    """Respuesta HTTP con la boleta en PDF (la usan la ruta del cliente y la del admin)."""
+    if pedido.estado_pago != "verificado":
+        return jsonify({"error": "Este pedido todavía no tiene el pago verificado"}), 400
+
+    return Response(
+        generar_pdf_boleta(pedido),
+        mimetype="application/pdf",
+        headers={"Content-Disposition": f"inline; filename=boleta-{pedido.numero_pedido}.pdf"},
+    )

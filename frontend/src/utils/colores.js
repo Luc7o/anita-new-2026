@@ -1,7 +1,7 @@
 // Traduce el nombre del color (como se guarda en BD) a un hex real para
 // pintar el círculo. Si aparece un color que no está mapeado, cae a un
 // gris neutro en vez de romper la UI.
-export const MAPA_COLORES = {
+const MAPA_COLORES = {
   negro: "#171717",
   blanco: "#FFFFFF",
   rojo: "#DC2626",

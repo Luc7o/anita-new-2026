@@ -2,12 +2,13 @@ import React from "react";
 import { IconFacebook, IconInstagram, IconTikTok, IconWhatsApp } from "./Icons.jsx";
 import useConfigTienda, { linkWhatsApp } from "../hooks/useConfigTienda.js";
 
-const clase = "text-plum-soft transition hover:text-berry";
+const CLASE_POR_DEFECTO = "text-plum-soft transition hover:text-berry";
 
-// Íconos de redes de las páginas de acceso (Login, Registro, etc.).
+// Íconos de redes de la tienda (páginas de acceso y pie de página).
+// `clase` permite cambiar el estilo de cada enlace según el fondo donde se use.
 // Los enlaces salen de Configuración de la tienda; si un dato está vacío,
 // ese ícono no se muestra (así no quedan enlaces muertos con href="#").
-export default function RedesAuth() {
+export default function RedesAuth({ clase = CLASE_POR_DEFECTO }) {
   const c = useConfigTienda();
   const wa = linkWhatsApp(c.whatsapp);
   return (

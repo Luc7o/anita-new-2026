@@ -4,6 +4,7 @@ import Spinner from "../../components/Spinner.jsx";
 import { SkeletonFilasAdmin } from "../../components/admin/EsqueletosAdmin.jsx";
 import React, { useEffect, useRef, useState } from "react";
 import { api } from "../../api/client.js";
+import { hoyISO } from "../../formato.js";
 import ImagenOptimizada from "../../components/ImagenOptimizada.jsx";
 import { IconClose, IconSearch, IconChevronDown } from "../../components/Icons.jsx";
 import { TIENDA_URL } from "../../lib/appMode.js";
@@ -39,11 +40,6 @@ function tipoDeEnlace(link, productoId) {
   if (link.startsWith("/tienda?categoria=")) return "categoria";
   return "otro";
 }
-
-const hoyISO = () => {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-};
 
 // Cómo se verá en el carrusel del inicio (misma estructura que el Hero de la tienda).
 function VistaPrevia({ form }) {

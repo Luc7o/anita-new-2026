@@ -9,12 +9,11 @@ A diferencia de la boleta, NO usa el CSS de marca de generar_pdf(): esta
 plantilla es sobria (blanco y negro), así que trae su propio CSS y se
 convierte con html_a_pdf(). La boleta y la hoja de reclamación no cambian.
 """
-import base64
 from collections import Counter, defaultdict
-from datetime import datetime, timedelta
+from datetime import datetime
 from html import escape
-from pathlib import Path
 
+from app.utils.formato import a_lima, logo_html, num
 from app.utils.pdf import html_a_pdf, formatear_moneda
 
 NOMBRE_TIENDA = "ANITA NEW STYLE"
@@ -23,10 +22,6 @@ IGV_TASA = 0.18
 
 # Lima no tiene horario de verano: siempre UTC-5. Se usa un offset fijo en vez
 # de zoneinfo para no depender de la base de datos tz del entorno serverless.
-OFFSET_LIMA = timedelta(hours=-5)
-
-_LOGO_PATH = Path(__file__).resolve().parent.parent / "static" / "logo-reporte.png"
-
 _CSS = """
     @page {
         size: A4;
@@ -84,20 +79,6 @@ _CSS = """
 """
 
 
-def _logo_html():
-    try:
-        b64 = base64.b64encode(_LOGO_PATH.read_bytes()).decode()
-        return f'<img src="data:image/png;base64,{b64}" width="80" height="80" />'
-    except OSError:
-        # Sin logo el reporte igual se genera: solo se deja el espacio vacío.
-        return ""
-
-
-def _a_lima(fecha_utc):
-    """Los pedidos se guardan en UTC naive; el reporte los muestra en hora de Lima."""
-    return fecha_utc + OFFSET_LIMA
-
-
 def _metodo_label(p):
     if p.metodo_pago == "efectivo" and p.origen == "presencial":
         return "Efectivo (tienda)"
@@ -112,10 +93,6 @@ def _metodo_corto(p):
 
 def _pct(parte, total):
     return f"{(parte / total * 100) if total else 0:.1f}%"
-
-
-def _num(valor):
-    return f"{valor:,.2f}"
 
 
 def _fila_vacia(cols):
@@ -154,7 +131,7 @@ def generar_pdf_reporte_ventas(pedidos, desde_str=None, hasta_str=None):
         pedidos_por_origen[p.origen_label] += 1
         monto_por_origen[p.origen_label] += float(p.total)
 
-        dia = _a_lima(p.fecha_creacion).date()
+        dia = a_lima(p.fecha_creacion).date()
         pedidos_por_dia[dia] += 1
         monto_por_dia[dia] += float(p.total)
 
@@ -194,7 +171,7 @@ def generar_pdf_reporte_ventas(pedidos, desde_str=None, hasta_str=None):
 
     filas_pedidos = "".join(
         f"<tr><td>{escape(p.numero_pedido)}</td>"
-        f"<td>{_a_lima(p.fecha_creacion).strftime('%d/%m/%Y')}</td>"
+        f"<td>{a_lima(p.fecha_creacion).strftime('%d/%m/%Y')}</td>"
         f"<td>{escape(p.envio_nombre or ('Cliente mostrador' if p.origen == 'presencial' else '—'))}</td>"
         f"<td>{'Tienda' if p.origen == 'presencial' else 'Online'}</td>"
         f"<td>{escape(_metodo_corto(p))}</td>"
@@ -203,14 +180,14 @@ def generar_pdf_reporte_ventas(pedidos, desde_str=None, hasta_str=None):
     ) or _fila_vacia(6)
 
     rango = f"Del {desde_str or 'inicio'} al {hasta_str or 'hoy'}" if (desde_str or hasta_str) else "Todo el historial"
-    emitido = _a_lima(datetime.utcnow()).strftime("%d/%m/%Y %H:%M")
+    emitido = a_lima(datetime.utcnow()).strftime("%d/%m/%Y %H:%M")
 
     html = f"""<!DOCTYPE html>
 <html><head><meta charset="utf-8"><title>Reporte de ventas — {rango}</title>
 <style>{_CSS}</style></head>
 <body>
     <table class="cab"><tr>
-        <td style="width: 90px;">{_logo_html()}</td>
+        <td style="width: 90px;">{logo_html(80)}</td>
         <td>
             <p class="tienda">{NOMBRE_TIENDA}</p>
             <p class="web"><b>Web:</b> {WEB_TIENDA}</p>
@@ -236,10 +213,10 @@ def generar_pdf_reporte_ventas(pedidos, desde_str=None, hasta_str=None):
     </tr></table>
 
     <table class="igv">
-        <tr><td style="width: 48%;"></td><td>OP. GRAVADA (S/)</td><td class="monto">{_num(op_gravada)}</td></tr>
-        <tr><td></td><td>IGV 18% (S/)</td><td class="monto">{_num(igv)}</td></tr>
-        <tr><td></td><td>ENVÍO (S/)</td><td class="monto">{_num(total_envio)}</td></tr>
-        <tr class="total"><td></td><td class="tl">TOTAL (S/)</td><td class="monto tl">{_num(total_ventas)}</td></tr>
+        <tr><td style="width: 48%;"></td><td>OP. GRAVADA (S/)</td><td class="monto">{num(op_gravada)}</td></tr>
+        <tr><td></td><td>IGV 18% (S/)</td><td class="monto">{num(igv)}</td></tr>
+        <tr><td></td><td>ENVÍO (S/)</td><td class="monto">{num(total_envio)}</td></tr>
+        <tr class="total"><td></td><td class="tl">TOTAL (S/)</td><td class="monto tl">{num(total_ventas)}</td></tr>
     </table>
 
     <h2>Por método de pago</h2>

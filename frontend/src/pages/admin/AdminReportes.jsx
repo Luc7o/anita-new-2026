@@ -1,10 +1,8 @@
 import Spinner from "../../components/Spinner.jsx";
 import React, { useState } from "react";
 import { api } from "../../api/client.js";
+import { hoyISO } from "../../formato.js";
 
-function hoyISO() {
-  return new Date().toISOString().slice(0, 10);
-}
 function haceUnMesISO() {
   const d = new Date();
   d.setMonth(d.getMonth() - 1);
