@@ -66,11 +66,13 @@ class Color(db.Model):
 
     @classmethod
     def obtener_o_crear(cls, nombre):
-        nombre = (nombre or "").strip()
+        from app.utils.colores import hex_de_color, normalizar_nombre_color
+
+        nombre = normalizar_nombre_color(nombre)
         existente = cls.query.filter(db.func.lower(cls.nombre) == nombre.lower()).first()
         if existente:
             return existente
-        nuevo = cls(nombre=nombre)
+        nuevo = cls(nombre=nombre, codigo_hex=hex_de_color(nombre))
         db.session.add(nuevo)
         db.session.flush()
         return nuevo

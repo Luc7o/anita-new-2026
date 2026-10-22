@@ -119,12 +119,9 @@ def checkout():
         if not envio_referencia:
             return jsonify({"error": "Falta la referencia de la dirección"}), 400
 
-    # Tarjeta: solo referencia visual, NUNCA se pide ni se acepta número de
-    # tarjeta ni CVV — Culqi tokeniza esos datos directamente en el navegador
-    # del cliente, nunca tocan nuestro servidor.
-    tarjeta_titular = None
-    if metodo_pago == "tarjeta":
-        tarjeta_titular = (data.get("tarjeta_titular") or "").strip()[:160] or None
+    # Tarjeta: NUNCA se pide ni se acepta número de tarjeta, CVV ni titular —
+    # Culqi tokeniza esos datos directamente en el navegador del cliente y nunca
+    # tocan nuestro servidor.
 
     # Validar stock antes de confirmar — respeta el stock por variante (talla/color)
     # cuando el producto lo usa, o el stock total del producto si no.
@@ -184,7 +181,6 @@ def checkout():
         # poder agrupar KPIs geográficos sin parsear texto.
         distrito_id=data.get("distrito_id") if isinstance(data.get("distrito_id"), int) else None,
         nota=(data.get("nota") or "").strip()[:500] or None,
-        tarjeta_titular=tarjeta_titular,
     )
 
     db.session.add(pedido)

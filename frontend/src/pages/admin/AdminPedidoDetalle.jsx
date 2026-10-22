@@ -184,22 +184,6 @@ export default function AdminPedidoDetalle() {
               </span>
             </div>
 
-            {pedido.metodo_pago === "tarjeta" && pedido.tarjeta_ultimos4 && (
-              <p className="mt-2 text-sm text-plum-soft">
-                Tarjeta terminada en <strong className="text-plum">{pedido.tarjeta_ultimos4}</strong> · Titular: {pedido.tarjeta_titular}
-              </p>
-            )}
-
-            {pedido.comprobante_url && (
-              <a href={pedido.comprobante_url} target="_blank" rel="noreferrer">
-                <img
-                  src={pedido.comprobante_url}
-                  alt="Comprobante de pago"
-                  className="mt-3 h-40 w-40 rounded-xl object-cover transition hover:opacity-90"
-                />
-              </a>
-            )}
-
             {pedido.estado !== "cancelado" &&
               (pedido.estado_pago === "en_revision" || (pedido.metodo_pago === "tarjeta" && pedido.estado_pago === "pendiente")) && (
               <div className="mt-3 flex gap-2">
