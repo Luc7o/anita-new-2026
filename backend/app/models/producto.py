@@ -53,8 +53,8 @@ class Producto(db.Model):
     nombre = db.Column(db.String(150), nullable=False)
     descripcion = db.Column(db.Text)
 
-    precio = db.Column(db.Numeric(6, 2), nullable=False)
-    precio_oferta = db.Column(db.Numeric(6, 2))
+    precio = db.Column(db.Numeric(10, 2), nullable=False)
+    precio_oferta = db.Column(db.Numeric(10, 2))
 
     stock = db.Column(db.Integer, default=0)
     sku = db.Column(db.String(60), unique=True)

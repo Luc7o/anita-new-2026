@@ -208,6 +208,7 @@ def descontar_stock(grupos, productos_cache, pedido_id=None):
 def restaurar_stock_de_pedido(pedido):
     """
     Devuelve al stock las cantidades de un pedido (al cancelarlo).
+    Devuelve True si devolvió stock, False si ese pedido ya lo había devuelto.
 
     Usa detalle.variante_id (referencia histórica directa) cuando está
     disponible — es la forma correcta y a prueba de que la variante haya
@@ -215,6 +216,13 @@ def restaurar_stock_de_pedido(pedido):
     que no tengan variante_id (pedidos creados antes de esta corrección),
     cae de vuelta a buscar por producto_id + talla + color, igual que antes.
     """
+    # Idempotente: un pedido devuelve su stock UNA sola vez. Si por cualquier
+    # camino (cron, cancelación del cliente, panel admin) se llama de nuevo para
+    # un pedido que ya devolvió su stock, no se hace nada: devolverlo dos veces
+    # inflaría el inventario con unidades que no existen.
+    if MovimientoStock.query.filter_by(pedido_id=pedido.id, tipo="restauracion").first():
+        return False
+
     detalles = pedido.detalles.all()
 
     con_variante_id = [d for d in detalles if d.variante_id is not None]
@@ -270,3 +278,5 @@ def restaurar_stock_de_pedido(pedido):
                 cantidad=cantidad,
                 pedido_id=pedido.id,
             ))
+
+    return True

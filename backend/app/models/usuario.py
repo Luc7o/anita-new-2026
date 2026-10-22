@@ -97,7 +97,9 @@ class Usuario(db.Model):
 
     pedidos = db.relationship(
         "Pedido", backref="cliente", lazy="dynamic",
-        cascade="all, delete-orphan", passive_deletes=True,
+        # Los pedidos NO se borran con el usuario: la base lo impide (FK RESTRICT)
+        # y el ORM no intenta tocarlos al borrar un usuario.
+        cascade="save-update, merge", passive_deletes="all",
     )
     carrito = db.relationship(
         "ItemCarrito", backref="usuario", lazy="dynamic",
