@@ -33,6 +33,8 @@ CODIGOS_YA_EXISTE = {
     1022,  # Duplicate key (nombre de constraint ya usado)
     1826,  # Duplicate foreign key constraint name
     1068,  # Multiple primary key defined
+    1091,  # Can't DROP ...; check that it exists (el índice/FK ya se había quitado)
+    3822,  # Duplicate check constraint name (la restricción CHECK ya existe)
 }
 
 # Respaldo por texto del mensaje: algunos drivers/motores no exponen el
@@ -51,6 +53,10 @@ FRASES_YA_EXISTE = (
     "duplicate key name",
     "already exists",
     "duplicate foreign key",
+    "duplicate check constraint",
+    "check that column/key exists",
+    "can't drop",
+    "errno: 121",  # MariaDB: nombre de FOREIGN KEY repetido (MySQL usa el código 1826)
 )
 
 

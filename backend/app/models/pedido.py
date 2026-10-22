@@ -3,6 +3,10 @@ import uuid
 from app.extensions import db
 
 
+# OJO: los valores válidos de estado, estado de pago, método de pago, entrega y
+# origen también están escritos como restricciones CHECK en la base de datos
+# (migración 046). Si agregas uno nuevo en los diccionarios de abajo, agrégalo
+# también en esa restricción con una migración nueva; si no, la base lo rechazará.
 class Pedido(db.Model):
     __tablename__ = "pedidos"
 
@@ -60,7 +64,7 @@ class Pedido(db.Model):
     # Nullable: una venta presencial (mostrador) puede no tener una cuenta de
     # cliente asociada — en ese caso el nombre/teléfono del cliente se guardan
     # igual en envio_nombre/envio_telefono, solo que sin cuenta detrás.
-    usuario_id = db.Column(db.Integer, db.ForeignKey("usuarios.id", ondelete="CASCADE"), nullable=True)
+    usuario_id = db.Column(db.Integer, db.ForeignKey("usuarios.id", ondelete="RESTRICT"), nullable=True)
 
     estado = db.Column(db.String(20), default="pendiente")
     estado_pago = db.Column(db.String(20), default="pendiente")
