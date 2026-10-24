@@ -5,16 +5,13 @@ import React, { useEffect, useState } from "react";
 import { api } from "../../api/client.js";
 import { soloTexto } from "../../validacion.js";
 import { useFocusTrap } from "../../hooks/useFocusTrap.js";
-import { useAuth } from "../../context/AuthContext.jsx";
 import Paginador from "../../components/Paginador.jsx";
 import { usePaginacion } from "../../hooks/usePaginacion.js";
 
-const VACIO = { nombre: "", apellido: "", email: "", password: "", rol: "editor" };
+const VACIO = { nombre: "", apellido: "", email: "", password: "", rol: "administrativo" };
 
 export default function AdminUsuarios() {
   const toast = useToast();
-  const { usuario: usuarioActual } = useAuth();
-  const esRRHH = usuarioActual?.rol === "rrhh";
 
   const [usuarios, setUsuarios] = useState([]);
   const [cargandoLista, setCargandoLista] = useState(true);
@@ -39,23 +36,6 @@ export default function AdminUsuarios() {
 
   const actualizarCampo = (campo) => (e) => setForm({ ...form, [campo]: e.target.value });
   const actualizarTexto = (campo) => (e) => setForm({ ...form, [campo]: soloTexto(e.target.value) });
-
-  // RRHH no ve "superadmin" como opción asignable, en ningún selector.
-  const rolesAsignables = esRRHH
-    ? Object.entries(roles).filter(([valor]) => valor !== "superadmin")
-    : Object.entries(roles);
-
-  const esSuperAdmin = (u) => u.rol === "superadmin";
-
-  // RRHH no puede cambiar su propio rol, ni el de nadie que ya sea Super administrador.
-  const puedeEditarRolDe = (u) =>
-    !(esRRHH && (u.id === usuarioActual.id || esSuperAdmin(u)));
-
-  const motivoBloqueo = (u) => {
-    if (puedeEditarRolDe(u)) return undefined;
-    if (u.id === usuarioActual.id) return "No puedes cambiar tu propio rol";
-    return "No puedes cambiar el rol de un Super administrador";
-  };
 
   const crear = async (e) => {
     e.preventDefault();
@@ -169,12 +149,10 @@ export default function AdminUsuarios() {
                   <select
                     value={u.rol}
                     onChange={(e) => cambiarRol(u, e.target.value)}
-                    disabled={!puedeEditarRolDe(u)}
                     aria-label={`Rol de ${u.nombre_completo}`}
-                    title={motivoBloqueo(u)}
-                    className="rounded-md bg-white px-3 py-1 text-xs text-plum focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                    className="rounded-md bg-white px-3 py-1 text-xs text-plum focus:outline-none"
                   >
-                    {(puedeEditarRolDe(u) ? rolesAsignables : Object.entries(roles)).map(([valor, label]) => (
+                    {Object.entries(roles).map(([valor, label]) => (
                       <option key={valor} value={valor}>
                         {label}
                       </option>
@@ -228,11 +206,9 @@ export default function AdminUsuarios() {
                 id={`rol-movil-${u.id}`}
                 value={u.rol}
                 onChange={(e) => cambiarRol(u, e.target.value)}
-                disabled={!puedeEditarRolDe(u)}
-                title={motivoBloqueo(u)}
-                className="rounded-[10px] bg-white px-3 py-1.5 text-xs text-plum focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                className="rounded-[10px] bg-white px-3 py-1.5 text-xs text-plum focus:outline-none"
               >
-                {(puedeEditarRolDe(u) ? rolesAsignables : Object.entries(roles)).map(([valor, label]) => (
+                {Object.entries(roles).map(([valor, label]) => (
                   <option key={valor} value={valor}>
                     {label}
                   </option>
@@ -340,7 +316,7 @@ export default function AdminUsuarios() {
                   onChange={actualizarCampo("rol")}
                   className="w-full rounded-2xl bg-white px-4 py-2.5 text-plum focus:outline-none"
                 >
-                  {rolesAsignables
+                  {Object.entries(roles)
                     .filter(([valor]) => valor !== "cliente")
                     .map(([valor, label]) => (
                       <option key={valor} value={valor}>

@@ -2,8 +2,8 @@
 Crea un usuario del staff con un rol administrativo, o le cambia el rol si el
 email ya está registrado.
 
-Roles disponibles: superadmin, administrativo, ventas, almacen, rrhh, soporte,
-auditor (y "cliente", aunque para eso no hace falta este script).
+Roles disponibles: superadmin, administrativo, ventas, almacen
+(y "cliente", aunque para eso no hace falta este script).
 
 Uso:
     python crear_admin.py correo@ejemplo.com "Mi Password123" Nombre Apellido [rol]

@@ -316,16 +316,6 @@ def actualizar(producto_id):
     return jsonify(producto.to_dict())
 
 
-@bp.delete("/<int:producto_id>")
-@requiere_roles(*PUEDE_GESTIONAR_PRODUCTOS)
-def eliminar(producto_id):
-    """Desactiva el producto (no lo borra, para no romper pedidos históricos)."""
-    producto = Producto.query.get_or_404(producto_id)
-    producto.activo = False
-    db.session.commit()
-    return jsonify({"mensaje": "Producto desactivado"})
-
-
 @bp.patch("/<int:producto_id>/activo")
 @requiere_roles(*PUEDE_GESTIONAR_PRODUCTOS)
 def cambiar_activo(producto_id):

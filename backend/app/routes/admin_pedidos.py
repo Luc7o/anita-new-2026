@@ -213,7 +213,7 @@ _CLAVES_DE_VENTAS = _CLAVES_FINANCIERAS + (
 def _filtrar_estadisticas_por_rol(data, rol):
     """
     El dashboard lo ven varios roles, cada uno con lo suyo (ver app/roles.py):
-      - superadmin / administrativo / auditor: todo
+      - superadmin / administrativo: todo
       - ventas: todo menos las cifras financieras de referencia
       - almacén: solo conteos operativos y de stock, nada de ingresos
     Se recorta acá, en el servidor, para que el dato ni siquiera salga en la

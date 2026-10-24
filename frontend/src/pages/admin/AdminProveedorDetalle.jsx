@@ -7,6 +7,7 @@ import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { api } from "../../api/client.js";
 import { useAuth } from "../../context/AuthContext.jsx";
+import { PUEDE_GESTIONAR_PROVEEDORES } from "../../roles.js";
 import ImagenOptimizada from "../../components/ImagenOptimizada.jsx";
 
 export default function AdminProveedorDetalle() {
@@ -14,7 +15,7 @@ export default function AdminProveedorDetalle() {
   const confirmar = useConfirm();
   const { id } = useParams();
   const { usuario } = useAuth();
-  const puedeGestionar = ["superadmin", "editor"].includes(usuario?.rol);
+  const puedeGestionar = PUEDE_GESTIONAR_PROVEEDORES.includes(usuario?.rol);
 
   const [proveedor, setProveedor] = useState(null);
   const [productosDisponibles, setProductosDisponibles] = useState([]);

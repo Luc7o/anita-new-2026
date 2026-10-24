@@ -248,7 +248,7 @@ def cancelar_pedido(pedido_id):
     # Un pedido con el pago YA verificado no lo puede cancelar el cliente
     # directamente: eso restauraría el stock (vendible a otro) sin que haya
     # ninguna garantía real de que el dinero se devuelva. El reembolso de un
-    # pedido pagado lo gestiona soporte/ventas desde el panel admin, que sí
+    # pedido pagado lo gestiona ventas desde el panel admin, que sí
     # dispara el reembolso en Culqi antes de tocar el stock.
     if pedido.estado_pago == "verificado":
         return jsonify({
