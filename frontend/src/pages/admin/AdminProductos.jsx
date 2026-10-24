@@ -8,6 +8,8 @@ import ImagenOptimizada from "../../components/ImagenOptimizada.jsx";
 import { IconUpload, IconClose, IconEdit, IconEye, IconEyeOff } from "../../components/Icons.jsx";
 import { useFocusTrap } from "../../hooks/useFocusTrap.js";
 import Paginador from "../../components/Paginador.jsx";
+import { useAuth } from "../../context/AuthContext.jsx";
+import { PUEDE_GESTIONAR_PRODUCTOS, PUEDE_GESTIONAR_STOCK } from "../../roles.js";
 
 const MINIMO_IMAGENES = 4;
 
@@ -46,6 +48,12 @@ function claveCombo(talla, color) {
 }
 
 export default function AdminProductos() {
+  const { usuario } = useAuth();
+  // Super admin y administrativo gestionan todo; almacén solo puede tocar el stock
+  // (stock, tallas, colores y variantes); ventas solo consulta.
+  const puedeGestionar = PUEDE_GESTIONAR_PRODUCTOS.includes(usuario?.rol);
+  const puedeEditarStock = PUEDE_GESTIONAR_STOCK.includes(usuario?.rol);
+  const soloStock = puedeEditarStock && !puedeGestionar;
   const toast = useToast();
   const confirmar = useConfirm();
   const [productos, setProductos] = useState([]);
@@ -171,7 +179,7 @@ export default function AdminProductos() {
     e.preventDefault();
     setError("");
 
-    if (imagenes.length < MINIMO_IMAGENES) {
+    if (!soloStock && imagenes.length < MINIMO_IMAGENES) {
       setError(`Sube al menos ${MINIMO_IMAGENES} imágenes del producto (llevas ${imagenes.length}).`);
       return;
     }
@@ -179,7 +187,7 @@ export default function AdminProductos() {
     setGuardando(true);
     // El SKU lo genera el backend: nunca se manda desde el formulario.
     const { sku: _skuGeneradoPorElServidor, ...datosForm } = form;
-    const payload = {
+    const payloadCompleto = {
       ...datosForm,
       precio: parseFloat(form.precio),
       precio_oferta: form.precio_oferta ? parseFloat(form.precio_oferta) : null,
@@ -196,6 +204,15 @@ export default function AdminProductos() {
           }))
         : [],
     };
+    // Almacén solo puede enviar los campos de stock: el servidor rechaza cualquier otro.
+    const payload = soloStock
+      ? {
+          stock: payloadCompleto.stock,
+          tallas: payloadCompleto.tallas,
+          colores: payloadCompleto.colores,
+          variantes: payloadCompleto.variantes,
+        }
+      : payloadCompleto;
 
     try {
       if (editandoId) {
@@ -237,12 +254,14 @@ export default function AdminProductos() {
     <div>
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-2xl font-semibold text-plum">Productos</h1>
-        <button
-          onClick={nuevoProducto}
-          className="rounded-[10px] bg-berry px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-berry-dark"
-        >
-          + Nuevo producto
-        </button>
+        {puedeGestionar && (
+          <button
+            onClick={nuevoProducto}
+            className="rounded-[10px] bg-berry px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-berry-dark"
+          >
+            + Nuevo producto
+          </button>
+        )}
       </div>
 
       <input
@@ -342,17 +361,26 @@ export default function AdminProductos() {
                 </td>
                 <td className="px-4 py-3">
                   <div className="flex items-center justify-end gap-3">
-                    <button onClick={() => editar(p)} aria-label={`Editar ${p.nombre}`} className="text-plum-soft hover:text-berry">
-                      <IconEdit size={16} />
-                    </button>
-                    <button
-                      onClick={() => alternarActivo(p)}
-                      aria-label={`${p.activo ? "Desactivar" : "Activar"} ${p.nombre}`}
-                      title={p.activo ? "Desactivar (ocultar de la tienda)" : "Activar (mostrar en la tienda)"}
-                      className="text-plum-soft hover:text-berry"
-                    >
-                      {p.activo ? <IconEyeOff size={16} /> : <IconEye size={16} />}
-                    </button>
+                    {puedeEditarStock && (
+                      <button
+                        onClick={() => editar(p)}
+                        aria-label={`${soloStock ? "Editar stock de" : "Editar"} ${p.nombre}`}
+                        title={soloStock ? "Editar stock" : "Editar"}
+                        className="text-plum-soft hover:text-berry"
+                      >
+                        <IconEdit size={16} />
+                      </button>
+                    )}
+                    {puedeGestionar && (
+                      <button
+                        onClick={() => alternarActivo(p)}
+                        aria-label={`${p.activo ? "Desactivar" : "Activar"} ${p.nombre}`}
+                        title={p.activo ? "Desactivar (ocultar de la tienda)" : "Activar (mostrar en la tienda)"}
+                        className="text-plum-soft hover:text-berry"
+                      >
+                        {p.activo ? <IconEyeOff size={16} /> : <IconEye size={16} />}
+                      </button>
+                    )}
                   </div>
                 </td>
               </tr>
@@ -395,12 +423,16 @@ export default function AdminProductos() {
                 </span>
               </div>
               <div className="mt-2 flex gap-3 text-sm">
-                <button onClick={() => editar(p)} className="text-berry hover:underline">
-                  Editar
-                </button>
-                <button onClick={() => alternarActivo(p)} className="text-plum-soft hover:text-berry">
-                  {p.activo ? "Desactivar" : "Activar"}
-                </button>
+                {puedeEditarStock && (
+                  <button onClick={() => editar(p)} className="text-berry hover:underline">
+                    {soloStock ? "Editar stock" : "Editar"}
+                  </button>
+                )}
+                {puedeGestionar && (
+                  <button onClick={() => alternarActivo(p)} className="text-plum-soft hover:text-berry">
+                    {p.activo ? "Desactivar" : "Activar"}
+                  </button>
+                )}
               </div>
             </div>
           </div>
@@ -433,7 +465,14 @@ export default function AdminProductos() {
               {editandoId ? "Editar producto" : "Nuevo producto"}
             </h2>
 
+            {soloStock && (
+              <p className="mb-3 rounded-xl bg-plum/5 px-3 py-2 text-xs text-plum-soft">
+                Con tu rol solo puedes modificar el stock, las tallas y los colores. Lo demás es de solo lectura.
+              </p>
+            )}
+
             <div className="space-y-3">
+              <fieldset disabled={soloStock} className="contents">
               <div>
                 <label htmlFor="prod-nombre" className="mb-1 block text-xs font-medium text-plum-soft">
                   Nombre
@@ -491,6 +530,8 @@ export default function AdminProductos() {
                 </div>
               </div>
 
+              </fieldset>
+
               <div className="grid grid-cols-2 gap-3">
                 {!usaVariantes && (
                   <div>
@@ -515,6 +556,7 @@ export default function AdminProductos() {
                 </div>
               </div>
 
+              <fieldset disabled={soloStock} className="contents">
               <div>
                 <label htmlFor="prod-categoria" className="mb-1 block text-xs font-medium text-plum-soft">
                   Categoría
@@ -551,6 +593,8 @@ export default function AdminProductos() {
                   ))}
                 </select>
               </div>
+
+              </fieldset>
 
               <div>
                 <label htmlFor="prod-colores" className="mb-1 block text-xs font-medium text-plum-soft">
@@ -606,6 +650,7 @@ export default function AdminProductos() {
                 </div>
               )}
 
+              <fieldset disabled={soloStock} className="contents">
               <div>
                 <label className="mb-1 flex items-center justify-between text-sm font-medium text-plum">
                   <span>Imágenes del producto</span>
@@ -676,6 +721,7 @@ export default function AdminProductos() {
                   Activo
                 </label>
               </div>
+              </fieldset>
             </div>
 
             {error && <p className="mt-3 text-sm text-berry-dark" role="alert">{error}</p>}
