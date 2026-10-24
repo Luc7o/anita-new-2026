@@ -7,6 +7,7 @@ SUPERADMIN = "superadmin"
 ADMINISTRATIVO = "administrativo"
 VENTAS = "ventas"
 ALMACEN = "almacen"
+CAJERO = "cajero"
 CLIENTE = "cliente"
 # "invitado" no se guarda en BD: es cualquiera que navega sin sesión.
 
@@ -15,19 +16,21 @@ ROLES = {
     ADMINISTRATIVO: "Administrativo",
     VENTAS: "Ventas",
     ALMACEN: "Almacén",
+    CAJERO: "Cajero",
     CLIENTE: "Cliente",
 }
 
 # Roles que tienen acceso al panel admin (aunque sea limitado)
-ROLES_ADMIN = [SUPERADMIN, ADMINISTRATIVO, VENTAS, ALMACEN]
+ROLES_ADMIN = [SUPERADMIN, ADMINISTRATIVO, VENTAS, ALMACEN, CAJERO]
 
 # --- Productos y categorías ---
 # Gestionar = crear/editar/eliminar producto, precio, categoría, etc.
 PUEDE_GESTIONAR_PRODUCTOS = [SUPERADMIN, ADMINISTRATIVO]
 # Almacén puede editar SOLO el stock (no precio, no datos del producto)
 PUEDE_GESTIONAR_STOCK = [SUPERADMIN, ADMINISTRATIVO, ALMACEN]
-# Ver = quien gestiona producto o stock, más ventas (para vender)
-PUEDE_VER_PRODUCTOS = PUEDE_GESTIONAR_STOCK + [VENTAS]
+# Ver = quien gestiona producto o stock, más ventas y cajero (para buscar al vender;
+# el cajero solo consulta, el menú del panel no le muestra la sección Productos)
+PUEDE_VER_PRODUCTOS = PUEDE_GESTIONAR_STOCK + [VENTAS, CAJERO]
 
 PUEDE_GESTIONAR_CATEGORIAS = [SUPERADMIN, ADMINISTRATIVO]
 PUEDE_VER_CATEGORIAS = PUEDE_GESTIONAR_CATEGORIAS
@@ -43,14 +46,16 @@ PUEDE_VER_PROVEEDORES = PUEDE_GESTIONAR_PROVEEDORES
 # --- Pedidos ---
 # Cambiar estado del pedido (confirmar, preparar, marcar despachado, etc.)
 PUEDE_GESTIONAR_PEDIDOS = [SUPERADMIN, VENTAS, ALMACEN]
-# Ver pedidos (sin poder cambiarlos): administrativo
-PUEDE_VER_PEDIDOS = PUEDE_GESTIONAR_PEDIDOS + [ADMINISTRATIVO]
+# Ver pedidos (sin poder cambiarlos): administrativo y cajero
+# (el cajero también descarga la boleta de lo que vende)
+PUEDE_VER_PEDIDOS = PUEDE_GESTIONAR_PEDIDOS + [ADMINISTRATIVO, CAJERO]
 
 # Cancelar pedido y marcar reembolso: exclusivo de ventas (movimiento de dinero + stock)
 PUEDE_GESTIONAR_REEMBOLSOS = [SUPERADMIN, VENTAS]
 
 # --- Venta presencial ---
-PUEDE_REGISTRAR_VENTA = [SUPERADMIN, VENTAS]
+# El cajero solo registra ventas en tienda: sin dashboard, reportes, cancelaciones ni reembolsos
+PUEDE_REGISTRAR_VENTA = [SUPERADMIN, VENTAS, CAJERO]
 
 # --- Dashboard y reportes ---
 # Dashboard general (ingresos, ventas): superadmin y administrativo
