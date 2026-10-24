@@ -46,9 +46,11 @@ PUEDE_VER_PROVEEDORES = PUEDE_GESTIONAR_PROVEEDORES
 # --- Pedidos ---
 # Cambiar estado del pedido (confirmar, preparar, marcar despachado, etc.)
 PUEDE_GESTIONAR_PEDIDOS = [SUPERADMIN, VENTAS, ALMACEN]
-# Ver pedidos (sin poder cambiarlos): administrativo y cajero
-# (el cajero también descarga la boleta de lo que vende)
-PUEDE_VER_PEDIDOS = PUEDE_GESTIONAR_PEDIDOS + [ADMINISTRATIVO, CAJERO]
+# Ver pedidos (sin poder cambiarlos): administrativo
+PUEDE_VER_PEDIDOS = PUEDE_GESTIONAR_PEDIDOS + [ADMINISTRATIVO]
+# Descargar la boleta de un pedido: quien ve pedidos, más el cajero (solo las de
+# ventas en tienda; el endpoint lo restringe). El cajero no ve la lista de pedidos.
+PUEDE_VER_BOLETA = PUEDE_VER_PEDIDOS + [CAJERO]
 
 # Cancelar pedido y marcar reembolso: exclusivo de ventas (movimiento de dinero + stock)
 PUEDE_GESTIONAR_REEMBOLSOS = [SUPERADMIN, VENTAS]

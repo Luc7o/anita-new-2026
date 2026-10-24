@@ -17,6 +17,8 @@ from app.roles import (
     PUEDE_VER_DASHBOARD_STOCK,
     PUEDE_GESTIONAR_REEMBOLSOS,
     PUEDE_REGISTRAR_VENTA,
+    PUEDE_VER_BOLETA,
+    CAJERO,
     SUPERADMIN,
 )
 from app.utils.stock import restaurar_stock_de_pedido, agrupar_por_producto, validar_stock_disponible, descontar_stock
@@ -832,7 +834,10 @@ def venta_presencial():
 
 
 @bp.get("/<int:pedido_id>/boleta")
-@requiere_roles(*PUEDE_VER_PEDIDOS)
+@requiere_roles(*PUEDE_VER_BOLETA)
 def boleta_pedido(pedido_id):
     pedido = Pedido.query.get_or_404(pedido_id)
+    # El cajero solo descarga boletas de ventas en tienda, no de pedidos en línea.
+    if g.usuario.rol == CAJERO and pedido.origen != "presencial":
+        return jsonify({"error": "No tienes permiso para ver este pedido"}), 403
     return responder_boleta(pedido)
