@@ -8,7 +8,7 @@ import {
   IconCart, IconGift, IconBook,
 } from "../Icons.jsx";
 import {
-  PUEDE_VER_PRODUCTOS, PUEDE_VER_PEDIDOS, PUEDE_REGISTRAR_VENTA, PUEDE_VER_INICIO, PUEDE_VER_PROVEEDORES,
+  PUEDE_VER_PRODUCTOS, PUEDE_GESTIONAR_CATEGORIAS, PUEDE_VER_PEDIDOS, PUEDE_REGISTRAR_VENTA, PUEDE_VER_INICIO, PUEDE_VER_PROVEEDORES,
   PUEDE_GESTIONAR_USUARIOS, PUEDE_VER_CONFIGURACION, PUEDE_VER_PROMOCIONES, PUEDE_VER_RECLAMACIONES,
   CAJERO,
 } from "../../roles.js";
@@ -16,7 +16,7 @@ import {
 const TODOS_LOS_ITEMS = [
   { to: rutaAdmin(), label: "Dashboard", Icon: IconDashboard, exact: true, roles: PUEDE_VER_INICIO },
   { to: rutaAdmin("/productos"), label: "Productos", Icon: IconBag, roles: PUEDE_VER_PRODUCTOS },
-  { to: rutaAdmin("/categorias"), label: "Categorías", Icon: IconTag, roles: PUEDE_VER_PRODUCTOS },
+  { to: rutaAdmin("/categorias"), label: "Categorías", Icon: IconTag, roles: PUEDE_GESTIONAR_CATEGORIAS },
   { to: rutaAdmin("/promociones"), label: "Promociones", Icon: IconGift, roles: PUEDE_VER_PROMOCIONES },
   { to: rutaAdmin("/proveedores"), label: "Proveedores", Icon: IconTruck, roles: PUEDE_VER_PROVEEDORES },
   { to: rutaAdmin("/pedidos"), label: "Pedidos", Icon: IconPackage, exact: true, roles: PUEDE_VER_PEDIDOS },
