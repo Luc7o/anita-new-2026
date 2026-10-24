@@ -1,3 +1,5 @@
+import hashlib
+import hmac
 import secrets
 from datetime import datetime, timedelta
 from itsdangerous import BadSignature, SignatureExpired, URLSafeTimedSerializer
@@ -45,7 +47,62 @@ def _serializador_2fa():
     return URLSafeTimedSerializer(current_app.config["SECRET_KEY"], salt="login-2fa")
 
 
+# ---- Dispositivo de confianza ----------------------------------------------
+# Si la persona marca "confiar en este dispositivo" al pasar el segundo paso, el
+# navegador recibe una cookie httpOnly firmada. Mientras sea válida, ese
+# navegador se salta el código de 6 dígitos (la contraseña SIEMPRE se sigue
+# pidiendo). La cookie guarda al usuario y una "huella" de su contraseña y de su
+# secreto 2FA: si cambia la contraseña o se desactiva/reactiva la verificación en
+# dos pasos, deja de valer. No usa sesion_version a propósito, porque cerrar
+# sesión lo sube y la gracia es que no te vuelva a pedir el código por salir.
+DIAS_DISPOSITIVO_CONFIABLE = 30
+COOKIE_DISPOSITIVO = "ans_dispositivo_2fa"
+
+
+def _serializador_dispositivo():
+    return URLSafeTimedSerializer(current_app.config["SECRET_KEY"], salt="dispositivo-2fa")
+
+
+def _huella_dispositivo(usuario):
+    clave = current_app.config["SECRET_KEY"].encode()
+    mensaje = f"{usuario.password_hash or ''}|{usuario.totp_secreto or ''}".encode()
+    return hmac.new(clave, mensaje, hashlib.sha256).hexdigest()[:32]
+
+
+def _dispositivo_confiable(usuario):
+    token = request.cookies.get(COOKIE_DISPOSITIVO)
+    if not token:
+        return False
+    try:
+        datos = _serializador_dispositivo().loads(token, max_age=DIAS_DISPOSITIVO_CONFIABLE * 86400)
+    except BadSignature:  # incluye SignatureExpired
+        return False
+    return datos.get("uid") == usuario.id and hmac.compare_digest(
+        str(datos.get("fp", "")), _huella_dispositivo(usuario)
+    )
+
+
+def _recordar_dispositivo(respuesta, usuario):
+    token = _serializador_dispositivo().dumps({"uid": usuario.id, "fp": _huella_dispositivo(usuario)})
+    respuesta.set_cookie(
+        COOKIE_DISPOSITIVO,
+        token,
+        max_age=DIAS_DISPOSITIVO_CONFIABLE * 86400,
+        httponly=True,
+        secure=current_app.config.get("JWT_COOKIE_SECURE", False),
+        samesite=current_app.config.get("JWT_COOKIE_SAMESITE", "Lax"),
+        path="/api/auth",
+        domain=current_app.config.get("JWT_COOKIE_DOMAIN"),
+    )
+
+
 def _respuesta_pide_segundo_paso(usuario):
+    # Navegador ya verificado antes (y la contraseña/Google ya se comprobó arriba):
+    # entra directo, sin pedir el código.
+    if _dispositivo_confiable(usuario):
+        usuario.resetear_intentos_fallidos()
+        db.session.commit()
+        return _respuesta_con_sesion(usuario)
     pase = _serializador_2fa().dumps({"uid": usuario.id, "sv": usuario.sesion_version})
     return jsonify({"requiere_2fa": True, "token_2fa": pase})
 
@@ -398,6 +455,8 @@ def login_2fa():
     if uso_respaldo:
         extra = {"codigos_respaldo_restantes": totp.cantidad_codigos_respaldo(usuario.codigos_respaldo)}
     respuesta, _ = _respuesta_con_sesion(usuario, extra=extra)
+    if data.get("recordar_dispositivo") is True:
+        _recordar_dispositivo(respuesta, usuario)
     return respuesta
 
 

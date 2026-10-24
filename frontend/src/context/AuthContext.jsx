@@ -66,8 +66,12 @@ export function AuthProvider({ children }) {
     return abrirSesion(data);
   };
 
-  const verificarSegundoPaso = async (codigo) => {
-    const data = await api.login2fa({ token_2fa: segundoPaso?.token, codigo });
+  const verificarSegundoPaso = async (codigo, recordarDispositivo = false) => {
+    const data = await api.login2fa({
+      token_2fa: segundoPaso?.token,
+      codigo,
+      recordar_dispositivo: recordarDispositivo === true,
+    });
     const u = abrirSesion(data);
     return { usuario: u, codigosRespaldoRestantes: data.codigos_respaldo_restantes };
   };

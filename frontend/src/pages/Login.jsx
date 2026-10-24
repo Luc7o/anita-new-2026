@@ -45,8 +45,8 @@ export default function Login() {
     }
   };
 
-  const verificarCodigo = async (codigo) => {
-    await verificarSegundoPaso(codigo);
+  const verificarCodigo = async (codigo, recordarDispositivo) => {
+    await verificarSegundoPaso(codigo, recordarDispositivo);
     if (recordar) localStorage.setItem(CLAVE_RECORDAR, email);
     else localStorage.removeItem(CLAVE_RECORDAR);
     navigate(destino);
