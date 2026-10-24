@@ -5,7 +5,7 @@ import { useAuth } from "../../context/AuthContext.jsx";
 import Logo from "../Logo.jsx";
 import {
   IconDashboard, IconBag, IconTag, IconPackage, IconStore, IconLogout, IconTruck, IconUsers, IconSettings,
-  IconCart, IconReceipt, IconGift, IconBook,
+  IconCart, IconGift, IconBook,
 } from "../Icons.jsx";
 import {
   PUEDE_VER_PRODUCTOS, PUEDE_VER_PEDIDOS, PUEDE_GESTIONAR_PEDIDOS, PUEDE_VER_PROVEEDORES,
@@ -20,7 +20,6 @@ const TODOS_LOS_ITEMS = [
   { to: rutaAdmin("/proveedores"), label: "Proveedores", Icon: IconTruck, roles: PUEDE_VER_PROVEEDORES },
   { to: rutaAdmin("/pedidos"), label: "Pedidos", Icon: IconPackage, exact: true, roles: PUEDE_VER_PEDIDOS },
   { to: rutaAdmin("/pedidos/nueva-venta"), label: "Nueva venta", Icon: IconCart, roles: PUEDE_GESTIONAR_PEDIDOS },
-  { to: rutaAdmin("/reportes"), label: "Reportes", Icon: IconReceipt, roles: PUEDE_VER_DASHBOARD },
   { to: rutaAdmin("/reclamaciones"), label: "Reclamaciones", Icon: IconBook, roles: PUEDE_VER_RECLAMACIONES },
   { to: rutaAdmin("/usuarios"), label: "Usuarios y roles", Icon: IconUsers, roles: PUEDE_GESTIONAR_USUARIOS },
   { to: rutaAdmin("/configuracion"), label: "Configuración", Icon: IconSettings, roles: PUEDE_VER_CONFIGURACION },

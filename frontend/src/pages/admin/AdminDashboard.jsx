@@ -383,6 +383,8 @@ function VistaVentas({ stats, errorStats, kpis, errorKpis, tieneKpis }) {
 const fechaISO = (d) =>
   `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 
+const MESES = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+
 function rangoDeMes(anio, mes0) {
   return { desde: fechaISO(new Date(anio, mes0, 1)), hasta: fechaISO(new Date(anio, mes0 + 1, 0)) };
 }
@@ -403,7 +405,8 @@ function presetsDeVentas() {
 function PanelVentasPeriodo() {
   const presets = useMemo(presetsDeVentas, []);
   const [activo, setActivo] = useState("mes");
-  const [mesElegido, setMesElegido] = useState("");
+  const [mesSel, setMesSel] = useState("");
+  const [anioSel, setAnioSel] = useState(new Date().getFullYear());
   const [desdeP, setDesdeP] = useState("");
   const [hastaP, setHastaP] = useState("");
   const [rango, setRango] = useState(presets[0].rango);
@@ -426,21 +429,21 @@ function PanelVentasPeriodo() {
 
   const elegirPreset = (p) => {
     setActivo(p.id);
-    setMesElegido("");
+    setMesSel("");
     setRango(p.rango);
   };
 
-  const elegirMes = (valor) => {
-    setMesElegido(valor);
-    if (!valor) return;
-    const [a, m] = valor.split("-").map(Number);
+  const elegirMes = (mes, anio) => {
+    setMesSel(mes);
+    setAnioSel(anio);
+    if (mes === "") return;
     setActivo("mes_elegido");
-    setRango(rangoDeMes(a, m - 1));
+    setRango(rangoDeMes(Number(anio), Number(mes)));
   };
 
   const aplicarPersonalizado = (d, h) => {
     setActivo("personalizado");
-    setMesElegido("");
+    setMesSel("");
     if (d && h && d <= h) setRango({ desde: d, hasta: h });
   };
 
@@ -462,7 +465,12 @@ function PanelVentasPeriodo() {
   const maxMes = datos ? Math.max(...datos.por_mes.map((m) => m.total), 1) : 1;
   const chip = (sel) =>
     `rounded-full px-4 py-1.5 text-sm font-medium transition ${sel ? "bg-berry text-white" : "bg-white text-plum hover:bg-berry/10"}`;
-  const entrada = "rounded-xl bg-white px-3 py-1.5 text-sm text-plum ring-1 ring-plum/15 focus:outline-none focus:ring-2 focus:ring-berry/40";
+  const entrada = "rounded-xl bg-white px-3 py-2 text-sm text-plum ring-1 ring-plum/30 hover:ring-plum/50 focus:outline-none focus:ring-2 focus:ring-berry/60";
+  const entradaActiva = "!ring-2 !ring-berry";
+  const hoyD = new Date();
+  const anioActual = hoyD.getFullYear();
+  const aniosDisponibles = Array.from({ length: 6 }, (_, i) => anioActual - i);
+  const mesesDisponibles = MESES.map((n, i) => ({ n, i })).filter(({ i }) => Number(anioSel) < anioActual || i <= hoyD.getMonth());
 
   return (
     <div className="glass rounded-2xl p-6">
@@ -490,17 +498,44 @@ function PanelVentasPeriodo() {
       </div>
 
       <div className="mt-3 flex flex-wrap items-end gap-4">
-        <label className="text-xs text-plum-soft">
-          Elegir un mes
-          <input type="month" value={mesElegido} max={fechaISO(new Date()).slice(0, 7)} onChange={(e) => elegirMes(e.target.value)} className={`mt-1 block ${entrada}`} />
-        </label>
+        <fieldset>
+          <legend className="text-xs text-plum-soft">Elegir un mes</legend>
+          <div className="mt-1 flex gap-2">
+            <select
+              aria-label="Mes"
+              value={mesSel}
+              onChange={(e) => elegirMes(e.target.value, anioSel)}
+              className={`${entrada} ${activo === "mes_elegido" ? entradaActiva : ""} min-w-[8.5rem] cursor-pointer`}
+            >
+              <option value="">Mes…</option>
+              {mesesDisponibles.map(({ n, i }) => (
+                <option key={i} value={i}>{n}</option>
+              ))}
+            </select>
+            <select
+              aria-label="Año"
+              value={anioSel}
+              onChange={(e) => {
+                const a = Number(e.target.value);
+                const mesSigueValido = mesSel !== "" && (a < anioActual || Number(mesSel) <= hoyD.getMonth());
+                if (mesSel === "" || mesSigueValido) elegirMes(mesSel, a);
+                else { elegirPreset(presets[0]); setAnioSel(a); }
+              }}
+              className={`${entrada} ${activo === "mes_elegido" ? entradaActiva : ""} cursor-pointer`}
+            >
+              {aniosDisponibles.map((a) => (
+                <option key={a} value={a}>{a}</option>
+              ))}
+            </select>
+          </div>
+        </fieldset>
         <label className="text-xs text-plum-soft">
           Desde
-          <input type="date" value={desdeP} max={hastaP || undefined} onChange={(e) => { setDesdeP(e.target.value); aplicarPersonalizado(e.target.value, hastaP); }} className={`mt-1 block ${entrada}`} />
+          <input type="date" value={desdeP} max={hastaP || undefined} className={`mt-1 block ${entrada} ${activo === "personalizado" ? entradaActiva : ""}`} onChange={(e) => { setDesdeP(e.target.value); aplicarPersonalizado(e.target.value, hastaP); }} />
         </label>
         <label className="text-xs text-plum-soft">
           Hasta
-          <input type="date" value={hastaP} min={desdeP || undefined} onChange={(e) => { setHastaP(e.target.value); aplicarPersonalizado(desdeP, e.target.value); }} className={`mt-1 block ${entrada}`} />
+          <input type="date" value={hastaP} min={desdeP || undefined} className={`mt-1 block ${entrada} ${activo === "personalizado" ? entradaActiva : ""}`} onChange={(e) => { setHastaP(e.target.value); aplicarPersonalizado(desdeP, e.target.value); }} />
         </label>
       </div>
 
