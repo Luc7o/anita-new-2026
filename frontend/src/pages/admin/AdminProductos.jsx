@@ -5,7 +5,7 @@ import { SkeletonFilasAdmin } from "../../components/admin/EsqueletosAdmin.jsx";
 import React, { useEffect, useState } from "react";
 import { api } from "../../api/client.js";
 import ImagenOptimizada from "../../components/ImagenOptimizada.jsx";
-import { IconUpload, IconClose, IconEdit, IconEye, IconEyeOff, IconChevronLeft, IconChevronRight } from "../../components/Icons.jsx";
+import { IconUpload, IconClose, IconEdit, IconEye, IconEyeOff } from "../../components/Icons.jsx";
 import { useFocusTrap } from "../../hooks/useFocusTrap.js";
 import Paginador from "../../components/Paginador.jsx";
 

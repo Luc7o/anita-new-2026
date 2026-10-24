@@ -2,9 +2,6 @@ import React, { useState } from "react";
 import AuthLayout from "../components/AuthLayout.jsx";
 import { Link, useLocation } from "react-router-dom";
 import {
-  IconFacebook,
-  IconInstagram,
-  IconWhatsApp,
   IconMail,
 } from "../components/Icons.jsx";
 import { useAuth } from "../context/AuthContext.jsx";

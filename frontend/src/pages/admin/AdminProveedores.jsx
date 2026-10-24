@@ -6,7 +6,6 @@ import { SkeletonFilasAdmin } from "../../components/admin/EsqueletosAdmin.jsx";
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../../api/client.js";
-import { PUEDE_VER_PROVEEDORES } from "../../roles.js";
 import { useAuth } from "../../context/AuthContext.jsx";
 import { soloTexto, soloNumeros, soloRuc } from "../../validacion.js";
 import { useFocusTrap } from "../../hooks/useFocusTrap.js";

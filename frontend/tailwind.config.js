@@ -17,16 +17,11 @@ export default {
         },
         gold: {
           DEFAULT: "#ABABAB",
-          soft: "#C3C3C3",
         },
       },
       fontFamily: {
         sans: ['"DM Sans"', "ui-sans-serif", "system-ui", "sans-serif"],
         display: ['"DM Serif Display"', "Georgia", "serif"],
-        body: ['"DM Sans"', "ui-sans-serif", "system-ui", "sans-serif"],
-      },
-      backdropBlur: {
-        xs: "2px",
       },
       boxShadow: {
         glass: "0 8px 32px 0 rgba(85, 4, 22, 0.14)",

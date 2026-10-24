@@ -1,6 +1,6 @@
 import { useToast } from "../../context/ToastContext.jsx";
 import Spinner from "../../components/Spinner.jsx";
-import { SkeletonFilasAdmin, SkeletonPanelAdmin, SkeletonDetalleAdmin, SkeletonFormularioAdmin } from "../../components/admin/EsqueletosAdmin.jsx";
+import { SkeletonFormularioAdmin } from "../../components/admin/EsqueletosAdmin.jsx";
 import React, { useEffect, useState } from "react";
 import { api } from "../../api/client.js";
 import { useAuth } from "../../context/AuthContext.jsx";

@@ -8,8 +8,8 @@ RUC / número de boleta; datos del cliente; fila de fecha, pedido y pago;
 tabla de detalle (CANTIDAD / U.M. / DESCRIPCIÓN / PRECIO / IMPORTE) que
 siempre ocupa el alto de la hoja; monto en letras, desglose de IGV y pie.
 
-Igual que el reporte de ventas, NO usa el CSS de marca de generar_pdf(): trae
-su propia plantilla sobria y se convierte con html_a_pdf().
+Igual que el reporte de ventas, trae su propia plantilla sobria y se convierte
+con html_a_pdf().
 
 Datos de la tienda que NO están en el pedido (se leen de variables de
 entorno vía app/config.py; si alguno está vacío, su línea simplemente no se

@@ -5,8 +5,6 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-BASE_DIR = os.path.abspath(os.path.dirname(__file__))
-
 
 class Config:
     SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret-key")
@@ -191,7 +189,6 @@ class Config:
     # Cuánto tiempo se reserva el stock de un checkout de pasarela sin pagar.
     MINUTOS_LIMITE_PAGO = int(os.getenv("MINUTOS_LIMITE_PAGO", "20"))
 
-    # Subida de imágenes de producto
-    UPLOAD_FOLDER = os.path.join(BASE_DIR, "static", "uploads", "productos")
+    # Subida de imágenes (se guardan en Vercel Blob, no en disco)
     EXTENSIONES_PERMITIDAS = {"png", "jpg", "jpeg", "webp", "gif"}
     MAX_CONTENT_LENGTH = 5 * 1024 * 1024  # 5 MB

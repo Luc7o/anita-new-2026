@@ -1,6 +1,6 @@
 import { rutaAdmin } from "../../lib/appMode.js";
 import Spinner from "../../components/Spinner.jsx";
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../../api/client.js";
 import { soles } from "../../formato.js";

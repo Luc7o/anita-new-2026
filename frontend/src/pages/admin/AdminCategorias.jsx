@@ -4,7 +4,7 @@ import Spinner from "../../components/Spinner.jsx";
 import { SkeletonFilasAdmin } from "../../components/admin/EsqueletosAdmin.jsx";
 import React, { useEffect, useMemo, useState } from "react";
 import { api } from "../../api/client.js";
-import { IconSearch, IconEdit, IconTrash, IconChevronLeft, IconChevronRight, IconTag } from "../../components/Icons.jsx";
+import { IconSearch, IconEdit, IconTrash, IconTag } from "../../components/Icons.jsx";
 import { useFocusTrap } from "../../hooks/useFocusTrap.js";
 import Paginador from "../../components/Paginador.jsx";
 
