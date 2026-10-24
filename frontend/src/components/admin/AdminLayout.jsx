@@ -80,7 +80,7 @@ export default function AdminLayout() {
             )}
             <button
               onClick={logout}
-              className="rounded-[10px] p-2.5 text-white/70 hover:bg-white/10 hover:text-white"
+              className="rounded-[10px] p-2.5 text-white/70 hover:bg-white/10 hover:text-white lg:hidden"
               aria-label="Cerrar sesión"
               title="Cerrar sesión"
             >

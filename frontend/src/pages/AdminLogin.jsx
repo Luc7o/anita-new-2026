@@ -45,8 +45,8 @@ export default function AdminLogin() {
     }
   };
 
-  const verificarCodigo = async (codigo) => {
-    const { usuario: u } = await verificarSegundoPaso(codigo);
+  const verificarCodigo = async (codigo, recordarDispositivo) => {
+    const { usuario: u } = await verificarSegundoPaso(codigo, recordarDispositivo);
     if (!ROLES_ADMIN.includes(u?.rol)) {
       logout();
       cancelarSegundoPaso();

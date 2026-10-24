@@ -10,13 +10,14 @@ export default function PasoDosFactores({ onVerificar, onCancelar, estilo = "tie
   const [usarRespaldo, setUsarRespaldo] = useState(false);
   const [error, setError] = useState("");
   const [enviando, setEnviando] = useState(false);
+  const [recordarDispositivo, setRecordarDispositivo] = useState(false);
 
   const enviar = async (e) => {
     e.preventDefault();
     setError("");
     setEnviando(true);
     try {
-      await onVerificar(codigo.trim());
+      await onVerificar(codigo.trim(), recordarDispositivo);
     } catch (err) {
       setError(err.message || "No se pudo verificar el código.");
       // Pasaron los 5 minutos: no tiene sentido seguir intentando, hay que volver a empezar.
@@ -59,6 +60,21 @@ export default function PasoDosFactores({ onVerificar, onCancelar, estilo = "tie
           className="w-full rounded-md border border-plum/20 bg-white px-4 py-3 text-center text-xl tracking-[0.3em] text-plum placeholder:tracking-normal placeholder:text-plum-soft/40 focus:border-berry focus:outline-none"
         />
       </div>
+
+      <label className="flex cursor-pointer items-start gap-2 text-sm text-plum-soft">
+        <input
+          type="checkbox"
+          checked={recordarDispositivo}
+          onChange={(e) => setRecordarDispositivo(e.target.checked)}
+          className="mt-0.5 h-4 w-4 accent-berry"
+        />
+        <span>
+          Confiar en este dispositivo por 30 días
+          <span className="block text-xs text-plum-soft/80">
+            No te pediremos el código aquí. Úsalo solo en tu propio equipo.
+          </span>
+        </span>
+      </label>
 
       {error && <p role="alert" className="text-sm text-berry-dark">{error}</p>}
 
