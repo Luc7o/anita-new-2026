@@ -55,7 +55,7 @@ def obtener_configuracion_tienda():
 @requiere_roles(*PUEDE_GESTIONAR_CONFIGURACION)
 def actualizar_configuracion_tienda():
     """Edita los datos generales de la tienda. Solo superadmin (ver
-    PUEDE_GESTIONAR_CONFIGURACION) — auditor puede ver pero no modificar."""
+    PUEDE_GESTIONAR_CONFIGURACION)."""
     config, error = _config_o_503()
     if error:
         return error

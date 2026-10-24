@@ -4,7 +4,7 @@ Panel "Necesita tu atención" del dashboard.
 A diferencia de las estadísticas (que son números para mirar), esto es una
 lista corta de cosas pendientes que alguien tiene que hacer hoy, con enlace
 directo. Cada rol recibe SOLO los pendientes de las áreas que puede ver:
-un Almacén no ve reclamos, un Soporte no ve stock, etc. (permisos en
+un Almacén no ve reclamos, un Ventas no ve proveedores, etc. (permisos en
 app/roles.py). Por eso este endpoint está abierto a todos los roles del panel
 y es el servidor quien decide qué entra en la respuesta.
 """

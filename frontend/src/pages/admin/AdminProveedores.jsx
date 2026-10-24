@@ -7,6 +7,7 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../../api/client.js";
 import { useAuth } from "../../context/AuthContext.jsx";
+import { PUEDE_GESTIONAR_PROVEEDORES } from "../../roles.js";
 import { soloTexto, soloNumeros, soloRuc } from "../../validacion.js";
 import { useFocusTrap } from "../../hooks/useFocusTrap.js";
 import Paginador from "../../components/Paginador.jsx";
@@ -18,7 +19,7 @@ export default function AdminProveedores() {
   const toast = useToast();
   const confirmar = useConfirm();
   const { usuario } = useAuth();
-  const puedeGestionar = ["superadmin", "editor"].includes(usuario?.rol);
+  const puedeGestionar = PUEDE_GESTIONAR_PROVEEDORES.includes(usuario?.rol);
 
   const [proveedores, setProveedores] = useState([]);
   const [cargandoLista, setCargandoLista] = useState(true);

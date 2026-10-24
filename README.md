@@ -80,15 +80,14 @@ memoria.
 
 ## Sistema de roles
 
-6 roles, definidos en `backend/app/roles.py`:
+5 roles, definidos en `backend/app/roles.py`:
 
 | Rol | Qué puede hacer |
 |---|---|
-| **Super administrador** | Todo: productos, categorías, proveedores, pedidos, y gestionar otros usuarios/roles |
-| **Moderador** | Ver/gestionar productos, categorías y pedidos; solo ver proveedores |
-| **Editor / Creador** | Crear/editar productos, categorías y proveedores; no ve pedidos ni usuarios |
-| **Soporte** | Ver y cambiar el estado de los pedidos; no toca productos ni usuarios |
-| **Auditor** | Solo lectura: productos, pedidos, proveedores y dashboard — no puede editar nada |
+| **Super administrador** | Todo: incluida la configuración de la tienda y la gestión de usuarios y roles |
+| **Administrativo** | Gestiona productos, categorías, promociones, proveedores y reclamaciones; ve los pedidos y el dashboard completo |
+| **Ventas** | Gestiona pedidos (incluye cancelar y reembolsar) y registra ventas presenciales; ve productos y su dashboard de ventas |
+| **Almacén** | Edita el stock, gestiona proveedores y prepara/despacha pedidos; ve su dashboard de stock |
 | **Cliente** | Rol normal de quien compra en la tienda (no entra al panel admin) |
 
 El sidebar del panel admin solo muestra las secciones a las que cada rol tiene

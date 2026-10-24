@@ -40,7 +40,7 @@ function vistasDelRol(rol) {
 }
 
 // Roles que pueden consultar estadísticas (el resto solo ve el panel de pendientes).
-const ROLES_CON_ESTADISTICAS = ["superadmin", "administrativo", "auditor", "ventas", "almacen"];
+const ROLES_CON_ESTADISTICAS = ["superadmin", "administrativo", "ventas", "almacen"];
 
 export default function AdminDashboard() {
   const { cargando, usuario } = useAuth();
