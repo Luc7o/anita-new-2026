@@ -35,91 +35,6 @@ def _repr_por_contenido(self):
 # u otra imagen ya se dibujaban bien).
 PmlImageReader.__str__ = _repr_por_contenido
 
-# Paleta de marca (coincide con los colores berry/plum/plum-soft del frontend)
-COLOR_BERRY = "#8B2C4C"
-COLOR_PLUM = "#3E1F2B"
-COLOR_PLUM_SOFT = "#6B4C57"
-COLOR_FONDO_SUAVE = "#F6ECEF"
-
-# CSS base para todo documento generado (boleta o reporte). Cada documento
-# solo necesita definir su propio <body>; este bloque da tipografía, colores
-# de marca y el layout que se repite en ambos casos.
-#
-# Nota: xhtml2pdf soporta un subconjunto de CSS (sin @bottom-center ni otras
-# reglas de "paged media" de WeasyPrint) — el pie de página con el nombre de
-# la tienda se agrega directamente en el HTML de cada documento en vez de
-# por CSS.
-_CSS_BASE = f"""
-    @page {{
-        size: A4;
-        margin: 2cm 1.8cm;
-    }}
-    * {{ box-sizing: border-box; }}
-    body {{
-        font-family: "Helvetica", "Arial", sans-serif;
-        color: #222;
-        font-size: 10.5pt;
-        line-height: 1.4;
-    }}
-    h1 {{
-        color: {COLOR_BERRY};
-        font-size: 18pt;
-        margin: 0 0 4px 0;
-    }}
-    h2 {{
-        color: {COLOR_PLUM};
-        font-size: 13pt;
-        margin: 18px 0 8px 0;
-        border-bottom: 1.5px solid {COLOR_BERRY};
-        padding-bottom: 4px;
-    }}
-    .subtitulo {{
-        color: {COLOR_PLUM_SOFT};
-        font-size: 10pt;
-        margin: 0 0 20px 0;
-    }}
-    table {{
-        width: 100%;
-        border-collapse: collapse;
-        margin: 10px 0;
-    }}
-    th {{
-        background: {COLOR_BERRY};
-        color: white;
-        text-align: left;
-        padding: 6px 8px;
-        font-size: 9.5pt;
-    }}
-    td {{
-        padding: 6px 8px;
-        border-bottom: 1px solid #e5d9dd;
-        font-size: 9.5pt;
-    }}
-    tr:nth-child(even) td {{
-        background: {COLOR_FONDO_SUAVE};
-    }}
-    .totales td {{
-        border: none;
-        font-size: 10.5pt;
-    }}
-    .totales .monto {{
-        text-align: right;
-        font-weight: bold;
-    }}
-    .total-final {{
-        color: {COLOR_BERRY};
-        font-size: 13pt;
-        font-weight: bold;
-    }}
-    .caja {{
-        background: {COLOR_FONDO_SUAVE};
-        border-left: 4px solid {COLOR_BERRY};
-        padding: 10px 14px;
-        margin: 12px 0;
-        font-size: 9.5pt;
-        color: {COLOR_PLUM};
-    }}
-"""
 
 
 def formatear_moneda(valor):
@@ -127,39 +42,11 @@ def formatear_moneda(valor):
     return f"S/ {float(valor):,.2f}"
 
 
-def generar_pdf(html_body, titulo="Documento"):
-    """
-    Envuelve `html_body` (el contenido específico de la boleta o el reporte,
-    ya armado como HTML) con el CSS de marca y lo convierte a bytes de PDF.
-
-    `html_body` NO debe incluir <html>/<head>/<body> — solo el contenido
-    interno del documento (títulos, tablas, etc.).
-    """
-    html_completo = f"""
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <meta charset="utf-8">
-        <title>{titulo}</title>
-        <style>{_CSS_BASE}</style>
-    </head>
-    <body>
-        {html_body}
-        <p style="margin-top: 30px; text-align: center; font-size: 8pt; color: {COLOR_PLUM_SOFT};">
-            Anita New Style
-        </p>
-    </body>
-    </html>
-    """
-    return html_a_pdf(html_completo)
-
-
 def html_a_pdf(html_completo):
     """
     Convierte un documento HTML COMPLETO (con su propio <style>) a bytes de
-    PDF. Lo usan los documentos que no comparten el CSS de marca base — por
-    ejemplo el reporte de ventas, que tiene su propia plantilla en blanco y
-    negro con cabecera, pie y numeración de páginas.
+    PDF. Lo usan la boleta y el reporte de ventas, cada uno con su propia
+    plantilla.
     """
     buffer = BytesIO()
     resultado = pisa.CreatePDF(html_completo, dest=buffer)

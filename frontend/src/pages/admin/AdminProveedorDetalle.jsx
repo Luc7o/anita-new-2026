@@ -2,7 +2,7 @@ import { rutaAdmin } from "../../lib/appMode.js";
 import { useConfirm } from "../../components/ConfirmDialog.jsx";
 import { useToast } from "../../context/ToastContext.jsx";
 import Spinner from "../../components/Spinner.jsx";
-import { SkeletonFilasAdmin, SkeletonPanelAdmin, SkeletonDetalleAdmin, SkeletonFormularioAdmin } from "../../components/admin/EsqueletosAdmin.jsx";
+import { SkeletonDetalleAdmin } from "../../components/admin/EsqueletosAdmin.jsx";
 import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { api } from "../../api/client.js";

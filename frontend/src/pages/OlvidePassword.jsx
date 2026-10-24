@@ -5,9 +5,6 @@ import { api } from "../api/client.js";
 import {
   IconMail,
   IconCheckCircle,
-  IconFacebook,
-  IconInstagram,
-  IconWhatsApp,
 } from "../components/Icons.jsx";
 import loginHero from "../assets/auth/login-hero.webp";
 

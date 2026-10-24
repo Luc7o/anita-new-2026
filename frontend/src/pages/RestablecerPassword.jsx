@@ -9,9 +9,6 @@ import {
   IconEyeOff,
   IconCheckCircle,
   IconArrowLeft,
-  IconFacebook,
-  IconInstagram,
-  IconWhatsApp,
 } from "../components/Icons.jsx";
 import registroHero from "../assets/auth/registro-hero.webp";
 import { claseInputAuth, claseLabel } from "../estilos.js";

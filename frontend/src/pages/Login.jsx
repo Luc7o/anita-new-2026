@@ -5,10 +5,6 @@ import { useAuth } from "../context/AuthContext.jsx";
 import {
   IconEye,
   IconEyeOff,
-  IconFacebook,
-  IconInstagram,
-  IconWhatsApp,
-  IconCheck,
 } from "../components/Icons.jsx";
 import GoogleButton from "../components/GoogleButton.jsx";
 import PasoDosFactores from "../components/PasoDosFactores.jsx";

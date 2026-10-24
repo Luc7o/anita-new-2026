@@ -5,9 +5,8 @@ Sigue la plantilla "EJEMPLO-reporte-ventas.pdf": cabecera con logo y recuadro
 del título, KPIs, desglose de IGV, tablas por método de pago / origen /
 producto / día, detalle de pedidos y pie con numeración de páginas.
 
-A diferencia de la boleta, NO usa el CSS de marca de generar_pdf(): esta
-plantilla es sobria (blanco y negro), así que trae su propio CSS y se
-convierte con html_a_pdf(). La boleta y la hoja de reclamación no cambian.
+Esta plantilla es sobria (blanco y negro): trae su propio CSS y se convierte
+con html_a_pdf(). La boleta y la hoja de reclamación no cambian.
 """
 from collections import Counter, defaultdict
 from datetime import datetime

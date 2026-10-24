@@ -1,5 +1,5 @@
 import { rutaAdmin } from "../../lib/appMode.js";
-import { SkeletonFilasAdmin, SkeletonPanelAdmin, SkeletonDetalleAdmin, SkeletonFormularioAdmin } from "../../components/admin/EsqueletosAdmin.jsx";
+import { SkeletonPanelAdmin } from "../../components/admin/EsqueletosAdmin.jsx";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { api } from "../../api/client.js";
