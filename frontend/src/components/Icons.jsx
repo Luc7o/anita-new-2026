@@ -138,15 +138,6 @@ export function IconSearch({ size = 16, className = "" }) {
   );
 }
 
-export function IconReceipt({ size = 18, className = "" }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" {...base} className={className}>
-      <path d="M6 3h12v18l-3-2-3 2-3-2-3 2V3Z" />
-      <path d="M9 8h6M9 12h6" />
-    </svg>
-  );
-}
-
 export function IconTruck({ size = 18, className = "" }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" {...base} className={className}>

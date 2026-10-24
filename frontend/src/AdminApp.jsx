@@ -1,5 +1,5 @@
 import React from "react";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import { lazyConReintento as lazy } from "./utils/lazyConReintento.js";
 import RutaAdmin from "./components/admin/RutaAdmin.jsx";
 import AdminLayout from "./components/admin/AdminLayout.jsx";
@@ -10,7 +10,6 @@ const AdminPromociones = lazy(() => import("./pages/admin/AdminPromociones.jsx")
 const AdminPedidos = lazy(() => import("./pages/admin/AdminPedidos.jsx"));
 const AdminPedidoDetalle = lazy(() => import("./pages/admin/AdminPedidoDetalle.jsx"));
 const AdminVentaPresencial = lazy(() => import("./pages/admin/AdminVentaPresencial.jsx"));
-const AdminReportes = lazy(() => import("./pages/admin/AdminReportes.jsx"));
 const AdminProveedores = lazy(() => import("./pages/admin/AdminProveedores.jsx"));
 const AdminProveedorDetalle = lazy(() => import("./pages/admin/AdminProveedorDetalle.jsx"));
 const AdminUsuarios = lazy(() => import("./pages/admin/AdminUsuarios.jsx"));
@@ -37,7 +36,7 @@ export default function AdminApp() {
         <Route path="pedidos" element={<AdminPedidos />} />
         <Route path="pedidos/:id" element={<AdminPedidoDetalle />} />
         <Route path="pedidos/nueva-venta" element={<AdminVentaPresencial />} />
-        <Route path="reportes" element={<AdminReportes />} />
+        <Route path="reportes" element={<Navigate to=".." replace />} />
         <Route path="proveedores" element={<AdminProveedores />} />
         <Route path="proveedores/:id" element={<AdminProveedorDetalle />} />
         <Route path="reclamaciones" element={<AdminReclamaciones />} />
