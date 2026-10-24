@@ -2,6 +2,8 @@ import { rutaAdmin } from "../../lib/appMode.js";
 import Spinner from "../../components/Spinner.jsx";
 import React, { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext.jsx";
+import { CAJERO } from "../../roles.js";
 import { api } from "../../api/client.js";
 import { soles } from "../../formato.js";
 import { IconSearch, IconClose, IconTrash } from "../../components/Icons.jsx";
@@ -25,6 +27,7 @@ function stockDe(producto, talla, color) {
 }
 
 export default function AdminVentaPresencial() {
+  const { usuario } = useAuth();
   const inputRef = useRef(null);
   const ultimaBusqueda = useRef(0);
 
@@ -295,9 +298,11 @@ export default function AdminVentaPresencial() {
 
   return (
     <div>
-      <Link to={rutaAdmin("/pedidos")} className="text-sm text-berry hover:underline">
-        ← Volver a pedidos
-      </Link>
+      {usuario?.rol !== CAJERO && (
+        <Link to={rutaAdmin("/pedidos")} className="text-sm text-berry hover:underline">
+          ← Volver a pedidos
+        </Link>
+      )}
 
       <div className="mt-4 grid gap-6 lg:grid-cols-[1.4fr_1fr]">
         {/* Columna izquierda: buscar y elegir productos */}

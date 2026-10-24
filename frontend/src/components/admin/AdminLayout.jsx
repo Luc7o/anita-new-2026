@@ -10,6 +10,7 @@ import {
 import {
   PUEDE_VER_PRODUCTOS, PUEDE_VER_PEDIDOS, PUEDE_REGISTRAR_VENTA, PUEDE_VER_INICIO, PUEDE_VER_PROVEEDORES,
   PUEDE_GESTIONAR_USUARIOS, PUEDE_VER_CONFIGURACION, PUEDE_VER_PROMOCIONES, PUEDE_VER_RECLAMACIONES,
+  CAJERO,
 } from "../../roles.js";
 
 const TODOS_LOS_ITEMS = [
@@ -59,7 +60,7 @@ export default function AdminLayout() {
             <Logo tone="light" />
           </Link>
           <span className="rounded bg-white/10 px-2 py-0.5 text-xs font-bold uppercase tracking-wider text-white/80">
-            Admin
+            {usuario?.rol === CAJERO ? "Cajero" : "Admin"}
           </span>
           <div className="ml-auto flex items-center gap-1">
             <span className="hidden max-w-[12rem] truncate text-sm font-semibold text-white sm:inline">
