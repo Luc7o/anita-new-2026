@@ -1,5 +1,8 @@
 import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
+import { useAuth } from "./context/AuthContext.jsx";
+import { rutaAdmin } from "./lib/appMode.js";
+import { CAJERO } from "./roles.js";
 import { lazyConReintento as lazy } from "./utils/lazyConReintento.js";
 import RutaAdmin from "./components/admin/RutaAdmin.jsx";
 import AdminLayout from "./components/admin/AdminLayout.jsx";
@@ -16,6 +19,14 @@ const AdminUsuarios = lazy(() => import("./pages/admin/AdminUsuarios.jsx"));
 const AdminConfiguracion = lazy(() => import("./pages/admin/AdminConfiguracion.jsx"));
 const AdminReclamaciones = lazy(() => import("./pages/admin/AdminReclamaciones.jsx"));
 
+// Pantalla de inicio del panel: el cajero no tiene dashboard, así que al entrar
+// (o al abrir "/") va directo a Nueva venta. Los demás roles ven el dashboard.
+function Inicio() {
+  const { usuario } = useAuth();
+  if (usuario?.rol === CAJERO) return <Navigate to={rutaAdmin("/pedidos/nueva-venta")} replace />;
+  return <AdminDashboard />;
+}
+
 // Rutas del panel. Son relativas: en la tienda sin subdominio cuelgan de
 // "/admin/*" y en el subdominio del admin (VITE_APP_MODE=admin) de "/".
 export default function AdminApp() {
@@ -29,7 +40,7 @@ export default function AdminApp() {
           </RutaAdmin>
         }
       >
-        <Route index element={<AdminDashboard />} />
+        <Route index element={<Inicio />} />
         <Route path="productos" element={<AdminProductos />} />
         <Route path="categorias" element={<AdminCategorias />} />
         <Route path="promociones" element={<AdminPromociones />} />

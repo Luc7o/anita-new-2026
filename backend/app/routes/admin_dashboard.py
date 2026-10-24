@@ -16,6 +16,7 @@ from sqlalchemy.orm import selectinload
 from app.models import Pedido, Producto, Reclamacion
 from app.roles import (
     ROLES_ADMIN,
+    CAJERO,
     PUEDE_VER_PEDIDOS,
     PUEDE_VER_PRODUCTOS,
     PUEDE_VER_RECLAMACIONES,
@@ -42,7 +43,7 @@ def _item(clave, cantidad, singular, plural, enlace, urgente):
 
 
 @bp.get("/atencion")
-@requiere_roles(*ROLES_ADMIN)
+@requiere_roles(*[r for r in ROLES_ADMIN if r != CAJERO])
 def atencion():
     rol = g.usuario.rol
     items = []
