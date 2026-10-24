@@ -9,8 +9,15 @@ import { api } from "../../api/client.js";
 import { ESTADOS_PEDIDO } from "./estadosPedido.js";
 import EstadoPedidoSelect from "../../components/EstadoPedidoSelect.jsx";
 import { LineasPedido, TotalesPedido } from "../../components/ResumenPedido.jsx";
+import { useAuth } from "../../context/AuthContext.jsx";
+import { PUEDE_GESTIONAR_PEDIDOS, PUEDE_GESTIONAR_REEMBOLSOS } from "../../roles.js";
 
 export default function AdminPedidoDetalle() {
+  const { usuario } = useAuth();
+  // Administrativo solo mira el pedido; cambiar estado/envío es de ventas y almacén,
+  // y revisar el pago o reembolsar es de ventas (el servidor lo valida igual).
+  const puedeGestionar = PUEDE_GESTIONAR_PEDIDOS.includes(usuario?.rol);
+  const puedeRevisarPago = PUEDE_GESTIONAR_REEMBOLSOS.includes(usuario?.rol);
   const toast = useToast();
   const confirmar = useConfirm();
   const { id } = useParams();
@@ -122,10 +129,14 @@ export default function AdminPedidoDetalle() {
             <span className="rounded-[10px] bg-plum/10 px-4 py-2 text-sm font-semibold text-plum-soft">
               Cancelado — no se puede modificar
             </span>
+          ) : !puedeGestionar ? (
+            <span className="rounded-[10px] bg-plum/10 px-4 py-2 text-sm font-semibold text-plum-soft">
+              {pedido.estado_label || pedido.estado}
+            </span>
           ) : (
             <EstadoPedidoSelect
               value={pedido.estado}
-              opciones={ESTADOS_PEDIDO}
+              opciones={puedeRevisarPago ? ESTADOS_PEDIDO : Object.fromEntries(Object.entries(ESTADOS_PEDIDO).filter(([k]) => k !== "cancelado"))}
               disabled={actualizando}
               onChange={cambiarEstado}
             />
@@ -185,7 +196,7 @@ export default function AdminPedidoDetalle() {
               </span>
             </div>
 
-            {pedido.estado !== "cancelado" &&
+            {puedeRevisarPago && pedido.estado !== "cancelado" &&
               (pedido.estado_pago === "en_revision" || (pedido.metodo_pago === "tarjeta" && pedido.estado_pago === "pendiente")) && (
               <div className="mt-3 flex gap-2">
                 <button
@@ -205,7 +216,7 @@ export default function AdminPedidoDetalle() {
               </div>
             )}
 
-            {pedido.estado_pago === "reembolso_pendiente" && (
+            {puedeRevisarPago && pedido.estado_pago === "reembolso_pendiente" && (
               <div className="mt-3">
                 <p className="mb-2 text-sm text-plum-soft">
                   Este pedido se canceló después de que el pago ya estaba verificado —
@@ -224,7 +235,7 @@ export default function AdminPedidoDetalle() {
           </div>
         )}
 
-        {pedido.estado !== "cancelado" && (
+        {puedeGestionar && pedido.estado !== "cancelado" && (
           <form onSubmit={guardarEnvio} className="mt-6 rounded-2xl bg-white p-4">
             <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-plum-soft">
               Seguimiento de envío
