@@ -33,7 +33,10 @@ PUEDE_GESTIONAR_STOCK = [SUPERADMIN, ADMINISTRATIVO, ALMACEN]
 PUEDE_VER_PRODUCTOS = PUEDE_GESTIONAR_STOCK + [VENTAS, CAJERO]
 
 PUEDE_GESTIONAR_CATEGORIAS = [SUPERADMIN, ADMINISTRATIVO]
-PUEDE_VER_CATEGORIAS = PUEDE_GESTIONAR_CATEGORIAS
+# Listar categorías es solo lectura y lo necesita la pantalla de Productos (filtro y
+# formulario), así que lo ve quien ve productos. Crear/editar/borrar sigue siendo
+# solo de superadmin y administrativo.
+PUEDE_VER_CATEGORIAS = PUEDE_VER_PRODUCTOS
 
 # --- Promociones ---
 PUEDE_GESTIONAR_PROMOCIONES = [SUPERADMIN, ADMINISTRATIVO]
