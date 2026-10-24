@@ -1,11 +1,11 @@
 import { rutaAdmin, IS_ADMIN_APP, TIENDA_URL } from "../../lib/appMode.js";
 import React from "react";
-import { NavLink, Outlet, Link, useLocation } from "react-router-dom";
+import { NavLink, Outlet, Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext.jsx";
 import Logo from "../Logo.jsx";
 import {
   IconDashboard, IconBag, IconTag, IconPackage, IconStore, IconLogout, IconTruck, IconUsers, IconSettings,
-  IconCart, IconGift, IconBook,
+  IconCart, IconGift, IconBook, IconUser,
 } from "../Icons.jsx";
 import {
   PUEDE_VER_PRODUCTOS, PUEDE_GESTIONAR_CATEGORIAS, PUEDE_VER_PEDIDOS, PUEDE_REGISTRAR_VENTA, PUEDE_VER_INICIO, PUEDE_VER_PROVEEDORES,
@@ -49,6 +49,13 @@ function TiendaLink() {
 export default function AdminLayout() {
   const { usuario, logout } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
+
+  // Cambiar de cuenta = cerrar la sesión actual y quedar en el login para entrar con otra.
+  const cambiarDeCuenta = () => {
+    logout();
+    navigate(IS_ADMIN_APP ? "/login" : "/ingresar", { replace: true });
+  };
   const items = TODOS_LOS_ITEMS.filter((item) => !item.roles || item.roles.includes(usuario?.rol));
 
   return (
@@ -85,8 +92,8 @@ export default function AdminLayout() {
 
       <div className="flex flex-1">
         {/* Barra lateral (pantallas grandes): ocupa todo el lado izquierdo, bajo la cabecera */}
-        <aside className="sticky top-[57px] hidden h-[calc(100vh-57px)] w-60 shrink-0 overflow-y-auto border-r border-plum/10 bg-white/60 backdrop-blur lg:block">
-          <nav className="flex flex-col gap-1 p-3" aria-label="Administración">
+        <aside className="sticky top-[57px] hidden h-[calc(100vh-57px)] w-60 shrink-0 flex-col overflow-y-auto border-r border-plum/10 bg-white/60 backdrop-blur lg:flex">
+          <nav className="flex flex-1 flex-col gap-1 p-3" aria-label="Administración">
             {items.map((item) => (
               <NavLink
                 key={item.to}
@@ -105,6 +112,32 @@ export default function AdminLayout() {
               </NavLink>
             ))}
           </nav>
+
+          {/* Cuenta: al final de la barra lateral */}
+          <div className="border-t border-plum/10 p-3">
+            <div className="mb-2 px-3.5">
+              <p className="truncate text-sm font-semibold text-plum">
+                {[usuario?.nombre, usuario?.apellido].filter(Boolean).join(" ") || usuario?.email}
+              </p>
+              <p className="truncate text-xs text-plum-soft">{usuario?.rol_label}</p>
+            </div>
+            <button
+              type="button"
+              onClick={cambiarDeCuenta}
+              className="flex w-full items-center gap-3 rounded-[10px] px-3.5 py-2.5 text-sm font-semibold text-plum-soft transition-colors hover:bg-plum/5 hover:text-plum"
+            >
+              <IconUser size={18} />
+              Cambiar de cuenta
+            </button>
+            <button
+              type="button"
+              onClick={logout}
+              className="flex w-full items-center gap-3 rounded-[10px] px-3.5 py-2.5 text-sm font-semibold text-berry-dark transition-colors hover:bg-berry/10"
+            >
+              <IconLogout size={18} />
+              Cerrar sesión
+            </button>
+          </div>
         </aside>
 
         <div className="flex min-w-0 flex-1 flex-col">
