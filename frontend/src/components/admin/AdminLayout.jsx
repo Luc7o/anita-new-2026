@@ -55,7 +55,7 @@ export default function AdminLayout() {
     <div className="admin-ui flex min-h-screen flex-col">
       {/* Cabecera oscura fija (estructura de Malhu) */}
       <header className="sticky top-0 z-40 bg-plum/95 backdrop-blur">
-        <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3">
+        <div className="flex items-center gap-3 px-4 py-3">
           <Link to={rutaAdmin()} aria-label="Panel de administración">
             <Logo tone="light" />
           </Link>
@@ -83,35 +83,62 @@ export default function AdminLayout() {
         </div>
       </header>
 
-      {/* Pestañas de sección (reemplazan la barra lateral) */}
-      <div className="sticky top-[57px] z-30 border-b border-plum/10 bg-ivory/95 backdrop-blur">
-        <nav className="mx-auto flex max-w-7xl gap-1 overflow-x-auto px-4" aria-label="Administración">
-          {items.map((item) => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              end={item.exact}
-              className={({ isActive }) =>
-                `flex shrink-0 items-center gap-2 whitespace-nowrap border-b-2 px-3.5 py-3 text-sm font-semibold transition-colors ${
-                  isActive
-                    ? "border-berry text-plum"
-                    : "border-transparent text-plum-soft hover:text-plum"
-                }`
-              }
-            >
-              <item.Icon size={16} />
-              {item.label}
-            </NavLink>
-          ))}
-        </nav>
-      </div>
+      <div className="flex flex-1">
+        {/* Barra lateral (pantallas grandes): ocupa todo el lado izquierdo, bajo la cabecera */}
+        <aside className="sticky top-[57px] hidden h-[calc(100vh-57px)] w-60 shrink-0 overflow-y-auto border-r border-plum/10 bg-white/60 backdrop-blur lg:block">
+          <nav className="flex flex-col gap-1 p-3" aria-label="Administración">
+            {items.map((item) => (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                end={item.exact}
+                className={({ isActive }) =>
+                  `flex items-center gap-3 rounded-[10px] px-3.5 py-2.5 text-sm font-semibold transition-colors ${
+                    isActive
+                      ? "bg-berry text-white shadow-sm"
+                      : "text-plum-soft hover:bg-plum/5 hover:text-plum"
+                  }`
+                }
+              >
+                <item.Icon size={18} />
+                {item.label}
+              </NavLink>
+            ))}
+          </nav>
+        </aside>
 
-      <main className="mx-auto w-full min-w-0 max-w-7xl flex-1 px-4 pb-16 pt-8">
-        {/* key: al cambiar de sección el contenido entra con fundido + leve subida */}
-        <div key={location.pathname} className="animate-fade-in-up">
-          <Outlet />
+        <div className="flex min-w-0 flex-1 flex-col">
+          {/* Pestañas horizontales (celular y tablet), donde no cabe la barra lateral */}
+          <div className="sticky top-[57px] z-30 border-b border-plum/10 bg-ivory/95 backdrop-blur lg:hidden">
+            <nav className="mx-auto flex max-w-7xl gap-1 overflow-x-auto px-4" aria-label="Administración">
+              {items.map((item) => (
+                <NavLink
+                  key={item.to}
+                  to={item.to}
+                  end={item.exact}
+                  className={({ isActive }) =>
+                    `flex shrink-0 items-center gap-2 whitespace-nowrap border-b-2 px-3.5 py-3 text-sm font-semibold transition-colors ${
+                      isActive
+                        ? "border-berry text-plum"
+                        : "border-transparent text-plum-soft hover:text-plum"
+                    }`
+                  }
+                >
+                  <item.Icon size={16} />
+                  {item.label}
+                </NavLink>
+              ))}
+            </nav>
+          </div>
+
+          <main className="mx-auto w-full min-w-0 max-w-7xl flex-1 px-4 pb-16 pt-8 sm:px-6 lg:px-8">
+            {/* key: al cambiar de sección el contenido entra con fundido + leve subida */}
+            <div key={location.pathname} className="animate-fade-in-up">
+              <Outlet />
+            </div>
+          </main>
         </div>
-      </main>
+      </div>
     </div>
   );
 }

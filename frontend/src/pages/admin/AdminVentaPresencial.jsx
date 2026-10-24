@@ -464,7 +464,7 @@ export default function AdminVentaPresencial() {
         </div>
 
         {/* Columna derecha: resumen de la venta */}
-        <div className="glass h-fit rounded-2xl p-6 sm:p-8 lg:sticky lg:top-4">
+        <div className="glass h-fit rounded-2xl p-6 sm:p-8 lg:sticky lg:top-20">
           <h2 className="text-lg font-semibold text-plum">
             Venta actual{unidades > 0 && <span className="ml-2 text-sm font-normal text-plum-soft">({unidades} {unidades === 1 ? "unidad" : "unidades"})</span>}
           </h2>
