@@ -5,8 +5,8 @@ import useConfigTienda from "../hooks/useConfigTienda.js";
  * Logotipo de Anita New Style.
  * Si en Configuración se subió y guardó un logo, se muestra ese en TODOS los
  * lugares que usan este componente (cabecera, pie, panel de administración).
- * Si no hay logo (o todavía está cargando), se muestra el monograma "A" + nombre.
- * tone="light" para fondos oscuros (cabecera, pie); "dark" para fondos claros.
+ * Si no hay logo guardado (o todavía está cargando), se muestra el logo oficial
+ * de Anita New Style que viene con el proyecto.
  */
 export default function Logo({ tone = "light", className = "" }) {
   const { logo_url, nombre_comercial } = useConfigTienda();
@@ -19,19 +19,13 @@ export default function Logo({ tone = "light", className = "" }) {
       />
     );
   }
-  const claro = tone === "light";
+  // Sin logo guardado en Configuración se usa el logo oficial incluido en el
+  // proyecto (public/logo-anita-new-style.png), nunca un reemplazo.
   return (
-    <span className={`inline-flex items-center gap-2.5 ${className}`}>
-      <span
-        aria-hidden="true"
-        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] bg-berry font-display text-xl leading-none text-white"
-      >
-        A
-      </span>
-      <span className="font-display text-xl leading-none">
-        <span className={claro ? "text-white" : "text-plum"}>Anita</span>{" "}
-        <span className={claro ? "text-berry-light" : "text-berry"}>New Style</span>
-      </span>
-    </span>
+    <img
+      src="/logo-anita-new-style.png"
+      alt={nombre_comercial || "Anita New Style"}
+      className={`h-9 w-auto ${className}`}
+    />
   );
 }
