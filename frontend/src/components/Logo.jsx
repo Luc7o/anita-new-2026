@@ -2,30 +2,32 @@ import React from "react";
 import useConfigTienda from "../hooks/useConfigTienda.js";
 
 /**
- * Logotipo de Anita New Style.
- * Si en Configuración se subió y guardó un logo, se muestra ese en TODOS los
- * lugares que usan este componente (cabecera, pie, panel de administración).
- * Si no hay logo guardado (o todavía está cargando), se muestra el logo oficial
- * de Anita New Style que viene con el proyecto.
+ * Logotipo de Anita New Style: imagen del logo + el nombre "ANITA NEW STYLE".
+ * Si en Configuración se subió y guardó un logo, se muestra ese; si no hay (o
+ * todavía está cargando), se usa el logo oficial que viene con el proyecto
+ * (public/logo-anita-new-style.png). El nombre siempre va al lado.
+ * tone="light" para fondos oscuros (cabecera, pie); "dark" para fondos claros.
  */
-export default function Logo({ tone = "light", className = "" }) {
+export default function Logo({ tone = "light", className = "", conNombre = true }) {
   const { logo_url, nombre_comercial } = useConfigTienda();
-  if (logo_url) {
-    return (
-      <img
-        src={logo_url}
-        alt={nombre_comercial || "Anita New Style"}
-        className={`h-9 w-auto ${className}`}
-      />
-    );
-  }
-  // Sin logo guardado en Configuración se usa el logo oficial incluido en el
-  // proyecto (public/logo-anita-new-style.png), nunca un reemplazo.
+  const claro = tone === "light";
   return (
-    <img
-      src="/logo-anita-new-style.png"
-      alt={nombre_comercial || "Anita New Style"}
-      className={`h-9 w-auto ${className}`}
-    />
+    <span className={`inline-flex items-center gap-3 ${className}`}>
+      <img
+        src={logo_url || "/logo-anita-new-style.png"}
+        alt={conNombre ? "" : nombre_comercial || "Anita New Style"}
+        aria-hidden={conNombre ? "true" : undefined}
+        className="h-9 w-auto rounded-[6px]"
+      />
+      {conNombre && (
+        <span
+          className={`font-sans text-sm font-extrabold uppercase leading-none tracking-[0.12em] sm:text-base ${
+            claro ? "text-white" : "text-plum"
+          }`}
+        >
+          ANITA <span className={claro ? "text-berry-light" : "text-berry"}>NEW STYLE</span>
+        </span>
+      )}
+    </span>
   );
 }
