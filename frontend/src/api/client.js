@@ -530,6 +530,11 @@ export const api = {
     request(`/admin/promociones/${id}`, { method: "PUT", body: payload, auth: true }),
   adminEliminarPromocion: (id) =>
     request(`/admin/promociones/${id}`, { method: "DELETE", auth: true }),
+  adminSubirImagenCategoria: (archivo) => {
+    const formData = new FormData();
+    formData.append("imagen", archivo);
+    return subirArchivo("/admin/uploads/categoria-imagen", formData, "No se pudo subir la imagen");
+  },
   adminSubirImagenPromocion: (archivo) => {
     const formData = new FormData();
     formData.append("imagen", archivo);

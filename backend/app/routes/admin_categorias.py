@@ -15,6 +15,20 @@ def _slugificar(texto):
     return texto
 
 
+def _imagen_valida(valor):
+    """Devuelve (url_limpia, None) o (None, mensaje). Vacío = sin foto."""
+    if valor is None:
+        return "", None
+    if not isinstance(valor, str):
+        return None, "La imagen no es válida"
+    valor = valor.strip()
+    if not valor:
+        return "", None
+    if len(valor) > 500 or not valor.startswith("https://"):
+        return None, "La imagen no es válida"
+    return valor, None
+
+
 @bp.get("")
 @requiere_roles(*PUEDE_VER_CATEGORIAS)
 def listar():
@@ -34,11 +48,16 @@ def crear():
     if Categoria.query.filter_by(slug=slug).first():
         return jsonify({"error": "Ya existe una categoría con ese nombre"}), 409
 
+    imagen, error = _imagen_valida(data.get("imagen_url"))
+    if error:
+        return jsonify({"error": error}), 400
+
     categoria = Categoria(
         nombre=nombre,
         slug=slug,
         descripcion=data.get("descripcion", ""),
         icono=data.get("icono", "bag"),
+        imagen_url=imagen or None,
     )
     db.session.add(categoria)
     db.session.commit()
@@ -58,6 +77,11 @@ def actualizar(categoria_id):
         categoria.descripcion = data["descripcion"]
     if "icono" in data:
         categoria.icono = data["icono"]
+    if "imagen_url" in data:
+        imagen, error = _imagen_valida(data["imagen_url"])
+        if error:
+            return jsonify({"error": error}), 400
+        categoria.imagen_url = imagen or None
     if "activo" in data:
         categoria.activo = bool(data["activo"])
 

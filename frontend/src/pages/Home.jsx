@@ -154,9 +154,9 @@ function Categorias({ categorias, cargando, fotos }) {
               className="group flex w-36 flex-col items-center text-center md:w-44"
             >
               <span className="flex h-32 w-32 items-center justify-center overflow-hidden rounded-full border-4 border-plum bg-lilac font-display text-5xl text-plum shadow-pop transition-transform duration-300 ease-out group-hover:scale-110 md:h-40 md:w-40">
-                {fotos[cat.slug] ? (
+                {cat.imagen_url || fotos[cat.slug] ? (
                   <ImagenOptimizada
-                    src={fotos[cat.slug]}
+                    src={cat.imagen_url || fotos[cat.slug]}
                     variante="thumb"
                     alt=""
                     className="h-full w-full object-cover"
@@ -208,7 +208,7 @@ export default function Home() {
       .productos({ oferta: "true", por_pagina: 4 })
       .then((data) => setOfertas(data.productos))
       .catch(() => {});
-    // Foto de cada categoría: se toma de uno de sus productos (las categorías no guardan foto propia).
+    // Foto de respaldo de cada categoría sin imagen propia: se toma de uno de sus productos.
     api
       .productos({ por_pagina: 48 })
       .then((data) => {

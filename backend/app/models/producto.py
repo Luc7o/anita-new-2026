@@ -10,6 +10,7 @@ class Categoria(db.Model):
     slug = db.Column(db.String(80), nullable=False, unique=True)
     descripcion = db.Column(db.String(300))
     icono = db.Column(db.String(100), default="bag")
+    imagen_url = db.Column(db.String(500))
     activo = db.Column(db.Boolean, default=True)
 
     productos = db.relationship("Producto", backref="categoria", lazy="dynamic")
@@ -29,6 +30,7 @@ class Categoria(db.Model):
             "slug": self.slug,
             "descripcion": self.descripcion,
             "icono": self.icono,
+            "imagen_url": self.imagen_url or "",
             "activo": self.activo,
             "productos_count": self.productos.count(),
         }
