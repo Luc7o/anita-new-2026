@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { api } from "../api/client.js";
 
 // Último logo conocido. Se recuerda entre una pantalla de carga y la siguiente
@@ -12,6 +13,14 @@ let ultimoLogo = "";
  */
 export default function CargandoPagina() {
   const [logo, setLogo] = useState(ultimoLogo);
+  // Si la página llega en menos de ~150 ms ni se muestra: evita el destello
+  // de la pantalla de carga cada vez que se cambia de página.
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    const t = setTimeout(() => setVisible(true), 150);
+    return () => clearTimeout(t);
+  }, []);
 
   useEffect(() => {
     let vivo = true;
@@ -27,7 +36,11 @@ export default function CargandoPagina() {
 
   // Pantalla completa: el logo y la barra quedan siempre en el centro exacto
   // de la ventana, sin importar el alto de la página que se está cargando.
-  return (
+  // Se dibuja con un portal directo en <body>: la animación de entrada de las
+  // páginas usa "transform", y dentro de ella un elemento fixed se encogía al
+  // tamaño del contenido (se veía como una caja gris a mitad de la pantalla).
+  if (!visible) return null;
+  return createPortal(
     <div
       role="status"
       aria-busy="true"
@@ -44,6 +57,7 @@ export default function CargandoPagina() {
         <span className="animate-barra block h-1.5 w-24 rounded-full bg-berry" />
       </span>
       <span className="sr-only">Cargando…</span>
-    </div>
+    </div>,
+    document.body
   );
 }
