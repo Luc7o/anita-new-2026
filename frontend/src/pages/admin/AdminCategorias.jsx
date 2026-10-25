@@ -7,8 +7,9 @@ import { api } from "../../api/client.js";
 import { IconSearch, IconEdit, IconTrash, IconTag } from "../../components/Icons.jsx";
 import { useFocusTrap } from "../../hooks/useFocusTrap.js";
 import Paginador from "../../components/Paginador.jsx";
+import ImagenOptimizada from "../../components/ImagenOptimizada.jsx";
 
-const VACIO = { nombre: "", descripcion: "", icono: "bag" };
+const VACIO = { nombre: "", descripcion: "", icono: "bag", imagen_url: "" };
 const POR_PAGINA = 10;
 
 export default function AdminCategorias() {
@@ -21,6 +22,7 @@ export default function AdminCategorias() {
   const [mostrarForm, setMostrarForm] = useState(false);
   const [error, setError] = useState("");
   const [guardando, setGuardando] = useState(false);
+  const [subiendoImagen, setSubiendoImagen] = useState(false);
 
   const [busqueda, setBusqueda] = useState("");
   const [filtroEstado, setFiltroEstado] = useState("");
@@ -46,9 +48,25 @@ export default function AdminCategorias() {
 
   const editar = (cat) => {
     setEditandoId(cat.id);
-    setForm({ nombre: cat.nombre, descripcion: cat.descripcion || "", icono: cat.icono || "bag" });
+    setForm({ nombre: cat.nombre, descripcion: cat.descripcion || "", icono: cat.icono || "bag", imagen_url: cat.imagen_url || "" });
     setError("");
     setMostrarForm(true);
+  };
+
+  const subirImagen = async (e) => {
+    const archivo = e.target.files?.[0];
+    if (!archivo) return;
+    setSubiendoImagen(true);
+    setError("");
+    try {
+      const { url } = await api.adminSubirImagenCategoria(archivo);
+      setForm((f) => ({ ...f, imagen_url: url }));
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setSubiendoImagen(false);
+      e.target.value = "";
+    }
   };
 
   const guardar = async (e) => {
@@ -201,8 +219,12 @@ export default function AdminCategorias() {
             {paginados.map((cat) => (
               <tr key={cat.id} className="border-t border-white/40">
                 <td className="px-4 py-2">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-lilac to-white text-berry">
-                    <IconTag size={16} />
+                  <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-lilac to-white text-berry">
+                    {cat.imagen_url ? (
+                      <ImagenOptimizada src={cat.imagen_url} variante="thumb" alt="" className="h-full w-full object-cover" />
+                    ) : (
+                      <IconTag size={16} />
+                    )}
                   </div>
                 </td>
                 <td className="px-4 py-3">
@@ -249,8 +271,12 @@ export default function AdminCategorias() {
       <div className="space-y-3 md:hidden">
         {paginados.map((cat) => (
           <div key={cat.id} className="glass flex gap-3 rounded-2xl p-4">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-lilac to-white text-berry">
-              <IconTag size={18} />
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-lilac to-white text-berry">
+              {cat.imagen_url ? (
+                <ImagenOptimizada src={cat.imagen_url} variante="thumb" alt="" className="h-full w-full object-cover" />
+              ) : (
+                <IconTag size={18} />
+              )}
             </div>
             <div className="min-w-0 flex-1">
               <div className="flex items-start justify-between gap-2">
@@ -309,6 +335,42 @@ export default function AdminCategorias() {
 
             <div className="space-y-3">
               <div>
+                <span className="mb-1 block text-xs font-medium text-plum-soft">Imagen (opcional)</span>
+                <div className="flex items-center gap-4">
+                  <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-plum/20 bg-lilac text-plum-soft">
+                    {subiendoImagen ? (
+                      <Spinner />
+                    ) : form.imagen_url ? (
+                      <ImagenOptimizada src={form.imagen_url} variante="thumb" alt="Vista previa de la categoría" className="h-full w-full object-cover" />
+                    ) : (
+                      <IconTag size={24} />
+                    )}
+                  </div>
+                  <div className="flex flex-col items-start gap-1.5">
+                    <label className="cursor-pointer rounded-[10px] bg-white px-4 py-2 text-sm font-semibold text-plum ring-1 ring-plum/20 transition hover:ring-berry">
+                      {form.imagen_url ? "Cambiar imagen" : "Subir imagen"}
+                      <input
+                        type="file"
+                        accept="image/png,image/jpeg,image/webp"
+                        onChange={subirImagen}
+                        disabled={subiendoImagen}
+                        className="sr-only"
+                      />
+                    </label>
+                    {form.imagen_url && (
+                      <button
+                        type="button"
+                        onClick={() => setForm((f) => ({ ...f, imagen_url: "" }))}
+                        className="text-xs font-semibold text-berry hover:underline"
+                      >
+                        Quitar imagen
+                      </button>
+                    )}
+                    <p className="text-xs text-plum-soft">Se muestra en un círculo: usa una foto cuadrada.</p>
+                  </div>
+                </div>
+              </div>
+              <div>
                 <label htmlFor="cat-nombre" className="mb-1 block text-xs font-medium text-plum-soft">
                   Nombre
                 </label>
@@ -343,7 +405,7 @@ export default function AdminCategorias() {
             <div className="mt-5 flex gap-2">
               <button
                 type="submit"
-                disabled={guardando}
+                disabled={guardando || subiendoImagen}
                 className="flex-1 rounded-[10px] bg-berry py-2.5 text-sm font-semibold text-white transition hover:bg-berry-dark disabled:opacity-60"
               >
                 {guardando ? <><Spinner />Guardando...</> : editandoId ? "Guardar cambios" : "Crear categoría"}

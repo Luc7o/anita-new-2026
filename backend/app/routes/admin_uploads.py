@@ -1,7 +1,12 @@
 from flask import Blueprint, request, jsonify
 from app.utils.decorators import requiere_roles
 from app.utils.imagenes import guardar_imagen, ImagenInvalida
-from app.roles import PUEDE_GESTIONAR_PRODUCTOS, PUEDE_GESTIONAR_PROMOCIONES, PUEDE_GESTIONAR_CONFIGURACION
+from app.roles import (
+    PUEDE_GESTIONAR_CATEGORIAS,
+    PUEDE_GESTIONAR_PRODUCTOS,
+    PUEDE_GESTIONAR_PROMOCIONES,
+    PUEDE_GESTIONAR_CONFIGURACION,
+)
 
 bp = Blueprint("admin_uploads", __name__, url_prefix="/api/admin/uploads")
 
@@ -11,6 +16,16 @@ bp = Blueprint("admin_uploads", __name__, url_prefix="/api/admin/uploads")
 def subir_imagen_producto():
     try:
         url = guardar_imagen(request.files.get("imagen"), "productos")
+    except ImagenInvalida as e:
+        return jsonify({"error": str(e)}), 400
+    return jsonify({"url": url}), 201
+
+
+@bp.post("/categoria-imagen")
+@requiere_roles(*PUEDE_GESTIONAR_CATEGORIAS)
+def subir_imagen_categoria():
+    try:
+        url = guardar_imagen(request.files.get("imagen"), "categorias")
     except ImagenInvalida as e:
         return jsonify({"error": str(e)}), 400
     return jsonify({"url": url}), 201
