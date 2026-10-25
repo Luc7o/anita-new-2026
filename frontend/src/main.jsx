@@ -5,6 +5,7 @@ import { AuthProvider } from "./context/AuthContext.jsx";
 import { ToastProvider } from "./context/ToastContext.jsx";
 import { ConfirmProvider } from "./components/ConfirmDialog.jsx";
 import "./styles/theme.css";
+import { importarConReintento } from "./utils/lazyConReintento.js";
 
 // La comparación se hace directo con import.meta.env para que Vite la resuelva al
 // construir y descarte la rama que no se usa: el build del admin NO incluye la
@@ -30,15 +31,15 @@ async function arrancar() {
 }
 
 async function arrancarAdmin() {
-  const { default: AdminRaiz } = await import("./AdminRaiz.jsx");
+  const { default: AdminRaiz } = await importarConReintento(() => import("./AdminRaiz.jsx"));
   return <AdminRaiz />;
 }
 
 async function arrancarTienda() {
   const [{ default: App }, { FavoritosProvider }, { CarritoProvider }] = await Promise.all([
-    import("./App.jsx"),
-    import("./context/FavoritosContext.jsx"),
-    import("./context/CarritoContext.jsx"),
+    importarConReintento(() => import("./App.jsx")),
+    importarConReintento(() => import("./context/FavoritosContext.jsx")),
+    importarConReintento(() => import("./context/CarritoContext.jsx")),
   ]);
   return (
     <FavoritosProvider>

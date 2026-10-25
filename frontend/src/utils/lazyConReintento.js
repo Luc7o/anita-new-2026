@@ -9,22 +9,25 @@ import { lazy } from "react";
 const CLAVE = "recarga_por_version_nueva";
 const VENTANA_MS = 15000;
 
+// Pide el módulo; si falla por versión vieja, recarga una sola vez.
+export function importarConReintento(importador) {
+  return importador().catch((error) => {
+    let yaRecargo = true; // sin sessionStorage no se puede proteger del bucle: no recargamos
+    try {
+      const ultima = Number(sessionStorage.getItem(CLAVE) || 0);
+      yaRecargo = Date.now() - ultima < VENTANA_MS;
+      if (!yaRecargo) sessionStorage.setItem(CLAVE, String(Date.now()));
+    } catch {
+      yaRecargo = true;
+    }
+    if (!yaRecargo) {
+      window.location.reload();
+      return new Promise(() => {}); // la página se está recargando
+    }
+    throw error;
+  });
+}
+
 export function lazyConReintento(importador) {
-  return lazy(() =>
-    importador().catch((error) => {
-      let yaRecargo = true; // sin sessionStorage no se puede proteger del bucle: no recargamos
-      try {
-        const ultima = Number(sessionStorage.getItem(CLAVE) || 0);
-        yaRecargo = Date.now() - ultima < VENTANA_MS;
-        if (!yaRecargo) sessionStorage.setItem(CLAVE, String(Date.now()));
-      } catch {
-        yaRecargo = true;
-      }
-      if (!yaRecargo) {
-        window.location.reload();
-        return new Promise(() => {}); // la página se está recargando
-      }
-      throw error;
-    })
-  );
+  return lazy(() => importarConReintento(importador));
 }
