@@ -137,9 +137,9 @@ Para que la sesión funcione entre los dos subdominios, el backend usa
 |---|---|
 | **Super administrador** | Todo: incluida la configuración de la tienda y la gestión de usuarios y roles |
 | **Administrativo** | Gestiona productos, categorías, promociones, proveedores y reclamaciones; ve los pedidos y el dashboard completo |
-| **Ventas** | Gestiona pedidos (incluye cancelar y reembolsar) y registra ventas presenciales; ve productos y su dashboard de ventas |
+| **Ventas** | Se encarga solo de las ventas en línea: gestiona los pedidos online con delivery (incluye cancelar y reembolsar); ve productos y su dashboard de ventas. No registra ventas presenciales |
 | **Almacén** | Edita el stock, gestiona proveedores y prepara o despacha pedidos; ve su dashboard de stock |
-| **Cajero** | Solo registra ventas en tienda y descarga sus boletas; sin dashboard, reportes, cancelaciones ni reembolsos |
+| **Cajero** | Registra las ventas en tienda (venta presencial), entrega los recojos en tienda y descarga sus boletas; sin dashboard, reportes, cancelaciones ni reembolsos |
 | **Cliente** | Rol normal de quien compra en la tienda (no entra al panel) |
 
 El menú del panel solo muestra las secciones a las que cada rol tiene acceso,
@@ -207,7 +207,8 @@ Checkout con **Yape** y **tarjeta**, procesados por Culqi:
   pendiente"; ventas lo marca como reembolsado desde el detalle del pedido.
 - Boleta de venta en PDF por cada pedido.
 - Venta presencial (en tienda) desde el panel, con búsqueda por código SKU y
-  DNI del cliente.
+  DNI del cliente. La registran el cajero y el superadmin; el rol Ventas no
+  tiene acceso (ni en el menú ni en la API).
 
 ## Reseñas
 
@@ -228,8 +229,9 @@ responde desde el panel (plazo legal de 15 días hábiles).
 - **Productos**, **Categorías** y **Promociones**: gestión completa, con
   subida de imágenes
 - **Proveedores**: datos de contacto y productos que suministran
-- **Pedidos**: ver todos, filtrar, cambiar estado, boletas
-- **Venta presencial**: registro de ventas en el mostrador
+- **Pedidos**: ver todos, filtrar, cambiar estado, boletas (el rol Ventas ve
+  solo los pedidos online con delivery)
+- **Venta presencial** (cajero y superadmin): registro de ventas en el mostrador
 - **Reclamaciones**: responder reclamos y quejas
 - **Configuración** (solo superadmin): datos y logo de la tienda
 - **Usuarios y roles** (solo superadmin): crear personal, cambiar rol,

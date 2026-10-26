@@ -25,7 +25,8 @@ export const PUEDE_VER_PEDIDOS = [...PUEDE_GESTIONAR_PEDIDOS, ADMINISTRATIVO];
 // Cancelar pedido y marcar pago verificado/rechazado/reembolsado
 export const PUEDE_GESTIONAR_REEMBOLSOS = [SUPERADMIN, VENTAS];
 
-export const PUEDE_REGISTRAR_VENTA = [SUPERADMIN, VENTAS, CAJERO];
+// Ventas presenciales: solo superadmin y cajero. El rol Ventas atiende únicamente las ventas en línea.
+export const PUEDE_REGISTRAR_VENTA = [SUPERADMIN, CAJERO];
 
 export const PUEDE_VER_DASHBOARD = [SUPERADMIN, ADMINISTRATIVO];
 // Pestaña "Dashboard" del menú: todos los roles del panel menos el cajero

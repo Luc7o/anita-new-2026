@@ -59,8 +59,9 @@ PUEDE_VER_BOLETA = PUEDE_VER_PEDIDOS + [CAJERO]
 PUEDE_GESTIONAR_REEMBOLSOS = [SUPERADMIN, VENTAS]
 
 # --- Venta presencial ---
-# El cajero solo registra ventas en tienda: sin dashboard, reportes, cancelaciones ni reembolsos
-PUEDE_REGISTRAR_VENTA = [SUPERADMIN, VENTAS, CAJERO]
+# Las ventas en tienda las registra el cajero (sin dashboard, reportes, cancelaciones ni
+# reembolsos). El rol Ventas se encarga solo de las ventas en línea: no registra ventas presenciales.
+PUEDE_REGISTRAR_VENTA = [SUPERADMIN, CAJERO]
 
 # --- Dashboard y reportes ---
 # Dashboard general (ingresos, ventas): superadmin y administrativo
