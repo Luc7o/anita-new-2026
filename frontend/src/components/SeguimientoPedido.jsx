@@ -1,10 +1,20 @@
 import React from "react";
 
-const PASOS = [
+const PASOS_BASE = [
   { clave: "pendiente", label: "Pendiente" },
   { clave: "confirmado", label: "Confirmado" },
   { clave: "preparando", label: "Preparando" },
+];
+
+// Delivery: el pedido viaja. Recojo en tienda: espera listo en el local.
+const PASOS_DELIVERY = [
+  ...PASOS_BASE,
   { clave: "enviado", label: "Enviado" },
+  { clave: "entregado", label: "Entregado" },
+];
+const PASOS_RECOJO = [
+  ...PASOS_BASE,
+  { clave: "listo_recojo", label: "Listo para recoger" },
   { clave: "entregado", label: "Entregado" },
 ];
 
@@ -17,6 +27,9 @@ export default function SeguimientoPedido({ pedido }) {
     );
   }
 
+  // Un recojo antiguo que ya estaba "enviado" (antes de existir "Listo para
+  // recoger") sigue mostrándose con la línea de delivery para no perder su paso.
+  const PASOS = pedido.requiere_codigo_recojo && pedido.estado !== "enviado" ? PASOS_RECOJO : PASOS_DELIVERY;
   const indiceActual = PASOS.findIndex((p) => p.clave === pedido.estado);
 
   return (

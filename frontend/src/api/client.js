@@ -447,8 +447,9 @@ export const api = {
     return request(`/admin/pedidos${query ? `?${query}` : ""}`, { auth: true });
   },
   adminPedido: (id) => request(`/admin/pedidos/${id}`, { auth: true }),
-  adminCambiarEstadoPedido: (id, estado) =>
-    request(`/admin/pedidos/${id}/estado`, { method: "PUT", body: { estado }, auth: true }),
+  // `codigo` solo se manda al entregar un recojo en tienda (código de 6 dígitos del cliente)
+  adminCambiarEstadoPedido: (id, estado, codigo) =>
+    request(`/admin/pedidos/${id}/estado`, { method: "PUT", body: codigo ? { estado, codigo } : { estado }, auth: true }),
   adminActualizarEnvio: (id, payload) =>
     request(`/admin/pedidos/${id}/envio`, { method: "PUT", body: payload, auth: true }),
   adminRevisarPago: (id, estado_pago) =>

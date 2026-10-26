@@ -231,7 +231,7 @@ def detalle_pedido(pedido_id):
     usuario_id = int(get_jwt_identity())
     cancelar_pedidos_vencidos_del_usuario(usuario_id)
     pedido = Pedido.query.filter_by(id=pedido_id, usuario_id=usuario_id).first_or_404()
-    return jsonify(pedido.to_dict())
+    return jsonify(pedido.to_dict(incluir_codigo=True))
 
 
 @bp.post("/<int:pedido_id>/cancelar")
