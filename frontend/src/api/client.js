@@ -441,6 +441,16 @@ export const api = {
   adminEliminarCategoria: (id) =>
     request(`/admin/categorias/${id}`, { method: "DELETE", auth: true }),
 
+  // Caja: únicamente recojos web que ya están listos; entrega con código.
+  adminRecojosCajero: (params = {}) => {
+    const query = new URLSearchParams(params).toString();
+    return request(`/admin/pedidos/recojos-pendientes${query ? `?${query}` : ""}`, { auth: true });
+  },
+  adminEntregarRecojoCajero: (id, codigo) =>
+    request(`/admin/pedidos/recojos-pendientes/${id}/entregar`, {
+      method: "PUT", body: { codigo }, auth: true,
+    }),
+
   // Admin — pedidos
   adminPedidos: (params = {}) => {
     const query = new URLSearchParams(params).toString();

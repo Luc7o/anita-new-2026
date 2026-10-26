@@ -17,6 +17,7 @@ const AdminPromociones = lazy(() => import("./pages/admin/AdminPromociones.jsx")
 const AdminPedidos = lazy(() => import("./pages/admin/AdminPedidos.jsx"));
 const AdminPedidoDetalle = lazy(() => import("./pages/admin/AdminPedidoDetalle.jsx"));
 const AdminVentaPresencial = lazy(() => import("./pages/admin/AdminVentaPresencial.jsx"));
+const AdminRecojosCajero = lazy(() => import("./pages/admin/AdminRecojosCajero.jsx"));
 const AdminProveedores = lazy(() => import("./pages/admin/AdminProveedores.jsx"));
 const AdminProveedorDetalle = lazy(() => import("./pages/admin/AdminProveedorDetalle.jsx"));
 const AdminUsuarios = lazy(() => import("./pages/admin/AdminUsuarios.jsx"));
@@ -57,8 +58,9 @@ export default function AdminApp() {
         <Route path="categorias" element={<Solo roles={PUEDE_GESTIONAR_CATEGORIAS}><AdminCategorias /></Solo>} />
         <Route path="promociones" element={<Solo roles={PUEDE_VER_PROMOCIONES}><AdminPromociones /></Solo>} />
         <Route path="pedidos" element={<Solo roles={PUEDE_VER_PEDIDOS}><AdminPedidos /></Solo>} />
-        <Route path="pedidos/:id" element={<Solo roles={PUEDE_VER_PEDIDOS}><AdminPedidoDetalle /></Solo>} />
         <Route path="pedidos/nueva-venta" element={<Solo roles={PUEDE_REGISTRAR_VENTA}><AdminVentaPresencial /></Solo>} />
+        <Route path="pedidos/recojos" element={<Solo roles={[CAJERO]}><AdminRecojosCajero /></Solo>} />
+        <Route path="pedidos/:id" element={<Solo roles={PUEDE_VER_PEDIDOS}><AdminPedidoDetalle /></Solo>} />
         <Route path="reportes" element={<Navigate to=".." replace />} />
         <Route path="proveedores" element={<Solo roles={PUEDE_VER_PROVEEDORES}><AdminProveedores /></Solo>} />
         <Route path="proveedores/:id" element={<Solo roles={PUEDE_VER_PROVEEDORES}><AdminProveedorDetalle /></Solo>} />
