@@ -11,12 +11,12 @@ import EstadoPedidoSelect from "../../components/EstadoPedidoSelect.jsx";
 import { InsigniaEstadoPedido, InsigniaEntregaPedido } from "../../components/admin/InsigniasPedido.jsx";
 import { LineasPedido, TotalesPedido } from "../../components/ResumenPedido.jsx";
 import { useAuth } from "../../context/AuthContext.jsx";
-import { PUEDE_GESTIONAR_PEDIDOS, PUEDE_GESTIONAR_REEMBOLSOS } from "../../roles.js";
+import { ALMACEN, PUEDE_GESTIONAR_PEDIDOS, PUEDE_GESTIONAR_REEMBOLSOS } from "../../roles.js";
 
 export default function AdminPedidoDetalle() {
   const { usuario } = useAuth();
-  // Administrativo solo mira el pedido; cambiar estado/envío es de ventas y almacén,
-  // y revisar el pago o reembolsar es de ventas (el servidor lo valida igual).
+  // Administrativo solo mira pedidos. Almacén puede preparar/despachar,
+  // pero las entregas finales y la revisión de pagos no le corresponden.
   const puedeGestionar = PUEDE_GESTIONAR_PEDIDOS.includes(usuario?.rol);
   const puedeRevisarPago = PUEDE_GESTIONAR_REEMBOLSOS.includes(usuario?.rol);
   const toast = useToast();
@@ -100,12 +100,20 @@ export default function AdminPedidoDetalle() {
     }
   };
 
-  // Cada pedido ve solo los estados de SU camino:
-  //  - delivery: sin "Listo para recoger"
-  //  - recojo online: sin "Enviado", y "Entregado" no se elige acá: se
-  //    confirma con el código del cliente en la tarjeta de abajo.
+  // Almacén solo puede avanzar el flujo logístico y nunca marcar "Entregado".
+  // Se conserva el estado actual en el selector para que pueda visualizarse.
+  // Esta restricción también se verifica en el backend.
+  const esAlmacen = usuario?.rol === ALMACEN;
+  const siguienteEstadoAlmacen = pedido?.estado === "confirmado"
+    ? "preparando"
+    : pedido?.estado === "preparando"
+      ? (pedido.requiere_codigo_recojo ? "listo_recojo" : "enviado")
+      : null;
+
+  // Otros roles mantienen el flujo que tenían antes de este cambio.
   const opcionesEstado = Object.fromEntries(
     Object.entries(ESTADOS_PEDIDO).filter(([k]) => {
+      if (esAlmacen) return k === pedido?.estado || k === siguienteEstadoAlmacen;
       if (k === "cancelado" && !puedeRevisarPago) return false;
       if (pedido?.requiere_codigo_recojo && pedido.estado !== "enviado") {
         if (k === "enviado") return false;
@@ -169,7 +177,7 @@ export default function AdminPedidoDetalle() {
               label="Cancelado — no se puede modificar"
               className="!rounded-[10px] !px-4 !py-2 !text-sm"
             />
-          ) : !puedeGestionar ? (
+          ) : !puedeGestionar || (esAlmacen && !siguienteEstadoAlmacen) ? (
             <InsigniaEstadoPedido
               estado={pedido.estado}
               label={pedido.estado_label || pedido.estado}
@@ -277,7 +285,7 @@ export default function AdminPedidoDetalle() {
           </div>
         )}
 
-        {puedeGestionar && pedido.estado === "listo_recojo" && pedido.requiere_codigo_recojo && (
+        {puedeGestionar && !esAlmacen && pedido.estado === "listo_recojo" && pedido.requiere_codigo_recojo && (
           <form onSubmit={entregarRecojo} className="mt-6 rounded-2xl border border-berry/20 bg-white p-4">
             <h2 className="mb-1 text-sm font-semibold uppercase tracking-wide text-plum-soft">
               Entregar al cliente

@@ -19,6 +19,7 @@ from app.roles import (
     PUEDE_REGISTRAR_VENTA,
     PUEDE_VER_BOLETA,
     CAJERO,
+    ALMACEN,
     SUPERADMIN,
 )
 from app.utils.stock import restaurar_stock_de_pedido, agrupar_por_producto, validar_stock_disponible, descontar_stock
@@ -160,6 +161,16 @@ def cambiar_estado(pedido_id):
 
     if nuevo_estado not in Pedido.ESTADOS:
         return jsonify({"error": "Estado no válido"}), 400
+
+    # Almacén prepara y despacha, pero no confirma pagos/pedidos ni certifica
+    # que el cliente ya recibió el pedido. Este límite debe estar en el backend:
+    # ocultar las opciones del selector no impide hacer solicitudes directas.
+    if g.usuario.rol == ALMACEN and (pedido.estado, nuevo_estado) not in {
+        ("confirmado", "preparando"),
+        ("preparando", "enviado"),
+        ("preparando", "listo_recojo"),
+    }:
+        return jsonify({"error": "Almacén solo puede preparar o despachar pedidos"}), 403
 
     # PUEDE_GESTIONAR_PEDIDOS incluye a Almacén (para preparar/despachar),
     # pero cancelar un pedido implica devolver stock y, si el pago ya estaba
