@@ -14,6 +14,7 @@ const ESTADO_BADGE = {
   pendiente: "bg-plum/10 text-plum-soft",
   confirmado: "bg-gold/30 text-plum",
   preparando: "bg-gold/30 text-plum",
+  listo_recojo: "bg-teal-50 text-teal-700",
   enviado: "bg-blue-50 text-blue-600",
   entregado: "bg-green-100 text-green-700",
   cancelado: "bg-red-100 text-red-700",

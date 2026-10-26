@@ -1,4 +1,5 @@
 from datetime import datetime
+import secrets
 import uuid
 from app.extensions import db
 
@@ -14,6 +15,7 @@ class Pedido(db.Model):
         "pendiente": "Pendiente",
         "confirmado": "Confirmado",
         "preparando": "Preparando",
+        "listo_recojo": "Listo para recoger",
         "enviado": "Enviado",
         "entregado": "Entregado",
         "cancelado": "Cancelado",
@@ -21,11 +23,18 @@ class Pedido(db.Model):
 
     # Máquina de estados: desde qué estado se puede pasar a cuáles otros.
     # "entregado" y "cancelado" son finales — no admiten ningún cambio más.
-    # La cancelación solo está permitida antes de "enviado".
+    # La cancelación solo está permitida antes de "enviado" (o, en un recojo,
+    # mientras el pedido espera en la tienda como "listo_recojo").
+    #
+    # Desde "preparando" el pedido sigue UNO de dos caminos, según cómo se
+    # entrega (puede_pasar_a se encarga de filtrarlo):
+    #   - delivery:       preparando -> enviado -> entregado
+    #   - recojo online:  preparando -> listo_recojo -> entregado (con código)
     TRANSICIONES_VALIDAS = {
         "pendiente": {"confirmado", "cancelado"},
         "confirmado": {"preparando", "cancelado"},
-        "preparando": {"enviado", "cancelado"},
+        "preparando": {"enviado", "listo_recojo", "cancelado"},
+        "listo_recojo": {"entregado", "cancelado"},
         "enviado": {"entregado"},
         "entregado": set(),
         "cancelado": set(),
@@ -87,6 +96,10 @@ class Pedido(db.Model):
     envio_dpto = db.Column(db.String(100))
     envio_referencia = db.Column(db.String(200))
 
+    # Código de 6 dígitos para retirar el pedido en tienda. Se genera cuando el
+    # pedido pasa a "listo_recojo" y solo lo ve el cliente (nunca el admin).
+    codigo_recojo = db.Column(db.String(6), nullable=True)
+
     # Seguimiento del envío (lo completa el admin cuando despacha el pedido)
     empresa_envio = db.Column(db.String(100))
     numero_seguimiento = db.Column(db.String(100))
@@ -132,8 +145,38 @@ class Pedido(db.Model):
     def generar_numero():
         return f"ANS-{datetime.utcnow().strftime('%Y%m%d')}-{str(uuid.uuid4())[:6].upper()}"
 
+    @property
+    def es_recojo_online(self):
+        """Compra por la web que el cliente retira en la tienda. Es el único
+        caso que usa el código de recojo: una venta presencial (mostrador) ya
+        se entrega en el momento, así que no lo necesita."""
+        return self.tipo_entrega == "recojo" and self.origen == "online"
+
     def puede_pasar_a(self, nuevo_estado):
+        # "enviado" solo tiene sentido en un delivery y "listo_recojo" solo
+        # en un recojo online: cada pedido ve únicamente su propio camino.
+        if nuevo_estado == "listo_recojo" and not self.es_recojo_online:
+            return False
+        if (
+            nuevo_estado == "enviado"
+            and self.estado == "preparando"
+            and self.es_recojo_online
+        ):
+            return False
         return nuevo_estado in self.TRANSICIONES_VALIDAS.get(self.estado, set())
+
+    @staticmethod
+    def generar_codigo_recojo():
+        """Código de 6 dígitos al azar (con `secrets`, apto para seguridad;
+        `random` es predecible). Se rellena con ceros: '004821'."""
+        return f"{secrets.randbelow(1_000_000):06d}"
+
+    def codigo_recojo_coincide(self, codigo):
+        """Compara el código escrito con el del pedido en tiempo constante
+        (evita que se pueda adivinar midiendo cuánto tarda la comparación)."""
+        if not self.codigo_recojo or not codigo:
+            return False
+        return secrets.compare_digest(self.codigo_recojo, str(codigo).strip())
 
     @property
     def esta_vencido(self):
@@ -176,7 +219,7 @@ class Pedido(db.Model):
             return None
         return "3 a 5 días hábiles"
 
-    def to_dict(self, con_detalles=True):
+    def to_dict(self, con_detalles=True, incluir_codigo=False):
         data = {
             "id": self.id,
             "numero_pedido": self.numero_pedido,
@@ -213,7 +256,13 @@ class Pedido(db.Model):
             "fecha_entregado": self.fecha_entregado.isoformat() if self.fecha_entregado else None,
             "motivo_cancelacion": self.motivo_cancelacion,
             "distrito_id": self.distrito_id,
+            "requiere_codigo_recojo": self.es_recojo_online,
         }
+        # El código solo viaja hacia el CLIENTE (incluir_codigo=True) y solo
+        # mientras espera en tienda. El admin nunca lo recibe: tiene que
+        # pedírselo al cliente, que es justo lo que prueba que está ahí.
+        if incluir_codigo and self.estado == "listo_recojo":
+            data["codigo_recojo"] = self.codigo_recojo
         if con_detalles:
             data["detalles"] = [d.to_dict() for d in self.detalles]
         return data

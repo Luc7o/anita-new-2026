@@ -261,6 +261,26 @@ export default function PedidoDetalle() {
           <SeguimientoPedido pedido={pedido} />
         </div>
 
+        {pedido.estado === "listo_recojo" && pedido.codigo_recojo && (
+          <div className="mt-5 rounded-2xl border border-berry/20 bg-white/60 p-5 text-center shadow-glass">
+            <p className="font-display text-sm font-semibold text-plum">
+              ¡Tu pedido está listo para recoger en la tienda!
+            </p>
+            <p className="mt-1 text-xs text-plum-soft">
+              Dile este código al personal para retirarlo. No lo compartas con nadie más.
+            </p>
+            <p
+              className="mt-3 font-mono text-4xl font-bold tracking-[0.3em] text-berry-dark"
+              aria-label={`Código de recojo: ${pedido.codigo_recojo.split("").join(" ")}`}
+            >
+              {pedido.codigo_recojo}
+            </p>
+            <p className="mt-3 text-xs text-plum-soft">
+              Lleva también tu documento de identidad ({pedido.envio_tipo_documento?.toUpperCase()}).
+            </p>
+          </div>
+        )}
+
         {mostrarEstadoPago && (
           <div className="mt-5 rounded-2xl bg-white/50 p-4">
             <div className="flex items-center justify-between">

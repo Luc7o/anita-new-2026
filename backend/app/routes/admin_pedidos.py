@@ -101,7 +101,20 @@ def cambiar_estado(pedido_id):
         if pedido.estado_pago == "verificado":
             pedido.estado_pago = "reembolso_pendiente"
         pedido.motivo_cancelacion = "admin"
+    if nuevo_estado == "listo_recojo":
+        # El pedido ya está esperando en la tienda: se genera el código que
+        # el cliente tendrá que decir para retirarlo.
+        pedido.codigo_recojo = Pedido.generar_codigo_recojo()
     if nuevo_estado == "entregado":
+        # Un recojo online solo se entrega si el cliente dice su código.
+        # (Si no tiene código es un pedido antiguo, de antes de esta
+        # verificación, y se deja cerrar como siempre.)
+        if pedido.es_recojo_online and pedido.codigo_recojo:
+            codigo = str(data.get("codigo") or "").strip()
+            if not codigo:
+                return jsonify({"error": "Pide al cliente su código de recojo de 6 dígitos"}), 400
+            if not pedido.codigo_recojo_coincide(codigo):
+                return jsonify({"error": "El código no coincide. Revisa que sea el de este pedido."}), 400
         pedido.fecha_entregado = datetime.utcnow()
 
     cambiar_estado_pedido(pedido, nuevo_estado, cambiado_por=g.usuario.id)

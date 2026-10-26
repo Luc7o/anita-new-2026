@@ -5,6 +5,7 @@ const COLORES = {
   pendiente: "bg-amber-400",
   confirmado: "bg-sky-500",
   preparando: "bg-violet-500",
+  listo_recojo: "bg-teal-500",
   enviado: "bg-indigo-500",
   entregado: "bg-emerald-500",
   cancelado: "bg-rose-500",

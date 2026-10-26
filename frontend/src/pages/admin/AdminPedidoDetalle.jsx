@@ -28,6 +28,9 @@ export default function AdminPedidoDetalle() {
   const [mensajeEnvio, setMensajeEnvio] = useState("");
   const [descargandoBoleta, setDescargandoBoleta] = useState(false);
   const [errorBoleta, setErrorBoleta] = useState("");
+  // Código de 6 dígitos que el cliente dice en la tienda para retirar su pedido
+  const [codigoRecojo, setCodigoRecojo] = useState("");
+  const [errorCodigo, setErrorCodigo] = useState("");
 
   const cargar = () =>
     api.adminPedido(id).then((data) => {
@@ -78,6 +81,40 @@ export default function AdminPedidoDetalle() {
       setActualizando(false);
     }
   };
+
+  const entregarRecojo = async (e) => {
+    e.preventDefault();
+    setErrorCodigo("");
+    setActualizando(true);
+    try {
+      await api.adminCambiarEstadoPedido(id, "entregado", codigoRecojo);
+      toast.success("Pedido entregado al cliente");
+      setCodigoRecojo("");
+      cargar();
+    } catch (err) {
+      // Código incorrecto u otro error: se muestra junto al campo
+      setErrorCodigo(err.message);
+    } finally {
+      setActualizando(false);
+    }
+  };
+
+  // Cada pedido ve solo los estados de SU camino:
+  //  - delivery: sin "Listo para recoger"
+  //  - recojo online: sin "Enviado", y "Entregado" no se elige acá: se
+  //    confirma con el código del cliente en la tarjeta de abajo.
+  const opcionesEstado = Object.fromEntries(
+    Object.entries(ESTADOS_PEDIDO).filter(([k]) => {
+      if (k === "cancelado" && !puedeRevisarPago) return false;
+      if (pedido?.requiere_codigo_recojo && pedido.estado !== "enviado") {
+        if (k === "enviado") return false;
+        if (k === "entregado" && pedido.estado !== "entregado") return false;
+      } else if (k === "listo_recojo" && pedido?.estado !== "listo_recojo") {
+        return false;
+      }
+      return true;
+    })
+  );
 
   const revisarPago = async (estadoPago) => {
     setActualizando(true);
@@ -136,7 +173,7 @@ export default function AdminPedidoDetalle() {
           ) : (
             <EstadoPedidoSelect
               value={pedido.estado}
-              opciones={puedeRevisarPago ? ESTADOS_PEDIDO : Object.fromEntries(Object.entries(ESTADOS_PEDIDO).filter(([k]) => k !== "cancelado"))}
+              opciones={opcionesEstado}
               disabled={actualizando}
               onChange={cambiarEstado}
             />
@@ -235,7 +272,47 @@ export default function AdminPedidoDetalle() {
           </div>
         )}
 
-        {puedeGestionar && pedido.estado !== "cancelado" && (
+        {puedeGestionar && pedido.estado === "listo_recojo" && pedido.requiere_codigo_recojo && (
+          <form onSubmit={entregarRecojo} className="mt-6 rounded-2xl border border-berry/20 bg-white p-4">
+            <h2 className="mb-1 text-sm font-semibold uppercase tracking-wide text-plum-soft">
+              Entregar al cliente
+            </h2>
+            <p className="mb-3 text-sm text-plum-soft">
+              Pídele al cliente su <strong className="text-plum">código de recojo</strong> (6 dígitos) y
+              revisa su {pedido.envio_tipo_documento?.toUpperCase() || "documento"}
+              {pedido.envio_numero_documento ? ` ${pedido.envio_numero_documento}` : ""}.
+              Solo entrégalo si el código coincide.
+            </p>
+            <div className="flex flex-wrap items-center gap-3">
+              <label htmlFor="codigo-recojo" className="sr-only">Código de recojo</label>
+              <input
+                id="codigo-recojo"
+                inputMode="numeric"
+                autoComplete="off"
+                maxLength={6}
+                placeholder="000000"
+                value={codigoRecojo}
+                onChange={(e) => {
+                  setCodigoRecojo(e.target.value.replace(/\D/g, "").slice(0, 6));
+                  setErrorCodigo("");
+                }}
+                className="w-40 rounded-2xl bg-plum/5 px-4 py-2 text-center font-mono text-lg tracking-[0.3em] text-plum focus:outline-none focus-visible:ring-2 focus-visible:ring-berry"
+              />
+              <button
+                type="submit"
+                disabled={actualizando || codigoRecojo.length !== 6}
+                className="rounded-[10px] bg-berry px-4 py-2 text-sm font-semibold text-white transition hover:bg-berry-dark disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {actualizando ? <><Spinner />Verificando...</> : "Confirmar entrega"}
+              </button>
+            </div>
+            {errorCodigo && (
+              <p className="mt-2 text-sm text-berry-dark" role="alert">{errorCodigo}</p>
+            )}
+          </form>
+        )}
+
+        {puedeGestionar && pedido.estado !== "cancelado" && pedido.tipo_entrega !== "recojo" && (
           <form onSubmit={guardarEnvio} className="mt-6 rounded-2xl bg-white p-4">
             <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-plum-soft">
               Seguimiento de envío
