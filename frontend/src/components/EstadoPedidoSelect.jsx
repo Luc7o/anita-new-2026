@@ -1,15 +1,9 @@
 import React, { useEffect, useRef, useState } from "react";
+import { ESTILO_ESTADO_PEDIDO, ESTILO_ESTADO_DESCONOCIDO } from "../pages/admin/estadosPedido.js";
 
-// Color del puntito de cada estado
-const COLORES = {
-  pendiente: "bg-amber-400",
-  confirmado: "bg-sky-500",
-  preparando: "bg-violet-500",
-  listo_recojo: "bg-teal-500",
-  enviado: "bg-indigo-500",
-  entregado: "bg-emerald-500",
-  cancelado: "bg-rose-500",
-};
+// Color del puntito de cada estado (el mismo de las etiquetas del listado)
+const colorPunto = (estado) => (ESTILO_ESTADO_PEDIDO[estado] || ESTILO_ESTADO_DESCONOCIDO).punto;
+
 
 export default function EstadoPedidoSelect({ value, opciones, onChange, disabled }) {
   const [abierto, setAbierto] = useState(false);
@@ -71,7 +65,7 @@ export default function EstadoPedidoSelect({ value, opciones, onChange, disabled
         className="flex min-w-[10rem] items-center justify-between gap-3 rounded-full bg-white/70 px-4 py-2 text-sm font-semibold text-plum shadow-glass ring-1 ring-berry/20 backdrop-blur transition hover:bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-berry disabled:opacity-60"
       >
         <span className="flex items-center gap-2">
-          <span className={`h-2.5 w-2.5 rounded-full ${COLORES[value] || "bg-plum-soft"}`} />
+          <span className={`h-2.5 w-2.5 rounded-full ${colorPunto(value)}`} />
           {actual}
         </span>
         <svg
@@ -101,7 +95,7 @@ export default function EstadoPedidoSelect({ value, opciones, onChange, disabled
               } ${v === value ? "font-semibold" : ""}`}
             >
               <span className="flex items-center gap-2">
-                <span className={`h-2.5 w-2.5 rounded-full ${COLORES[v] || "bg-plum-soft"}`} />
+                <span className={`h-2.5 w-2.5 rounded-full ${colorPunto(v)}`} />
                 {label}
               </span>
               {v === value && <span className="text-berry">✓</span>}

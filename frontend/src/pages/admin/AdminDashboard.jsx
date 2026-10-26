@@ -5,20 +5,11 @@ import { Link, useSearchParams } from "react-router-dom";
 import { api } from "../../api/client.js";
 import { soles } from "../../formato.js";
 import { IconChevronDown } from "../../components/Icons.jsx";
+import { InsigniaEstadoPedido } from "../../components/admin/InsigniasPedido.jsx";
 import { useAuth } from "../../context/AuthContext.jsx";
 import { SUPERADMIN, PUEDE_VER_DASHBOARD } from "../../roles.js";
 
 const COLORES_CATEGORIA = ["#C42759", "#550416", "#ABABAB", "#E58AA6", "#797878"];
-
-const ESTADO_BADGE = {
-  pendiente: "bg-plum/10 text-plum-soft",
-  confirmado: "bg-gold/30 text-plum",
-  preparando: "bg-gold/30 text-plum",
-  listo_recojo: "bg-teal-50 text-teal-700",
-  enviado: "bg-blue-50 text-blue-600",
-  entregado: "bg-green-100 text-green-700",
-  cancelado: "bg-red-100 text-red-700",
-};
 
 // Qué secciones ve cada rol. La pantalla de entrada ("Resumen") es corta a
 // propósito: lo que necesitas saber hoy y lo que tienes que hacer. El detalle
@@ -975,9 +966,7 @@ function PedidosRecientes({ datos }) {
               </div>
               <div className="flex shrink-0 items-center gap-3">
                 <span className="text-sm font-semibold text-plum">S/ {p.total.toFixed(2)}</span>
-                <span className={`rounded-md px-2.5 py-1 text-xs font-semibold ${ESTADO_BADGE[p.estado] || "bg-plum/10 text-plum-soft"}`}>
-                  {p.estado_label}
-                </span>
+                <InsigniaEstadoPedido estado={p.estado} label={p.estado_label} />
               </div>
             </div>
           ))}

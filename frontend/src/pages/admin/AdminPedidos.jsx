@@ -3,12 +3,15 @@ import { SkeletonFilasAdmin } from "../../components/admin/EsqueletosAdmin.jsx";
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../../api/client.js";
-import { ESTADOS_PEDIDO } from "./estadosPedido.js";
+import { ESTADOS_PEDIDO, ENTREGAS_PEDIDO } from "./estadosPedido.js";
+import { InsigniaEstadoPedido, InsigniaEntregaPedido } from "../../components/admin/InsigniasPedido.jsx";
 import Paginador from "../../components/Paginador.jsx";
 
 export default function AdminPedidos() {
   const [pedidos, setPedidos] = useState([]);
   const [estado, setEstado] = useState("");
+  // "" = todos; si no: delivery | recojo | mostrador (ver ENTREGAS_PEDIDO)
+  const [entrega, setEntrega] = useState("");
   const [cargando, setCargando] = useState(true);
   const [pagina, setPagina] = useState(1);
   const [total, setTotal] = useState(0);
@@ -16,20 +19,39 @@ export default function AdminPedidos() {
 
   useEffect(() => {
     setCargando(true);
+    const params = { pagina, por_pagina: POR_PAGINA };
+    if (estado) params.estado = estado;
+    if (entrega) params.entrega = entrega;
     api
-      .adminPedidos(estado ? { estado, pagina, por_pagina: POR_PAGINA } : { pagina, por_pagina: POR_PAGINA })
+      .adminPedidos(params)
       .then((data) => {
         setPedidos(data.pedidos);
         setTotal(data.total);
       })
       .finally(() => setCargando(false));
-  }, [estado, pagina]);
+  }, [estado, entrega, pagina]);
 
   return (
     <div>
       <h1 className="mb-6 text-2xl font-semibold text-plum">Pedidos</h1>
 
-      <div className="mb-4 flex gap-2 overflow-x-auto pb-1">
+      <div className="mb-2 flex items-center gap-2 overflow-x-auto pb-1">
+        <span className="shrink-0 text-xs font-semibold uppercase tracking-wide text-plum-soft">Entrega</span>
+        {[["", "Todas"], ...Object.entries(ENTREGAS_PEDIDO)].map(([valor, label]) => (
+          <button
+            key={valor || "todas"}
+            onClick={() => { setEntrega(valor); setPagina(1); }}
+            className={`shrink-0 rounded-full px-4 py-1.5 text-sm font-medium ${
+              entrega === valor ? "bg-berry text-white" : "glass text-plum"
+            }`}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
+      <div className="mb-4 flex items-center gap-2 overflow-x-auto pb-1">
+        <span className="shrink-0 text-xs font-semibold uppercase tracking-wide text-plum-soft">Estado</span>
         <button
           onClick={() => { setEstado(""); setPagina(1); }}
           className={`shrink-0 rounded-full px-4 py-1.5 text-sm font-medium ${
@@ -65,6 +87,7 @@ export default function AdminPedidos() {
                   <th className="px-4 py-3">Cliente</th>
                   <th className="px-4 py-3">Fecha</th>
                   <th className="px-4 py-3">Total</th>
+                  <th className="px-4 py-3">Entrega</th>
                   <th className="px-4 py-3">Estado</th>
                   <th className="px-4 py-3">Pago</th>
                   <th className="px-4 py-3"></th>
@@ -80,9 +103,10 @@ export default function AdminPedidos() {
                     </td>
                     <td className="px-4 py-3 text-plum-soft">S/ {p.total.toFixed(2)}</td>
                     <td className="px-4 py-3">
-                      <span className="rounded-md bg-berry/10 px-2.5 py-1 text-xs font-semibold text-berry-dark">
-                        {p.estado_label}
-                      </span>
+                      <InsigniaEntregaPedido pedido={p} />
+                    </td>
+                    <td className="px-4 py-3">
+                      <InsigniaEstadoPedido estado={p.estado} label={p.estado_label} />
                     </td>
                     <td className="px-4 py-3">
                       {p.estado_pago !== "no_aplica" && (
@@ -136,9 +160,8 @@ export default function AdminPedidos() {
                   <span className="text-xs text-plum-soft">
                     {new Date(p.fecha_creacion).toLocaleDateString("es-PE")}
                   </span>
-                  <span className="rounded-md bg-berry/10 px-2.5 py-1 text-xs font-semibold text-berry-dark">
-                    {p.estado_label}
-                  </span>
+                  <InsigniaEntregaPedido pedido={p} />
+                  <InsigniaEstadoPedido estado={p.estado} label={p.estado_label} />
                   {p.estado_pago !== "no_aplica" && (
                     <span
                       className={`rounded-md px-2.5 py-1 text-xs font-semibold ${
