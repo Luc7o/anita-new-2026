@@ -9,6 +9,7 @@ import GoogleButton from "../components/GoogleButton.jsx";
 import { useNavigate } from "react-router-dom";
 import registroHero from "../assets/auth/registro-hero.webp";
 import { claseInputAuth as claseInput, claseLabel } from "../estilos.js";
+import { useToast } from "../context/ToastContext.jsx";
 
 // Registro mínimo: solo el correo. La cuenta se crea al instante con un nombre
 // y una contraseña aleatorios y la persona queda con sesión iniciada para
@@ -17,6 +18,7 @@ import { claseInputAuth as claseInput, claseLabel } from "../estilos.js";
 // quiera.
 export default function Registro() {
   const navigate = useNavigate();
+  const toast = useToast();
   const location = useLocation();
   const { registroConEmail } = useAuth();
   const destino = location.state?.from || "/";
@@ -30,6 +32,7 @@ export default function Registro() {
     setEnviando(true);
     try {
       await registroConEmail(email.trim());
+      toast.success("¡Cuenta creada! Ya puedes seguir comprando");
       navigate(destino);
     } catch (err) {
       setError(err.message);
@@ -78,7 +81,10 @@ export default function Registro() {
             <>
               <GoogleButton
                 texto="signup_with"
-                onSuccess={(u) => navigate(u?.requiere2fa ? "/ingresar" : "/")}
+                onSuccess={(u) => {
+                  if (!u?.requiere2fa) toast.success("¡Cuenta creada! Ya puedes seguir comprando");
+                  navigate(u?.requiere2fa ? "/ingresar" : "/");
+                }}
                 onError={setError}
               />
               <div className="my-6 flex items-center gap-3 text-xs font-medium uppercase tracking-wide text-plum-soft/70">

@@ -9,12 +9,14 @@ import {
 import GoogleButton from "../components/GoogleButton.jsx";
 import PasoDosFactores from "../components/PasoDosFactores.jsx";
 import loginHero from "../assets/auth/login-hero.webp";
+import { useToast } from "../context/ToastContext.jsx";
 
 const CLAVE_RECORDAR = "ans_recordar_email";
 
 export default function Login() {
   const { login, segundoPaso, verificarSegundoPaso, cancelarSegundoPaso } = useAuth();
   const navigate = useNavigate();
+  const toast = useToast();
   const location = useLocation();
   const [email, setEmail] = useState(() => localStorage.getItem(CLAVE_RECORDAR) || "");
   const [password, setPassword] = useState("");
@@ -37,6 +39,7 @@ export default function Login() {
       } else {
         localStorage.removeItem(CLAVE_RECORDAR);
       }
+      toast.success("¡Hola de nuevo! Iniciaste sesión");
       navigate(destino);
     } catch (err) {
       setError(err.message);
@@ -49,6 +52,7 @@ export default function Login() {
     await verificarSegundoPaso(codigo, recordarDispositivo);
     if (recordar) localStorage.setItem(CLAVE_RECORDAR, email);
     else localStorage.removeItem(CLAVE_RECORDAR);
+    toast.success("¡Hola de nuevo! Iniciaste sesión");
     navigate(destino);
   };
 
@@ -178,7 +182,7 @@ export default function Login() {
           </div>
           <GoogleButton
             texto="signin_with"
-            onSuccess={(u) => { if (!u?.requiere2fa) navigate(destino); }}
+            onSuccess={(u) => { if (!u?.requiere2fa) { toast.success("¡Hola de nuevo! Iniciaste sesión"); navigate(destino); } }}
             onError={setError}
           />
         </>

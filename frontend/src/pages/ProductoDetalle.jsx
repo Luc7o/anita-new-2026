@@ -80,6 +80,7 @@ export default function ProductoDetalle() {
     try {
       await api.guardarResena(id, { calificacion: miCalificacion, comentario: miComentario });
       cargarResenas();
+      toast.success("¡Gracias! Tu reseña se guardó");
     } catch (err) {
       setErrorResena(err.message);
     } finally {
@@ -205,6 +206,7 @@ export default function ProductoDetalle() {
 
   const handleFavorito = () => {
     if (!usuario) {
+      toast.info("Inicia sesión para guardar tus favoritos");
       navigate("/ingresar");
       return;
     }
@@ -219,7 +221,6 @@ export default function ProductoDetalle() {
     try {
       await agregar(producto.id, { cantidad, talla, color });
       api.registrarEvento("agregar_carrito", { productoId: producto.id, metadata: { cantidad } });
-      toast.success("¡Producto agregado al carrito!");
     } catch (err) {
       setMensaje(err.message);
     } finally {
@@ -232,7 +233,7 @@ export default function ProductoDetalle() {
     setMensaje("");
     try {
       // abrirCarrito: false: "Comprar ahora" va directo al checkout, sin abrir el carrito.
-      await agregar(producto.id, { cantidad, talla, color, abrirCarrito: false });
+      await agregar(producto.id, { cantidad, talla, color, abrirCarrito: false, avisar: false });
       api.registrarEvento("agregar_carrito", { productoId: producto.id, metadata: { cantidad, via: "comprar_ahora" } });
       navigate("/checkout");
     } catch (err) {
