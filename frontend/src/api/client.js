@@ -1,3 +1,5 @@
+import { IS_ADMIN_APP } from "../lib/appMode.js";
+
 const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 
 // El access token YA NO se guarda en localStorage: vive solo en esta
@@ -7,6 +9,11 @@ const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 // (el navegador la manda solo, JS nunca la toca). Así, un XSS que lea
 // localStorage/sessionStorage ya no puede robarse ninguno de los dos tokens.
 let accessToken = null;
+
+// Tienda y panel admin usan cookies distintas en el backend (cuentas
+// separadas). El header X-Panel le dice al backend cuáles usar.
+const esPanelAdmin = () => IS_ADMIN_APP || window.location.pathname.startsWith("/admin");
+const headerPanel = () => (esPanelAdmin() ? { "X-Panel": "admin" } : {});
 
 function getToken() {
   return accessToken;
@@ -37,12 +44,12 @@ function leerCookie(nombre) {
 // y para que todas las pestañas usen siempre el valor más reciente (el
 // refresh rota el token). No es un secreto: solo sirve junto con la cookie
 // httpOnly de refresh, que JavaScript nunca ve.
-const CLAVE_CSRF = "ans_csrf_refresh";
+const claveCsrf = () => (esPanelAdmin() ? "ans_csrf_refresh_admin" : "ans_csrf_refresh");
 
 function guardarCsrf(valor) {
   try {
-    if (valor) localStorage.setItem(CLAVE_CSRF, valor);
-    else localStorage.removeItem(CLAVE_CSRF);
+    if (valor) localStorage.setItem(claveCsrf(), valor);
+    else localStorage.removeItem(claveCsrf());
   } catch {
     // localStorage bloqueado (modo privado estricto): se sigue con la cookie.
   }
@@ -50,10 +57,10 @@ function guardarCsrf(valor) {
 
 function leerCsrf() {
   // Si la cookie es legible (mismo sitio), es siempre la fuente más fiable.
-  const deCookie = leerCookie("csrf_refresh_token");
+  const deCookie = leerCookie(esPanelAdmin() ? "csrf_admin_refresh_token" : "csrf_refresh_token");
   if (deCookie) return deCookie;
   try {
-    return localStorage.getItem(CLAVE_CSRF) || "";
+    return localStorage.getItem(claveCsrf()) || "";
   } catch {
     return "";
   }
@@ -78,7 +85,7 @@ async function refrescarAccessToken() {
     const res = await fetch(`${BASE_URL}/auth/refrescar-token`, {
       method: "POST",
       credentials: "include", // manda la cookie httpOnly de refresh
-      headers: { "X-CSRF-Token": leerCsrf() },
+      headers: { "X-CSRF-Token": leerCsrf(), ...headerPanel() },
     });
     if (!res.ok) throw new Error("El refresh token también expiró");
 
@@ -125,6 +132,7 @@ async function pedirRed(path, { method = "GET", body, auth = false } = {}) {
     method,
     headers: {
       "Content-Type": "application/json",
+      ...headerPanel(),
       ...(auth && token ? { Authorization: `Bearer ${token}` } : {}),
     },
     body: body ? JSON.stringify(body) : undefined,
@@ -348,7 +356,7 @@ export const api = {
     fetch(`${BASE_URL}/auth/logout`, {
       method: "POST",
       credentials: "include",
-      headers: { "X-CSRF-Token": leerCsrf() },
+      headers: { "X-CSRF-Token": leerCsrf(), ...headerPanel() },
     }),
 
   // Ubicación (catálogo departamento -> provincia -> distrito, para los

@@ -8,12 +8,9 @@ from flask import Blueprint, request, jsonify, current_app
 from flask_jwt_extended import (
     create_access_token,
     create_refresh_token,
+    decode_token,
     get_csrf_token,
     get_jwt_identity,
-    jwt_required,
-    set_refresh_cookies,
-    unset_jwt_cookies,
-    verify_jwt_in_request,
 )
 from app.extensions import db, limiter
 from app.models import Usuario, TokenRecuperacion, UbigeoDistrito
@@ -23,6 +20,63 @@ from app.utils.google_auth import verificar_token_google, TokenGoogleInvalido
 from app.utils import totp
 
 bp = Blueprint("auth", __name__, url_prefix="/api/auth")
+
+
+# --- Cookies separadas: tienda y panel admin ---------------------------------
+# El frontend manda "X-Panel: admin" desde el panel. Cada panel usa SUS
+# propias cookies (refresh + csrf + dispositivo 2FA), así se puede tener una
+# cuenta en la tienda y otra distinta en el admin en el mismo navegador.
+def _es_admin():
+    return request.headers.get("X-Panel") == "admin"
+
+
+def _nombres_cookies():
+    if _es_admin():
+        return "ans_admin_refresh_token", "csrf_admin_refresh_token", "ans_admin_dispositivo_2fa"
+    return "ans_refresh_token", "csrf_refresh_token", COOKIE_DISPOSITIVO
+
+
+def _poner_cookies_refresh(respuesta, refresh_token):
+    nombre, nombre_csrf, _ = _nombres_cookies()
+    cfg = current_app.config
+    comunes = dict(
+        max_age=int(cfg["JWT_REFRESH_TOKEN_EXPIRES"].total_seconds()),
+        secure=cfg.get("JWT_COOKIE_SECURE", False),
+        samesite=cfg.get("JWT_COOKIE_SAMESITE", "Lax"),
+        domain=cfg.get("JWT_COOKIE_DOMAIN"),
+    )
+    respuesta.set_cookie(nombre, refresh_token, httponly=True, path=cfg["JWT_REFRESH_COOKIE_PATH"], **comunes)
+    respuesta.set_cookie(nombre_csrf, get_csrf_token(refresh_token), httponly=False, path="/", **comunes)
+
+
+def _borrar_cookies_refresh(respuesta):
+    nombre, nombre_csrf, _ = _nombres_cookies()
+    cfg = current_app.config
+    dominio = cfg.get("JWT_COOKIE_DOMAIN")
+    respuesta.delete_cookie(nombre, path=cfg["JWT_REFRESH_COOKIE_PATH"], domain=dominio)
+    respuesta.delete_cookie(nombre_csrf, path="/", domain=dominio)
+
+
+def _usuario_desde_refresh(obligatorio=True):
+    """Lee el refresh token de la cookie del panel actual, valida CSRF,
+    tipo y sesion_version. Devuelve el Usuario o None (si no es obligatorio)."""
+    nombre, _, _ = _nombres_cookies()
+    token = request.cookies.get(nombre)
+    try:
+        if not token:
+            raise ValueError("sin cookie")
+        datos = decode_token(token)
+        csrf = request.headers.get("X-CSRF-Token", "")
+        if datos.get("type") != "refresh" or not hmac.compare_digest(str(datos.get("csrf", "")), csrf):
+            raise ValueError("refresh inválido")
+        usuario = Usuario.query.get(int(datos["sub"]))
+        if not usuario or datos.get("sv") != usuario.sesion_version:
+            raise ValueError("sesión revocada")
+        return usuario
+    except Exception:
+        if obligatorio:
+            return None
+        return None
 
 
 def _crear_par_tokens(usuario):
@@ -70,7 +124,7 @@ def _huella_dispositivo(usuario):
 
 
 def _dispositivo_confiable(usuario):
-    token = request.cookies.get(COOKIE_DISPOSITIVO)
+    token = request.cookies.get(_nombres_cookies()[2])
     if not token:
         return False
     try:
@@ -85,7 +139,7 @@ def _dispositivo_confiable(usuario):
 def _recordar_dispositivo(respuesta, usuario):
     token = _serializador_dispositivo().dumps({"uid": usuario.id, "fp": _huella_dispositivo(usuario)})
     respuesta.set_cookie(
-        COOKIE_DISPOSITIVO,
+        _nombres_cookies()[2],
         token,
         max_age=DIAS_DISPOSITIVO_CONFIABLE * 86400,
         httponly=True,
@@ -116,7 +170,7 @@ def _respuesta_con_sesion(usuario, codigo_estado=200, extra=None, con_usuario=Tr
     if extra:
         cuerpo.update(extra)
     respuesta = jsonify(cuerpo)
-    set_refresh_cookies(respuesta, refresh_token)
+    _poner_cookies_refresh(respuesta, refresh_token)
     return respuesta, codigo_estado
 
 
@@ -552,7 +606,6 @@ def login_google():
 
 @bp.post("/refrescar-token")
 @limiter.limit("30 per minute")
-@jwt_required(refresh=True)
 def refrescar_token():
     """
     El frontend llama a este endpoint cuando el access_token (que dura 15
@@ -568,9 +621,10 @@ def refrescar_token():
     completos — así una cookie de refresh vieja/filtrada deja de ser útil
     en cuanto el dueño legítimo vuelve a usar la suya.
     """
-    usuario_id = get_jwt_identity()
-    usuario = Usuario.query.get(int(usuario_id))
-    if not usuario or not usuario.activo:
+    usuario = _usuario_desde_refresh()
+    if not usuario:
+        return jsonify({"error": "Sesión inválida, vuelve a iniciar sesión", "code": "token_invalido"}), 401
+    if not usuario.activo:
         return jsonify({"error": "Cuenta no disponible"}), 403
 
     respuesta, _ = _respuesta_con_sesion(usuario, con_usuario=False)
@@ -586,20 +640,13 @@ def logout():
     de cualquier otro donde haya iniciado sesión). Si la cookie ya no es
     válida (expiró, no existe, fue manipulada), no hay nada que revocar:
     de todas formas limpiamos la cookie de este navegador."""
-    try:
-        verify_jwt_in_request(optional=True, refresh=True)
-    except Exception:
-        pass
-    else:
-        usuario_id = get_jwt_identity()
-        if usuario_id:
-            usuario = Usuario.query.get(int(usuario_id))
-            if usuario:
-                usuario.sesion_version += 1
-                db.session.commit()
+    usuario = _usuario_desde_refresh()
+    if usuario:
+        usuario.sesion_version += 1
+        db.session.commit()
 
     respuesta = jsonify({"mensaje": "Sesión cerrada"})
-    unset_jwt_cookies(respuesta)
+    _borrar_cookies_refresh(respuesta)
     return respuesta
 
 
@@ -1013,5 +1060,5 @@ def eliminar_cuenta():
         ),
     )
     respuesta = jsonify({"mensaje": "Tu cuenta fue eliminada"})
-    unset_jwt_cookies(respuesta)
+    _borrar_cookies_refresh(respuesta)
     return respuesta
