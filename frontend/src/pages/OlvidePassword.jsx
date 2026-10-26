@@ -7,8 +7,10 @@ import {
   IconCheckCircle,
 } from "../components/Icons.jsx";
 import loginHero from "../assets/auth/login-hero.webp";
+import { useToast } from "../context/ToastContext.jsx";
 
 export default function OlvidePassword() {
+  const toast = useToast();
   const [email, setEmail] = useState("");
   const [enviado, setEnviado] = useState(false);
   const [enviando, setEnviando] = useState(false);
@@ -21,6 +23,7 @@ export default function OlvidePassword() {
     try {
       await api.olvidePassword(email);
       setEnviado(true);
+      toast.success("Te enviamos las instrucciones a tu correo");
     } catch (err) {
       setError(err.message);
     } finally {

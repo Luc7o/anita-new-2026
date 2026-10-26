@@ -5,6 +5,7 @@ import { useCarrito } from "../context/CarritoContext.jsx";
 import { IconSearch, IconCart, IconClose, IconUser, IconMenu, IconHome } from "./Icons.jsx";
 import UserMenu from "./UserMenu.jsx";
 import Logo from "./Logo.jsx";
+import { useToast } from "../context/ToastContext.jsx";
 
 const ENLACES = [
   ["/tienda", "Tienda"],
@@ -33,6 +34,11 @@ function Enlace({ to, end, children, onClick }) {
 
 export default function Navbar() {
   const { usuario, logout } = useAuth();
+  const toast = useToast();
+  const cerrarSesion = () => {
+    logout();
+    toast.info("Cerraste sesión");
+  };
   const { totalItems, setDrawerAbierto } = useCarrito();
   const [busqueda, setBusqueda] = useState("");
   const [menuAbierto, setMenuAbierto] = useState(false);
@@ -92,7 +98,7 @@ export default function Navbar() {
 
         <div className="ml-auto flex items-center gap-2 md:ml-2">
           {usuario ? (
-            <UserMenu usuario={usuario} onLogout={logout} />
+            <UserMenu usuario={usuario} onLogout={cerrarSesion} />
           ) : (
             <Link
               to="/ingresar"

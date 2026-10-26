@@ -7,6 +7,7 @@ import { useAuth } from "../context/AuthContext.jsx";
 import { IconBook } from "../components/Icons.jsx";
 import { soloTexto, soloNumeros, soloDni, soloCarnetExtranjeria } from "../validacion.js";
 import { claseLabel } from "../estilos.js";
+import { useToast } from "../context/ToastContext.jsx";
 
 const claseInput =
   "w-full rounded-md border border-plum/20 bg-white px-3 py-2.5 text-plum placeholder:text-plum-soft/50 focus:outline-none focus:border-berry";
@@ -71,6 +72,7 @@ export default function LibroReclamaciones() {
   const [info, setInfo] = useState(null);
   const [form, setForm] = useState(FORM_INICIAL);
   const [enviando, setEnviando] = useState(false);
+  const toast = useToast();
   const [error, setError] = useState("");
   const [resultado, setResultado] = useState(null);
 
@@ -97,6 +99,7 @@ export default function LibroReclamaciones() {
       if (payload.monto_reclamado === "") delete payload.monto_reclamado;
       const data = await api.enviarReclamo(payload);
       setResultado(data);
+      toast.success("Tu reclamo fue registrado");
       window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (err) {
       setError(err.message || "No se pudo registrar el reclamo. Inténtalo de nuevo.");

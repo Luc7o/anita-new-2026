@@ -7,6 +7,7 @@ import { IconCart, IconCheck, IconStar, IconHeart } from "./Icons.jsx";
 import ImagenOptimizada from "./ImagenOptimizada.jsx";
 import SelectorRapido from "./SelectorRapido.jsx";
 import { nombreColorAHex } from "../utils/colores.js";
+import { useToast } from "../context/ToastContext.jsx";
 
 // `indice` (opcional) escalona la animación de entrada cuando la tarjeta
 // aparece dentro de una grilla: cada tarjeta entra un poquito después de la
@@ -17,7 +18,8 @@ export default function ProductCard({ producto, indice = 0, compacto = false }) 
   const { agregar } = useCarrito();
   const favoritos = useFavoritos();
   const navigate = useNavigate();
-    const [agregando, setAgregando] = useState(false);
+  const toast = useToast();
+  const [agregando, setAgregando] = useState(false);
   const [agregado, setAgregado] = useState(false);
   const [errorRapido, setErrorRapido] = useState("");
   const [selectorAbierto, setSelectorAbierto] = useState(false);
@@ -69,6 +71,7 @@ export default function ProductCard({ producto, indice = 0, compacto = false }) 
     e.preventDefault();
     e.stopPropagation();
     if (!usuario) {
+      toast.info("Inicia sesión para guardar tus favoritos");
       navigate("/ingresar");
       return;
     }

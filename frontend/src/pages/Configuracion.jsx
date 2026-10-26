@@ -29,6 +29,7 @@ function descargarArchivo(nombre, contenido, tipo) {
 export default function Configuracion() {
   const { logout } = useAuth();
   const navigate = useNavigate();
+  const toast = useToast();
   const [estado, setEstado] = useState(null); // preferencias y seguridad de la cuenta
   const [errorCarga, setErrorCarga] = useState("");
 
@@ -38,6 +39,7 @@ export default function Configuracion() {
 
   const cerrarSesion = () => {
     logout();
+    toast.info("Cerraste sesión");
     navigate("/");
   };
 

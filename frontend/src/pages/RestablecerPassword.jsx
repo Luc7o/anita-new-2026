@@ -12,6 +12,7 @@ import {
 } from "../components/Icons.jsx";
 import registroHero from "../assets/auth/registro-hero.webp";
 import { claseInputAuth, claseLabel } from "../estilos.js";
+import { useToast } from "../context/ToastContext.jsx";
 
 const claseInput = `${claseInputAuth} pr-11`;
 
@@ -19,6 +20,7 @@ export default function RestablecerPassword() {
   const [searchParams] = useSearchParams();
   const token = searchParams.get("token") || "";
   const navigate = useNavigate();
+  const toast = useToast();
 
   const [password, setPassword] = useState("");
   const [confirmar, setConfirmar] = useState("");
@@ -48,6 +50,7 @@ export default function RestablecerPassword() {
     try {
       await api.restablecerPassword({ token, password_nueva: password });
       setExito(true);
+      toast.success("Contraseña actualizada. Ya puedes iniciar sesión");
       setTimeout(() => navigate("/ingresar"), 2000);
     } catch (err) {
       setError(err.message);

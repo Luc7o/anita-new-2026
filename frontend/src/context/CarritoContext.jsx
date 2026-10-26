@@ -8,6 +8,7 @@ import React, {
 } from "react";
 import { api } from "../api/client.js";
 import { useAuth } from "./AuthContext.jsx";
+import { useToast } from "./ToastContext.jsx";
 
 const CarritoContext = createContext(null);
 
@@ -56,6 +57,7 @@ const mismaLinea = (a, b) =>
 
 export function CarritoProvider({ children }) {
   const { usuario, cargando: cargandoAuth } = useAuth();
+  const toast = useToast();
   const [items, setItems] = useState([]);
   const [totalItems, setTotalItems] = useState(0);
   const [total, setTotal] = useState(0);
@@ -180,6 +182,7 @@ export function CarritoProvider({ children }) {
       });
       aplicarResumen(resumen);
       if (abrirCarrito) setDrawerAbierto(true);
+      if (opciones.avisar !== false) toast.success("Producto agregado al carrito");
       return;
     }
 
@@ -207,31 +210,35 @@ export function CarritoProvider({ children }) {
       throw err;
     }
     if (abrirCarrito) setDrawerAbierto(true);
+    if (opciones.avisar !== false) toast.success("Producto agregado al carrito");
   };
 
   const actualizarCantidad = async (itemId, cantidad) => {
     if (usuarioRef.current) {
       const resumen = await api.actualizarItemCarrito(itemId, { cantidad });
       aplicarResumen(resumen);
+      if (cantidad <= 0) toast.info("Producto quitado del carrito");
       return;
     }
 
     const lineas = leerLineas();
     if (cantidad <= 0) {
       await aplicarCambioInvitado(lineas.filter((l) => l.key !== itemId), null);
+      toast.info("Producto quitado del carrito");
       return;
     }
     const candidatas = lineas.map((l) => (l.key === itemId ? { ...l, cantidad } : l));
     await aplicarCambioInvitado(candidatas, itemId);
   };
 
-  const eliminar = async (itemId) => {
+  const eliminar = async (itemId, opciones = {}) => {
     if (usuarioRef.current) {
       const resumen = await api.eliminarItemCarrito(itemId);
       aplicarResumen(resumen);
-      return;
+    } else {
+      await aplicarCambioInvitado(leerLineas().filter((l) => l.key !== itemId), null);
     }
-    await aplicarCambioInvitado(leerLineas().filter((l) => l.key !== itemId), null);
+    if (opciones.avisar !== false) toast.info("Producto quitado del carrito");
   };
 
   const vaciarLocal = () => {

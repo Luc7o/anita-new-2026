@@ -16,6 +16,7 @@ import UbicacionEntrega from "../components/UbicacionEntrega.jsx";
 import Spinner from "../components/Spinner.jsx";
 import { abrirCulqiCheckout } from "../culqi.js";
 import { obtenerPagoIdempotencyKey, limpiarPagoIdempotencyKey } from "../pagoIdempotencia.js";
+import { useToast } from "../context/ToastContext.jsx";
 
 const METODOS = [
   { id: "yape", label: "Yape" },
@@ -53,6 +54,7 @@ export default function Checkout() {
   const { items, total, totalItems, vaciarLocal, eliminar, refrescar } = useCarrito();
   const { usuario, continuarComoInvitado } = useAuth();
   const navigate = useNavigate();
+  const toast = useToast();
 
   // Compra sin cuenta: si no hay sesión, se pide solo el correo. Al confirmar,
   // se crea la cuenta con ese correo (sin contraseña), el carrito del
@@ -342,6 +344,7 @@ export default function Checkout() {
       // 2) Si el pedido necesita pago por pasarela, abrimos el widget de
       //    Culqi ahí mismo (sin salir de la página) y, apenas nos da un
       //    token, se lo mandamos al backend para cobrar de verdad.
+      let pagado = pedido.estado_pago !== "pendiente";
       if (pedido.estado_pago === "pendiente") {
         try {
           const { tokenId, email } = await abrirCulqiCheckout({
@@ -356,6 +359,7 @@ export default function Checkout() {
             idempotency_key: idempotencyKeyPago,
           });
           limpiarPagoIdempotencyKey(pedido.id);
+          pagado = true;
         } catch {
           // El cliente cerró el widget, Culqi rechazó el pago, o el cobro
           // automático no está disponible todavía. El pedido ya quedó
@@ -366,6 +370,11 @@ export default function Checkout() {
         }
       }
 
+      toast.success(
+        pagado
+          ? "¡Compra realizada! Gracias por tu pedido"
+          : "¡Pedido registrado! Completa el pago para confirmarlo"
+      );
       navigate(`/pedidos/${pedido.id}`);
     } catch (err) {
       // 409 con items_sin_stock: no fue un error genérico de servidor, sino

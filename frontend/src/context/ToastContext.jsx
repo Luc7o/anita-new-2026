@@ -31,7 +31,7 @@ const ICONOS = {
 };
 
 const ESTILOS = {
-  success: "bg-emerald-700",
+  success: "bg-berry",
   error: "bg-red-700",
   warning: "bg-amber-700",
   info: "bg-plum",
