@@ -70,9 +70,12 @@ def atencion():
 
     if rol in PUEDE_VER_PEDIDOS:
         link = "/admin/pedidos"
-        reembolsos = Pedido.query.filter_by(estado_pago="reembolso_pendiente").count()
-        revisar = Pedido.query.filter_by(estado_pago="en_revision").count()
-        pendientes = Pedido.query.filter_by(estado="pendiente").count()
+        pedidos_query = Pedido.query
+        if rol == "ventas":
+            pedidos_query = pedidos_query.filter(Pedido.origen == "online", Pedido.tipo_entrega == "delivery")
+        reembolsos = pedidos_query.filter_by(estado_pago="reembolso_pendiente").count()
+        revisar = pedidos_query.filter_by(estado_pago="en_revision").count()
+        pendientes = pedidos_query.filter_by(estado="pendiente").count()
         if reembolsos:
             items.append(_item("reembolsos_pendientes", reembolsos,
                                "reembolso pendiente", "reembolsos pendientes", link, True))
