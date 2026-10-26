@@ -134,7 +134,11 @@ export default function Checkout() {
   // Al cambiar de tipo de documento se borra el número escrito (cada tipo
   // tiene su propio largo y formato) y se reinicia la validación.
   const cambiarTipoDocumento = (tipo) => {
-    setForm({ ...form, envio_tipo_documento: tipo, envio_numero_documento: "" });
+    // Si los nombres venían autocompletados por un documento validado, se
+    // borran también: ya no corresponden al nuevo tipo de documento.
+    const limpiarNombres =
+      docEstado.estado === "valido" ? { nombres: "", apellidos: "", razon_social: "" } : {};
+    setForm({ ...form, ...limpiarNombres, envio_tipo_documento: tipo, envio_numero_documento: "" });
     setDocEstado(DOC_SIN_VALIDAR);
   };
 
@@ -206,6 +210,12 @@ export default function Checkout() {
 
     return () => { cancelado = true; };
   }, [tipoDoc, numeroDoc]);
+
+  // Con el documento validado (RENIEC/SUNAT) el nombre viene de la fuente
+  // oficial y no se puede editar. Se desbloquea solo si el usuario cambia el
+  // número o el tipo de documento (ahí el nombre se borra y se vuelve a pedir).
+  const nombreBloqueado = docEstado.estado === "valido";
+  const claseBloqueado = "cursor-not-allowed bg-white/40 text-plum/70";
 
   // Texto y color del aviso que se muestra bajo el número de documento
   const avisoDocumento = (() => {
@@ -584,7 +594,10 @@ export default function Checkout() {
               maxLength={160}
               value={form.razon_social}
               onChange={actualizar("razon_social")}
-              className="w-full rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-none"
+              readOnly={nombreBloqueado && !!form.razon_social}
+              className={`w-full rounded-2xl px-4 py-2.5 shadow-glass focus:outline-none ${
+                nombreBloqueado && form.razon_social ? claseBloqueado : "bg-white/70 text-plum"
+              }`}
             />
           </div>
         ) : (
@@ -598,7 +611,10 @@ export default function Checkout() {
                 maxLength={80}
                 value={form.nombres}
                 onChange={actualizarTexto("nombres")}
-                className="w-full rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-none"
+                readOnly={nombreBloqueado && !!form.nombres}
+                className={`w-full rounded-2xl px-4 py-2.5 shadow-glass focus:outline-none ${
+                  nombreBloqueado && form.nombres ? claseBloqueado : "bg-white/70 text-plum"
+                }`}
               />
             </div>
             <div>
@@ -610,7 +626,10 @@ export default function Checkout() {
                 maxLength={80}
                 value={form.apellidos}
                 onChange={actualizarTexto("apellidos")}
-                className="w-full rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-none"
+                readOnly={nombreBloqueado && !!form.apellidos}
+                className={`w-full rounded-2xl px-4 py-2.5 shadow-glass focus:outline-none ${
+                  nombreBloqueado && form.apellidos ? claseBloqueado : "bg-white/70 text-plum"
+                }`}
               />
             </div>
           </div>
