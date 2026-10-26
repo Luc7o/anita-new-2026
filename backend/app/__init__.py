@@ -30,7 +30,7 @@ def create_app(config_class=Config):
                 "origins": app.config["FRONTEND_ORIGIN"],
                 "supports_credentials": True,
                 "methods": ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-                "allow_headers": ["Content-Type", "Authorization", "X-CSRF-Token"],
+                "allow_headers": ["Content-Type", "Authorization", "X-CSRF-Token", "X-Panel"],
                 "expose_headers": ["Content-Disposition"],
                 "max_age": 600,
             }
