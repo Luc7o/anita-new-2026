@@ -8,6 +8,7 @@ import { useParams, Link } from "react-router-dom";
 import { api } from "../../api/client.js";
 import { ESTADOS_PEDIDO } from "./estadosPedido.js";
 import EstadoPedidoSelect from "../../components/EstadoPedidoSelect.jsx";
+import { InsigniaEstadoPedido, InsigniaEntregaPedido } from "../../components/admin/InsigniasPedido.jsx";
 import { LineasPedido, TotalesPedido } from "../../components/ResumenPedido.jsx";
 import { useAuth } from "../../context/AuthContext.jsx";
 import { PUEDE_GESTIONAR_PEDIDOS, PUEDE_GESTIONAR_REEMBOLSOS } from "../../roles.js";
@@ -163,13 +164,17 @@ export default function AdminPedidoDetalle() {
             </p>
           </div>
           {pedido.estado === "cancelado" ? (
-            <span className="rounded-[10px] bg-plum/10 px-4 py-2 text-sm font-semibold text-plum-soft">
-              Cancelado — no se puede modificar
-            </span>
+            <InsigniaEstadoPedido
+              estado="cancelado"
+              label="Cancelado — no se puede modificar"
+              className="!rounded-[10px] !px-4 !py-2 !text-sm"
+            />
           ) : !puedeGestionar ? (
-            <span className="rounded-[10px] bg-plum/10 px-4 py-2 text-sm font-semibold text-plum-soft">
-              {pedido.estado_label || pedido.estado}
-            </span>
+            <InsigniaEstadoPedido
+              estado={pedido.estado}
+              label={pedido.estado_label || pedido.estado}
+              className="!rounded-[10px] !px-4 !py-2 !text-sm"
+            />
           ) : (
             <EstadoPedidoSelect
               value={pedido.estado}
@@ -195,7 +200,7 @@ export default function AdminPedidoDetalle() {
             <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-plum-soft">
               Entrega (datos del pedido)
             </h2>
-            <p className="text-plum">{pedido.tipo_entrega === "delivery" ? "Delivery" : "Recojo en tienda"}</p>
+            <InsigniaEntregaPedido pedido={pedido} className="mb-1" />
             <p className="text-sm text-plum-soft">{pedido.envio_nombre} · {pedido.envio_telefono}</p>
             {pedido.envio_direccion && (
               <p className="text-sm text-plum-soft">

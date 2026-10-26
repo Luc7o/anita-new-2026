@@ -39,7 +39,17 @@ def listar():
     if estado:
         query = query.filter_by(estado=estado)
 
-    pagina = max(request.args.get("pagina", 1, type=int) or 1, 1)
+    # Cómo se entrega: delivery | recojo (compra web que se retira en tienda,
+    # pide código) | mostrador (venta hecha en la tienda física)
+    entrega = request.args.get("entrega")
+    if entrega == "delivery":
+        query = query.filter(Pedido.tipo_entrega == "delivery")
+    elif entrega == "recojo":
+        query = query.filter(Pedido.tipo_entrega == "recojo", Pedido.origen == "online")
+    elif entrega == "mostrador":
+        query = query.filter(Pedido.origen == "presencial")
+
+    pagina =max(request.args.get("pagina", 1, type=int) or 1, 1)
     por_pagina = min(max(request.args.get("por_pagina", 20, type=int) or 20, 1), 100)
     paginado = query.order_by(Pedido.fecha_creacion.desc()).paginate(
         page=pagina, per_page=por_pagina, error_out=False
