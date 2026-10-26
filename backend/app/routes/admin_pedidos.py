@@ -110,9 +110,11 @@ def listar():
     if estado:
         query = query.filter_by(estado=estado)
 
+    # Ventas solo puede consultar pedidos de delivery. Las ventas presenciales
+    # corresponden al rol Cajero y nunca deben exponerse desde esta bandeja.
+    entrega = "delivery" if g.usuario.rol == "ventas" else request.args.get("entrega")
     # Cómo se entrega: delivery | recojo (compra web que se retira en tienda,
     # pide código) | mostrador (venta hecha en la tienda física)
-    entrega = request.args.get("entrega")
     if entrega == "delivery":
         query = query.filter(Pedido.tipo_entrega == "delivery")
     elif entrega == "recojo":
@@ -145,6 +147,8 @@ def listar():
 @requiere_roles(*PUEDE_VER_PEDIDOS)
 def detalle(pedido_id):
     pedido = Pedido.query.get_or_404(pedido_id)
+    if g.usuario.rol == "ventas" and (pedido.tipo_entrega != "delivery" or pedido.origen != "online"):
+        return jsonify({"error": "Ventas solo puede consultar pedidos de delivery"}), 403
     data = pedido.to_dict()
     data["cliente"] = pedido.cliente.nombre_completo if pedido.cliente else None
     data["cliente_email"] = pedido.cliente.email if pedido.cliente else None
@@ -156,6 +160,8 @@ def detalle(pedido_id):
 @requiere_roles(*PUEDE_GESTIONAR_PEDIDOS)
 def cambiar_estado(pedido_id):
     pedido = Pedido.query.get_or_404(pedido_id)
+    if g.usuario.rol == "ventas" and (pedido.tipo_entrega != "delivery" or pedido.origen != "online"):
+        return jsonify({"error": "Ventas solo puede gestionar pedidos de delivery"}), 403
     data = request.get_json(force=True) or {}
     nuevo_estado = data.get("estado")
 
