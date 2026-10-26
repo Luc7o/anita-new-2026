@@ -137,7 +137,7 @@ Para que la sesión funcione entre los dos subdominios, el backend usa
 |---|---|
 | **Super administrador** | Todo: incluida la configuración de la tienda y la gestión de usuarios y roles |
 | **Administrativo** | Gestiona productos, categorías, promociones, proveedores y reclamaciones; ve los pedidos y el dashboard completo |
-| **Ventas** | Se encarga solo de las ventas en línea: gestiona los pedidos online con delivery (incluye cancelar y reembolsar); ve productos y su dashboard de ventas. No registra ventas presenciales |
+| **Ventas** | Se encarga de las ventas en línea: gestiona los pedidos online con delivery (incluye cancelar y reembolsar) y puede consultar todos los tipos de pedido (delivery, recojo en tienda y venta en tienda), estos dos últimos solo en lectura; ve productos y su dashboard de ventas. No registra ventas presenciales |
 | **Almacén** | Edita el stock, gestiona proveedores y prepara o despacha pedidos; ve su dashboard de stock |
 | **Cajero** | Registra las ventas en tienda (venta presencial), entrega los recojos en tienda y descarga sus boletas; sin dashboard, reportes, cancelaciones ni reembolsos |
 | **Cliente** | Rol normal de quien compra en la tienda (no entra al panel) |
@@ -208,7 +208,8 @@ Checkout con **Yape** y **tarjeta**, procesados por Culqi:
 - Boleta de venta en PDF por cada pedido.
 - Venta presencial (en tienda) desde el panel, con búsqueda por código SKU y
   DNI del cliente. La registran el cajero y el superadmin; el rol Ventas no
-  tiene acceso (ni en el menú ni en la API).
+  tiene acceso (ni en el menú ni en la API), aunque sí puede ver esas ventas
+  en la lista de pedidos.
 
 ## Reseñas
 
@@ -230,7 +231,7 @@ responde desde el panel (plazo legal de 15 días hábiles).
   subida de imágenes
 - **Proveedores**: datos de contacto y productos que suministran
 - **Pedidos**: ver todos, filtrar, cambiar estado, boletas (el rol Ventas ve
-  solo los pedidos online con delivery)
+  todos los tipos, pero solo gestiona los de delivery; el resto en modo lectura)
 - **Venta presencial** (cajero y superadmin): registro de ventas en el mostrador
 - **Reclamaciones**: responder reclamos y quejas
 - **Configuración** (solo superadmin): datos y logo de la tienda

@@ -11,18 +11,24 @@ import EstadoPedidoSelect from "../../components/EstadoPedidoSelect.jsx";
 import { InsigniaEstadoPedido, InsigniaEntregaPedido } from "../../components/admin/InsigniasPedido.jsx";
 import { LineasPedido, TotalesPedido } from "../../components/ResumenPedido.jsx";
 import { useAuth } from "../../context/AuthContext.jsx";
-import { ALMACEN, PUEDE_GESTIONAR_PEDIDOS, PUEDE_GESTIONAR_REEMBOLSOS } from "../../roles.js";
+import { ALMACEN, VENTAS, PUEDE_GESTIONAR_PEDIDOS, PUEDE_GESTIONAR_REEMBOLSOS } from "../../roles.js";
 
 export default function AdminPedidoDetalle() {
   const { usuario } = useAuth();
   // Administrativo solo mira pedidos. Almacén puede preparar/despachar,
   // pero las entregas finales y la revisión de pagos no le corresponden.
-  const puedeGestionar = PUEDE_GESTIONAR_PEDIDOS.includes(usuario?.rol);
-  const puedeRevisarPago = PUEDE_GESTIONAR_REEMBOLSOS.includes(usuario?.rol);
+  const puedeGestionarRol = PUEDE_GESTIONAR_PEDIDOS.includes(usuario?.rol);
+  const puedeRevisarPagoRol = PUEDE_GESTIONAR_REEMBOLSOS.includes(usuario?.rol);
   const toast = useToast();
   const confirmar = useConfirm();
   const { id } = useParams();
   const [pedido, setPedido] = useState(null);
+  // Ventas VE todos los pedidos, pero solo gestiona los online con delivery
+  // (el backend también lo exige). En los demás queda en modo lectura.
+  const ventasSoloLectura =
+    usuario?.rol === VENTAS && !!pedido && !(pedido.tipo_entrega === "delivery" && pedido.origen === "online");
+  const puedeGestionar = puedeGestionarRol && !ventasSoloLectura;
+  const puedeRevisarPago = puedeRevisarPagoRol && !ventasSoloLectura;
   const [actualizando, setActualizando] = useState(false);
   const [envio, setEnvio] = useState({ empresa_envio: "", numero_seguimiento: "" });
   const [guardandoEnvio, setGuardandoEnvio] = useState(false);

@@ -21,6 +21,7 @@ from app.roles import (
     CAJERO,
     ALMACEN,
     SUPERADMIN,
+    VENTAS,
 )
 from app.utils.stock import restaurar_stock_de_pedido, agrupar_por_producto, validar_stock_disponible, descontar_stock
 from app.utils.boleta import responder_boleta
@@ -29,6 +30,19 @@ from app.utils.historial import cambiar_estado_pedido
 from app.models import IntentoPago
 
 bp = Blueprint("admin_pedidos", __name__, url_prefix="/api/admin/pedidos")
+
+
+def _ventas_no_gestiona(pedido):
+    """
+    El rol Ventas VE todos los pedidos (delivery, recojo en tienda y ventas en
+    tienda), pero solo GESTIONA (cambiar estado, datos de envío, revisar pago,
+    cancelar, reembolsar) los pedidos online con delivery. Se valida en el
+    servidor: ocultar los botones en pantalla no impide llamar a la API.
+    """
+    return (
+        g.usuario.rol == VENTAS
+        and (pedido.tipo_entrega != "delivery" or pedido.origen != "online")
+    )
 
 
 # Caja tiene una bandeja SEPARADA: no obtiene acceso a la lista de pedidos,
@@ -110,11 +124,10 @@ def listar():
     if estado:
         query = query.filter_by(estado=estado)
 
-    # Ventas solo puede consultar pedidos de delivery. Las ventas presenciales
-    # corresponden al rol Cajero y nunca deben exponerse desde esta bandeja.
-    entrega = "delivery" if g.usuario.rol == "ventas" else request.args.get("entrega")
     # Cómo se entrega: delivery | recojo (compra web que se retira en tienda,
-    # pide código) | mostrador (venta hecha en la tienda física)
+    # pide código) | mostrador (venta hecha en la tienda física).
+    # Ventas puede consultar todos los tipos (solo gestiona los de delivery).
+    entrega = request.args.get("entrega")
     if entrega == "delivery":
         query = query.filter(Pedido.tipo_entrega == "delivery")
     elif entrega == "recojo":
@@ -147,8 +160,6 @@ def listar():
 @requiere_roles(*PUEDE_VER_PEDIDOS)
 def detalle(pedido_id):
     pedido = Pedido.query.get_or_404(pedido_id)
-    if g.usuario.rol == "ventas" and (pedido.tipo_entrega != "delivery" or pedido.origen != "online"):
-        return jsonify({"error": "Ventas solo puede consultar pedidos de delivery"}), 403
     data = pedido.to_dict()
     data["cliente"] = pedido.cliente.nombre_completo if pedido.cliente else None
     data["cliente_email"] = pedido.cliente.email if pedido.cliente else None
@@ -160,7 +171,7 @@ def detalle(pedido_id):
 @requiere_roles(*PUEDE_GESTIONAR_PEDIDOS)
 def cambiar_estado(pedido_id):
     pedido = Pedido.query.get_or_404(pedido_id)
-    if g.usuario.rol == "ventas" and (pedido.tipo_entrega != "delivery" or pedido.origen != "online"):
+    if _ventas_no_gestiona(pedido):
         return jsonify({"error": "Ventas solo puede gestionar pedidos de delivery"}), 403
     data = request.get_json(force=True) or {}
     nuevo_estado = data.get("estado")
@@ -223,6 +234,8 @@ def cambiar_estado(pedido_id):
 @requiere_roles(*PUEDE_GESTIONAR_PEDIDOS)
 def actualizar_envio(pedido_id):
     pedido = Pedido.query.get_or_404(pedido_id)
+    if _ventas_no_gestiona(pedido):
+        return jsonify({"error": "Ventas solo puede gestionar pedidos de delivery"}), 403
     if pedido.estado == "cancelado":
         return jsonify({"error": "Este pedido ya está cancelado y no se puede modificar"}), 400
 
@@ -239,6 +252,8 @@ def actualizar_envio(pedido_id):
 def revisar_pago(pedido_id):
     """Aprueba/rechaza el comprobante subido, o marca un reembolso como completado."""
     pedido = Pedido.query.get_or_404(pedido_id)
+    if _ventas_no_gestiona(pedido):
+        return jsonify({"error": "Ventas solo puede gestionar pedidos de delivery"}), 403
     data = request.get_json(force=True) or {}
     nuevo_estado_pago = data.get("estado_pago")
 
