@@ -2,7 +2,7 @@ import re
 from datetime import datetime, timedelta
 from flask import Blueprint, request, jsonify, g
 from sqlalchemy.orm import selectinload, joinedload
-from app.extensions import db
+from app.extensions import db, limiter
 from app.models import (
     Pedido, DetallePedido, Usuario, Producto, Categoria, EventoAnalitica,
     ItemCarrito, HistorialEstadoPedido, MovimientoStock, PromocionUso,
@@ -28,6 +28,76 @@ from app.utils.historial import cambiar_estado_pedido
 from app.models import IntentoPago
 
 bp = Blueprint("admin_pedidos", __name__, url_prefix="/api/admin/pedidos")
+
+
+# Caja tiene una bandeja SEPARADA: no obtiene acceso a la lista de pedidos,
+# a sus detalles, a cancelaciones ni al endpoint genérico de cambio de estado.
+@bp.get("/recojos-pendientes")
+@requiere_roles(CAJERO)
+def recojos_pendientes_cajero():
+    """Solo compras online listas para retirar presencialmente."""
+    query = Pedido.query.filter(
+        Pedido.origen == "online",
+        Pedido.tipo_entrega == "recojo",
+        Pedido.estado == "listo_recojo",
+    )
+    busqueda = (request.args.get("q") or "").strip()[:80]
+    if busqueda:
+        termino = f"%{busqueda}%"
+        query = query.filter(db.or_(
+            Pedido.numero_pedido.ilike(termino),
+            Pedido.envio_nombre.ilike(termino),
+        ))
+
+    pagina = max(request.args.get("pagina", 1, type=int) or 1, 1)
+    paginado = query.order_by(Pedido.fecha_creacion.asc()).paginate(
+        page=pagina, per_page=20, error_out=False
+    )
+    # Datos mínimos para reconocer al cliente; nunca se devuelve el código.
+    return jsonify({
+        "pedidos": [{
+            "id": p.id,
+            "numero_pedido": p.numero_pedido,
+            "envio_nombre": p.envio_nombre,
+            "fecha_creacion": p.fecha_creacion.isoformat(),
+            "estado": p.estado,
+            "estado_label": p.estado_label,
+        } for p in paginado.items],
+        "total": paginado.total,
+        "pagina_actual": paginado.page,
+        "paginas": paginado.pages,
+    })
+
+
+@bp.put("/recojos-pendientes/<int:pedido_id>/entregar")
+@limiter.limit("12 per minute; 100 per hour")
+@requiere_roles(CAJERO)
+def entregar_recojo_cajero(pedido_id):
+    """Única acción del cajero en pedidos online: entregar con código válido."""
+    # Bloqueo de fila: dos cajeros no pueden entregar simultáneamente el mismo
+    # pedido y crear dos entradas de historial.
+    pedido = Pedido.query.filter_by(
+        id=pedido_id, origen="online", tipo_entrega="recojo"
+    ).with_for_update().first_or_404()
+
+    if pedido.estado != "listo_recojo" or not pedido.puede_pasar_a("entregado"):
+        return jsonify({"error": "Este pedido ya no está listo para recoger"}), 409
+
+    data = request.get_json(silent=True) or {}
+    codigo = str(data.get("codigo") or "").strip()
+    # El cajero nunca puede omitir el código, incluso para pedidos antiguos.
+    if not re.fullmatch(r"[0-9]{6}", codigo) or not pedido.codigo_recojo_coincide(codigo):
+        return jsonify({"error": "Código de recojo incorrecto. Solicita los 6 dígitos al cliente."}), 400
+
+    pedido.fecha_entregado = datetime.utcnow()
+    cambiar_estado_pedido(pedido, "entregado", cambiado_por=g.usuario.id)
+    db.session.commit()
+    return jsonify({
+        "id": pedido.id,
+        "numero_pedido": pedido.numero_pedido,
+        "estado": pedido.estado,
+        "estado_label": pedido.estado_label,
+    })
 
 
 @bp.get("")
