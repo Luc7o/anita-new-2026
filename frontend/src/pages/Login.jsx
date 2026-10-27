@@ -74,7 +74,7 @@ export default function Login() {
       marca={
         <p className="mt-4 max-w-sm text-sm text-plum-soft sm:text-base">
           Tu tienda de moda en Huancayo. Encuentra carteras, mochilas, vestidos y accesorios con estilo.
-          <span className="block mt-2 text-berry font-medium">¡Envíos a todo el Perú!</span>
+          <span className="block mt-2 text-berry font-medium">¡Delivery en Huancayo!</span>
         </p>
       }
     >

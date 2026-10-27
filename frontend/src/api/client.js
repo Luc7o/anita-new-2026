@@ -368,9 +368,11 @@ export const api = {
 
   // Ubicación (catálogo departamento -> provincia -> distrito, para los
   // selects en cascada del formulario de dirección)
-  departamentos: () => request("/ubicaciones/departamentos"),
-  provincias: (departamentoId) => request(`/ubicaciones/provincias?departamento_id=${departamentoId}`),
-  distritos: (provinciaId) => request(`/ubicaciones/distritos?provincia_id=${provinciaId}`),
+  // "zona=huancayo": URL nueva a propósito, para no heredar copias viejas
+  // (todo el Perú) que aún estén en la caché del navegador o del CDN.
+  departamentos: () => request("/ubicaciones/departamentos?zona=huancayo"),
+  provincias: (departamentoId) => request(`/ubicaciones/provincias?departamento_id=${departamentoId}&zona=huancayo`),
+  distritos: (provinciaId) => request(`/ubicaciones/distritos?provincia_id=${provinciaId}&zona=huancayo`),
 
   // Catálogo
   categorias: () => request("/categorias"),
@@ -467,8 +469,6 @@ export const api = {
   // `codigo` solo se manda al entregar un recojo en tienda (código de 6 dígitos del cliente)
   adminCambiarEstadoPedido: (id, estado, codigo) =>
     request(`/admin/pedidos/${id}/estado`, { method: "PUT", body: codigo ? { estado, codigo } : { estado }, auth: true }),
-  adminActualizarEnvio: (id, payload) =>
-    request(`/admin/pedidos/${id}/envio`, { method: "PUT", body: payload, auth: true }),
   adminRevisarPago: (id, estado_pago) =>
     request(`/admin/pedidos/${id}/pago`, { method: "PUT", body: { estado_pago }, auth: true }),
   adminEstadisticas: () => request("/admin/pedidos/resumen/estadisticas", { auth: true }),

@@ -670,7 +670,7 @@ export default function ProductoDetalle() {
         <div className="rounded-xl border border-plum/10 bg-plum/5 p-5">
           <h4 className="font-display text-lg font-semibold text-plum">Envíos & Devoluciones</h4>
           <ul className="mt-3 space-y-1.5 text-sm text-plum-soft">
-            <li>• Envíos a todo el Perú en 3-5 días hábiles.</li>
+            <li>• Delivery solo en Huancayo, en 3-5 días hábiles.</li>
             <li>• Cambios y devoluciones hasta 30 días después de la compra.</li>
             <li>
               • Para más información, revisa nuestra{" "}

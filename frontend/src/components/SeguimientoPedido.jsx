@@ -62,19 +62,6 @@ export default function SeguimientoPedido({ pedido }) {
           );
         })}
       </div>
-
-      {pedido.numero_seguimiento && (
-        <div className="mt-4 rounded-2xl bg-white/50 p-3 text-sm text-plum-soft">
-          <p>
-            {pedido.empresa_envio && (
-              <>
-                Envío con <strong className="text-plum">{pedido.empresa_envio}</strong> ·{" "}
-              </>
-            )}
-            N° de seguimiento: <strong className="text-plum">{pedido.numero_seguimiento}</strong>
-          </p>
-        </div>
-      )}
     </div>
   );
 }

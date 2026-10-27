@@ -30,9 +30,6 @@ export default function AdminPedidoDetalle() {
   const puedeGestionar = puedeGestionarRol && !ventasSoloLectura;
   const puedeRevisarPago = puedeRevisarPagoRol && !ventasSoloLectura;
   const [actualizando, setActualizando] = useState(false);
-  const [envio, setEnvio] = useState({ empresa_envio: "", numero_seguimiento: "" });
-  const [guardandoEnvio, setGuardandoEnvio] = useState(false);
-  const [mensajeEnvio, setMensajeEnvio] = useState("");
   const [descargandoBoleta, setDescargandoBoleta] = useState(false);
   const [errorBoleta, setErrorBoleta] = useState("");
   // Código de 6 dígitos que el cliente dice en la tienda para retirar su pedido
@@ -42,30 +39,11 @@ export default function AdminPedidoDetalle() {
   const cargar = () =>
     api.adminPedido(id).then((data) => {
       setPedido(data);
-      setEnvio({
-        empresa_envio: data.empresa_envio || "",
-        numero_seguimiento: data.numero_seguimiento || "",
-      });
     });
 
   useEffect(() => {
     cargar();
   }, [id]);
-
-  const guardarEnvio = async (e) => {
-    e.preventDefault();
-    setGuardandoEnvio(true);
-    setMensajeEnvio("");
-    try {
-      await api.adminActualizarEnvio(id, envio);
-      toast.success("Datos de envío guardados");
-      cargar();
-    } catch (err) {
-      setMensajeEnvio(err.message);
-    } finally {
-      setGuardandoEnvio(false);
-    }
-  };
 
   const cambiarEstado = async (nuevoEstado) => {
     if (nuevoEstado === "cancelado") {
@@ -328,40 +306,6 @@ export default function AdminPedidoDetalle() {
             {errorCodigo && (
               <p className="mt-2 text-sm text-berry-dark" role="alert">{errorCodigo}</p>
             )}
-          </form>
-        )}
-
-        {puedeGestionar && pedido.estado !== "cancelado" && pedido.tipo_entrega !== "recojo" && (
-          <form onSubmit={guardarEnvio} className="mt-6 rounded-2xl bg-white p-4">
-            <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-plum-soft">
-              Seguimiento de envío
-            </h2>
-            <div className="grid gap-2 sm:grid-cols-2">
-              <input
-                placeholder="Empresa de envío (ej: Olva Courier)"
-                maxLength={100}
-                value={envio.empresa_envio}
-                onChange={(e) => setEnvio({ ...envio, empresa_envio: e.target.value })}
-                className="rounded-2xl bg-white px-4 py-2 text-sm text-plum focus:outline-none"
-              />
-              <input
-                placeholder="Número de seguimiento"
-                maxLength={100}
-                value={envio.numero_seguimiento}
-                onChange={(e) => setEnvio({ ...envio, numero_seguimiento: e.target.value })}
-                className="rounded-2xl bg-white px-4 py-2 text-sm text-plum focus:outline-none"
-              />
-            </div>
-            <div className="mt-2 flex items-center gap-3">
-              <button
-                type="submit"
-                disabled={guardandoEnvio}
-                className="rounded-[10px] bg-berry px-4 py-2 text-sm font-semibold text-white transition hover:bg-berry-dark disabled:opacity-60"
-              >
-                {guardandoEnvio ? <><Spinner />Guardando...</> : "Guardar seguimiento"}
-              </button>
-              {mensajeEnvio && <span className="text-sm text-plum-soft">{mensajeEnvio}</span>}
-            </div>
           </form>
         )}
 

@@ -1,20 +1,22 @@
 from flask import Blueprint, request, jsonify
-from app.models import UbigeoDepartamento, UbigeoProvincia, UbigeoDistrito
 from app.utils.cache import cache_publico
+from app.utils.zona_entrega import departamento_entrega, provincia_entrega, distritos_entrega
 
 bp = Blueprint("ubicaciones", __name__, url_prefix="/api/ubicaciones")
 
 # Catálogo público de solo lectura (departamento -> provincia -> distrito),
-# usado por el formulario de dirección (registro, perfil, checkout) para
-# armar los 3 selects en cascada. No requiere sesión: es información
-# pública igual que cualquier lista de ciudades de un formulario.
+# usado por los formularios de dirección (perfil y checkout) para armar los
+# selects en cascada. Solo expone la zona donde hay delivery (Junín >
+# Huancayo): ver app/utils/zona_entrega.py. Los demás departamentos siguen en
+# la base de datos (los pedidos y reportes antiguos los referencian) pero ya
+# no se ofrecen para elegir.
 
 
 @bp.get("/departamentos")
 @cache_publico(ttl=86400, navegador=3600, swr=86400)
 def listar_departamentos():
-    departamentos = UbigeoDepartamento.query.order_by(UbigeoDepartamento.nombre).all()
-    return jsonify([d.to_dict() for d in departamentos])
+    dep = departamento_entrega()
+    return jsonify([dep.to_dict()] if dep else [])
 
 
 @bp.get("/provincias")
@@ -23,13 +25,11 @@ def listar_provincias():
     departamento_id = request.args.get("departamento_id", type=int)
     if not departamento_id:
         return jsonify({"error": "Falta departamento_id"}), 400
-    provincias = (
-        UbigeoProvincia.query
-        .filter_by(departamento_id=departamento_id)
-        .order_by(UbigeoProvincia.nombre)
-        .all()
-    )
-    return jsonify([p.to_dict() for p in provincias])
+    dep = departamento_entrega()
+    prov = provincia_entrega()
+    if not dep or not prov or dep.id != departamento_id:
+        return jsonify([])
+    return jsonify([prov.to_dict()])
 
 
 @bp.get("/distritos")
@@ -38,10 +38,7 @@ def listar_distritos():
     provincia_id = request.args.get("provincia_id", type=int)
     if not provincia_id:
         return jsonify({"error": "Falta provincia_id"}), 400
-    distritos = (
-        UbigeoDistrito.query
-        .filter_by(provincia_id=provincia_id)
-        .order_by(UbigeoDistrito.nombre)
-        .all()
-    )
-    return jsonify([d.to_dict() for d in distritos])
+    prov = provincia_entrega()
+    if not prov or prov.id != provincia_id:
+        return jsonify([])
+    return jsonify([d.to_dict() for d in distritos_entrega()])

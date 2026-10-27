@@ -100,10 +100,6 @@ class Pedido(db.Model):
     # pedido pasa a "listo_recojo" y solo lo ve el cliente (nunca el admin).
     codigo_recojo = db.Column(db.String(6), nullable=True)
 
-    # Seguimiento del envío (lo completa el admin cuando despacha el pedido)
-    empresa_envio = db.Column(db.String(100))
-    numero_seguimiento = db.Column(db.String(100))
-
     # Solo referencia visual — NUNCA se guarda número completo ni CVV
 
     # Identificador del cargo en Culqi ("chr_..."), cuando el pago se hizo
@@ -208,12 +204,8 @@ class Pedido(db.Model):
     def entrega_estimada_label(self):
         """
         Texto de tiempo estimado de entrega para mostrar en la confirmación
-        del pedido. Por ahora Anita New Style solo despacha a provincia
-        (3-5 días hábiles), así que es una sola regla fija — el día que se
-        habilite despacho a Lima (con otro tiempo, probablemente más
-        corto), este es el único lugar que hay que tocar para diferenciarlo
-        por distrito/departamento en vez de aplicar la misma regla a todos
-        los pedidos con delivery.
+        del pedido. El delivery es solo dentro de Huancayo (ver
+        app/utils/zona_entrega.py) y hoy se usa una sola regla fija.
         """
         if self.tipo_entrega == "recojo":
             return None
@@ -248,8 +240,6 @@ class Pedido(db.Model):
             "envio_referencia": self.envio_referencia,
             "nota": self.nota,
             "culqi_cargo_id": self.culqi_cargo_id,
-            "empresa_envio": self.empresa_envio,
-            "numero_seguimiento": self.numero_seguimiento,
             "fecha_creacion": self.fecha_creacion.isoformat(),
             "fecha_limite_pago": self.fecha_limite_pago.isoformat() if self.fecha_limite_pago else None,
             "fecha_pago": self.fecha_pago.isoformat() if self.fecha_pago else None,
