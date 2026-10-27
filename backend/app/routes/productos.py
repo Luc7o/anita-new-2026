@@ -4,7 +4,7 @@ from sqlalchemy import func
 from sqlalchemy.orm import joinedload, selectinload
 from app.extensions import db, limiter
 from app.models import Producto, Categoria, Resena, DetallePedido, Pedido, VarianteProducto, Talla, Color
-from app.models.producto import GENEROS
+from app.models.producto import GENEROS, precargar_resumen_resenas
 from app.utils.decorators import requiere_activo
 from app.utils.cache import cache_publico
 
@@ -56,7 +56,7 @@ def _numero(valor):
 
 
 @bp.get("/filtros")
-@cache_publico(ttl=300, navegador=60)
+@cache_publico(ttl=300, navegador=60, swr=3600)
 def opciones_filtros():
     """Lo que la tienda necesita para armar sus filtros: rango de precios real,
     colores y géneros que realmente existen entre los productos activos."""
@@ -91,20 +91,21 @@ def opciones_filtros():
 
 
 @bp.get("/categorias")
-@cache_publico(ttl=300, navegador=60)
+@cache_publico(ttl=300, navegador=60, swr=3600)
 def listar_categorias():
     categorias = Categoria.query.filter_by(activo=True).all()
     return jsonify([c.to_dict() for c in categorias])
 
 
 @bp.get("/productos")
-@cache_publico(ttl=60, navegador=30)
+@cache_publico(ttl=60, navegador=30, swr=900)
 def listar_productos():
+    # Las reseñas NO se cargan completas: el listado solo necesita cantidad y
+    # promedio, que se calculan con una consulta agrupada más abajo.
     query = Producto.query.filter_by(activo=True).options(
         joinedload(Producto.categoria),
         selectinload(Producto.imagenes),
         selectinload(Producto.variantes),
-        selectinload(Producto.resenas),
     )
 
     categoria_slug = request.args.get("categoria")
@@ -173,6 +174,7 @@ def listar_productos():
     pagina = max(request.args.get("pagina", 1, type=int) or 1, 1)
     por_pagina = min(max(request.args.get("por_pagina", 12, type=int) or 12, 1), 48)
     paginado = query.paginate(page=pagina, per_page=por_pagina, error_out=False)
+    precargar_resumen_resenas(paginado.items)
 
     return jsonify({
         "productos": [p.to_dict(resumen=True) for p in paginado.items],
