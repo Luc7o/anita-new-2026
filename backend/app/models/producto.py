@@ -95,10 +95,18 @@ class Producto(db.Model):
 
     @property
     def total_resenas(self):
+        # Si el listado ya precargó el resumen (ver precargar_resumen_resenas),
+        # se usa tal cual y NO se cargan las reseñas completas del producto.
+        resumen = getattr(self, "_resumen_resenas", None)
+        if resumen is not None:
+            return resumen[0]
         return len(self.resenas)
 
     @property
     def promedio_calificacion(self):
+        resumen = getattr(self, "_resumen_resenas", None)
+        if resumen is not None:
+            return resumen[1]
         if not self.resenas:
             return 0
         return round(sum(r.calificacion for r in self.resenas) / len(self.resenas), 1)
@@ -216,3 +224,33 @@ class Producto(db.Model):
 
     def __repr__(self):
         return f"<Producto {self.nombre}>"
+
+
+def precargar_resumen_resenas(productos):
+    """
+    Calcula cantidad y promedio de reseñas de TODOS los productos dados con
+    UNA sola consulta agrupada (COUNT/AVG en MySQL), en vez de traer cada
+    reseña completa solo para contarla y promediarla en Python.
+
+    Deja el resultado en cada producto; total_resenas y promedio_calificacion
+    lo usan automáticamente. Los productos sin reseñas quedan en (0, 0), igual
+    que antes.
+    """
+    from sqlalchemy import func
+    from app.models.resena import Resena
+
+    productos = list(productos)
+    ids = [p.id for p in productos]
+    resumen = {}
+    if ids:
+        filas = (
+            db.session.query(
+                Resena.producto_id, func.count(Resena.id), func.avg(Resena.calificacion)
+            )
+            .filter(Resena.producto_id.in_(ids))
+            .group_by(Resena.producto_id)
+            .all()
+        )
+        resumen = {pid: (int(total), round(float(prom), 1)) for pid, total, prom in filas}
+    for p in productos:
+        p._resumen_resenas = resumen.get(p.id, (0, 0))

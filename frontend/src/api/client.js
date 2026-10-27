@@ -82,10 +82,17 @@ async function refrescarAccessToken() {
   if (refrescoEnCurso) return refrescoEnCurso;
 
   refrescoEnCurso = (async () => {
+    // Sin token CSRF no hay sesión que recuperar: la cookie CSRF y la de
+    // refresh nacen y expiran juntas, y el backend rechaza el refresh si el
+    // header X-CSRF-Token va vacío. Así evitamos una petición 401 segura (y
+    // lenta) en cada visita de alguien que nunca inició sesión.
+    const csrf = leerCsrf();
+    if (!csrf) throw new Error("No hay sesión que refrescar");
+
     const res = await fetch(`${BASE_URL}/auth/refrescar-token`, {
       method: "POST",
       credentials: "include", // manda la cookie httpOnly de refresh
-      headers: { "X-CSRF-Token": leerCsrf(), ...headerPanel() },
+      headers: { "X-CSRF-Token": csrf, ...headerPanel() },
     });
     if (!res.ok) throw new Error("El refresh token también expiró");
 
