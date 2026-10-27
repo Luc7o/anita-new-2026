@@ -27,6 +27,9 @@ from app.utils.stock import restaurar_stock_de_pedido, agrupar_por_producto, val
 from app.utils.boleta import responder_boleta
 from app.utils.culqi import reembolsar_en_culqi
 from app.utils.historial import cambiar_estado_pedido
+from app.utils.notificaciones import (
+    notificar_estado_pedido, notificar_pago_confirmado, notificar_reembolso,
+)
 from app.models import IntentoPago
 
 bp = Blueprint("admin_pedidos", __name__, url_prefix="/api/admin/pedidos")
@@ -107,6 +110,7 @@ def entregar_recojo_cajero(pedido_id):
     pedido.fecha_entregado = datetime.utcnow()
     cambiar_estado_pedido(pedido, "entregado", cambiado_por=g.usuario.id)
     db.session.commit()
+    notificar_estado_pedido(pedido)
     return jsonify({
         "id": pedido.id,
         "numero_pedido": pedido.numero_pedido,
@@ -227,6 +231,7 @@ def cambiar_estado(pedido_id):
 
     cambiar_estado_pedido(pedido, nuevo_estado, cambiado_por=g.usuario.id)
     db.session.commit()
+    notificar_estado_pedido(pedido)
     return jsonify(pedido.to_dict())
 
 
@@ -268,6 +273,7 @@ def revisar_pago(pedido_id):
             ))
         pedido.estado_pago = "reembolsado"
         db.session.commit()
+        notificar_reembolso(pedido)
         return jsonify(pedido.to_dict())
 
     if pedido.estado == "cancelado":
@@ -275,6 +281,7 @@ def revisar_pago(pedido_id):
             "error": "Este pedido ya está cancelado y no se puede modificar"
         }), 400
 
+    pago_ya_estaba_verificado = pedido.estado_pago == "verificado"
     pedido.estado_pago = nuevo_estado_pago
 
     # Si se verifica el pago y el pedido seguía "pendiente", lo pasamos a "confirmado"
@@ -303,6 +310,10 @@ def revisar_pago(pedido_id):
         cambiar_estado_pedido(pedido, "cancelado", cambiado_por=g.usuario.id)
 
     db.session.commit()
+    if nuevo_estado_pago == "verificado" and not pago_ya_estaba_verificado:
+        notificar_pago_confirmado(pedido)
+    elif nuevo_estado_pago == "rechazado":
+        notificar_estado_pedido(pedido)  # queda cancelado por pago rechazado
     return jsonify(pedido.to_dict())
 
 
