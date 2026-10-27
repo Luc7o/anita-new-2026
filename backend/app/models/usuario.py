@@ -16,7 +16,6 @@ class Usuario(db.Model):
     TIPOS_DOCUMENTO = {
         "dni": "DNI",
         "ruc": "RUC",
-        "ce": "Carné de Extranjería",
     }
 
     id = db.Column(db.Integer, primary_key=True)
@@ -34,7 +33,7 @@ class Usuario(db.Model):
     # las cuentas normales o de invitado no lo tienen.
     google_id = db.Column(db.String(40), unique=True, nullable=True)
 
-    # Documento de identidad (DNI / RUC / Carné de Extranjería), validado
+    # Documento de identidad (DNI / RUC), validado
     # opcionalmente contra una API de APIs Perú al momento del registro.
     tipo_documento = db.Column(db.String(10))
     numero_documento = db.Column(db.String(15), unique=True)

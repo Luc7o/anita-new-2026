@@ -32,7 +32,6 @@ bp = Blueprint("reclamaciones", __name__, url_prefix="/api/reclamaciones")
 
 _RE_EMAIL = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 _RE_DNI = re.compile(r"^\d{8}$")
-_RE_CE = re.compile(r"^[A-Z0-9]{6,15}$")
 _RE_TELEFONO = re.compile(r"^[0-9+\s-]{6,20}$")
 
 
@@ -72,14 +71,10 @@ def _validar(data):
 
     doc_tipo = (data.get("consumidor_doc_tipo") or "").strip().upper()
     documento = (data.get("consumidor_documento") or "").strip().upper()
-    if doc_tipo == "DNI":
-        if not _RE_DNI.match(documento):
-            return None, "El DNI debe tener 8 dígitos"
-    elif doc_tipo == "CE":
-        if not _RE_CE.match(documento):
-            return None, "El carné de extranjería debe tener entre 6 y 15 letras o números"
-    else:
-        return None, "Elige el tipo de documento (DNI o CE)"
+    if doc_tipo != "DNI":
+        return None, "El documento debe ser un DNI"
+    if not _RE_DNI.match(documento):
+        return None, "El DNI debe tener 8 dígitos"
     campos["consumidor_doc_tipo"] = doc_tipo
     campos["consumidor_documento"] = documento
 

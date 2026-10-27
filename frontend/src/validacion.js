@@ -21,11 +21,6 @@ export function soloDni(valor) {
   return soloNumeros(valor, 8);
 }
 
-// Carné de Extranjería: letras y números, hasta 15 caracteres
-export function soloCarnetExtranjeria(valor) {
-  return valor.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 15);
-}
-
 // Dirección: letras (con tildes/ñ), números, espacios y SOLO estos símbolos: . * ° #
 export function soloDireccion(valor) {
   return valor.replace(/[^A-Za-zÀ-ÿ\u00f1\u00d10-9\s.*°#]/g, "");

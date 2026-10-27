@@ -5,7 +5,7 @@ import PaginaInfo from "./PaginaInfo.jsx";
 import { api } from "../api/client.js";
 import { useAuth } from "../context/AuthContext.jsx";
 import { IconBook } from "../components/Icons.jsx";
-import { soloTexto, soloNumeros, soloDni, soloCarnetExtranjeria } from "../validacion.js";
+import { soloTexto, soloNumeros, soloDni } from "../validacion.js";
 import { claseLabel } from "../estilos.js";
 import { useToast } from "../context/ToastContext.jsx";
 
@@ -195,22 +195,11 @@ export default function LibroReclamaciones() {
                 <input id="rc-nombre" required maxLength={150} className={claseInput}
                   value={form.consumidor_nombre} onChange={(e) => fijar("consumidor_nombre", soloTexto(e.target.value))} />
               </div>
-              <div className="grid gap-4 sm:grid-cols-[140px_1fr]">
-                <div>
-                  <label htmlFor="rc-doc-tipo" className={claseLabel}>Documento</label>
-                  <select id="rc-doc-tipo" className={claseInput} value={form.consumidor_doc_tipo}
-                    onChange={(e) => setForm((f) => ({ ...f, consumidor_doc_tipo: e.target.value, consumidor_documento: "" }))}>
-                    <option value="DNI">DNI</option>
-                    <option value="CE">CE</option>
-                  </select>
-                </div>
-                <div>
-                  <label htmlFor="rc-documento" className={claseLabel}>N° de documento</label>
-                  <input id="rc-documento" required inputMode={form.consumidor_doc_tipo === "DNI" ? "numeric" : "text"}
-                    className={claseInput} value={form.consumidor_documento}
-                    onChange={(e) => fijar("consumidor_documento",
-                      form.consumidor_doc_tipo === "DNI" ? soloDni(e.target.value) : soloCarnetExtranjeria(e.target.value))} />
-                </div>
+              <div>
+                <label htmlFor="rc-documento" className={claseLabel}>N° de DNI</label>
+                <input id="rc-documento" required inputMode="numeric"
+                  className={claseInput} value={form.consumidor_documento}
+                  onChange={(e) => fijar("consumidor_documento", soloDni(e.target.value))} />
               </div>
               <div>
                 <label htmlFor="rc-domicilio" className={claseLabel}>Domicilio</label>
