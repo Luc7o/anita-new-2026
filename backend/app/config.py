@@ -153,7 +153,7 @@ class Config:
     RESEND_API_KEY = os.getenv("RESEND_API_KEY", "")
     RESEND_FROM_EMAIL = os.getenv("RESEND_FROM_EMAIL", "no-responder@anitanewstyle.com")
 
-    # Validación de DNI / RUC / Carné de Extranjería vía una API de APIs Perú
+    # Validación de DNI / RUC vía una API de APIs Perú
     # (ej. decolecta / apis.net.pe, apiperu.dev, u otro proveedor compatible:
     # GET {base}/... con cabecera "Authorization: Bearer {token}").
     # Si dejas API_PERU_TOKEN vacío, el botón "validar" del registro

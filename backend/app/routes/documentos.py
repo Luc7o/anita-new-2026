@@ -8,7 +8,6 @@ bp = Blueprint("documentos", __name__, url_prefix="/api/documentos")
 PATRONES = {
     "dni": re.compile(r"^\d{8}$"),
     "ruc": re.compile(r"^\d{11}$"),
-    "ce": re.compile(r"^[A-Za-z0-9]{6,15}$"),
 }
 
 
@@ -27,12 +26,6 @@ def consultar():
         return jsonify({"error": "Tipo de documento inválido"}), 400
     if not PATRONES[tipo].match(numero):
         return jsonify({"error": "El número de documento no tiene un formato válido"}), 400
-
-    if tipo == "ce":
-        return jsonify({
-            "error": "El Carné de Extranjería no se valida automáticamente todavía, "
-                     "puedes ingresarlo manualmente."
-        }), 400
 
     if not api_peru_configurada():
         return jsonify({"error": "La validación de documentos todavía no está configurada"}), 503

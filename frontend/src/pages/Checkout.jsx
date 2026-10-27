@@ -9,7 +9,6 @@ import {
   soloNumeros,
   soloDni,
   soloRuc,
-  soloCarnetExtranjeria,
   soloDireccion,
 } from "../validacion.js";
 import UbicacionEntrega from "../components/UbicacionEntrega.jsx";
@@ -23,27 +22,21 @@ const METODOS = [
   { id: "tarjeta", label: "Tarjeta" },
 ];
 
-// Cada tipo de documento define cómo se escribe y si se puede consultar.
+// Cada tipo de documento define cómo se escribe.
 //  - filtro: limpia lo que el usuario teclea (solo permite caracteres válidos)
 //  - min/max: largo permitido
-//  - consultable: si hay una API que lo verifique y autocomplete el nombre
-//    (RENIEC para DNI, SUNAT para RUC). El Carné de Extranjería no tiene
-//    consulta pública, así que se escribe a mano.
+// Ambos se verifican con una API (RENIEC para DNI, SUNAT para RUC) que
+// además autocompleta el nombre.
 const TIPOS_DOCUMENTO = [
   {
-    id: "dni", label: "DNI", min: 8, max: 8, consultable: true, filtro: soloDni,
+    id: "dni", label: "DNI", min: 8, max: 8, filtro: soloDni,
     placeholder: "Número de DNI (8 dígitos)", pattern: "[0-9]{8}",
     ayuda: "El DNI debe tener 8 dígitos", inputMode: "numeric",
   },
   {
-    id: "ruc", label: "RUC", min: 11, max: 11, consultable: true, filtro: soloRuc,
+    id: "ruc", label: "RUC", min: 11, max: 11, filtro: soloRuc,
     placeholder: "Número de RUC (11 dígitos)", pattern: "[0-9]{11}",
     ayuda: "El RUC debe tener 11 dígitos", inputMode: "numeric",
-  },
-  {
-    id: "ce", label: "Carné de extranjería", min: 6, max: 15, consultable: false, filtro: soloCarnetExtranjeria,
-    placeholder: "Número de carné (6 a 15 letras o números)", pattern: "[A-Z0-9]{6,15}",
-    ayuda: "El carné debe tener entre 6 y 15 letras o números", inputMode: "text",
   },
 ];
 
@@ -64,7 +57,7 @@ export default function Checkout() {
 
   const [form, setForm] = useState({
     // El pedido guarda un solo "envio_nombre", pero en pantalla se pide por
-    // partes según el documento: nombres + apellidos (DNI / carné) o
+    // partes según el documento: nombres + apellidos (DNI) o
     // razón social (RUC). Al enviar se junta todo en envio_nombre.
     // Si el nombre es provisional ("Cliente 3FA9") no se precarga: se pide el real.
     nombres: esNombreProvisional(usuario) ? "" : usuario?.nombre || "",
@@ -158,7 +151,7 @@ export default function Checkout() {
   const numeroDoc = form.envio_numero_documento;
   useEffect(() => {
     const config = TIPOS_DOCUMENTO.find((t) => t.id === tipoDoc);
-    if (!config.consultable || numeroDoc.length < config.min) {
+    if (numeroDoc.length < config.min) {
       setDocEstado(DOC_SIN_VALIDAR);
       return undefined;
     }
@@ -220,11 +213,6 @@ export default function Checkout() {
   // Texto y color del aviso que se muestra bajo el número de documento
   const avisoDocumento = (() => {
     const label = documentoActual.label;
-    if (!documentoActual.consultable) {
-      return numeroDoc
-        ? { texto: "El carné de extranjería no se verifica automáticamente. Escribe tus nombres y apellidos tal como figuran en él.", clase: "text-plum-soft" }
-        : null;
-    }
     switch (docEstado.estado) {
       case "validando":
         return { texto: docEstado.mensaje, clase: "text-plum-soft" };

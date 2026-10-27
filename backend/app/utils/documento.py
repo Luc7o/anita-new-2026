@@ -1,5 +1,5 @@
 """
-Consulta de DNI / RUC / Carné de Extranjería contra una API de "APIs Perú"
+Consulta de DNI / RUC contra una API de "APIs Perú"
 (por defecto apunta a decolecta / apis.net.pe, pero cualquier proveedor con
 el mismo patrón — GET + cabecera "Authorization: Bearer {token}" — funciona
 solo cambiando API_PERU_BASE_URL en el .env).
@@ -25,7 +25,7 @@ def api_peru_configurada():
 
 def consultar_documento(tipo, numero):
     """
-    tipo: "dni" | "ruc" | "ce"
+    tipo: "dni" | "ruc"
     numero: número de documento, ya validado en formato (largo/dígitos) antes
             de llamar a esta función.
 
