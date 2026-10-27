@@ -79,7 +79,7 @@ function Hero({ promociones }) {
           <p className="mt-5 max-w-md text-lg text-white/75">
             {promoActual
               ? promoActual.descripcion
-              : "Calzados, vestidos, carteras y accesorios seleccionados para tu día a día. Envíos a todo el país."}
+              : "Calzados, vestidos, carteras y accesorios seleccionados para tu día a día. Delivery en Huancayo."}
           </p>
           {esLinkExterno ? (
             <a href={promoActual.boton_link} target="_blank" rel="noopener noreferrer" className={claseBoton}>

@@ -16,6 +16,12 @@ from app.utils.boleta import responder_boleta
 from app.utils.pedidos_vencidos import METODOS_PAGO_PASARELA, cancelar_pedidos_vencidos_del_usuario
 from app.utils.historial import cambiar_estado_pedido
 from app.models import IntentoPago
+from app.utils.zona_entrega import (
+    DEPARTAMENTO_ENTREGA,
+    MENSAJE_FUERA_DE_ZONA,
+    PROVINCIA_ENTREGA,
+    distrito_de_entrega,
+)
 
 bp = Blueprint("pedidos", __name__, url_prefix="/api/pedidos")
 
@@ -113,6 +119,15 @@ def checkout():
             return jsonify({"error": "Falta la provincia de entrega"}), 400
         if not envio_referencia:
             return jsonify({"error": "Falta la referencia de la dirección"}), 400
+        # Delivery solo en Huancayo. Se valida en el servidor (no basta con lo
+        # que muestre el navegador) y se guarda el distrito de la zona.
+        distrito_zona = distrito_de_entrega(envio_distrito, data.get("distrito_id"))
+        if distrito_zona is None:
+            return jsonify({"error": MENSAJE_FUERA_DE_ZONA}), 400
+        envio_distrito = distrito_zona.nombre
+        data["distrito_id"] = distrito_zona.id
+        data["envio_provincia"] = PROVINCIA_ENTREGA
+        data["envio_dpto"] = DEPARTAMENTO_ENTREGA
 
     # Tarjeta: NUNCA se pide ni se acepta número de tarjeta, CVV ni titular —
     # Culqi tokeniza esos datos directamente en el navegador del cliente y nunca

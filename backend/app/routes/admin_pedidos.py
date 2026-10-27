@@ -230,23 +230,6 @@ def cambiar_estado(pedido_id):
     return jsonify(pedido.to_dict())
 
 
-@bp.put("/<int:pedido_id>/envio")
-@requiere_roles(*PUEDE_GESTIONAR_PEDIDOS)
-def actualizar_envio(pedido_id):
-    pedido = Pedido.query.get_or_404(pedido_id)
-    if _ventas_no_gestiona(pedido):
-        return jsonify({"error": "Ventas solo puede gestionar pedidos de delivery"}), 403
-    if pedido.estado == "cancelado":
-        return jsonify({"error": "Este pedido ya está cancelado y no se puede modificar"}), 400
-
-    data = request.get_json(force=True) or {}
-    pedido.empresa_envio = (data.get("empresa_envio") or "").strip()[:100] or None
-    pedido.numero_seguimiento = (data.get("numero_seguimiento") or "").strip()[:100] or None
-
-    db.session.commit()
-    return jsonify(pedido.to_dict())
-
-
 @bp.put("/<int:pedido_id>/pago")
 @requiere_roles(*PUEDE_GESTIONAR_REEMBOLSOS)
 def revisar_pago(pedido_id):

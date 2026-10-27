@@ -47,7 +47,7 @@ export default function Footer() {
               <Logo tone="light" />
             </h4>
             <p className="text-sm text-white/70">
-              Tienda de moda peruana{c.ciudad ? ` con tienda física en ${c.ciudad}` : ""}. Envíos a todo el Perú.
+              Tienda de moda peruana{c.ciudad ? ` con tienda física en ${c.ciudad}` : ""}. Delivery en Huancayo.
             </p>
             <div className="mt-4 flex items-center gap-4">
               <RedesAuth clase={claseRed} />
