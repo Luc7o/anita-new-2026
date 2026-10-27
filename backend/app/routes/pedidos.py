@@ -15,6 +15,7 @@ from app.utils.culqi import culqi_configurado, crear_cargo
 from app.utils.boleta import responder_boleta
 from app.utils.pedidos_vencidos import METODOS_PAGO_PASARELA, cancelar_pedidos_vencidos_del_usuario
 from app.utils.historial import cambiar_estado_pedido
+from app.utils.notificaciones import notificar_estado_pedido, notificar_pago_confirmado
 from app.models import IntentoPago
 from app.utils.zona_entrega import (
     DEPARTAMENTO_ENTREGA,
@@ -272,6 +273,7 @@ def cancelar_pedido(pedido_id):
     cambiar_estado_pedido(pedido, "cancelado", cambiado_por=usuario_id)
     restaurar_stock_de_pedido(pedido)
     db.session.commit()
+    notificar_estado_pedido(pedido)
     return jsonify(pedido.to_dict())
 
 
@@ -342,6 +344,7 @@ def pagar_pedido(pedido_id):
             cambiar_estado_pedido(pedido, "cancelado", cambiado_por=usuario_id)
         restaurar_stock_de_pedido(pedido)
         db.session.commit()
+        notificar_estado_pedido(pedido)
         return jsonify({
             "error": "El tiempo para pagar este pedido venció y el stock ya se liberó. Vuelve a intentar la compra."
         }), 410
@@ -382,6 +385,7 @@ def pagar_pedido(pedido_id):
         codigo_culqi=cargo_id,
     ))
     db.session.commit()
+    notificar_pago_confirmado(pedido)
     return jsonify(pedido.to_dict())
 
 @bp.get("/<int:pedido_id>/boleta")

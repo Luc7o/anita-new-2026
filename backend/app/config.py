@@ -153,6 +153,22 @@ class Config:
     RESEND_API_KEY = os.getenv("RESEND_API_KEY", "")
     RESEND_FROM_EMAIL = os.getenv("RESEND_FROM_EMAIL", "no-responder@anitanewstyle.com")
 
+    # Notificaciones de pedidos por correo (ver app/utils/notificaciones.py).
+    # Al cliente siempre se le avisa de su compra; estas dos variables solo
+    # ajustan extras:
+    #  - CORREOS_AVISO_PEDIDOS: correos del equipo (separados por coma) que
+    #    reciben un aviso en cada compra pagada. Vacío = no se avisa a nadie.
+    #  - CORREO_ADJUNTAR_BOLETA: adjunta la boleta en PDF al correo de "pago
+    #    confirmado". Ponlo en false si generar el PDF hace lenta la respuesta.
+    CORREOS_AVISO_PEDIDOS = [
+        correo.strip()
+        for correo in os.getenv("CORREOS_AVISO_PEDIDOS", "").split(",")
+        if correo.strip()
+    ]
+    CORREO_ADJUNTAR_BOLETA = os.getenv("CORREO_ADJUNTAR_BOLETA", "true").strip().lower() in (
+        "1", "true", "si", "sí", "yes",
+    )
+
     # Validación de DNI / RUC vía una API de APIs Perú
     # (ej. decolecta / apis.net.pe, apiperu.dev, u otro proveedor compatible:
     # GET {base}/... con cabecera "Authorization: Bearer {token}").

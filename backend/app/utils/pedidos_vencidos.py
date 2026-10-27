@@ -22,6 +22,7 @@ from app.extensions import db
 from app.models import Pedido
 from app.utils.stock import restaurar_stock_de_pedido
 from app.utils.historial import cambiar_estado_pedido
+from app.utils.notificaciones import MAX_AVISOS_VENCIDOS_POR_PASADA, notificar_estado_pedido
 
 # Tarjeta y Yape se cobran por la pasarela Culqi (cargo único, síncrono).
 # Única definición: la usan el checkout (routes/pedidos.py) y este módulo.
@@ -47,22 +48,25 @@ def _query_vencidos(usuario_id=None):
     return query
 
 
+def _cancelar_y_avisar(vencidos):
+    """Cancela los pedidos, confirma y RECIÉN ahí avisa a cada cliente por correo
+    (un pedido que no se pudo guardar como cancelado no debe avisar nada)."""
+    for pedido in vencidos:
+        _cancelar_uno(pedido)
+    if not vencidos:
+        return 0
+    db.session.commit()
+    for pedido in vencidos[:MAX_AVISOS_VENCIDOS_POR_PASADA]:
+        notificar_estado_pedido(pedido)
+    return len(vencidos)
+
+
 def cancelar_pedidos_vencidos_del_usuario(usuario_id):
     """Chequeo lazy y barato: solo mira los pedidos de ESTE usuario.
     Se usa antes de listar/consultar sus pedidos o de intentar pagar uno."""
-    vencidos = _query_vencidos(usuario_id=usuario_id).with_for_update().all()
-    for pedido in vencidos:
-        _cancelar_uno(pedido)
-    if vencidos:
-        db.session.commit()
-    return len(vencidos)
+    return _cancelar_y_avisar(_query_vencidos(usuario_id=usuario_id).with_for_update().all())
 
 
 def cancelar_pedidos_vencidos_global():
     """Barrido completo — pensado para correr desde un cron / job externo."""
-    vencidos = _query_vencidos().with_for_update().all()
-    for pedido in vencidos:
-        _cancelar_uno(pedido)
-    if vencidos:
-        db.session.commit()
-    return len(vencidos)
+    return _cancelar_y_avisar(_query_vencidos().with_for_update().all())
