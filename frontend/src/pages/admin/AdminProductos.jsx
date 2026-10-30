@@ -253,7 +253,10 @@ export default function AdminProductos() {
   return (
     <div>
       <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-semibold text-plum">Productos</h1>
+        <div>
+          <h1 className="text-2xl font-semibold text-plum">Productos</h1>
+          <p className="text-sm text-plum-soft">Catálogo de la tienda: precios, stock y estado de cada producto.</p>
+        </div>
         {puedeGestionar && (
           <button
             onClick={nuevoProducto}

@@ -126,7 +126,7 @@ export default function AdminRecojosCajero() {
       ) : !errorCarga ? (
         <>
           <Paginador pagina={pagina} porPagina={POR_PAGINA} total={total} onCambiar={setPagina} className="mb-3" />
-          <div className="space-y-3">
+          <div className="grid gap-4 lg:grid-cols-2 2xl:grid-cols-3">
             {pedidos.map((pedido) => (
               <div key={pedido.id} className="glass rounded-2xl p-4 sm:p-6">
                 <div className="flex flex-wrap items-start justify-between gap-3">

@@ -75,7 +75,10 @@ export default function AdminUsuarios() {
   return (
     <div>
       <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-semibold text-plum">Usuarios y roles</h1>
+        <div>
+          <h1 className="text-2xl font-semibold text-plum">Usuarios y roles</h1>
+          <p className="text-sm text-plum-soft">Quién puede entrar al panel y qué puede hacer.</p>
+        </div>
         <button
           onClick={() => setMostrarForm(true)}
           className="rounded-[10px] bg-berry px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-berry-dark"

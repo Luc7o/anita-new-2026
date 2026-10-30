@@ -8,6 +8,7 @@ import { useParams, Link } from "react-router-dom";
 import { api } from "../../api/client.js";
 import { ESTADOS_PEDIDO } from "./estadosPedido.js";
 import EstadoPedidoSelect from "../../components/EstadoPedidoSelect.jsx";
+import LineaAvancePedido from "../../components/admin/LineaAvancePedido.jsx";
 import { InsigniaEstadoPedido, InsigniaEntregaPedido } from "../../components/admin/InsigniasPedido.jsx";
 import { LineasPedido, TotalesPedido } from "../../components/ResumenPedido.jsx";
 import { useAuth } from "../../context/AuthContext.jsx";
@@ -142,7 +143,8 @@ export default function AdminPedidoDetalle() {
         ← Volver a pedidos
       </Link>
 
-      <div className="glass mt-4 rounded-2xl p-6 sm:p-8">
+      <div className="mt-4 space-y-6">
+        <div className="glass rounded-2xl p-5 sm:p-6">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <h1 className="text-2xl font-semibold text-plum">{pedido.numero_pedido}</h1>
@@ -177,9 +179,40 @@ export default function AdminPedidoDetalle() {
           )}
         </div>
 
-        <div className="mt-6 grid gap-6 sm:grid-cols-2">
+
+          {pedido.estado !== "cancelado" && (
+            <div className="mt-5 border-t border-plum/10 pt-3">
+              <p className="mb-1 text-sm font-bold text-plum">Avance del pedido</p>
+              <LineaAvancePedido pedido={pedido} />
+            </div>
+          )}
+        </div>
+
+        <div className="grid items-start gap-6 lg:grid-cols-[1.5fr_1fr]">
+          <div className="glass rounded-2xl p-5 sm:p-6">
+            <h2 className="mb-3 text-sm font-bold text-plum">Productos</h2>
+        <LineasPedido detalles={pedido.detalles} conVariantes className="pt-1" />
+
+        <TotalesPedido pedido={pedido} />
+
+        {pedido.estado_pago === "verificado" && (
+          <div className="mt-4">
+            <button
+              onClick={descargarBoleta}
+              disabled={descargandoBoleta}
+              className="rounded-[10px] border border-plum/20 bg-white px-4 py-2 text-sm font-semibold text-berry-dark transition hover:bg-white disabled:opacity-60"
+            >
+              {descargandoBoleta ? <><Spinner />Generando boleta...</> : "Descargar boleta"}
+            </button>
+            {errorBoleta && <p className="mt-2 text-sm text-berry-dark">{errorBoleta}</p>}
+          </div>
+        )}
+          </div>
+
+          <div className="space-y-6">
+            <div className="glass rounded-2xl p-5">
           <div>
-            <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-plum-soft">
+            <h2 className="mb-2 text-sm font-bold text-plum">
               Cuenta del cliente
             </h2>
             <p className="text-plum">{pedido.cliente}</p>
@@ -188,8 +221,10 @@ export default function AdminPedidoDetalle() {
               (datos actuales de la cuenta — pueden diferir de los del pedido)
             </p>
           </div>
+            </div>
+            <div className="glass rounded-2xl p-5">
           <div>
-            <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-plum-soft">
+            <h2 className="mb-2 text-sm font-bold text-plum">
               Entrega (datos del pedido)
             </h2>
             <InsigniaEntregaPedido pedido={pedido} className="mb-1" />
@@ -209,12 +244,11 @@ export default function AdminPedidoDetalle() {
               <p className="mt-1 text-sm text-plum-soft">Nota del cliente: {pedido.nota}</p>
             )}
           </div>
-        </div>
-
+            </div>
         {pedido.estado_pago !== "no_aplica" && (
-          <div className="mt-6 rounded-2xl bg-white p-4">
+          <div className="glass rounded-2xl p-5">
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <h2 className="text-sm font-semibold uppercase tracking-wide text-plum-soft">
+              <h2 className="text-sm font-bold text-plum">
                 {pedido.metodo_pago === "yape" ? "Comprobante de pago" : "Seguimiento de pago"}
               </h2>
               <span
@@ -243,7 +277,7 @@ export default function AdminPedidoDetalle() {
                 <button
                   onClick={() => revisarPago("rechazado")}
                   disabled={actualizando}
-                  className="rounded-[10px] bg-white px-4 py-2 text-sm font-semibold text-plum hover:bg-white disabled:opacity-60"
+                  className="rounded-[10px] border border-plum/20 bg-white px-4 py-2 text-sm font-semibold text-plum hover:bg-white disabled:opacity-60"
                 >
                   Rechazar
                 </button>
@@ -270,8 +304,8 @@ export default function AdminPedidoDetalle() {
         )}
 
         {puedeGestionar && !esAlmacen && pedido.estado === "listo_recojo" && pedido.requiere_codigo_recojo && (
-          <form onSubmit={entregarRecojo} className="mt-6 rounded-2xl border border-berry/20 bg-white p-4">
-            <h2 className="mb-1 text-sm font-semibold uppercase tracking-wide text-plum-soft">
+          <form onSubmit={entregarRecojo} className="glass rounded-2xl border-berry/30 p-5">
+            <h2 className="mb-1 text-sm font-bold text-plum">
               Entregar al cliente
             </h2>
             <p className="mb-3 text-sm text-plum-soft">
@@ -309,22 +343,8 @@ export default function AdminPedidoDetalle() {
           </form>
         )}
 
-        <LineasPedido detalles={pedido.detalles} conVariantes className="border-t border-white/50 pt-4" />
-
-        <TotalesPedido pedido={pedido} />
-
-        {pedido.estado_pago === "verificado" && (
-          <div className="mt-4">
-            <button
-              onClick={descargarBoleta}
-              disabled={descargandoBoleta}
-              className="rounded-[10px] bg-white px-4 py-2 text-sm font-semibold text-berry-dark transition hover:bg-white disabled:opacity-60"
-            >
-              {descargandoBoleta ? <><Spinner />Generando boleta...</> : "Descargar boleta"}
-            </button>
-            {errorBoleta && <p className="mt-2 text-sm text-berry-dark">{errorBoleta}</p>}
           </div>
-        )}
+        </div>
       </div>
     </div>
   );
