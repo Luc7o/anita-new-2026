@@ -9,7 +9,8 @@ import { InsigniaEstadoPedido } from "../../components/admin/InsigniasPedido.jsx
 import { useAuth } from "../../context/AuthContext.jsx";
 import { SUPERADMIN, PUEDE_VER_DASHBOARD } from "../../roles.js";
 
-const COLORES_CATEGORIA = ["#C42759", "#550416", "#ABABAB", "#E58AA6", "#797878"];
+// Colores que se leen bien tanto sobre blanco como sobre negro (el vino oscuro #550416 se perdía en modo oscuro).
+const COLORES_CATEGORIA = ["#C42759", "#E58AA6", "#8F1D45", "#ABABAB", "#797878"];
 
 // Qué secciones ve cada rol. La pantalla de entrada ("Resumen") es corta a
 // propósito: lo que necesitas saber hoy y lo que tienes que hacer. El detalle
@@ -749,46 +750,113 @@ function Tarjeta({ label, valor, destacar = false, small = false, detalle }) {
   );
 }
 
+// Tope "redondo" para el eje vertical (100, 200, 400, 500, 800, 1000...), con 4 divisiones parejas.
+function topeEje(max) {
+  if (max <= 0) return 100;
+  const p = 10 ** Math.floor(Math.log10(max));
+  const multiplo = [1, 2, 4, 5, 8, 10].find((m) => m * p >= max) || 10;
+  return multiplo * p;
+}
+
+const etiquetaEje = (n) => (n >= 1000 ? `${n / 1000}k` : `${n}`);
+
 function VentasChart({ datos, pie }) {
-  const ancho = 560;
-  const alto = 160;
-  const max = Math.max(...datos.map((d) => d.total), 1);
+  const ancho = 640;
+  const alto = 270;
+  const mIzq = 52;
+  const mDer = 26;
+  const mSup = 36;
+  const mInf = 34;
+  const max = Math.max(...datos.map((d) => d.total), 0);
+  const tope = topeEje(max);
+  const anchoUtil = ancho - mIzq - mDer;
+  const altoUtil = alto - mSup - mInf;
+  const xDe = (i) => (datos.length > 1 ? mIzq + (i / (datos.length - 1)) * anchoUtil : mIzq + anchoUtil / 2);
+  const yDe = (v) => mSup + (1 - v / tope) * altoUtil;
 
-  // Margen lateral dentro del dibujo para que los puntos de los extremos no se corten.
-  const margen = 12;
-  const puntos = datos.map((d, i) => {
-    const x = margen + (i / (datos.length - 1)) * (ancho - margen * 2);
-    const y = alto - (d.total / max) * (alto - 16) - 8;
-    return { x, y, ...d };
-  });
+  const puntos = datos.map((d, i) => ({ x: xDe(i), y: yDe(d.total), ...d }));
+  const iMejor = puntos.reduce((mejor, p, i) => (p.total > puntos[mejor].total ? i : mejor), 0);
 
-  const linea = puntos.map((p) => `${p.x},${p.y}`).join(" ");
-  const area = `${margen},${alto} ${linea} ${ancho - margen},${alto}`;
+  // Curva suave que nunca baja del eje (las tangentes son horizontales en cada punto).
+  let linea = `M${puntos[0]?.x ?? 0} ${puntos[0]?.y ?? 0}`;
+  for (let i = 1; i < puntos.length; i++) {
+    const medio = (puntos[i - 1].x + puntos[i].x) / 2;
+    linea += ` C${medio} ${puntos[i - 1].y} ${medio} ${puntos[i].y} ${puntos[i].x} ${puntos[i].y}`;
+  }
+  const area = `${linea} L${puntos[puntos.length - 1]?.x ?? 0} ${yDe(0)} L${puntos[0]?.x ?? 0} ${yDe(0)} Z`;
+
+  const mejor = puntos[iMejor];
+  const etiqueta = mejor ? `S/ ${Math.round(mejor.total).toLocaleString("es-PE")}` : "";
+  const anchoEtiqueta = 18 + etiqueta.length * 7.4;
+  const xEtiqueta = mejor ? Math.min(Math.max(mejor.x - anchoEtiqueta / 2, mIzq), ancho - mDer - anchoEtiqueta) : 0;
 
   return (
     <div className="glass rounded-2xl p-6">
       <h2 className="text-lg font-semibold text-plum">Ventas de los últimos 6 meses</h2>
       <p className="text-xs text-plum-soft">Ventas confirmadas por mes</p>
 
-      {max <= 1 ? (
+      {max <= 0 ? (
         <p className="mt-8 text-sm text-plum-soft">Todavía no hay suficientes ventas confirmadas para graficar.</p>
       ) : (
-        <svg viewBox={`0 0 ${ancho} ${alto}`} className="mt-4 w-full" preserveAspectRatio="none">
-          <polygon points={area} fill="#C42759" fillOpacity="0.12" />
-          <polyline points={linea} fill="none" stroke="#C42759" strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" />
+        <svg
+          viewBox={`0 0 ${ancho} ${alto}`}
+          className="mt-4 h-auto w-full"
+          role="img"
+          aria-label={`Ventas por mes. Mejor mes: ${mejor.mes} con ${etiqueta}`}
+        >
+          <defs>
+            <linearGradient id="ventas-relleno" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" style={{ stopColor: "rgb(var(--c-berry))", stopOpacity: 0.28 }} />
+              <stop offset="1" style={{ stopColor: "rgb(var(--c-berry))", stopOpacity: 0 }} />
+            </linearGradient>
+          </defs>
+
+          {/* Líneas guía y montos del eje vertical */}
+          {[0, 1, 2, 3, 4].map((k) => {
+            const valor = (tope / 4) * k;
+            const y = yDe(valor);
+            return (
+              <g key={k}>
+                <line x1={mIzq} x2={ancho - mDer} y1={y} y2={y} className="stroke-plum/15" strokeDasharray={k ? "3 5" : undefined} />
+                <text x={mIzq - 10} y={y + 4} textAnchor="end" fontSize="11" className="fill-plum-soft">
+                  {etiquetaEje(valor)}
+                </text>
+              </g>
+            );
+          })}
+
+          <path d={area} fill="url(#ventas-relleno)" />
+          <path d={linea} fill="none" className="stroke-berry" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" />
+
           {puntos.map((p, i) => (
-            <circle key={i} cx={p.x} cy={p.y} r="4" fill="#C42759" />
+            <g key={p.mes}>
+              <title>{`${p.mes}: S/ ${p.total.toFixed(2)}`}</title>
+              {i === iMejor ? (
+                <circle cx={p.x} cy={p.y} r="7" className="fill-berry stroke-white" strokeWidth="3" />
+              ) : (
+                <circle cx={p.x} cy={p.y} r="4.5" className="fill-white stroke-berry" strokeWidth="2.5" />
+              )}
+              <text
+                x={p.x}
+                y={alto - 10}
+                textAnchor="middle"
+                fontSize="12"
+                fontWeight={i === iMejor ? 700 : 400}
+                className={i === iMejor ? "fill-plum" : "fill-plum-soft"}
+              >
+                {p.mes}
+              </text>
+            </g>
           ))}
+
+          {/* Etiqueta con el monto del mejor mes */}
+          <rect x={xEtiqueta} y={mejor.y - 36} width={anchoEtiqueta} height="24" rx="6" className="fill-plum" />
+          <text x={xEtiqueta + anchoEtiqueta / 2} y={mejor.y - 20} textAnchor="middle" fontSize="12" fontWeight="700" className="fill-ivory">
+            {etiqueta}
+          </text>
         </svg>
       )}
-      <div className="relative mt-2 h-4 text-xs text-plum-soft">
-        {puntos.map((p) => (
-          <span key={p.mes} className="absolute -translate-x-1/2" style={{ left: `${(p.x / ancho) * 100}%` }}>
-            {p.mes}
-          </span>
-        ))}
-      </div>
-      {pie && <p className="mt-4 text-sm text-plum-soft">{pie}</p>}
+      {pie && <p className="mt-2 text-sm text-plum-soft">{pie}</p>}
     </div>
   );
 }
@@ -796,6 +864,7 @@ function VentasChart({ datos, pie }) {
 function VisitasChart({ datos }) {
   const max = Math.max(...datos.map((d) => d.visitas), 1);
   const sinDatos = datos.every((d) => d.visitas === 0);
+  const tope = topeEje(max);
 
   return (
     <div className="glass rounded-2xl p-6">
@@ -805,24 +874,45 @@ function VisitasChart({ datos }) {
       {sinDatos ? (
         <p className="mt-8 text-sm text-plum-soft">Todavía no hay visitas registradas.</p>
       ) : (
-        <div className="mt-6 flex h-32 items-end justify-between gap-2">
-          {datos.map((d) => (
-            <div key={d.dia} className="flex flex-1 flex-col items-center gap-1.5">
-              <div className="relative flex h-24 w-full items-end justify-center">
-                <div
-                  className="w-full max-w-[28px] rounded-t-lg bg-berry/15"
-                  style={{ height: `${Math.max((d.visitas / max) * 100, d.visitas > 0 ? 6 : 0)}%` }}
-                  title={`${d.visitas} visitas`}
-                />
-                <div
-                  className="absolute bottom-0 w-full max-w-[28px] rounded-t-lg bg-berry"
-                  style={{ height: `${Math.max((d.visitantes / max) * 100, d.visitantes > 0 ? 6 : 0)}%` }}
-                  title={`${d.visitantes} visitantes únicos`}
-                />
+        <div className="mt-6 flex gap-2">
+          {/* Eje vertical */}
+          <div className="flex h-28 flex-col justify-between pr-1 text-right text-[11px] text-plum-soft">
+            <span>{etiquetaEje(tope)}</span>
+            <span>{etiquetaEje(tope / 2)}</span>
+            <span>0</span>
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="relative h-28">
+              <div className="pointer-events-none absolute inset-0 flex flex-col justify-between" aria-hidden="true">
+                <span className="border-t border-dashed border-plum/15" />
+                <span className="border-t border-dashed border-plum/15" />
+                <span className="border-t border-plum/15" />
               </div>
-              <span className="text-xs text-plum-soft">{d.dia}</span>
+              <div className="relative flex h-full items-end justify-between gap-2">
+                {datos.map((d) => (
+                  <div key={d.dia} className="relative flex h-full flex-1 items-end justify-center">
+                    <div
+                      className="w-full max-w-[34px] rounded-t-lg bg-berry/30"
+                      style={{ height: `${Math.max((d.visitas / tope) * 100, d.visitas > 0 ? 4 : 0)}%` }}
+                      title={`${d.visitas} visitas`}
+                    />
+                    <div
+                      className="absolute bottom-0 w-full max-w-[34px] rounded-t-lg bg-berry"
+                      style={{ height: `${Math.max((d.visitantes / tope) * 100, d.visitantes > 0 ? 4 : 0)}%` }}
+                      title={`${d.visitantes} visitantes únicos`}
+                    />
+                  </div>
+                ))}
+              </div>
             </div>
-          ))}
+            <div className="mt-2 flex justify-between gap-2">
+              {datos.map((d) => (
+                <span key={d.dia} className="flex-1 text-center text-xs text-plum-soft">
+                  {d.dia}
+                </span>
+              ))}
+            </div>
+          </div>
         </div>
       )}
     </div>
@@ -855,7 +945,7 @@ function Embudo({ datos, titulo, nota, intro }) {
                   )}
                 </span>
               </div>
-              <div className="mt-1.5 h-2.5 w-full overflow-hidden rounded-full bg-plum/10">
+              <div className="mt-1.5 h-3 w-full overflow-hidden rounded-full bg-plum/10">
                 <div
                   className="h-full rounded-full bg-berry"
                   style={{ width: `${Math.max((paso.cantidad / max) * 100, paso.cantidad > 0 ? 3 : 0)}%` }}
@@ -890,7 +980,7 @@ function BarrasHorizontales({ titulo, subtitulo, vacioTexto, datos }) {
                   {d.detalle && <span className="ml-1.5 text-xs font-normal text-plum-soft/70">· {d.detalle}</span>}
                 </span>
               </div>
-              <div className="mt-1 h-2 w-full overflow-hidden rounded-full bg-plum/10">
+              <div className="mt-1 h-2.5 w-full overflow-hidden rounded-full bg-plum/10">
                 <div className="h-full rounded-full bg-berry" style={{ width: `${Math.max((d.valor / max) * 100, 3)}%` }} />
               </div>
             </div>
