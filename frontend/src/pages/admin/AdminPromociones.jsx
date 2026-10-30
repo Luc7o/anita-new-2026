@@ -44,7 +44,7 @@ function tipoDeEnlace(link, productoId) {
 // Cómo se verá en el carrusel del inicio (misma estructura que el Hero de la tienda).
 function VistaPrevia({ form }) {
   return (
-    <div className="overflow-hidden rounded-2xl bg-gradient-to-br from-plum via-berry-dark to-berry p-5 text-white">
+    <div className="overflow-hidden rounded-2xl bg-gradient-to-br from-chrome via-berry-dark to-berry p-5 text-white">
       <div className="grid grid-cols-[1.2fr_0.8fr] items-center gap-4">
         <div className="min-w-0">
           <p className="truncate text-[10px] font-bold uppercase tracking-[0.2em] text-berry-light">
@@ -58,7 +58,7 @@ function VistaPrevia({ form }) {
             {form.boton_texto || "Ver Todo"}
           </span>
         </div>
-        <div className="aspect-[4/5] overflow-hidden rounded-xl bg-plum ring-1 ring-white/15">
+        <div className="aspect-[4/5] overflow-hidden rounded-xl bg-chrome ring-1 ring-white/15">
           {form.imagen_url ? (
             <ImagenOptimizada src={form.imagen_url} variante="med" alt="" className="h-full w-full object-cover" />
           ) : (

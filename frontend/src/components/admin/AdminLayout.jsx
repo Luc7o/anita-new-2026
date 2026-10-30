@@ -5,8 +5,9 @@ import { useAuth } from "../../context/AuthContext.jsx";
 import Logo from "../Logo.jsx";
 import {
   IconDashboard, IconBag, IconTag, IconPackage, IconStore, IconLogout, IconTruck, IconUsers, IconSettings,
-  IconCart, IconGift, IconBook, IconUser,
+  IconCart, IconGift, IconBook, IconUser, IconSun, IconMoon,
 } from "../Icons.jsx";
+import useTemaAdmin from "../../hooks/useTemaAdmin.js";
 import {
   PUEDE_VER_PRODUCTOS, PUEDE_GESTIONAR_CATEGORIAS, PUEDE_VER_PEDIDOS, PUEDE_REGISTRAR_VENTA, PUEDE_VER_INICIO, PUEDE_VER_PROVEEDORES,
   PUEDE_GESTIONAR_USUARIOS, PUEDE_VER_CONFIGURACION, PUEDE_VER_PROMOCIONES, PUEDE_VER_RECLAMACIONES,
@@ -51,6 +52,7 @@ export default function AdminLayout() {
   const { usuario, logout } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
+  const { tema, alternar } = useTemaAdmin();
 
   // Cambiar de cuenta = cerrar la sesión actual y quedar en el login para entrar con otra.
   const cambiarDeCuenta = () => {
@@ -60,9 +62,9 @@ export default function AdminLayout() {
   const items = TODOS_LOS_ITEMS.filter((item) => !item.roles || item.roles.includes(usuario?.rol));
 
   return (
-    <div className="admin-ui flex min-h-screen flex-col">
+    <div className="admin-ui admin-pagina flex min-h-screen flex-col">
       {/* Cabecera oscura fija (estructura de Malhu) */}
-      <header className="sticky top-0 z-40 bg-plum/95 backdrop-blur">
+      <header className="sticky top-0 z-40 border-b border-white/10 bg-chrome">
         <div className="flex items-center gap-3 px-4 py-3">
           <Link to={rutaAdmin()} aria-label="Panel de administración">
             <Logo tone="light" />
@@ -76,6 +78,15 @@ export default function AdminLayout() {
             </span>
             {/* En el subdominio del admin no hay tienda propia: el botón solo
                 aparece si se definió VITE_TIENDA_URL, y abre la tienda aparte. */}
+            <button
+              type="button"
+              onClick={alternar}
+              className="rounded-[10px] p-2.5 text-white/70 hover:bg-white/10 hover:text-white"
+              aria-label={tema === "oscuro" ? "Activar modo claro" : "Activar modo oscuro"}
+              title={tema === "oscuro" ? "Modo claro" : "Modo oscuro"}
+            >
+              {tema === "oscuro" ? <IconSun size={16} /> : <IconMoon size={16} />}
+            </button>
             {(!IS_ADMIN_APP || TIENDA_URL) && (
               <TiendaLink />
             )}
@@ -93,7 +104,7 @@ export default function AdminLayout() {
 
       <div className="flex flex-1">
         {/* Barra lateral (pantallas grandes): ocupa todo el lado izquierdo, bajo la cabecera */}
-        <aside className="sticky top-[57px] hidden h-[calc(100vh-57px)] w-60 shrink-0 flex-col overflow-y-auto border-r border-plum/10 bg-white/60 backdrop-blur lg:flex">
+        <aside className="sticky top-[57px] hidden h-[calc(100vh-57px)] w-60 shrink-0 flex-col overflow-y-auto border-r border-plum/10 bg-white lg:flex">
           <nav className="flex flex-1 flex-col gap-1 p-3" aria-label="Administración">
             {items.map((item) => (
               <NavLink
@@ -143,7 +154,7 @@ export default function AdminLayout() {
 
         <div className="flex min-w-0 flex-1 flex-col">
           {/* Pestañas horizontales (celular y tablet), donde no cabe la barra lateral */}
-          <div className="sticky top-[57px] z-30 border-b border-plum/10 bg-ivory/95 backdrop-blur lg:hidden">
+          <div className="sticky top-[57px] z-30 border-b border-plum/10 bg-white lg:hidden">
             <nav className="mx-auto flex max-w-7xl gap-1 overflow-x-auto px-4" aria-label="Administración">
               {items.map((item) => (
                 <NavLink

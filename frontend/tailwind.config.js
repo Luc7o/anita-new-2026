@@ -4,11 +4,15 @@ export default {
   theme: {
     extend: {
       colors: {
-        ivory: "#F7F5F5",
-        lilac: "#F2E4E8",
+        // Estos colores leen variables CSS (ver styles/theme.css). En la tienda y
+        // en el modo claro valen lo de siempre; el admin en modo oscuro las cambia.
+        ivory: "rgb(var(--c-ivory) / <alpha-value>)",
+        lilac: "rgb(var(--c-lilac) / <alpha-value>)",
+        // Color fijo de la cabecera del admin (vino oscuro; no se invierte).
+        chrome: "rgb(var(--c-chrome) / <alpha-value>)",
         plum: {
-          DEFAULT: "#2C0107",
-          soft: "#6B6A6B",
+          DEFAULT: "rgb(var(--c-plum) / <alpha-value>)",
+          soft: "rgb(var(--c-plum-soft) / <alpha-value>)",
         },
         berry: {
           DEFAULT: "#C42759",

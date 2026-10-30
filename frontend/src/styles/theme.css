@@ -2,6 +2,34 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Colores base como variables (canales RGB para que Tailwind pueda aplicar
+   opacidad: text-plum/60, bg-plum/10...). Valores de siempre = tienda y admin claro. */
+:root {
+  --c-plum: 44 1 7;
+  --c-plum-soft: 107 106 107;
+  --c-ivory: 247 245 245;
+  --c-lilac: 242 228 232;
+  --c-chrome: 44 1 7;
+  --c-berry: 196 39 89;
+  --admin-pg: #ffffff;
+  --admin-surface: #ffffff;
+  --admin-surface-2: #f7f5f5;
+}
+
+/* Admin en modo oscuro: fondo negro puro. La clase "admin-dark" la pone
+   useTemaAdmin en <html>; solo existe mientras el panel está abierto. */
+html.admin-dark {
+  color-scheme: dark;
+  --c-plum: 236 232 233;
+  --c-plum-soft: 171 171 171;
+  --c-ivory: 0 0 0;
+  --c-lilac: 30 14 19;
+  --c-chrome: 24 2 5;
+  --admin-pg: #000000;
+  --admin-surface: #0b0b0b;
+  --admin-surface-2: #151515;
+}
+
 * {
   box-sizing: border-box;
 }
@@ -213,3 +241,83 @@ textarea:focus-visible {
 }
 .rango-doble input[type="range"]:focus-visible::-webkit-slider-thumb { outline: 3px solid rgba(196, 39, 89, 0.35); }
 .rango-doble input[type="range"]:focus-visible::-moz-range-thumb { outline: 3px solid rgba(196, 39, 89, 0.35); }
+
+
+/* ===================== Panel de administración ===================== */
+html.admin-mode body { background: var(--admin-pg); }
+.admin-pagina { background: var(--admin-pg); }
+
+/* Sin vidrio ni desenfoque en el panel (ni en los fondos de los diálogos). */
+html.admin-mode .backdrop-blur,
+html.admin-mode .backdrop-blur-sm {
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+html.admin-mode .bg-plum\/30,
+html.admin-mode .bg-plum\/40 {
+  background-color: rgb(0 0 0 / 0.5);
+}
+
+html.admin-dark .glass,
+html.admin-dark .glass-strong {
+  background: var(--admin-surface);
+  border-color: rgb(255 255 255 / 0.12);
+}
+html.admin-dark .skeleton {
+  background-color: rgb(255 255 255 / 0.08);
+  background-image: linear-gradient(100deg, rgb(255 255 255 / 0) 20%, rgb(255 255 255 / 0.12) 50%, rgb(255 255 255 / 0) 80%);
+  background-size: 200% 100%;
+}
+
+/* Superficies blancas -> superficie oscura */
+html.admin-dark .bg-white,
+html.admin-dark .bg-white\/60,
+html.admin-dark .bg-white\/70,
+html.admin-dark .bg-white\/90 {
+  background-color: var(--admin-surface);
+}
+html.admin-dark .hover\:bg-white:hover,
+html.admin-dark .hover\:bg-white\/70:hover,
+html.admin-dark .hover\:bg-white\/50:hover {
+  background-color: var(--admin-surface-2);
+}
+html.admin-dark .to-white {
+  --tw-gradient-to: var(--admin-surface) var(--tw-gradient-to-position);
+}
+
+/* Textos de acento: versiones más claras para que se lean sobre negro */
+html.admin-dark .text-berry { color: #ee6f94; }
+html.admin-dark .text-berry-dark { color: #f08aa8; }
+html.admin-dark .hover\:text-berry:hover { color: #ee6f94; }
+html.admin-dark .hover\:text-berry-dark:hover { color: #f5a3bb; }
+html.admin-dark .text-red-600,
+html.admin-dark .text-red-700 { color: #fca5a5; }
+html.admin-dark .text-green-700 { color: #86efac; }
+html.admin-dark .bg-red-50 { background-color: rgb(248 113 113 / 0.1); }
+html.admin-dark .bg-red-100 { background-color: rgb(248 113 113 / 0.16); }
+html.admin-dark .bg-green-100 { background-color: rgb(74 222 128 / 0.16); }
+html.admin-dark .hover\:bg-green-200:hover { background-color: rgb(74 222 128 / 0.26); }
+
+/* Etiquetas de estado de pedido y de entrega (escala amarillo -> verde) */
+html.admin-dark .bg-yellow-100 { background-color: rgb(250 204 21 / 0.16); }
+html.admin-dark .text-yellow-800 { color: #fde68a; }
+html.admin-dark .ring-yellow-300 { --tw-ring-color: rgb(250 204 21 / 0.35); }
+html.admin-dark .bg-lime-100 { background-color: rgb(163 230 53 / 0.16); }
+html.admin-dark .bg-lime-200 { background-color: rgb(163 230 53 / 0.24); }
+html.admin-dark .text-lime-800,
+html.admin-dark .text-lime-900 { color: #d9f99d; }
+html.admin-dark .ring-lime-300 { --tw-ring-color: rgb(163 230 53 / 0.35); }
+html.admin-dark .ring-lime-400 { --tw-ring-color: rgb(163 230 53 / 0.5); }
+html.admin-dark .bg-emerald-100 { background-color: rgb(52 211 153 / 0.16); }
+html.admin-dark .text-emerald-800 { color: #a7f3d0; }
+html.admin-dark .ring-emerald-300 { --tw-ring-color: rgb(52 211 153 / 0.35); }
+html.admin-dark .ring-red-300 { --tw-ring-color: rgb(248 113 113 / 0.35); }
+html.admin-dark .bg-sky-100 { background-color: rgb(56 189 248 / 0.16); }
+html.admin-dark .text-sky-800 { color: #bae6fd; }
+html.admin-dark .ring-sky-300 { --tw-ring-color: rgb(56 189 248 / 0.35); }
+html.admin-dark .bg-violet-100 { background-color: rgb(167 139 250 / 0.16); }
+html.admin-dark .text-violet-800 { color: #ddd6fe; }
+html.admin-dark .ring-violet-300 { --tw-ring-color: rgb(167 139 250 / 0.35); }
+html.admin-dark .bg-slate-100 { background-color: rgb(148 163 184 / 0.16); }
+html.admin-dark .text-slate-700 { color: #e2e8f0; }
+html.admin-dark .ring-slate-300 { --tw-ring-color: rgb(148 163 184 / 0.35); }
