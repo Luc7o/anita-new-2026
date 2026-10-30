@@ -33,7 +33,10 @@ export default function AdminPedidos() {
 
   return (
     <div>
-      <h1 className="mb-6 text-2xl font-semibold text-plum">Pedidos</h1>
+      <div className="mb-6">
+        <h1 className="text-2xl font-semibold text-plum">Pedidos</h1>
+        <p className="text-sm text-plum-soft">Toca un pedido para ver su detalle y cambiar su estado.</p>
+      </div>
 
       <div className="mb-2 flex items-center gap-2 overflow-x-auto pb-1">
         <span className="shrink-0 text-xs font-semibold uppercase tracking-wide text-plum-soft">Entrega</span>

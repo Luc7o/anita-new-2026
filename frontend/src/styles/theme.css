@@ -321,3 +321,23 @@ html.admin-dark .ring-violet-300 { --tw-ring-color: rgb(167 139 250 / 0.35); }
 html.admin-dark .bg-slate-100 { background-color: rgb(148 163 184 / 0.16); }
 html.admin-dark .text-slate-700 { color: #e2e8f0; }
 html.admin-dark .ring-slate-300 { --tw-ring-color: rgb(148 163 184 / 0.35); }
+
+
+/* ============ Aspecto del panel (prototipo v2): tablas, divisores y tarjetas ============ */
+html.admin-mode .rounded-2xl { border-radius: 12px; }
+html.admin-mode table thead.bg-white {
+  background-color: var(--admin-surface-2);
+  text-transform: none;
+  letter-spacing: 0;
+}
+html.admin-mode table thead th {
+  font-weight: 500;
+  font-size: 0.75rem;
+  border-bottom: 1px solid rgb(var(--c-plum) / 0.1);
+}
+html.admin-mode table tbody tr { border-top-color: rgb(var(--c-plum) / 0.1); }
+html.admin-mode table tbody tr:hover { background-color: var(--admin-surface-2); }
+/* Los divisores "blancos" de antes no se veían sobre blanco (y brillaban sobre negro) */
+html.admin-mode .border-white\/40,
+html.admin-mode .border-white\/50 { border-color: rgb(var(--c-plum) / 0.1); }
+html.admin-mode .btn-secondary { background-color: var(--admin-surface); border-color: rgb(var(--c-plum) / 0.2); color: rgb(var(--c-plum)); }

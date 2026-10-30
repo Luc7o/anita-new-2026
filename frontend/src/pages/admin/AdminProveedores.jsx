@@ -171,7 +171,10 @@ export default function AdminProveedores() {
   return (
     <div>
       <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-semibold text-plum">Proveedores</h1>
+        <div>
+          <h1 className="text-2xl font-semibold text-plum">Proveedores</h1>
+          <p className="text-sm text-plum-soft">Quién te surte y qué productos te vende cada uno.</p>
+        </div>
         {puedeGestionar && (
           <button
             onClick={nuevo}
