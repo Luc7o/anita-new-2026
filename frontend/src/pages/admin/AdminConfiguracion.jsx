@@ -134,7 +134,7 @@ export default function AdminConfiguracion() {
       <form onSubmit={guardar} className="glass max-w-2xl space-y-6 rounded-2xl p-6 sm:p-8">
         <fieldset disabled={!puedeEditar || guardando} className="space-y-6">
           <section className="space-y-3">
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-plum-soft">Datos de la tienda</h2>
+            <h2 className="text-base font-bold text-plum">Datos de la tienda</h2>
             <Campo id="cfg-nombre" etiqueta="Nombre comercial" required maxLength={120}
               value={form.nombre_comercial} onChange={cambiar("nombre_comercial")} />
             <div>
@@ -174,7 +174,7 @@ export default function AdminConfiguracion() {
           </section>
 
           <section className="space-y-3">
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-plum-soft">Contacto</h2>
+            <h2 className="text-base font-bold text-plum">Contacto</h2>
             <Campo id="cfg-correo" etiqueta="Correo de contacto" type="email" maxLength={120}
               value={form.correo_contacto} onChange={cambiar("correo_contacto")} />
             <div className="grid gap-3 sm:grid-cols-2">
@@ -187,7 +187,7 @@ export default function AdminConfiguracion() {
           </section>
 
           <section className="space-y-3">
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-plum-soft">Tienda física</h2>
+            <h2 className="text-base font-bold text-plum">Tienda física</h2>
             <Campo id="cfg-direccion" etiqueta="Dirección" maxLength={200}
               value={form.direccion} onChange={cambiar("direccion")} />
             <Campo id="cfg-referencia" etiqueta="Referencia" maxLength={200}
@@ -221,7 +221,7 @@ export default function AdminConfiguracion() {
           </section>
 
           <section className="space-y-3">
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-plum-soft">Redes sociales</h2>
+            <h2 className="text-base font-bold text-plum">Redes sociales</h2>
             <Campo id="cfg-facebook" etiqueta="Facebook" maxLength={200} placeholder="https://..."
               value={form.facebook_url} onChange={cambiar("facebook_url")} />
             <Campo id="cfg-instagram" etiqueta="Instagram" maxLength={200} placeholder="https://..."
@@ -231,7 +231,7 @@ export default function AdminConfiguracion() {
           </section>
 
           <section>
-            <h2 className="mb-1 text-sm font-semibold uppercase tracking-wide text-plum-soft">Moneda</h2>
+            <h2 className="mb-1 text-base font-bold text-plum">Moneda</h2>
             <p className="text-sm text-plum">Soles peruanos (S/)</p>
             <p className="text-xs text-plum-soft/70">
               Fija: los precios y el cobro con Culqi funcionan en soles.

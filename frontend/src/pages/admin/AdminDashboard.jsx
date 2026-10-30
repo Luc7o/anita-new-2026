@@ -9,8 +9,6 @@ import { InsigniaEstadoPedido } from "../../components/admin/InsigniasPedido.jsx
 import { useAuth } from "../../context/AuthContext.jsx";
 import { SUPERADMIN, PUEDE_VER_DASHBOARD } from "../../roles.js";
 
-// Colores que se leen bien tanto sobre blanco como sobre negro (el vino oscuro #550416 se perdía en modo oscuro).
-const COLORES_CATEGORIA = ["#C42759", "#E58AA6", "#8F1D45", "#ABABAB", "#797878"];
 
 // Qué secciones ve cada rol. La pantalla de entrada ("Resumen") es corta a
 // propósito: lo que necesitas saber hoy y lo que tienes que hacer. El detalle
@@ -460,7 +458,6 @@ function PanelVentasPeriodo() {
     return "Ventas del periodo";
   })();
 
-  const maxMes = datos ? Math.max(...datos.por_mes.map((m) => m.total), 1) : 1;
   const chip = (sel) =>
     `rounded-full px-4 py-1.5 text-sm font-medium transition ${sel ? "bg-berry text-white" : "bg-white text-plum hover:bg-berry/10"}`;
   const entrada = "rounded-xl bg-white px-3 py-2 text-sm text-plum ring-1 ring-plum/30 hover:ring-plum/50 focus:outline-none focus:ring-2 focus:ring-berry/60";
@@ -471,7 +468,8 @@ function PanelVentasPeriodo() {
   const mesesDisponibles = MESES.map((n, i) => ({ n, i })).filter(({ i }) => Number(anioSel) < anioActual || i <= hoyD.getMonth());
 
   return (
-    <div className="glass rounded-2xl p-6">
+    <div className="space-y-6">
+      <div className="glass rounded-2xl p-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h2 className="text-lg font-semibold text-plum">Ventas por periodo</h2>
@@ -537,64 +535,62 @@ function PanelVentasPeriodo() {
         </label>
       </div>
 
-      {error ? (
-        <p role="alert" className="mt-6 text-sm text-red-700">{error}</p>
-      ) : !datos ? (
-        <p className="mt-6 text-sm text-plum-soft">Cargando ventas…</p>
-      ) : (
-        <div className={`mt-6 transition ${cargandoDatos ? "opacity-60" : ""}`} aria-busy={cargandoDatos}>
-          <p className="text-xs uppercase tracking-wide text-plum-soft">{titulo}</p>
-          <p className="mt-1 text-3xl font-semibold text-plum">{soles(datos.total)}</p>
+      </div>
 
-          <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-4">
-            <Dato label="Pedidos" valor={datos.pedidos} />
-            <Dato label="Ticket promedio" valor={soles(datos.ticket_promedio)} />
+      {error ? (
+        <p role="alert" className="text-sm text-red-700">{error}</p>
+      ) : !datos ? (
+        <p className="text-sm text-plum-soft">Cargando ventas…</p>
+      ) : (
+        <div className={`space-y-6 transition ${cargandoDatos ? "opacity-60" : ""}`} aria-busy={cargandoDatos}>
+          <p className="text-xs uppercase tracking-wide text-plum-soft">{titulo}</p>
+
+          <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
+            <Tarjeta label="Ventas" valor={soles(datos.total)} destacar />
+            <Tarjeta label="Pedidos" valor={datos.pedidos} />
+            <Tarjeta label="Ticket promedio" valor={soles(datos.ticket_promedio)} />
             {datos.por_origen.map((o) => (
-              <Dato key={o.origen} label={o.label} valor={soles(o.total)} />
+              <Tarjeta key={o.origen} label={o.label} valor={soles(o.total)} />
             ))}
           </div>
 
           {datos.pedidos === 0 ? (
-            <p className="mt-6 text-sm text-plum-soft">No hay ventas confirmadas en este periodo.</p>
+            <p className="text-sm text-plum-soft">No hay ventas confirmadas en este periodo.</p>
           ) : (
-            <div className="mt-6 grid gap-6 lg:grid-cols-[1.6fr_1fr]">
-              <div>
-                <p className="text-sm font-semibold text-plum">Por mes</p>
-                <div className="mt-2 max-h-72 space-y-2 overflow-y-auto pr-1">
-                  {datos.por_mes.map((m) => (
-                    <div key={m.clave} className="text-sm">
-                      <div className="flex justify-between text-plum">
-                        <span>{m.etiqueta}</span>
-                        <span className="font-semibold">
-                          {soles(m.total)} <span className="font-normal text-plum-soft">· {m.pedidos} pedido{m.pedidos === 1 ? "" : "s"}</span>
-                        </span>
-                      </div>
-                      <div className="mt-1 h-2 rounded-full bg-plum/10">
-                        <div className="h-2 rounded-full bg-berry" style={{ width: `${Math.max((m.total / maxMes) * 100, m.total > 0 ? 2 : 0)}%` }} />
-                      </div>
-                    </div>
-                  ))}
+            <div className="grid gap-6 lg:grid-cols-[1.6fr_1fr]">
+              {datos.por_mes.length > 1 ? (
+                <div className="glass rounded-2xl p-6">
+                  <h2 className="text-lg font-semibold text-plum">Ventas por mes</h2>
+                  <p className="text-xs text-plum-soft">Ventas confirmadas de cada mes del periodo</p>
+                  <GraficoBarras
+                    datos={datos.por_mes.map((m) => ({ etiqueta: m.etiqueta, valor: m.total }))}
+                    resumen={`Ventas por mes. Mejor mes: ${datos.mejor_mes?.etiqueta ?? ""}`}
+                  />
+                  {datos.mejor_mes && (
+                    <p className="mt-2 text-xs text-plum-soft">
+                      Mejor mes: <strong className="text-plum">{datos.mejor_mes.etiqueta}</strong> con {soles(datos.mejor_mes.total)}.
+                    </p>
+                  )}
                 </div>
-                {datos.mejor_mes && datos.por_mes.length > 1 && (
-                  <p className="mt-3 text-xs text-plum-soft">
-                    Mejor mes: <strong className="text-plum">{datos.mejor_mes.etiqueta}</strong> con {soles(datos.mejor_mes.total)}.
-                  </p>
-                )}
-              </div>
-
-              <div>
-                <p className="text-sm font-semibold text-plum">Por método de pago</p>
-                <div className="mt-2 space-y-2">
-                  {datos.por_metodo.map((m) => (
-                    <div key={m.metodo} className="flex justify-between text-sm text-plum">
-                      <span>{m.label}</span>
-                      <span className="font-semibold">
-                        {soles(m.total)} <span className="font-normal text-plum-soft">· {m.pedidos}</span>
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
+              ) : (
+                <BarrasHorizontales
+                  titulo="Ventas por canal"
+                  subtitulo="Compras en línea y ventas en tienda"
+                  vacioTexto="Sin ventas en este periodo."
+                  datos={datos.por_origen.map((o) => ({ label: o.label, valor: o.total, formato: (v) => soles(v) }))}
+                />
+              )}
+              <BarrasHorizontales
+                titulo="Por método de pago"
+                subtitulo="Cuánto se cobró con cada uno"
+                vacioTexto="Sin ventas en este periodo."
+                datos={datos.por_metodo.map((m) => ({
+                  label: m.label,
+                  valor: m.total,
+                  formato: (v) => soles(v),
+                  detalle: `${m.pedidos} pedido${m.pedidos === 1 ? "" : "s"}`,
+                }))}
+              />
             </div>
           )}
         </div>
@@ -671,20 +667,12 @@ function VistaOperacion({ kpis, errorKpis }) {
           </div>
         </SeccionTarjeta>
 
-        <SeccionTarjeta titulo="Tiempo en cada paso del pedido" nota="Promedio entre un estado y el siguiente">
-          {kpis.tiempos_entre_estados.length === 0 ? (
-            <p className="text-sm text-plum-soft">Todavía no hay suficientes cambios de estado.</p>
-          ) : (
-            <div className="space-y-2">
-              {kpis.tiempos_entre_estados.map((t) => (
-                <div key={t.transicion} className="flex items-center justify-between text-sm">
-                  <span className="text-plum">{t.transicion}</span>
-                  <span className="font-semibold text-plum-soft">{t.horas_promedio} h</span>
-                </div>
-              ))}
-            </div>
-          )}
-        </SeccionTarjeta>
+        <BarrasHorizontales
+          titulo="Tiempo en cada paso del pedido"
+          subtitulo="Promedio entre un estado y el siguiente"
+          vacioTexto="Todavía no hay suficientes cambios de estado."
+          datos={kpis.tiempos_entre_estados.map((t) => ({ label: t.transicion, valor: t.horas_promedio, formato: (v) => `${v} h` }))}
+        />
       </div>
 
       <BarrasHorizontales
@@ -764,6 +752,77 @@ function topeEje(max) {
 }
 
 const etiquetaEje = (n) => (n >= 1000 ? `${n / 1000}k` : `${n}`);
+
+// Gráfico de barras con eje, líneas guía y el valor más alto destacado.
+function GraficoBarras({ datos, resumen }) {
+  const ancho = 640;
+  const alto = 260;
+  const mIzq = 58;
+  const mDer = 16;
+  const mSup = 38;
+  const mInf = 34;
+  const max = Math.max(...datos.map((d) => d.valor), 0);
+  const tope = topeEje(max);
+  const anchoUtil = ancho - mIzq - mDer;
+  const altoUtil = alto - mSup - mInf;
+  const paso = anchoUtil / datos.length;
+  const anchoBarra = Math.min(48, paso * 0.58);
+  const yDe = (v) => mSup + (1 - v / tope) * altoUtil;
+  const iMejor = datos.reduce((m, d, i) => (d.valor > datos[m].valor ? i : m), 0);
+  const corta = (e) => (datos.length > 8 ? String(e).split(" ")[0] : e);
+
+  return (
+    <svg viewBox={`0 0 ${ancho} ${alto}`} className="mt-4 h-auto w-full" role="img" aria-label={resumen}>
+      {[0, 1, 2, 3, 4].map((k) => {
+        const valor = (tope / 4) * k;
+        const y = yDe(valor);
+        return (
+          <g key={k}>
+            <line x1={mIzq} x2={ancho - mDer} y1={y} y2={y} className="stroke-plum/15" strokeDasharray={k ? "3 5" : undefined} />
+            <text x={mIzq - 10} y={y + 4} textAnchor="end" fontSize="11" className="fill-plum-soft">
+              {k ? `S/ ${etiquetaEje(valor)}` : "0"}
+            </text>
+          </g>
+        );
+      })}
+      {datos.map((d, i) => {
+        const x = mIzq + i * paso + (paso - anchoBarra) / 2;
+        const y = yDe(d.valor);
+        const h = yDe(0) - y;
+        const r = Math.min(6, anchoBarra / 2, h);
+        const mejor = i === iMejor;
+        return (
+          <g key={d.etiqueta}>
+            <title>{`${d.etiqueta}: ${soles(d.valor)}`}</title>
+            {h > 0 && (
+              <path
+                d={`M${x} ${y + r} Q${x} ${y} ${x + r} ${y} H${x + anchoBarra - r} Q${x + anchoBarra} ${y} ${x + anchoBarra} ${y + r} V${yDe(0)} H${x} Z`}
+                className={mejor ? "fill-berry" : "fill-berry/45"}
+              />
+            )}
+            <text x={x + anchoBarra / 2} y={alto - 10} textAnchor="middle" fontSize="11" fontWeight={mejor ? 700 : 400} className={mejor ? "fill-plum" : "fill-plum-soft"}>
+              {corta(d.etiqueta)}
+            </text>
+          </g>
+        );
+      })}
+      {datos[iMejor] && datos[iMejor].valor > 0 && (() => {
+        const d = datos[iMejor];
+        const texto = `S/ ${Math.round(d.valor).toLocaleString("es-PE")}`;
+        const w = 20 + texto.length * 7.2;
+        const cx = mIzq + iMejor * paso + paso / 2;
+        const x = Math.min(Math.max(cx - w / 2, mIzq), ancho - mDer - w);
+        const y = yDe(d.valor) - 32;
+        return (
+          <g>
+            <rect x={x} y={y} width={w} height="22" rx="6" className="fill-plum" />
+            <text x={x + w / 2} y={y + 15} textAnchor="middle" fontSize="12" fontWeight="700" className="fill-ivory">{texto}</text>
+          </g>
+        );
+      })()}
+    </svg>
+  );
+}
 
 function VentasChart({ datos, pie }) {
   const ancho = 640;
@@ -976,7 +1035,7 @@ function BarrasHorizontales({ titulo, subtitulo, vacioTexto, datos }) {
         <p className="mt-4 text-sm text-plum-soft">{vacioTexto}</p>
       ) : (
         <div className="mt-4 space-y-3">
-          {datos.map((d) => (
+          {datos.map((d, i) => (
             <div key={d.label}>
               <div className="flex items-center justify-between text-sm">
                 <span className="min-w-0 truncate text-plum">{d.label}</span>
@@ -986,7 +1045,7 @@ function BarrasHorizontales({ titulo, subtitulo, vacioTexto, datos }) {
                 </span>
               </div>
               <div className="mt-1 h-2.5 w-full overflow-hidden rounded-full bg-plum/10">
-                <div className="h-full rounded-full bg-berry" style={{ width: `${Math.max((d.valor / max) * 100, 3)}%` }} />
+                <div className="h-full rounded-full bg-berry" style={{ width: `${Math.max((d.valor / max) * 100, 3)}%`, opacity: i === 0 ? 1 : 0.6 }} />
               </div>
             </div>
           ))}
@@ -997,45 +1056,13 @@ function BarrasHorizontales({ titulo, subtitulo, vacioTexto, datos }) {
 }
 
 function TopCategorias({ datos }) {
-  let acumulado = 0;
-  const segmentos = datos.map((d, i) => {
-    const inicio = acumulado;
-    acumulado += d.porcentaje;
-    return { ...d, inicio, fin: acumulado, color: COLORES_CATEGORIA[i % COLORES_CATEGORIA.length] };
-  });
-  const gradiente = segmentos
-    .map((s) => `${s.color} ${s.inicio}% ${s.fin}%`)
-    .join(", ");
-
   return (
-    <div className="glass rounded-2xl p-6">
-      <h2 className="text-lg font-semibold text-plum">Categorías más vendidas</h2>
-      <p className="text-xs text-plum-soft">Por unidades vendidas</p>
-
-      {datos.length === 0 ? (
-        <p className="mt-8 text-sm text-plum-soft">Todavía no hay ventas para calcular esto.</p>
-      ) : (
-        <div className="mt-4 flex items-center gap-6">
-          <div
-            className="h-32 w-32 shrink-0 rounded-full"
-            style={{
-              background: `conic-gradient(${gradiente})`,
-              WebkitMask: "radial-gradient(circle, transparent 58%, black 59%)",
-              mask: "radial-gradient(circle, transparent 58%, black 59%)",
-            }}
-          />
-          <div className="min-w-0 flex-1 space-y-2">
-            {segmentos.map((s) => (
-              <div key={s.nombre} className="flex items-center gap-2 text-sm">
-                <span className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: s.color }} />
-                <span className="flex-1 truncate text-plum">{s.nombre}</span>
-                <span className="font-semibold text-plum-soft">{s.porcentaje}%</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
+    <BarrasHorizontales
+      titulo="Categorías más vendidas"
+      subtitulo="Por unidades vendidas"
+      vacioTexto="Todavía no hay ventas para calcular esto."
+      datos={datos.map((d) => ({ label: d.nombre, valor: d.porcentaje, formato: (v) => `${v}%` }))}
+    />
   );
 }
 

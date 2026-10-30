@@ -37,7 +37,7 @@ export default function AdminReportes() {
       </p>
 
       <form onSubmit={descargar} className="glass mt-6 max-w-lg rounded-2xl p-6 sm:p-8">
-        <h2 className="mb-1 text-sm font-semibold uppercase tracking-wide text-plum-soft">
+        <h2 className="mb-1 text-base font-bold text-plum">
           Reporte de ventas
         </h2>
 
