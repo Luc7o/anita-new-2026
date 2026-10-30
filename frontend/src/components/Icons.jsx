@@ -400,3 +400,12 @@ export function IconMoon({ size = 18, className = "" }) {
     </svg>
   );
 }
+
+export function IconReport({ size = 18, className = "" }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" {...base} className={className}>
+      <path d="M6 3h9l4 4v14H6z" />
+      <path d="M14 3v5h5M9 13h7M9 17h7" />
+    </svg>
+  );
+}

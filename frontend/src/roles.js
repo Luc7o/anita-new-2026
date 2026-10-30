@@ -39,3 +39,9 @@ export const PUEDE_VER_CONFIGURACION = [...PUEDE_GESTIONAR_CONFIGURACION];
 
 export const PUEDE_GESTIONAR_RECLAMACIONES = [SUPERADMIN, ADMINISTRATIVO];
 export const PUEDE_VER_RECLAMACIONES = [...PUEDE_GESTIONAR_RECLAMACIONES];
+
+// Recojos en tienda: la bandeja del cajero; el superadmin también puede usarla.
+export const PUEDE_VER_RECOJOS = [SUPERADMIN, CAJERO];
+
+// Reporte de ventas en PDF.
+export const PUEDE_VER_REPORTES = [SUPERADMIN];

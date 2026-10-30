@@ -51,7 +51,7 @@ def _ventas_no_gestiona(pedido):
 # Caja tiene una bandeja SEPARADA: no obtiene acceso a la lista de pedidos,
 # a sus detalles, a cancelaciones ni al endpoint genérico de cambio de estado.
 @bp.get("/recojos-pendientes")
-@requiere_roles(CAJERO)
+@requiere_roles(CAJERO, SUPERADMIN)
 def recojos_pendientes_cajero():
     """Solo compras online listas para retirar presencialmente."""
     query = Pedido.query.filter(
@@ -89,7 +89,7 @@ def recojos_pendientes_cajero():
 
 @bp.put("/recojos-pendientes/<int:pedido_id>/entregar")
 @limiter.limit("12 per minute; 100 per hour")
-@requiere_roles(CAJERO)
+@requiere_roles(CAJERO, SUPERADMIN)
 def entregar_recojo_cajero(pedido_id):
     """Única acción del cajero en pedidos online: entregar con código válido."""
     # Bloqueo de fila: dos cajeros no pueden entregar simultáneamente el mismo

@@ -5,13 +5,13 @@ import { useAuth } from "../../context/AuthContext.jsx";
 import Logo from "../Logo.jsx";
 import {
   IconDashboard, IconBag, IconTag, IconPackage, IconStore, IconLogout, IconTruck, IconUsers, IconSettings,
-  IconCart, IconGift, IconBook, IconUser, IconSun, IconMoon,
+  IconCart, IconGift, IconBook, IconUser, IconSun, IconMoon, IconReport,
 } from "../Icons.jsx";
 import useTemaAdmin from "../../hooks/useTemaAdmin.js";
 import {
   PUEDE_VER_PRODUCTOS, PUEDE_GESTIONAR_CATEGORIAS, PUEDE_VER_PEDIDOS, PUEDE_REGISTRAR_VENTA, PUEDE_VER_INICIO, PUEDE_VER_PROVEEDORES,
   PUEDE_GESTIONAR_USUARIOS, PUEDE_VER_CONFIGURACION, PUEDE_VER_PROMOCIONES, PUEDE_VER_RECLAMACIONES,
-  CAJERO,
+  CAJERO, PUEDE_VER_RECOJOS, PUEDE_VER_REPORTES,
 } from "../../roles.js";
 
 const TODOS_LOS_ITEMS = [
@@ -22,8 +22,9 @@ const TODOS_LOS_ITEMS = [
   { to: rutaAdmin("/proveedores"), label: "Proveedores", Icon: IconTruck, roles: PUEDE_VER_PROVEEDORES },
   { to: rutaAdmin("/pedidos"), label: "Pedidos", Icon: IconPackage, exact: true, roles: PUEDE_VER_PEDIDOS },
   { to: rutaAdmin("/pedidos/nueva-venta"), label: "Nueva venta", Icon: IconCart, roles: PUEDE_REGISTRAR_VENTA },
-  { to: rutaAdmin("/pedidos/recojos"), label: "Recojos en tienda", Icon: IconStore, roles: [CAJERO] },
+  { to: rutaAdmin("/pedidos/recojos"), label: "Recojos en tienda", Icon: IconStore, roles: PUEDE_VER_RECOJOS },
   { to: rutaAdmin("/reclamaciones"), label: "Reclamaciones", Icon: IconBook, roles: PUEDE_VER_RECLAMACIONES },
+  { to: rutaAdmin("/reportes"), label: "Reportes", Icon: IconReport, roles: PUEDE_VER_REPORTES },
   { to: rutaAdmin("/usuarios"), label: "Usuarios y roles", Icon: IconUsers, roles: PUEDE_GESTIONAR_USUARIOS },
   { to: rutaAdmin("/configuracion"), label: "Configuración", Icon: IconSettings, roles: PUEDE_VER_CONFIGURACION },
 ];
