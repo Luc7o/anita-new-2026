@@ -5,7 +5,7 @@ import { rutaAdmin } from "./lib/appMode.js";
 import {
   CAJERO, PUEDE_VER_PRODUCTOS, PUEDE_GESTIONAR_CATEGORIAS, PUEDE_VER_PROMOCIONES, PUEDE_VER_PEDIDOS,
   PUEDE_REGISTRAR_VENTA, PUEDE_VER_PROVEEDORES, PUEDE_VER_RECLAMACIONES, PUEDE_GESTIONAR_USUARIOS,
-  PUEDE_VER_CONFIGURACION,
+  PUEDE_VER_CONFIGURACION, PUEDE_VER_RECOJOS, PUEDE_VER_REPORTES,
 } from "./roles.js";
 import { lazyConReintento as lazy } from "./utils/lazyConReintento.js";
 import RutaAdmin from "./components/admin/RutaAdmin.jsx";
@@ -18,6 +18,7 @@ const AdminPedidos = lazy(() => import("./pages/admin/AdminPedidos.jsx"));
 const AdminPedidoDetalle = lazy(() => import("./pages/admin/AdminPedidoDetalle.jsx"));
 const AdminVentaPresencial = lazy(() => import("./pages/admin/AdminVentaPresencial.jsx"));
 const AdminRecojosCajero = lazy(() => import("./pages/admin/AdminRecojosCajero.jsx"));
+const AdminReportes = lazy(() => import("./pages/admin/AdminReportes.jsx"));
 const AdminProveedores = lazy(() => import("./pages/admin/AdminProveedores.jsx"));
 const AdminProveedorDetalle = lazy(() => import("./pages/admin/AdminProveedorDetalle.jsx"));
 const AdminUsuarios = lazy(() => import("./pages/admin/AdminUsuarios.jsx"));
@@ -59,9 +60,9 @@ export default function AdminApp() {
         <Route path="promociones" element={<Solo roles={PUEDE_VER_PROMOCIONES}><AdminPromociones /></Solo>} />
         <Route path="pedidos" element={<Solo roles={PUEDE_VER_PEDIDOS}><AdminPedidos /></Solo>} />
         <Route path="pedidos/nueva-venta" element={<Solo roles={PUEDE_REGISTRAR_VENTA}><AdminVentaPresencial /></Solo>} />
-        <Route path="pedidos/recojos" element={<Solo roles={[CAJERO]}><AdminRecojosCajero /></Solo>} />
+        <Route path="pedidos/recojos" element={<Solo roles={PUEDE_VER_RECOJOS}><AdminRecojosCajero /></Solo>} />
         <Route path="pedidos/:id" element={<Solo roles={PUEDE_VER_PEDIDOS}><AdminPedidoDetalle /></Solo>} />
-        <Route path="reportes" element={<Navigate to=".." replace />} />
+        <Route path="reportes" element={<Solo roles={PUEDE_VER_REPORTES}><AdminReportes /></Solo>} />
         <Route path="proveedores" element={<Solo roles={PUEDE_VER_PROVEEDORES}><AdminProveedores /></Solo>} />
         <Route path="proveedores/:id" element={<Solo roles={PUEDE_VER_PROVEEDORES}><AdminProveedorDetalle /></Solo>} />
         <Route path="reclamaciones" element={<Solo roles={PUEDE_VER_RECLAMACIONES}><AdminReclamaciones /></Solo>} />

@@ -276,7 +276,12 @@ function VistaResumen({ atencion, stats, errorStats, tieneEstadisticas }) {
               />
             )}
 
-            {stats.pedidos_recientes && <PedidosRecientes datos={stats.pedidos_recientes} />}
+            {(stats.pedidos_recientes || stats.productos_top) && (
+              <div className="grid items-start gap-6 xl:grid-cols-[1.5fr_1fr]">
+                {stats.pedidos_recientes && <PedidosRecientes datos={stats.pedidos_recientes} />}
+                {stats.productos_top && <ProductosTop datos={stats.productos_top} />}
+              </div>
+            )}
           </>
         ))}
 
@@ -1047,9 +1052,9 @@ function PedidosRecientes({ datos }) {
       {datos.length === 0 ? (
         <p className="mt-4 text-sm text-plum-soft">Todavía no hay pedidos.</p>
       ) : (
-        <div className="mt-4 space-y-2">
+        <div className="mt-3 divide-y divide-plum/10">
           {datos.map((p) => (
-            <div key={p.numero_pedido} className="flex items-center justify-between rounded-2xl bg-white px-4 py-3">
+            <div key={p.numero_pedido} className="flex items-center justify-between gap-3 py-3">
               <div className="min-w-0">
                 <p className="truncate text-sm font-semibold text-plum">{p.numero_pedido}</p>
                 <p className="truncate text-xs text-plum-soft">{p.cliente} · {p.producto_resumen}</p>
@@ -1074,9 +1079,9 @@ function ProductosTop({ datos }) {
       {datos.length === 0 ? (
         <p className="mt-4 text-sm text-plum-soft">Todavía no hay ventas registradas.</p>
       ) : (
-        <div className="mt-4 space-y-3">
+        <div className="mt-3 divide-y divide-plum/10">
           {datos.map((p) => (
-            <div key={p.id} className="flex items-center justify-between gap-3">
+            <div key={p.id} className="flex items-center justify-between gap-3 py-3">
               <div className="min-w-0">
                 <p className="truncate text-sm font-semibold text-plum">{p.nombre}</p>
                 <p className="text-xs text-plum-soft">{p.categoria}</p>
