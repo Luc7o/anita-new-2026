@@ -613,6 +613,28 @@ def ventas_periodo():
             if mes == 13:
                 anio, mes = anio + 1, 1
 
+    # Ventas día por día cuando el rango es corto (hasta ~2 meses): el gráfico se
+    # ve mucho mejor por días que con una sola barra de mes.
+    por_dia = None
+    if desde and hasta and (hasta - desde).days <= 61:
+        acumulado = {}
+        for fecha, monto, _origen, _metodo in filas:
+            dia = (fecha - _OFFSET_UTC_LIMA).date()
+            acc = acumulado.setdefault(dia, {"total": 0.0, "pedidos": 0})
+            acc["total"] += float(monto or 0)
+            acc["pedidos"] += 1
+        por_dia = []
+        dia = desde.date()
+        while dia <= hasta.date():
+            acc = acumulado.get(dia, {"total": 0.0, "pedidos": 0})
+            por_dia.append({
+                "fecha": dia.isoformat(),
+                "etiqueta": f"{dia.day} {_MESES_CORTO[dia.month - 1].lower()}",
+                "total": round(acc["total"], 2),
+                "pedidos": acc["pedidos"],
+            })
+            dia += timedelta(days=1)
+
     n = len(filas)
     mejor = max(meses, key=lambda m: m["total"]) if meses and total > 0 else None
     return jsonify({
@@ -622,6 +644,7 @@ def ventas_periodo():
         "pedidos": n,
         "ticket_promedio": round(total / n, 2) if n else 0,
         "por_mes": meses,
+        "por_dia": por_dia,
         "mejor_mes": mejor,
         "por_origen": [
             {"origen": k, "label": Pedido.ORIGENES.get(k, k), "total": round(v["total"], 2), "pedidos": v["pedidos"]}
