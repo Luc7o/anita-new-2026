@@ -10,6 +10,8 @@ export default {
         lilac: "rgb(var(--c-lilac) / <alpha-value>)",
         // Color fijo de la cabecera del admin (vino oscuro; no se invierte).
         chrome: "rgb(var(--c-chrome) / <alpha-value>)",
+        // Acento de gráficos: vino en modo claro, plata en modo oscuro.
+        acento: "rgb(var(--c-acento) / <alpha-value>)",
         plum: {
           DEFAULT: "rgb(var(--c-plum) / <alpha-value>)",
           soft: "rgb(var(--c-plum-soft) / <alpha-value>)",

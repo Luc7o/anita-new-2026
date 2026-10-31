@@ -310,13 +310,7 @@ function VistaVentas({ stats, errorStats, kpis, errorKpis, tieneKpis }) {
 
   return (
     <div className="space-y-6">
-      <PanelVentasPeriodo />
-
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-        <Tarjeta label="Ventas confirmadas" valor={soles(stats.ventas_confirmadas)} detalle="Total desde que abriste la tienda" />
-        <Tarjeta label="Pedidos" valor={stats.total_pedidos} />
-        {stats.total_clientes !== undefined && <Tarjeta label="Clientes registrados" valor={stats.total_clientes} />}
-      </div>
+      <PanelVentasPeriodo stats={stats} kpis={kpis} errorKpis={errorKpis} tieneKpis={tieneKpis} />
 
       {hayDetalleFinanciero && (
         <div className="glass rounded-2xl p-6">
@@ -348,28 +342,6 @@ function VistaVentas({ stats, errorStats, kpis, errorKpis, tieneKpis }) {
           )}
         </div>
       )}
-
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        {stats.top_categorias && <TopCategorias datos={stats.top_categorias} />}
-        {stats.productos_top && <ProductosTop datos={stats.productos_top} />}
-      </div>
-
-      {tieneKpis &&
-        (!kpis ? (
-          <Cargando error={errorKpis} />
-        ) : (
-          <BarrasHorizontales
-            titulo="Ventas por zona"
-            subtitulo="Distritos donde más vendes"
-            vacioTexto="Todavía no hay ventas con distrito registrado."
-            datos={kpis.ventas_por_zona.map((z) => ({
-              label: z.distrito,
-              valor: z.total,
-              formato: (v) => `S/ ${v.toFixed(2)}`,
-              detalle: `${z.pedidos} pedido${z.pedidos === 1 ? "" : "s"}`,
-            }))}
-          />
-        ))}
     </div>
   );
 }
@@ -398,7 +370,7 @@ function presetsDeVentas() {
   ];
 }
 
-function PanelVentasPeriodo() {
+function PanelVentasPeriodo({ stats, kpis, errorKpis, tieneKpis }) {
   const presets = useMemo(presetsDeVentas, []);
   const [activo, setActivo] = useState("mes");
   const [mesSel, setMesSel] = useState("");
@@ -409,7 +381,7 @@ function PanelVentasPeriodo() {
   const [datos, setDatos] = useState(null);
   const [cargandoDatos, setCargandoDatos] = useState(true);
   const [error, setError] = useState("");
-  const [descargando, setDescargando] = useState(false);
+  const [verFechas, setVerFechas] = useState(false);
   const pedido = useRef(0);
 
   useEffect(() => {
@@ -443,15 +415,6 @@ function PanelVentasPeriodo() {
     if (d && h && d <= h) setRango({ desde: d, hasta: h });
   };
 
-  const descargar = async () => {
-    setDescargando(true);
-    try {
-      await api.adminReporteVentas(rango.desde, rango.hasta);
-    } finally {
-      setDescargando(false);
-    }
-  };
-
   const titulo = (() => {
     if (activo === "todo") return "Ventas totales (desde que abriste la tienda)";
     if (rango.desde && rango.hasta) return `Ventas del ${rango.desde} al ${rango.hasta}`;
@@ -459,7 +422,7 @@ function PanelVentasPeriodo() {
   })();
 
   const chip = (sel) =>
-    `rounded-full px-4 py-1.5 text-sm font-medium transition ${sel ? "bg-berry text-white" : "bg-white text-plum hover:bg-berry/10"}`;
+    `rounded-full px-4 py-1.5 text-sm font-medium transition ${sel ? "bg-berry text-white" : "bg-white text-plum ring-1 ring-plum/15 hover:bg-berry/10"}`;
   const entrada = "rounded-xl bg-white px-3 py-2 text-sm text-plum ring-1 ring-plum/30 hover:ring-plum/50 focus:outline-none focus:ring-2 focus:ring-berry/60";
   const entradaActiva = "!ring-2 !ring-berry";
   const hoyD = new Date();
@@ -467,32 +430,27 @@ function PanelVentasPeriodo() {
   const aniosDisponibles = Array.from({ length: 6 }, (_, i) => anioActual - i);
   const mesesDisponibles = MESES.map((n, i) => ({ n, i })).filter(({ i }) => Number(anioSel) < anioActual || i <= hoyD.getMonth());
 
+  const variacion = activo === "mes" ? resumenVentasDelMes(stats?.ventas_por_mes)?.detalle : null;
+
   return (
     <div className="space-y-6">
-      <div className="glass rounded-2xl p-6">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h2 className="text-lg font-semibold text-plum">Ventas por periodo</h2>
-          <p className="text-xs text-plum-soft">Elige un mes, un rango de fechas o el total histórico. Solo ventas confirmadas.</p>
-        </div>
-        <button
-          type="button"
-          onClick={descargar}
-          disabled={descargando || !datos || datos.pedidos === 0}
-          className="rounded-[10px] bg-white px-4 py-2 text-sm font-semibold text-berry ring-1 ring-berry/30 transition hover:bg-berry/5 disabled:opacity-50"
-        >
-          {descargando ? "Generando…" : "Descargar reporte PDF"}
-        </button>
-      </div>
-
-      <div className="mt-4 flex flex-wrap items-center gap-2">
-        {presets.map((p) => (
-          <button key={p.id} type="button" onClick={() => elegirPreset(p)} aria-pressed={activo === p.id} className={chip(activo === p.id)}>
-            {p.label}
+      <div>
+        <div className="flex flex-wrap items-center gap-2">
+          {presets.map((p) => (
+            <button key={p.id} type="button" onClick={() => elegirPreset(p)} aria-pressed={activo === p.id} className={chip(activo === p.id)}>
+              {p.label}
+            </button>
+          ))}
+          <button
+            type="button"
+            onClick={() => setVerFechas((v) => !v)}
+            aria-expanded={verFechas}
+            className={chip(activo === "mes_elegido" || activo === "personalizado")}
+          >
+            Elegir fechas
           </button>
-        ))}
-      </div>
-
+        </div>
+        {verFechas && (
       <div className="mt-3 flex flex-wrap items-end gap-4">
         <fieldset>
           <legend className="text-xs text-plum-soft">Elegir un mes</legend>
@@ -534,7 +492,8 @@ function PanelVentasPeriodo() {
           <input type="date" value={hastaP} min={desdeP || undefined} className={`mt-1 block ${entrada} ${activo === "personalizado" ? entradaActiva : ""}`} onChange={(e) => { setHastaP(e.target.value); aplicarPersonalizado(desdeP, e.target.value); }} />
         </label>
       </div>
-
+        )}
+        {datos && <p className="mt-3 text-xs text-plum-soft">{titulo}</p>}
       </div>
 
       {error ? (
@@ -543,56 +502,71 @@ function PanelVentasPeriodo() {
         <p className="text-sm text-plum-soft">Cargando ventas…</p>
       ) : (
         <div className={`space-y-6 transition ${cargandoDatos ? "opacity-60" : ""}`} aria-busy={cargandoDatos}>
-          <p className="text-xs uppercase tracking-wide text-plum-soft">{titulo}</p>
-
-          <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
-            <Tarjeta label="Ventas" valor={soles(datos.total)} destacar />
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+            <Tarjeta label="Ventas" valor={soles(datos.total)} detalle={variacion} />
             <Tarjeta label="Pedidos" valor={datos.pedidos} />
             <Tarjeta label="Ticket promedio" valor={soles(datos.ticket_promedio)} />
-            {datos.por_origen.map((o) => (
-              <Tarjeta key={o.origen} label={o.label} valor={soles(o.total)} />
-            ))}
           </div>
 
           {datos.pedidos === 0 ? (
             <p className="text-sm text-plum-soft">No hay ventas confirmadas en este periodo.</p>
           ) : (
             <div className="grid gap-6 lg:grid-cols-[1.6fr_1fr]">
-              {datos.por_mes.length > 1 ? (
-                <div className="glass rounded-2xl p-6">
-                  <h2 className="text-lg font-semibold text-plum">Ventas por mes</h2>
-                  <p className="text-xs text-plum-soft">Ventas confirmadas de cada mes del periodo</p>
-                  <GraficoBarras
-                    datos={datos.por_mes.map((m) => ({ etiqueta: m.etiqueta, valor: m.total }))}
-                    resumen={`Ventas por mes. Mejor mes: ${datos.mejor_mes?.etiqueta ?? ""}`}
+              {(() => {
+                const porDia = datos.por_dia && datos.por_dia.length > 1 ? datos.por_dia : null;
+                const serie = porDia || (datos.por_mes.length > 1 ? datos.por_mes : null);
+                if (!serie) {
+                  return (
+                    <BarrasHorizontales
+                      titulo="Ventas por canal"
+                      subtitulo="Compras en línea y ventas en tienda"
+                      vacioTexto="Sin ventas en este periodo."
+                      acento
+                      datos={datos.por_origen.map((o) => ({ label: o.label, valor: o.total, formato: (v) => soles(v) }))}
+                    />
+                  );
+                }
+                return (
+                  <div className="glass rounded-2xl p-6">
+                    <h2 className="text-lg font-semibold text-plum">Ventas por periodo</h2>
+                    <p className="text-xs text-plum-soft">{porDia ? "Ventas confirmadas de cada día" : "Ventas confirmadas de cada mes"}</p>
+                    <GraficoBarras
+                      datos={serie.map((m) => ({ etiqueta: m.etiqueta, valor: m.total, detalle: `${m.pedidos} pedido${m.pedidos === 1 ? "" : "s"}` }))}
+                      resumen={porDia ? "Ventas por día" : "Ventas por mes"}
+                    />
+                  </div>
+                );
+              })()}
+
+              {tieneKpis ? (
+                !kpis ? (
+                  <Cargando error={errorKpis} />
+                ) : (
+                  <BarrasHorizontales
+                    titulo="Ventas por zona"
+                    subtitulo="Distritos donde más vendes"
+                    vacioTexto="Todavía no hay ventas con distrito registrado."
+                    acento
+                    datos={kpis.ventas_por_zona.map((z) => ({
+                      label: z.distrito,
+                      valor: z.total,
+                      formato: (v) => soles(v),
+                      detalle: `${z.pedidos} pedido${z.pedidos === 1 ? "" : "s"}`,
+                    }))}
                   />
-                  {datos.mejor_mes && (
-                    <p className="mt-2 text-xs text-plum-soft">
-                      Mejor mes: <strong className="text-plum">{datos.mejor_mes.etiqueta}</strong> con {soles(datos.mejor_mes.total)}.
-                    </p>
-                  )}
-                </div>
+                )
               ) : (
                 <BarrasHorizontales
-                  titulo="Ventas por canal"
-                  subtitulo="Compras en línea y ventas en tienda"
+                  titulo="Por método de pago"
+                  subtitulo="Cuánto se cobró con cada uno"
                   vacioTexto="Sin ventas en este periodo."
-                  datos={datos.por_origen.map((o) => ({ label: o.label, valor: o.total, formato: (v) => soles(v) }))}
+                  datos={datos.por_metodo.map((m) => ({ label: m.label, valor: m.total, formato: (v) => soles(v), detalle: `${m.pedidos} pedido${m.pedidos === 1 ? "" : "s"}` }))}
                 />
               )}
-              <BarrasHorizontales
-                titulo="Por método de pago"
-                subtitulo="Cuánto se cobró con cada uno"
-                vacioTexto="Sin ventas en este periodo."
-                datos={datos.por_metodo.map((m) => ({
-                  label: m.label,
-                  valor: m.total,
-                  formato: (v) => soles(v),
-                  detalle: `${m.pedidos} pedido${m.pedidos === 1 ? "" : "s"}`,
-                }))}
-              />
             </div>
           )}
+
+          {stats?.top_categorias && <TopCategorias datos={stats.top_categorias} />}
         </div>
       )}
     </div>
@@ -615,36 +589,50 @@ function fraseEmbudo(datos) {
 
 function VistaTrafico({ stats, errorStats, kpis, errorKpis }) {
   if (!stats) return <Cargando error={errorStats} />;
+  const visitas7 = (stats.visitas_por_dia || []).reduce((suma, d) => suma + d.visitas, 0);
+  const embudo = kpis?.embudo_conversion;
+  const conversion = embudo && embudo.length > 1 && embudo[0].cantidad > 0
+    ? (embudo[embudo.length - 1].cantidad / embudo[0].cantidad) * 100
+    : null;
+
   return (
     <div className="space-y-6">
-      <GrupoKpis titulo="Visitas" nota="Cuánta gente entra a tu tienda" columnas="grid-cols-1 sm:grid-cols-3">
-        <Tarjeta label="Visitas hoy" valor={stats.visitas_hoy} />
-        <Tarjeta label="Personas hoy" valor={stats.visitantes_hoy} />
-        <Tarjeta label="Personas (7 días)" valor={stats.visitantes_7dias} />
-      </GrupoKpis>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <Tarjeta
+          label="Visitas"
+          valor={visitas7.toLocaleString("es-PE")}
+          detalle={`Últimos 7 días · hoy ${stats.visitas_hoy}`}
+        />
+        <Tarjeta
+          label="Conversión"
+          valor={conversion != null ? `${conversion.toFixed(1)}%` : "—"}
+          detalle="De la visita a la compra (30 días)"
+        />
+        <Tarjeta
+          label="Carritos abandonados"
+          valor={kpis ? kpis.carritos_abandonados_48h : "—"}
+          detalle={
+            kpis?.antiguedad_promedio_carrito_horas != null
+              ? `Llevan más de 2 días · antigüedad prom. ${kpis.antiguedad_promedio_carrito_horas} h`
+              : "Llevan más de 2 días"
+          }
+          destacar={kpis?.carritos_abandonados_48h > 0}
+        />
+      </div>
 
-      <VisitasChart datos={stats.visitas_por_dia} />
-
-      {!kpis ? (
-        <Cargando error={errorKpis} />
-      ) : (
-        <>
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <VisitasChart datos={stats.visitas_por_dia} />
+        {!kpis ? (
+          <Cargando error={errorKpis} />
+        ) : (
           <Embudo
             titulo="¿Cuántos visitantes terminan comprando?"
             nota="Últimos 30 días: ¿en qué paso se van los clientes?"
             intro={fraseEmbudo(kpis.embudo_conversion)}
             datos={kpis.embudo_conversion}
           />
-
-          <GrupoKpis titulo="Carritos abandonados" nota="Productos que siguen en el carrito ahora mismo, sin comprar" columnas="grid-cols-1 sm:grid-cols-2">
-            <Tarjeta label="Llevan más de 2 días" valor={kpis.carritos_abandonados_48h} destacar={kpis.carritos_abandonados_48h > 0} />
-            <Tarjeta
-              label="Antigüedad promedio"
-              valor={kpis.antiguedad_promedio_carrito_horas != null ? `${kpis.antiguedad_promedio_carrito_horas} h` : "—"}
-            />
-          </GrupoKpis>
-        </>
-      )}
+        )}
+      </div>
     </div>
   );
 }
@@ -655,31 +643,27 @@ function VistaOperacion({ kpis, errorKpis }) {
   if (!kpis) return <Cargando error={errorKpis} />;
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <GrupoKpis titulo="¿Cuánto demoramos?" nota="Promedio desde que el cliente hace el pedido" columnas="grid-cols-2">
-          <Tarjeta label="Hasta el pago" valor={kpis.tiempo_pago_promedio_horas != null ? `${kpis.tiempo_pago_promedio_horas} h` : "—"} />
-          <Tarjeta label="Hasta la entrega" valor={kpis.tiempo_entrega_promedio_horas != null ? `${kpis.tiempo_entrega_promedio_horas} h` : "—"} />
-        </GrupoKpis>
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <Tarjeta label="Hasta el pago" valor={kpis.tiempo_pago_promedio_horas != null ? `${kpis.tiempo_pago_promedio_horas} h` : "—"} detalle="Promedio desde el pedido" />
+        <Tarjeta label="Hasta la entrega" valor={kpis.tiempo_entrega_promedio_horas != null ? `${kpis.tiempo_entrega_promedio_horas} h` : "—"} detalle="Promedio desde el pedido" />
+        <Tarjeta label="Unidades vendidas" valor={kpis.unidades_vendidas_30d} detalle={`Últimos 30 días · ${kpis.unidades_restauradas_30d} devueltas al stock`} />
+        <Tarjeta label="Productos sin stock" valor={kpis.productos_sin_stock} destacar={kpis.productos_sin_stock > 0} detalle="Hoy" />
+      </div>
 
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <BarrasHorizontales
           titulo="Tiempo en cada paso del pedido"
           subtitulo="Promedio entre un estado y el siguiente"
           vacioTexto="Todavía no hay suficientes cambios de estado."
           datos={kpis.tiempos_entre_estados.map((t) => ({ label: t.transicion, valor: t.horas_promedio, formato: (v) => `${v} h` }))}
         />
+        <BarrasHorizontales
+          titulo="¿Por qué se cancelan los pedidos?"
+          vacioTexto="Todavía no hay pedidos cancelados."
+          acento
+          datos={kpis.motivos_cancelacion.map((m) => ({ label: m.motivo, valor: m.cantidad }))}
+        />
       </div>
-
-      <BarrasHorizontales
-        titulo="¿Por qué se cancelan los pedidos?"
-        vacioTexto="Todavía no hay pedidos cancelados."
-        datos={kpis.motivos_cancelacion.map((m) => ({ label: m.motivo, valor: m.cantidad }))}
-      />
-
-      <GrupoKpis titulo="Stock" nota="Últimos 30 días">
-        <Tarjeta label="Unidades vendidas" valor={kpis.unidades_vendidas_30d} />
-        <Tarjeta label="Unidades devueltas al stock" valor={kpis.unidades_restauradas_30d} />
-        <Tarjeta label="Productos sin stock" valor={kpis.productos_sin_stock} destacar={kpis.productos_sin_stock > 0} />
-      </GrupoKpis>
     </div>
   );
 }
@@ -754,10 +738,10 @@ function topeEje(max) {
 const etiquetaEje = (n) => (n >= 1000 ? `${n / 1000}k` : `${n}`);
 
 // Gráfico de barras con eje, líneas guía y el valor más alto destacado.
-function GraficoBarras({ datos, resumen }) {
+function GraficoBarras({ datos, resumen, dinero = true }) {
   const ancho = 640;
   const alto = 260;
-  const mIzq = 58;
+  const mIzq = dinero ? 58 : 46;
   const mDer = 16;
   const mSup = 38;
   const mInf = 34;
@@ -770,6 +754,8 @@ function GraficoBarras({ datos, resumen }) {
   const yDe = (v) => mSup + (1 - v / tope) * altoUtil;
   const iMejor = datos.reduce((m, d, i) => (d.valor > datos[m].valor ? i : m), 0);
   const corta = (e) => (datos.length > 8 ? String(e).split(" ")[0] : e);
+  const mostrarEtiqueta = (i) => datos.length <= 16 || i % 2 === 0 || i === iMejor;
+  const valorTexto = (v) => (dinero ? `S/ ${Math.round(v).toLocaleString("es-PE")}` : Math.round(v).toLocaleString("es-PE"));
 
   return (
     <svg viewBox={`0 0 ${ancho} ${alto}`} className="mt-4 h-auto w-full" role="img" aria-label={resumen}>
@@ -780,7 +766,7 @@ function GraficoBarras({ datos, resumen }) {
           <g key={k}>
             <line x1={mIzq} x2={ancho - mDer} y1={y} y2={y} className="stroke-plum/15" strokeDasharray={k ? "3 5" : undefined} />
             <text x={mIzq - 10} y={y + 4} textAnchor="end" fontSize="11" className="fill-plum-soft">
-              {k ? `S/ ${etiquetaEje(valor)}` : "0"}
+              {k && dinero ? `S/ ${etiquetaEje(valor)}` : k ? etiquetaEje(valor) : "0"}
             </text>
           </g>
         );
@@ -793,22 +779,24 @@ function GraficoBarras({ datos, resumen }) {
         const mejor = i === iMejor;
         return (
           <g key={d.etiqueta}>
-            <title>{`${d.etiqueta}: ${soles(d.valor)}`}</title>
+            <title>{`${d.etiqueta}: ${dinero ? soles(d.valor) : valorTexto(d.valor)}${d.detalle ? ` · ${d.detalle}` : ""}`}</title>
             {h > 0 && (
               <path
                 d={`M${x} ${y + r} Q${x} ${y} ${x + r} ${y} H${x + anchoBarra - r} Q${x + anchoBarra} ${y} ${x + anchoBarra} ${y + r} V${yDe(0)} H${x} Z`}
-                className={mejor ? "fill-berry" : "fill-berry/45"}
+                className={mejor ? "fill-acento" : "fill-berry/45"}
               />
             )}
-            <text x={x + anchoBarra / 2} y={alto - 10} textAnchor="middle" fontSize="11" fontWeight={mejor ? 700 : 400} className={mejor ? "fill-plum" : "fill-plum-soft"}>
-              {corta(d.etiqueta)}
-            </text>
+            {mostrarEtiqueta(i) && (
+              <text x={x + anchoBarra / 2} y={alto - 10} textAnchor="middle" fontSize="11" fontWeight={mejor ? 700 : 400} className={mejor ? "fill-plum" : "fill-plum-soft"}>
+                {corta(d.etiqueta)}
+              </text>
+            )}
           </g>
         );
       })}
       {datos[iMejor] && datos[iMejor].valor > 0 && (() => {
         const d = datos[iMejor];
-        const texto = `S/ ${Math.round(d.valor).toLocaleString("es-PE")}`;
+        const texto = valorTexto(d.valor);
         const w = 20 + texto.length * 7.2;
         const cx = mIzq + iMejor * paso + paso / 2;
         const x = Math.min(Math.max(cx - w / 2, mIzq), ancho - mDer - w);
@@ -926,58 +914,19 @@ function VentasChart({ datos, pie }) {
 }
 
 function VisitasChart({ datos }) {
-  const max = Math.max(...datos.map((d) => d.visitas), 1);
   const sinDatos = datos.every((d) => d.visitas === 0);
-  const tope = topeEje(max);
-
   return (
     <div className="glass rounded-2xl p-6">
-      <h2 className="text-lg font-semibold text-plum">Visitas de los últimos 7 días</h2>
-      <p className="text-xs text-plum-soft">Vistas de página totales, visitantes únicos superpuestos</p>
-
+      <h2 className="text-lg font-semibold text-plum">Visitas</h2>
+      <p className="text-xs text-plum-soft">Últimos 7 días</p>
       {sinDatos ? (
         <p className="mt-8 text-sm text-plum-soft">Todavía no hay visitas registradas.</p>
       ) : (
-        <div className="mt-6 flex gap-2">
-          {/* Eje vertical */}
-          <div className="flex h-28 flex-col justify-between pr-1 text-right text-[11px] text-plum-soft">
-            <span>{etiquetaEje(tope)}</span>
-            <span>{etiquetaEje(tope / 2)}</span>
-            <span>0</span>
-          </div>
-          <div className="min-w-0 flex-1">
-            <div className="relative h-28">
-              <div className="pointer-events-none absolute inset-0 flex flex-col justify-between" aria-hidden="true">
-                <span className="border-t border-dashed border-plum/15" />
-                <span className="border-t border-dashed border-plum/15" />
-                <span className="border-t border-plum/15" />
-              </div>
-              <div className="relative flex h-full items-end justify-between gap-2">
-                {datos.map((d) => (
-                  <div key={d.dia} className="relative flex h-full flex-1 items-end justify-center">
-                    <div
-                      className="w-full max-w-[34px] rounded-t-lg bg-berry/30"
-                      style={{ height: `${Math.max((d.visitas / tope) * 100, d.visitas > 0 ? 4 : 0)}%` }}
-                      title={`${d.visitas} visitas`}
-                    />
-                    <div
-                      className="absolute bottom-0 w-full max-w-[34px] rounded-t-lg bg-berry"
-                      style={{ height: `${Math.max((d.visitantes / tope) * 100, d.visitantes > 0 ? 4 : 0)}%` }}
-                      title={`${d.visitantes} visitantes únicos`}
-                    />
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div className="mt-2 flex justify-between gap-2">
-              {datos.map((d) => (
-                <span key={d.dia} className="flex-1 text-center text-xs text-plum-soft">
-                  {d.dia}
-                </span>
-              ))}
-            </div>
-          </div>
-        </div>
+        <GraficoBarras
+          dinero={false}
+          datos={datos.map((d) => ({ etiqueta: d.dia, valor: d.visitas, detalle: `${d.visitantes} personas distintas` }))}
+          resumen="Visitas de los últimos 7 días"
+        />
       )}
     </div>
   );
@@ -1026,7 +975,7 @@ function Embudo({ datos, titulo, nota, intro }) {
   );
 }
 
-function BarrasHorizontales({ titulo, subtitulo, vacioTexto, datos }) {
+function BarrasHorizontales({ titulo, subtitulo, vacioTexto, datos, acento = false }) {
   const max = Math.max(...datos.map((d) => d.valor), 1);
 
   return (
@@ -1048,7 +997,7 @@ function BarrasHorizontales({ titulo, subtitulo, vacioTexto, datos }) {
                 </span>
               </div>
               <div className="mt-1 h-2.5 w-full overflow-hidden rounded-full bg-plum/10">
-                <div className="h-full rounded-full bg-berry" style={{ width: `${Math.max((d.valor / max) * 100, 3)}%`, opacity: i === 0 ? 1 : 0.6 }} />
+                <div className={`h-full rounded-full ${acento ? "bg-acento" : "bg-berry"}`} style={{ width: `${Math.max((d.valor / max) * 100, 3)}%`, opacity: i === 0 ? 1 : 0.55 }} />
               </div>
             </div>
           ))}

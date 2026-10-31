@@ -119,21 +119,38 @@ export default function AdminConfiguracion() {
   }
 
   return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="text-2xl font-semibold text-plum">Configuración</h1>
-        <p className="text-sm text-plum-soft">
-          Estos datos se muestran en la tienda (Contacto, Nuestras Tiendas, pie de página y páginas
-          legales). Lo que dejes vacío no se publica.
-        </p>
-        {!puedeEditar && (
-          <p className="mt-2 text-sm text-berry-dark">Tu rol solo puede consultar esta configuración.</p>
+    <form onSubmit={guardar} className="space-y-6">
+      <div className="flex flex-wrap items-start justify-between gap-3 sm:flex-nowrap">
+        <div className="min-w-0 flex-1">
+          <h1 className="text-2xl font-semibold text-plum">Configuración</h1>
+          <p className="text-sm text-plum-soft">
+            Datos que ve el cliente en la tienda (Contacto, Nuestras Tiendas, pie de página y páginas
+            legales). Lo que dejes vacío no se publica.
+          </p>
+          {!puedeEditar && (
+            <p className="mt-2 text-sm text-berry-dark">Tu rol solo puede consultar esta configuración.</p>
+          )}
+        </div>
+        {puedeEditar && (
+          <button
+            type="submit"
+            disabled={guardando}
+            className="shrink-0 rounded-[10px] bg-berry px-5 py-2.5 font-semibold text-white transition hover:bg-berry-dark disabled:opacity-60"
+          >
+            {guardando ? <><Spinner />Guardando...</> : "Guardar cambios"}
+          </button>
+        )}
+      </div>
+      <div aria-live="polite">
+        {aviso && (
+          <p className={`text-sm ${aviso.ok ? "text-berry-dark" : "text-red-600"}`} role={aviso.ok ? undefined : "alert"}>
+            {aviso.texto}
+          </p>
         )}
       </div>
 
-      <form onSubmit={guardar} className="glass max-w-2xl space-y-6 rounded-2xl p-6 sm:p-8">
-        <fieldset disabled={!puedeEditar || guardando} className="space-y-6">
-          <section className="space-y-3">
+      <fieldset disabled={!puedeEditar || guardando} className="grid min-w-0 gap-6 lg:grid-cols-2">
+          <section className="glass space-y-3 rounded-2xl p-6">
             <h2 className="text-base font-bold text-plum">Datos de la tienda</h2>
             <Campo id="cfg-nombre" etiqueta="Nombre comercial" required maxLength={120}
               value={form.nombre_comercial} onChange={cambiar("nombre_comercial")} />
@@ -173,7 +190,7 @@ export default function AdminConfiguracion() {
             </div>
           </section>
 
-          <section className="space-y-3">
+          <section className="glass space-y-3 rounded-2xl p-6">
             <h2 className="text-base font-bold text-plum">Contacto</h2>
             <Campo id="cfg-correo" etiqueta="Correo de contacto" type="email" maxLength={120}
               value={form.correo_contacto} onChange={cambiar("correo_contacto")} />
@@ -186,7 +203,7 @@ export default function AdminConfiguracion() {
             </div>
           </section>
 
-          <section className="space-y-3">
+          <section className="glass space-y-3 rounded-2xl p-6 lg:col-span-2">
             <h2 className="text-base font-bold text-plum">Tienda física</h2>
             <Campo id="cfg-direccion" etiqueta="Dirección" maxLength={200}
               value={form.direccion} onChange={cambiar("direccion")} />
@@ -220,7 +237,7 @@ export default function AdminConfiguracion() {
               value={form.maps_url} onChange={cambiar("maps_url")} />
           </section>
 
-          <section className="space-y-3">
+          <section className="glass space-y-3 rounded-2xl p-6">
             <h2 className="text-base font-bold text-plum">Redes sociales</h2>
             <Campo id="cfg-facebook" etiqueta="Facebook" maxLength={200} placeholder="https://..."
               value={form.facebook_url} onChange={cambiar("facebook_url")} />
@@ -230,7 +247,7 @@ export default function AdminConfiguracion() {
               value={form.tiktok_url} onChange={cambiar("tiktok_url")} />
           </section>
 
-          <section>
+          <section className="glass rounded-2xl p-6">
             <h2 className="mb-1 text-base font-bold text-plum">Moneda</h2>
             <p className="text-sm text-plum">Soles peruanos (S/)</p>
             <p className="text-xs text-plum-soft/70">
@@ -238,24 +255,6 @@ export default function AdminConfiguracion() {
             </p>
           </section>
         </fieldset>
-
-        {puedeEditar && (
-          <button
-            type="submit"
-            disabled={guardando}
-            className="rounded-[10px] bg-berry px-6 py-2.5 font-semibold text-white transition hover:bg-berry-dark disabled:opacity-60"
-          >
-            {guardando ? <><Spinner />Guardando...</> : "Guardar configuración"}
-          </button>
-        )}
-        <div aria-live="polite">
-          {aviso && (
-            <p className={`text-sm ${aviso.ok ? "text-berry-dark" : "text-red-600"}`} role={aviso.ok ? undefined : "alert"}>
-              {aviso.texto}
-            </p>
-          )}
-        </div>
-      </form>
-    </div>
+    </form>
   );
 }
