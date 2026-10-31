@@ -489,6 +489,13 @@ export const api = {
     const nombre = `reporte-ventas${desde ? `-${desde}` : ""}${hasta ? `-a-${hasta}` : ""}.pdf`;
     return descargarPdf(`/admin/reportes/ventas${query ? `?${query}` : ""}`, nombre);
   },
+  adminReporteInventario: (soloAlerta = false) =>
+    descargarPdf(`/admin/reportes/inventario${soloAlerta ? "?solo_alerta=1" : ""}`, "reporte-inventario.pdf"),
+  adminReporteClientes: (desde, hasta) => {
+    const query = new URLSearchParams({ ...(desde && { desde }), ...(hasta && { hasta }) }).toString();
+    const nombre = `reporte-clientes${desde ? `-${desde}` : ""}${hasta ? `-a-${hasta}` : ""}.pdf`;
+    return descargarPdf(`/admin/reportes/clientes${query ? `?${query}` : ""}`, nombre);
+  },
 
   // Datos públicos de la tienda (contacto, dirección, redes)
   configuracionTienda: () => request("/configuracion/tienda"),

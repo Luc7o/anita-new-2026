@@ -617,13 +617,11 @@ function VistaTrafico({ stats, errorStats, kpis, errorKpis }) {
   if (!stats) return <Cargando error={errorStats} />;
   return (
     <div className="space-y-6">
-      <SeccionTarjeta titulo="Visitas" nota="Cuánta gente entra a tu tienda">
-        <div className="grid grid-cols-3 gap-4">
-          <Dato label="Visitas hoy" valor={stats.visitas_hoy} />
-          <Dato label="Personas hoy" valor={stats.visitantes_hoy} />
-          <Dato label="Personas (7 días)" valor={stats.visitantes_7dias} />
-        </div>
-      </SeccionTarjeta>
+      <GrupoKpis titulo="Visitas" nota="Cuánta gente entra a tu tienda" columnas="grid-cols-1 sm:grid-cols-3">
+        <Tarjeta label="Visitas hoy" valor={stats.visitas_hoy} />
+        <Tarjeta label="Personas hoy" valor={stats.visitantes_hoy} />
+        <Tarjeta label="Personas (7 días)" valor={stats.visitantes_7dias} />
+      </GrupoKpis>
 
       <VisitasChart datos={stats.visitas_por_dia} />
 
@@ -638,15 +636,13 @@ function VistaTrafico({ stats, errorStats, kpis, errorKpis }) {
             datos={kpis.embudo_conversion}
           />
 
-          <SeccionTarjeta titulo="Carritos abandonados" nota="Productos que siguen en el carrito ahora mismo, sin comprar">
-            <div className="grid grid-cols-2 gap-4">
-              <Dato label="Llevan más de 2 días" valor={kpis.carritos_abandonados_48h} destacar={kpis.carritos_abandonados_48h > 0} />
-              <Dato
-                label="Antigüedad promedio"
-                valor={kpis.antiguedad_promedio_carrito_horas != null ? `${kpis.antiguedad_promedio_carrito_horas} h` : "—"}
-              />
-            </div>
-          </SeccionTarjeta>
+          <GrupoKpis titulo="Carritos abandonados" nota="Productos que siguen en el carrito ahora mismo, sin comprar" columnas="grid-cols-1 sm:grid-cols-2">
+            <Tarjeta label="Llevan más de 2 días" valor={kpis.carritos_abandonados_48h} destacar={kpis.carritos_abandonados_48h > 0} />
+            <Tarjeta
+              label="Antigüedad promedio"
+              valor={kpis.antiguedad_promedio_carrito_horas != null ? `${kpis.antiguedad_promedio_carrito_horas} h` : "—"}
+            />
+          </GrupoKpis>
         </>
       )}
     </div>
@@ -660,12 +656,10 @@ function VistaOperacion({ kpis, errorKpis }) {
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <SeccionTarjeta titulo="¿Cuánto demoramos?" nota="Promedio desde que el cliente hace el pedido">
-          <div className="grid grid-cols-2 gap-4">
-            <Dato label="Hasta el pago" valor={kpis.tiempo_pago_promedio_horas != null ? `${kpis.tiempo_pago_promedio_horas} h` : "—"} />
-            <Dato label="Hasta la entrega" valor={kpis.tiempo_entrega_promedio_horas != null ? `${kpis.tiempo_entrega_promedio_horas} h` : "—"} />
-          </div>
-        </SeccionTarjeta>
+        <GrupoKpis titulo="¿Cuánto demoramos?" nota="Promedio desde que el cliente hace el pedido" columnas="grid-cols-2">
+          <Tarjeta label="Hasta el pago" valor={kpis.tiempo_pago_promedio_horas != null ? `${kpis.tiempo_pago_promedio_horas} h` : "—"} />
+          <Tarjeta label="Hasta la entrega" valor={kpis.tiempo_entrega_promedio_horas != null ? `${kpis.tiempo_entrega_promedio_horas} h` : "—"} />
+        </GrupoKpis>
 
         <BarrasHorizontales
           titulo="Tiempo en cada paso del pedido"
@@ -681,13 +675,11 @@ function VistaOperacion({ kpis, errorKpis }) {
         datos={kpis.motivos_cancelacion.map((m) => ({ label: m.motivo, valor: m.cantidad }))}
       />
 
-      <SeccionTarjeta titulo="Stock" nota="Últimos 30 días">
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-          <Dato label="Unidades vendidas" valor={kpis.unidades_vendidas_30d} />
-          <Dato label="Unidades devueltas al stock" valor={kpis.unidades_restauradas_30d} />
-          <Dato label="Productos sin stock" valor={kpis.productos_sin_stock} destacar={kpis.productos_sin_stock > 0} />
-        </div>
-      </SeccionTarjeta>
+      <GrupoKpis titulo="Stock" nota="Últimos 30 días">
+        <Tarjeta label="Unidades vendidas" valor={kpis.unidades_vendidas_30d} />
+        <Tarjeta label="Unidades devueltas al stock" valor={kpis.unidades_restauradas_30d} />
+        <Tarjeta label="Productos sin stock" valor={kpis.productos_sin_stock} destacar={kpis.productos_sin_stock > 0} />
+      </GrupoKpis>
     </div>
   );
 }
@@ -700,36 +692,44 @@ function VistaSistema({ kpis, errorKpis }) {
     return <p className="text-sm text-plum-soft">Esta sección es solo para el Super administrador.</p>;
   }
   return (
-    <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-      <SeccionTarjeta titulo="Pagos con Culqi">
-        <div className="grid grid-cols-2 gap-4">
-          <Dato label="Intentos" valor={kpis.total_intentos_pago} />
-          <Dato
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <GrupoKpis titulo="Pagos con Culqi" nota="Intentos de pago con tarjeta" columnas="grid-cols-2">
+          <Tarjeta label="Intentos" valor={kpis.total_intentos_pago} />
+          <Tarjeta
             label="Tasa de rechazo"
             valor={kpis.tasa_rechazo_pago != null ? `${kpis.tasa_rechazo_pago}%` : "—"}
             destacar={kpis.tasa_rechazo_pago > 20}
           />
-        </div>
-        {kpis.motivos_rechazo_pago.length > 0 && (
-          <div className="mt-4 space-y-2 border-t border-white/50 pt-3">
-            {kpis.motivos_rechazo_pago.map((m) => (
-              <div key={m.motivo} className="flex items-center justify-between text-sm">
-                <span className="min-w-0 truncate text-plum">{m.motivo}</span>
-                <span className="shrink-0 font-semibold text-plum-soft">{m.cantidad}</span>
-              </div>
-            ))}
-          </div>
-        )}
-      </SeccionTarjeta>
+        </GrupoKpis>
 
-      <SeccionTarjeta titulo="Rendimiento del servidor" nota="Últimas 24 horas">
-        <div className="grid grid-cols-3 gap-4">
-          <Dato label="Latencia prom." valor={kpis.latencia_promedio_ms != null ? `${kpis.latencia_promedio_ms} ms` : "—"} />
-          <Dato label="Tasa de error" valor={kpis.tasa_error_24h != null ? `${kpis.tasa_error_24h}%` : "—"} />
-          <Dato label="Requests" valor={kpis.total_requests_24h} />
-        </div>
-      </SeccionTarjeta>
+        <GrupoKpis titulo="Rendimiento del servidor" nota="Últimas 24 horas" columnas="grid-cols-3">
+          <Tarjeta small label="Latencia prom." valor={kpis.latencia_promedio_ms != null ? `${kpis.latencia_promedio_ms} ms` : "—"} />
+          <Tarjeta small label="Tasa de error" valor={kpis.tasa_error_24h != null ? `${kpis.tasa_error_24h}%` : "—"} />
+          <Tarjeta small label="Requests" valor={kpis.total_requests_24h} />
+        </GrupoKpis>
+      </div>
+
+      {kpis.motivos_rechazo_pago.length > 0 && (
+        <BarrasHorizontales
+          titulo="¿Por qué se rechazan los pagos?"
+          vacioTexto=""
+          datos={kpis.motivos_rechazo_pago.map((m) => ({ label: m.motivo, valor: m.cantidad }))}
+        />
+      )}
     </div>
+  );
+}
+
+// Título + fila de tarjetas de indicadores (cada indicador en su propia tarjeta).
+function GrupoKpis({ titulo, nota, columnas = "grid-cols-2 sm:grid-cols-3", children, extra }) {
+  return (
+    <section>
+      <h2 className="text-lg font-semibold text-plum">{titulo}</h2>
+      {nota && <p className="text-xs text-plum-soft">{nota}</p>}
+      <div className={`mt-3 grid gap-4 ${columnas}`}>{children}</div>
+      {extra}
+    </section>
   );
 }
 
@@ -1011,8 +1011,11 @@ function Embudo({ datos, titulo, nota, intro }) {
               </div>
               <div className="mt-1.5 h-3 w-full overflow-hidden rounded-full bg-plum/10">
                 <div
-                  className="h-full rounded-full bg-berry"
-                  style={{ width: `${Math.max((paso.cantidad / max) * 100, paso.cantidad > 0 ? 3 : 0)}%` }}
+                  className={`h-full rounded-full ${i === datos.length - 1 ? "bg-plum" : "bg-berry"}`}
+                  style={{
+                    width: `${Math.max((paso.cantidad / max) * 100, paso.cantidad > 0 ? 3 : 0)}%`,
+                    opacity: i === datos.length - 1 ? 1 : 1 - i * 0.16,
+                  }}
                 />
               </div>
             </div>
