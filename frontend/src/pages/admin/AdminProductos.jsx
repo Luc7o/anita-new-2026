@@ -299,6 +299,7 @@ export default function AdminProductos() {
         <table className="w-full text-left text-sm">
           <thead className="bg-white text-xs uppercase tracking-wide text-plum-soft">
             <tr>
+              <th className="px-4 py-3">ID</th>
               <th className="px-4 py-3"></th>
               <th className="px-4 py-3">Producto</th>
               <th className="px-4 py-3">Categoría</th>
@@ -311,6 +312,7 @@ export default function AdminProductos() {
           <tbody>
             {productos.map((p) => (
               <tr key={p.id} className="border-t border-white/40">
+                <td className="px-4 py-3 text-plum-soft">{p.id}</td>
                 <td className="px-4 py-2">
                   {p.imagen_url ? (
                     <ImagenOptimizada src={p.imagen_url} variante="thumb" alt={p.nombre} className="h-10 w-10 rounded-xl object-cover" />
