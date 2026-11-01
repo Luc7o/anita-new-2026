@@ -322,8 +322,21 @@ export default function AdminProductos() {
                 <td className="px-4 py-3 text-plum-soft">{p.categoria_nombre}</td>
                 <td className="px-4 py-3 text-plum-soft">S/ {p.precio_final.toFixed(2)}</td>
                 <td className="px-4 py-3 text-plum-soft">
-                  {p.stock}
-                  {p.usa_variantes && <span className="ml-1 text-xs text-plum-soft">(por variante)</span>}
+                  {p.usa_variantes ? (
+                    <div>
+                      <span className="font-semibold text-plum">Total: {p.stock}</span>
+                      <div className="mt-1 space-y-0.5 text-xs">
+                        {p.variantes.filter((v) => v.stock > 0).slice(0, 4).map((v) => (
+                          <div key={v.id}>{v.talla} · {v.color}: {v.stock}</div>
+                        ))}
+                        {p.variantes.filter((v) => v.stock > 0).length > 4 && (
+                          <div>+{p.variantes.filter((v) => v.stock > 0).length - 4} más</div>
+                        )}
+                      </div>
+                    </div>
+                  ) : (
+                    p.stock
+                  )}
                 </td>
                 <td className="px-4 py-3">
                   <span
