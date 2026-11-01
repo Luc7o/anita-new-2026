@@ -5,6 +5,7 @@ import { SkeletonFilasAdmin } from "../../components/admin/EsqueletosAdmin.jsx";
 import React, { useEffect, useState } from "react";
 import { api } from "../../api/client.js";
 import ImagenOptimizada from "../../components/ImagenOptimizada.jsx";
+import BarraFiltros, { SelectFiltro } from "../../components/admin/BarraFiltros.jsx";
 import { IconUpload, IconClose, IconEdit, IconEye, IconEyeOff } from "../../components/Icons.jsx";
 import { useFocusTrap } from "../../hooks/useFocusTrap.js";
 import Paginador from "../../components/Paginador.jsx";
@@ -267,60 +268,31 @@ export default function AdminProductos() {
         )}
       </div>
 
-      <input
-        placeholder="Buscar producto..."
-        value={busqueda}
-        maxLength={80}
-        onChange={(e) => {
-          setBusqueda(e.target.value);
-          setPagina(1);
-        }}
-        className="glass mb-4 w-full max-w-sm rounded-[10px] px-4 py-2 text-sm text-plum focus:outline-none"
-      />
-
-      {/* Barra de filtros */}
-      <div className="mb-4 flex flex-wrap gap-2">
-        <select
-          value={filtroCategoria}
-          onChange={(e) => {
-            setFiltroCategoria(e.target.value);
-            setPagina(1);
-          }}
-          className="glass rounded-[10px] px-4 py-2 text-sm text-plum focus:outline-none"
-        >
+      <BarraFiltros
+        busqueda={busqueda}
+        onBusqueda={(v) => { setBusqueda(v); setPagina(1); }}
+        placeholder="Buscar por nombre o SKU"
+        hayFiltros={Boolean(busqueda || filtroCategoria || filtroEstado || orden)}
+        onLimpiar={() => { setBusqueda(""); setFiltroCategoria(""); setFiltroEstado(""); setOrden(""); setPagina(1); }}
+      >
+        <SelectFiltro etiqueta="Categoría" value={filtroCategoria} onChange={(v) => { setFiltroCategoria(v); setPagina(1); }}>
           <option value="">Categoría: Todas</option>
           {categorias.map((c) => (
-            <option key={c.id} value={c.slug}>
-              {c.nombre}
-            </option>
+            <option key={c.id} value={c.slug}>{c.nombre}</option>
           ))}
-        </select>
-        <select
-          value={filtroEstado}
-          onChange={(e) => {
-            setFiltroEstado(e.target.value);
-            setPagina(1);
-          }}
-          className="glass rounded-[10px] px-4 py-2 text-sm text-plum focus:outline-none"
-        >
+        </SelectFiltro>
+        <SelectFiltro etiqueta="Estado" value={filtroEstado} onChange={(v) => { setFiltroEstado(v); setPagina(1); }}>
           <option value="">Estado: Todos</option>
           <option value="true">Activo</option>
           <option value="false">Inactivo</option>
-        </select>
-        <select
-          value={orden}
-          onChange={(e) => {
-            setOrden(e.target.value);
-            setPagina(1);
-          }}
-          className="glass rounded-[10px] px-4 py-2 text-sm text-plum focus:outline-none"
-        >
+        </SelectFiltro>
+        <SelectFiltro etiqueta="Ordenar" value={orden} onChange={(v) => { setOrden(v); setPagina(1); }}>
           <option value="">Ordenar: Más recientes</option>
           <option value="nombre">Nombre (A-Z)</option>
           <option value="precio_asc">Precio: menor a mayor</option>
           <option value="precio_desc">Precio: mayor a menor</option>
-        </select>
-      </div>
+        </SelectFiltro>
+      </BarraFiltros>
 
       <Paginador pagina={pagina} porPagina={10} total={meta.total} onCambiar={setPagina} className="mb-2" />
       <div className="glass hidden overflow-hidden rounded-2xl md:block">

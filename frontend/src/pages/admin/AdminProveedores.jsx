@@ -12,6 +12,7 @@ import { soloTexto, soloNumeros, soloRuc } from "../../validacion.js";
 import { useFocusTrap } from "../../hooks/useFocusTrap.js";
 import Paginador from "../../components/Paginador.jsx";
 import { usePaginacion } from "../../hooks/usePaginacion.js";
+import BarraFiltros, { SelectFiltro, coincide } from "../../components/admin/BarraFiltros.jsx";
 
 const VACIO = { nombre: "", contacto_nombre: "", telefono: "", email: "", direccion: "", ruc: "", notas: "" };
 
@@ -23,7 +24,14 @@ export default function AdminProveedores() {
 
   const [proveedores, setProveedores] = useState([]);
   const [cargandoLista, setCargandoLista] = useState(true);
-  const pag = usePaginacion(proveedores, 10);
+  const [busqueda, setBusqueda] = useState("");
+  const [filtroEstado, setFiltroEstado] = useState("");
+  const proveedoresVisibles = proveedores.filter(
+    (p) =>
+      coincide(busqueda, p.nombre, p.contacto_nombre, p.email, p.telefono, p.ruc) &&
+      (filtroEstado === "" || (filtroEstado === "activo") === Boolean(p.activo))
+  );
+  const pag = usePaginacion(proveedoresVisibles, 10);
   const [productosDisponibles, setProductosDisponibles] = useState([]);
   const [form, setForm] = useState(VACIO);
   const [editandoId, setEditandoId] = useState(null);
@@ -185,6 +193,20 @@ export default function AdminProveedores() {
         )}
       </div>
 
+      <BarraFiltros
+        busqueda={busqueda}
+        onBusqueda={(v) => { setBusqueda(v); pag.setPagina(1); }}
+        placeholder="Buscar proveedor o contacto"
+        hayFiltros={Boolean(busqueda || filtroEstado)}
+        onLimpiar={() => { setBusqueda(""); setFiltroEstado(""); pag.setPagina(1); }}
+      >
+        <SelectFiltro etiqueta="Estado" value={filtroEstado} onChange={(v) => { setFiltroEstado(v); pag.setPagina(1); }}>
+          <option value="">Estado: Todos</option>
+          <option value="activo">Activo</option>
+          <option value="inactivo">Inactivo</option>
+        </SelectFiltro>
+      </BarraFiltros>
+
       <Paginador pagina={pag.pagina} porPagina={pag.porPagina} total={pag.total} onCambiar={pag.setPagina} className="mb-2" />
       <div className="glass hidden overflow-hidden rounded-2xl md:block">
         <table className="w-full text-left text-sm">
@@ -235,8 +257,8 @@ export default function AdminProveedores() {
           </tbody>
         </table>
         {cargandoLista && <SkeletonFilasAdmin etiqueta="Cargando lista" />}
-        {!cargandoLista && proveedores.length === 0 && (
-          <p className="p-6 text-center text-plum-soft">No hay proveedores todavía.</p>
+        {!cargandoLista && pag.total === 0 && (
+          <p className="p-6 text-center text-plum-soft">{proveedores.length === 0 ? "No hay proveedores todavía." : "No hay proveedores con esa búsqueda."}</p>
         )}
       </div>
 
@@ -271,7 +293,7 @@ export default function AdminProveedores() {
           </div>
         ))}
         {cargandoLista && <SkeletonFilasAdmin etiqueta="Cargando lista" />}
-        {!cargandoLista && proveedores.length === 0 && (
+        {!cargandoLista && pag.total === 0 && (
           <p className="glass rounded-2xl p-6 text-center text-plum-soft">
             No hay proveedores todavía.
           </p>

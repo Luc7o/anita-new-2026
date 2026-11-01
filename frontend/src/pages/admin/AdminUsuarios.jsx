@@ -7,6 +7,7 @@ import { soloTexto } from "../../validacion.js";
 import { useFocusTrap } from "../../hooks/useFocusTrap.js";
 import Paginador from "../../components/Paginador.jsx";
 import { usePaginacion } from "../../hooks/usePaginacion.js";
+import BarraFiltros, { SelectFiltro, coincide } from "../../components/admin/BarraFiltros.jsx";
 
 const VACIO = { nombre: "", apellido: "", email: "", password: "", rol: "administrativo" };
 
@@ -18,7 +19,8 @@ export default function AdminUsuarios() {
   const [roles, setRoles] = useState({});
   const [filtroRol, setFiltroRol] = useState("");
   // Paginación: debe ir DESPUÉS de declarar `usuarios` y `filtroRol`, porque los usa.
-  const pag = usePaginacion(usuarios, 10);
+  const [busqueda, setBusqueda] = useState("");
+  const pag = usePaginacion(usuarios.filter((u) => coincide(busqueda, u.nombre_completo, u.email)), 10);
   useEffect(() => { pag.setPagina(1); }, [filtroRol]);
   const [form, setForm] = useState(VACIO);
   const [mostrarForm, setMostrarForm] = useState(false);
@@ -103,33 +105,20 @@ export default function AdminUsuarios() {
         </div>
       )}
 
-      <div className="mb-4 flex gap-2 overflow-x-auto pb-1">
-        <button
-          onClick={() => {
-            setFiltroRol("");
-            cargarUsuarios("");
-          }}
-          className={`shrink-0 rounded-full px-4 py-1.5 text-sm font-medium ${
-            filtroRol === "" ? "bg-berry text-white" : "glass text-plum"
-          }`}
-        >
-          Todos
-        </button>
-        {Object.entries(roles).map(([valor, label]) => (
-          <button
-            key={valor}
-            onClick={() => {
-              setFiltroRol(valor);
-              cargarUsuarios(valor);
-            }}
-            className={`shrink-0 rounded-full px-4 py-1.5 text-sm font-medium ${
-              filtroRol === valor ? "bg-berry text-white" : "glass text-plum"
-            }`}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
+      <BarraFiltros
+        busqueda={busqueda}
+        onBusqueda={(v) => { setBusqueda(v); pag.setPagina(1); }}
+        placeholder="Buscar por nombre o correo"
+        hayFiltros={Boolean(busqueda || filtroRol)}
+        onLimpiar={() => { setBusqueda(""); setFiltroRol(""); cargarUsuarios(""); pag.setPagina(1); }}
+      >
+        <SelectFiltro etiqueta="Rol" value={filtroRol} onChange={(v) => { setFiltroRol(v); cargarUsuarios(v); pag.setPagina(1); }}>
+          <option value="">Rol: Todos</option>
+          {Object.entries(roles).map(([valor, label]) => (
+            <option key={valor} value={valor}>{label}</option>
+          ))}
+        </SelectFiltro>
+      </BarraFiltros>
 
       <Paginador pagina={pag.pagina} porPagina={pag.porPagina} total={pag.total} onCambiar={pag.setPagina} className="mb-2" />
       <div className="glass hidden overflow-hidden rounded-2xl md:block">
@@ -181,7 +170,7 @@ export default function AdminUsuarios() {
           </tbody>
         </table>
         {cargandoLista && <SkeletonFilasAdmin etiqueta="Cargando lista" />}
-        {!cargandoLista && usuarios.length === 0 && (
+        {!cargandoLista && pag.total === 0 && (
           <p className="p-6 text-center text-plum-soft">No hay usuarios con ese filtro.</p>
         )}
       </div>
@@ -224,7 +213,7 @@ export default function AdminUsuarios() {
           </div>
         ))}
         {cargandoLista && <SkeletonFilasAdmin etiqueta="Cargando lista" />}
-        {!cargandoLista && usuarios.length === 0 && (
+        {!cargandoLista && pag.total === 0 && (
           <p className="glass rounded-2xl p-6 text-center text-plum-soft">
             No hay usuarios con ese filtro.
           </p>
