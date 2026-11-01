@@ -17,6 +17,7 @@ const TerminosCondiciones = lazy(() => import("./pages/TerminosCondiciones.jsx")
 const QuienesSomos = lazy(() => import("./pages/QuienesSomos.jsx"));
 const Reviews = lazy(() => import("./pages/Reviews.jsx"));
 const NuestrasTiendas = lazy(() => import("./pages/NuestrasTiendas.jsx"));
+const NoEncontrada = lazy(() => import("./pages/NoEncontrada.jsx"));
 import Home from "./pages/Home.jsx";
 import Tienda from "./pages/Tienda.jsx";
 import ProductoDetalle from "./pages/ProductoDetalle.jsx";
@@ -183,6 +184,7 @@ export default function App() {
           <Route path="/quienes-somos" element={<QuienesSomos />} />
           <Route path="/reviews" element={<Reviews />} />
           <Route path="/tiendas" element={<NuestrasTiendas />} />
+          <Route path="*" element={<NoEncontrada />} />
         </Routes>
         </Suspense>
         </div>

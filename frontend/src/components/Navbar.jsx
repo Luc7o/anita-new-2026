@@ -102,7 +102,7 @@ export default function Navbar() {
           ) : (
             <Link
               to="/ingresar"
-              className="btn hidden border border-white/25 text-white hover:bg-white/10 sm:inline-flex"
+              className="btn !hidden border border-white/25 text-white hover:bg-white/10 sm:!inline-flex"
             >
               <IconUser size={16} /> Ingresar
             </Link>
