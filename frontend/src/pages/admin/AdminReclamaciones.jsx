@@ -8,6 +8,7 @@ import { IconClose } from "../../components/Icons.jsx";
 import { PUEDE_GESTIONAR_RECLAMACIONES } from "../../roles.js";
 import Paginador from "../../components/Paginador.jsx";
 import { usePaginacion } from "../../hooks/usePaginacion.js";
+import BarraFiltros, { SelectFiltro, coincide } from "../../components/admin/BarraFiltros.jsx";
 
 const FILTROS = [
   { valor: "pendiente", label: "Pendientes" },
@@ -157,7 +158,8 @@ export default function AdminReclamaciones() {
   const { usuario } = useAuth();
   const puedeResponder = PUEDE_GESTIONAR_RECLAMACIONES.includes(usuario?.rol);
   const [reclamos, setReclamos] = useState([]);
-  const pag = usePaginacion(reclamos, 10);
+  const [busqueda, setBusqueda] = useState("");
+  const pag = usePaginacion(reclamos.filter((r) => coincide(busqueda, r.codigo, r.consumidor_nombre, r.tipo, r.consumidor_email, r.consumidor_documento)), 10);
   const [filtro, setFiltro] = useState("pendiente");
   useEffect(() => { pag.setPagina(1); }, [filtro]);
   const [cargando, setCargando] = useState(true);
@@ -187,20 +189,23 @@ export default function AdminReclamaciones() {
         Cada reclamo o queja debe responderse en un máximo de 15 días hábiles.
       </p>
 
-      <div className="mb-4 flex gap-2 overflow-x-auto pb-1">
-        {FILTROS.map((f) => (
-          <button key={f.label} onClick={() => setFiltro(f.valor)}
-            className={`shrink-0 rounded-full px-4 py-1.5 text-sm font-medium ${
-              filtro === f.valor ? "bg-berry text-white" : "glass text-plum"
-            }`}>
-            {f.label}
-          </button>
-        ))}
-      </div>
+      <BarraFiltros
+        busqueda={busqueda}
+        onBusqueda={(v) => { setBusqueda(v); pag.setPagina(1); }}
+        placeholder="Buscar por código o consumidor"
+        hayFiltros={Boolean(busqueda) || filtro !== "pendiente"}
+        onLimpiar={() => { setBusqueda(""); setFiltro("pendiente"); pag.setPagina(1); }}
+      >
+        <SelectFiltro etiqueta="Estado" value={filtro} onChange={setFiltro}>
+          {FILTROS.map((f) => (
+            <option key={f.label} value={f.valor}>Estado: {f.label}</option>
+          ))}
+        </SelectFiltro>
+      </BarraFiltros>
 
       {cargando ? (
         <SkeletonFilasAdmin cantidad={5} etiqueta="Cargando reclamaciones" />
-      ) : reclamos.length === 0 ? (
+      ) : pag.total === 0 ? (
         <p className="glass rounded-2xl p-6 text-center text-plum-soft">No hay reclamaciones con ese filtro.</p>
       ) : (
         <>

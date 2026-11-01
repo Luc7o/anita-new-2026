@@ -4,7 +4,8 @@ import Spinner from "../../components/Spinner.jsx";
 import { SkeletonFilasAdmin } from "../../components/admin/EsqueletosAdmin.jsx";
 import React, { useEffect, useMemo, useState } from "react";
 import { api } from "../../api/client.js";
-import { IconSearch, IconEdit, IconTrash, IconTag } from "../../components/Icons.jsx";
+import { IconEdit, IconTrash, IconTag } from "../../components/Icons.jsx";
+import BarraFiltros, { SelectFiltro } from "../../components/admin/BarraFiltros.jsx";
 import { useFocusTrap } from "../../hooks/useFocusTrap.js";
 import Paginador from "../../components/Paginador.jsx";
 import ImagenOptimizada from "../../components/ImagenOptimizada.jsx";
@@ -151,19 +152,6 @@ export default function AdminCategorias() {
           <p className="text-sm text-plum-soft">Administra las categorías y subcategorías de productos.</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <div className="glass relative rounded-[10px]">
-            <IconSearch size={15} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-plum-soft" />
-            <input
-              placeholder="Buscar categorías..."
-              value={busqueda}
-              maxLength={80}
-              onChange={(e) => {
-                setBusqueda(e.target.value);
-                setPagina(1);
-              }}
-              className="w-56 rounded-[10px] bg-transparent py-2 pl-9 pr-4 text-sm text-plum focus:outline-none"
-            />
-          </div>
           <button
             onClick={nuevaCategoria}
             className="rounded-[10px] bg-berry px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-berry-dark"
@@ -173,33 +161,24 @@ export default function AdminCategorias() {
         </div>
       </div>
 
-      {/* Barra de filtros */}
-      <div className="mb-4 flex flex-wrap gap-2">
-        <select
-          value={filtroEstado}
-          onChange={(e) => {
-            setFiltroEstado(e.target.value);
-            setPagina(1);
-          }}
-          className="glass rounded-[10px] px-4 py-2 text-sm text-plum focus:outline-none"
-        >
+      <BarraFiltros
+        busqueda={busqueda}
+        onBusqueda={(v) => { setBusqueda(v); setPagina(1); }}
+        placeholder="Buscar categoría"
+        hayFiltros={Boolean(busqueda || filtroEstado || orden !== "productos_desc")}
+        onLimpiar={() => { setBusqueda(""); setFiltroEstado(""); setOrden("productos_desc"); setPagina(1); }}
+      >
+        <SelectFiltro etiqueta="Estado" value={filtroEstado} onChange={(v) => { setFiltroEstado(v); setPagina(1); }}>
           <option value="">Estado: Todos</option>
           <option value="activo">Activo</option>
           <option value="inactivo">Inactivo</option>
-        </select>
-        <select
-          value={orden}
-          onChange={(e) => {
-            setOrden(e.target.value);
-            setPagina(1);
-          }}
-          className="glass rounded-[10px] px-4 py-2 text-sm text-plum focus:outline-none"
-        >
+        </SelectFiltro>
+        <SelectFiltro etiqueta="Ordenar" value={orden} onChange={(v) => { setOrden(v); setPagina(1); }}>
           <option value="productos_desc">Ordenar: Productos (mayor a menor)</option>
           <option value="productos_asc">Productos (menor a mayor)</option>
           <option value="nombre">Nombre (A-Z)</option>
-        </select>
-      </div>
+        </SelectFiltro>
+      </BarraFiltros>
 
       {/* Tabla — solo desktop/tablet */}
       <Paginador pagina={paginaActual} porPagina={POR_PAGINA} total={listado.length} onCambiar={setPagina} className="mb-2" />

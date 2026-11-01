@@ -139,9 +139,51 @@ def listar():
     elif entrega == "mostrador":
         query = query.filter(Pedido.origen == "presencial")
 
+    # Estado del pago: pendiente | en_revision | verificado | rechazado | ...
+    estado_pago = request.args.get("estado_pago")
+    if estado_pago:
+        query = query.filter(Pedido.estado_pago == estado_pago)
+
+    # Rango de fechas (días en hora de Lima, ambos extremos incluidos).
+    try:
+        desde_str = (request.args.get("desde") or "").strip()
+        hasta_str = (request.args.get("hasta") or "").strip()
+        if desde_str:
+            query = query.filter(Pedido.fecha_creacion >= datetime.strptime(desde_str, "%Y-%m-%d") + _OFFSET_UTC_LIMA)
+        if hasta_str:
+            query = query.filter(
+                Pedido.fecha_creacion < datetime.strptime(hasta_str, "%Y-%m-%d") + timedelta(days=1) + _OFFSET_UTC_LIMA
+            )
+    except ValueError:
+        return jsonify({"error": "Fechas inválidas, usa el formato YYYY-MM-DD"}), 400
+
+    # Búsqueda: cada palabra debe aparecer en el número de pedido, los datos de
+    # entrega (nombre, teléfono, correo, documento) o el nombre/correo del cliente.
+    texto = (request.args.get("q") or "").strip()[:80]
+    for palabra in texto.split()[:6]:
+        patron = "%" + palabra.replace("/", "//").replace("%", "/%").replace("_", "/_") + "%"
+        query = query.filter(db.or_(
+            Pedido.numero_pedido.ilike(patron, escape="/"),
+            Pedido.envio_nombre.ilike(patron, escape="/"),
+            Pedido.envio_telefono.ilike(patron, escape="/"),
+            Pedido.envio_email.ilike(patron, escape="/"),
+            Pedido.envio_numero_documento.ilike(patron, escape="/"),
+            Pedido.cliente.has(db.or_(
+                Usuario.nombre.ilike(patron, escape="/"),
+                Usuario.apellido.ilike(patron, escape="/"),
+                Usuario.email.ilike(patron, escape="/"),
+            )),
+        ))
+
+    orden = {
+        "antiguo": Pedido.fecha_creacion.asc(),
+        "total_desc": Pedido.total.desc(),
+        "total_asc": Pedido.total.asc(),
+    }.get(request.args.get("orden"), Pedido.fecha_creacion.desc())
+
     pagina =max(request.args.get("pagina", 1, type=int) or 1, 1)
     por_pagina = min(max(request.args.get("por_pagina", 20, type=int) or 20, 1), 100)
-    paginado = query.order_by(Pedido.fecha_creacion.desc()).paginate(
+    paginado = query.order_by(orden).paginate(
         page=pagina, per_page=por_pagina, error_out=False
     )
 
