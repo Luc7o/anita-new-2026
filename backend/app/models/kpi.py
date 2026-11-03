@@ -28,9 +28,31 @@ class EventoAnalitica(db.Model):
 
 
 class MovimientoStock(db.Model):
+    """
+    Kardex: cada cambio de stock de una variante (o de un producto sin
+    variantes) queda registrado aquí.
+
+    Convención de `cantidad`:
+    - venta y restauracion: siempre positiva, la dirección la da el tipo
+      (venta resta stock, restauracion lo devuelve).
+    - el resto de tipos: diferencia CON SIGNO (positiva si entra stock,
+      negativa si sale). stock_antes/stock_despues dejan el resultado claro.
+    """
     __tablename__ = "movimiento_stock"
 
-    TIPOS = ("venta", "restauracion")
+    TIPOS = (
+        "venta", "restauracion", "stock_inicial", "ingreso_compra",
+        "ajuste_manual", "merma", "inventario_fisico",
+    )
+    ETIQUETAS = {
+        "venta": "Venta",
+        "restauracion": "Devolución por cancelación",
+        "stock_inicial": "Stock inicial",
+        "ingreso_compra": "Ingreso por compra",
+        "ajuste_manual": "Ajuste manual",
+        "merma": "Merma",
+        "inventario_fisico": "Inventario físico",
+    }
 
     id = db.Column(db.BigInteger, primary_key=True)
     variante_id = db.Column(db.Integer, db.ForeignKey("variantes_producto.id", ondelete="SET NULL"), nullable=True)
@@ -39,6 +61,50 @@ class MovimientoStock(db.Model):
     cantidad = db.Column(db.Integer, nullable=False)
     pedido_id = db.Column(db.Integer, db.ForeignKey("pedidos.id", ondelete="SET NULL"), nullable=True)
     fecha_creacion = db.Column(db.DateTime, default=datetime.utcnow)
+
+    # Fase 1 del módulo de almacén (migración 055)
+    usuario_id = db.Column(db.Integer, db.ForeignKey("usuarios.id", ondelete="SET NULL"), nullable=True)
+    motivo = db.Column(db.String(255), nullable=True)
+    stock_antes = db.Column(db.Integer, nullable=True)
+    stock_despues = db.Column(db.Integer, nullable=True)
+    costo_unitario = db.Column(db.Numeric(10, 2), nullable=True)
+    proveedor_id = db.Column(db.Integer, db.ForeignKey("proveedores.id", ondelete="SET NULL"), nullable=True)
+
+    producto = db.relationship("Producto")
+    variante = db.relationship("VarianteProducto")
+    usuario = db.relationship("Usuario")
+
+    @property
+    def delta(self):
+        """Cambio real de stock con signo (+ entra, - sale)."""
+        if self.tipo == "venta":
+            return -abs(self.cantidad)
+        if self.tipo == "restauracion":
+            return abs(self.cantidad)
+        return self.cantidad
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "fecha": self.fecha_creacion.isoformat() if self.fecha_creacion else None,
+            "tipo": self.tipo,
+            "tipo_label": self.ETIQUETAS.get(self.tipo, self.tipo),
+            "cantidad": self.delta,
+            "stock_antes": self.stock_antes,
+            "stock_despues": self.stock_despues,
+            "motivo": self.motivo,
+            "costo_unitario": float(self.costo_unitario) if self.costo_unitario is not None else None,
+            "pedido_id": self.pedido_id,
+            "proveedor_id": self.proveedor_id,
+            "producto_id": self.producto_id,
+            "producto_nombre": self.producto.nombre if self.producto else None,
+            "sku": self.producto.sku if self.producto else None,
+            "variante_id": self.variante_id,
+            "talla": self.variante.talla if self.variante else None,
+            "color": self.variante.color if self.variante else None,
+            "usuario_id": self.usuario_id,
+            "usuario_nombre": self.usuario.nombre_completo if self.usuario else None,
+        }
 
     def __repr__(self):
         return f"<MovimientoStock {self.tipo} cantidad={self.cantidad}>"

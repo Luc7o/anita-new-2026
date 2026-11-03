@@ -71,6 +71,9 @@ PUEDE_VER_DASHBOARD_VENTAS = [SUPERADMIN, ADMINISTRATIVO, VENTAS]
 # Dashboard de stock/almacén (sin cifras de ingresos)
 PUEDE_VER_DASHBOARD_STOCK = [SUPERADMIN, ADMINISTRATIVO, ALMACEN]
 
+# Historial de movimientos de stock (kardex) — solo lectura en la fase 1
+PUEDE_VER_MOVIMIENTOS = [SUPERADMIN, ADMINISTRATIVO, ALMACEN]
+
 
 # --- Usuarios, roles y configuración ---
 # Gestión de usuarios y roles: exclusivo de superadmin
