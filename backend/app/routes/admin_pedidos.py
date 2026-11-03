@@ -251,7 +251,7 @@ def cambiar_estado(pedido_id):
     # Si se está cancelando y ya se le había confirmado el pago, marcamos que
     # hay que devolverle el dinero.
     if nuevo_estado == "cancelado":
-        restaurar_stock_de_pedido(pedido)
+        restaurar_stock_de_pedido(pedido, usuario_id=g.usuario.id, motivo="Cancelado desde el panel")
         if pedido.estado_pago == "verificado":
             pedido.estado_pago = "reembolso_pendiente"
         pedido.motivo_cancelacion = "admin"
@@ -347,7 +347,7 @@ def revisar_pago(pedido_id):
                     f"automática. Gestiona la cancelación/reembolso manualmente."
                 )
             }), 400
-        restaurar_stock_de_pedido(pedido)
+        restaurar_stock_de_pedido(pedido, usuario_id=g.usuario.id, motivo="Pago rechazado")
         pedido.motivo_cancelacion = "pago_rechazado"
         cambiar_estado_pedido(pedido, "cancelado", cambiado_por=g.usuario.id)
 
@@ -1008,7 +1008,10 @@ def venta_presencial():
             subtotal=item.subtotal,
         ))
 
-    error_descuento = descontar_stock(grupos_stock, productos_cache, pedido_id=pedido.id)
+    error_descuento = descontar_stock(
+        grupos_stock, productos_cache, pedido_id=pedido.id,
+        usuario_id=g.usuario.id, motivo="Venta en tienda",
+    )
     if error_descuento:
         db.session.rollback()
         return jsonify({"error": error_descuento}), 409

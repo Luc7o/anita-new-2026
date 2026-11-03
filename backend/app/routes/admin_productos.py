@@ -8,6 +8,7 @@ from app.models import Producto, Categoria, ImagenProducto, VarianteProducto
 from app.utils.decorators import requiere_roles
 from app.roles import PUEDE_VER_PRODUCTOS, PUEDE_GESTIONAR_PRODUCTOS, PUEDE_GESTIONAR_STOCK
 from app.utils.sku import asignar_sku_si_falta
+from app.utils.stock import foto_stock, registrar_cambios_de_stock
 
 bp = Blueprint("admin_productos", __name__, url_prefix="/api/admin/productos")
 
@@ -16,7 +17,9 @@ MINIMO_IMAGENES = 4
 # Campos que Almacén SÍ puede tocar en el PUT de un producto (todo lo demás
 # — precio, nombre, categoría, imágenes, etc. — es exclusivo de quien
 # gestiona el producto completo, no solo su stock).
-CAMPOS_PERMITIDOS_SOLO_STOCK = {"stock", "tallas", "colores", "variantes"}
+CAMPOS_PERMITIDOS_SOLO_STOCK = {"stock", "tallas", "colores", "variantes", "motivo_stock"}
+
+MOTIVO_STOCK_POR_DEFECTO = "Edición de stock desde Productos"
 
 
 def _validar_imagenes(imagenes):
@@ -107,16 +110,43 @@ def _validar_variantes(tallas, colores, variantes):
 
 
 def _guardar_variantes(producto, tallas, colores, variantes):
-    VarianteProducto.query.filter_by(producto_id=producto.id).delete()
+    """
+    Sincroniza las variantes del producto con las recibidas, ACTUALIZANDO las
+    que ya existen (misma talla+color) en vez de borrarlas y recrearlas.
+
+    Antes se borraban todas y se volvían a crear en cada guardado: eso les
+    cambiaba el id y dejaba en NULL la referencia de cada pedido y de cada
+    movimiento de stock anterior. Con el kardex hace falta que el id de una
+    variante se conserve mientras la variante exista.
+    """
+    existentes = {
+        (v.talla or "", v.color or ""): v
+        for v in VarianteProducto.query.filter_by(producto_id=producto.id).all()
+    }
+
     if not _combos_esperados(tallas, colores):
-        return  # producto simple: no guarda variantes
+        # producto simple: no guarda variantes
+        for v in existentes.values():
+            db.session.delete(v)
+        return
+
+    claves_recibidas = set()
     for v in variantes:
-        db.session.add(VarianteProducto(
-            producto_id=producto.id,
-            talla=v.get("talla") or "",
-            color=v.get("color") or "",
-            stock=v["stock"],
-        ))
+        clave = (v.get("talla") or "", v.get("color") or "")
+        claves_recibidas.add(clave)
+        if clave in existentes:
+            existentes[clave].stock = v["stock"]
+        else:
+            db.session.add(VarianteProducto(
+                producto_id=producto.id,
+                talla=clave[0],
+                color=clave[1],
+                stock=v["stock"],
+            ))
+
+    for clave, variante in existentes.items():
+        if clave not in claves_recibidas:
+            db.session.delete(variante)
 
 
 @bp.get("")
@@ -238,6 +268,12 @@ def crear():
     _guardar_imagenes(producto, data["imagenes"])
     _guardar_variantes(producto, tallas, colores, data.get("variantes") or [])
 
+    # Kardex: lo que se carga al crear el producto es su stock inicial.
+    registrar_cambios_de_stock(
+        producto, {}, usuario_id=g.usuario.id,
+        motivo="Stock inicial al crear el producto", tipo="stock_inicial",
+    )
+
     try:
         db.session.commit()
     except IntegrityError:
@@ -276,6 +312,10 @@ def actualizar(producto_id):
     if "genero" in data and (data["genero"] or None) not in (None, *GENEROS):
         return jsonify({"error": "Género no válido"}), 400
 
+    # Foto del stock ANTES de aplicar cualquier cambio, para registrar en el
+    # kardex solo lo que realmente cambió.
+    stock_antes = foto_stock(producto)
+
     campos_directos = [
         "nombre", "descripcion", "precio", "precio_oferta", "stock",
         "categoria_id", "destacado", "es_nuevo", "genero", "activo",
@@ -306,6 +346,11 @@ def actualizar(producto_id):
         if error_imagenes:
             return jsonify({"error": error_imagenes}), 400
         _guardar_imagenes(producto, data["imagenes"])
+
+    motivo = (str(data.get("motivo_stock") or "").strip()[:255]) or MOTIVO_STOCK_POR_DEFECTO
+    registrar_cambios_de_stock(
+        producto, stock_antes, usuario_id=g.usuario.id, motivo=motivo, tipo="ajuste_manual",
+    )
 
     try:
         db.session.commit()

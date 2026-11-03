@@ -217,7 +217,7 @@ def checkout():
     # Descuento de stock ATÓMICO a nivel de base de datos (por variante o por
     # producto, según corresponda) — evita sobreventa si dos compras del mismo
     # producto llegan casi al mismo tiempo.
-    error_descuento = descontar_stock(grupos_stock, productos_cache, pedido_id=pedido.id)
+    error_descuento = descontar_stock(grupos_stock, productos_cache, pedido_id=pedido.id, motivo="Venta online")
     if error_descuento:
         db.session.rollback()
         return jsonify({"error": error_descuento}), 409
@@ -271,7 +271,7 @@ def cancelar_pedido(pedido_id):
 
     pedido.motivo_cancelacion = "cliente"
     cambiar_estado_pedido(pedido, "cancelado", cambiado_por=usuario_id)
-    restaurar_stock_de_pedido(pedido)
+    restaurar_stock_de_pedido(pedido, motivo="Cancelado por el cliente")
     db.session.commit()
     notificar_estado_pedido(pedido)
     return jsonify(pedido.to_dict())
@@ -342,7 +342,7 @@ def pagar_pedido(pedido_id):
         if pedido.puede_pasar_a("cancelado"):
             pedido.motivo_cancelacion = "vencimiento_pago"
             cambiar_estado_pedido(pedido, "cancelado", cambiado_por=usuario_id)
-        restaurar_stock_de_pedido(pedido)
+        restaurar_stock_de_pedido(pedido, motivo="Vencimiento del plazo de pago")
         db.session.commit()
         notificar_estado_pedido(pedido)
         return jsonify({

@@ -1,6 +1,66 @@
 from sqlalchemy import text
 from app.extensions import db
-from app.models import Producto, MovimientoStock
+from app.models import Producto, MovimientoStock, VarianteProducto
+
+
+def _stock_actual(variante_id=None, producto_id=None):
+    """Stock que hay ahora mismo en la base (de la variante si se indica, si no del producto)."""
+    if variante_id is not None:
+        fila = db.session.execute(
+            text("SELECT stock FROM variantes_producto WHERE id = :id"), {"id": variante_id}
+        ).first()
+    else:
+        fila = db.session.execute(
+            text("SELECT stock FROM productos WHERE id = :id"), {"id": producto_id}
+        ).first()
+    return fila.stock if fila else None
+
+
+def foto_stock(producto):
+    """
+    Foto del stock de un producto ANTES de editarlo: {(talla, color): stock}.
+    Un producto sin variantes se representa con la clave ("", ""). Se compara
+    con el stock resultante en registrar_cambios_de_stock.
+    """
+    if producto.usa_variantes:
+        return {(v.talla or "", v.color or ""): int(v.stock or 0) for v in producto.variantes}
+    return {("", ""): int(producto.stock or 0)}
+
+
+def registrar_cambios_de_stock(producto, antes, usuario_id=None, motivo=None, tipo="ajuste_manual"):
+    """
+    Compara la foto `antes` (de foto_stock) con el stock que quedó guardado y
+    registra un movimiento por cada variante cuyo stock cambió. Devuelve
+    cuántos movimientos registró. No hace commit: va en la misma transacción
+    que el cambio del producto, así que si el guardado falla, no queda rastro.
+    """
+    db.session.flush()
+    variantes = VarianteProducto.query.filter_by(producto_id=producto.id).all()
+    if variantes:
+        despues = {(v.talla or "", v.color or ""): (v.id, int(v.stock or 0)) for v in variantes}
+    else:
+        despues = {("", ""): (None, int(producto.stock or 0))}
+
+    claves = list(antes.keys()) + [c for c in despues if c not in antes]
+    registrados = 0
+    for clave in claves:
+        stock_antes = antes.get(clave, 0)
+        variante_id, stock_despues = despues.get(clave, (None, 0))
+        diferencia = stock_despues - stock_antes
+        if diferencia == 0:
+            continue
+        db.session.add(MovimientoStock(
+            variante_id=variante_id,
+            producto_id=producto.id,
+            tipo=tipo,
+            cantidad=diferencia,
+            usuario_id=usuario_id,
+            motivo=motivo,
+            stock_antes=stock_antes,
+            stock_despues=stock_despues,
+        ))
+        registrados += 1
+    return registrados
 
 
 def agrupar_por_producto(items):
@@ -151,7 +211,7 @@ def validar_stock_disponible_items(items, grupos=None, productos_cache=None):
     return problemas
 
 
-def descontar_stock(grupos, productos_cache, pedido_id=None):
+def descontar_stock(grupos, productos_cache, pedido_id=None, usuario_id=None, motivo=None):
     """
     Descuenta stock de forma ATÓMICA (a nivel de base de datos): cada UPDATE
     solo aplica si en ese instante sigue habiendo stock suficiente, evitando
@@ -161,7 +221,8 @@ def descontar_stock(grupos, productos_cache, pedido_id=None):
 
     KPIs: si se pasa pedido_id, cada descuento que sí se aplica queda
     registrado en movimiento_stock (tipo='venta') para poder reconstruir
-    el historial de stock después.
+    el historial de stock después. usuario_id (quien registró la venta, si
+    fue personal de la tienda) y motivo son opcionales.
     """
     for (producto_id, talla, color), cantidad in grupos.items():
         producto = productos_cache.get(producto_id)
@@ -194,18 +255,25 @@ def descontar_stock(grupos, productos_cache, pedido_id=None):
             nombre = producto.nombre if producto else "un producto de tu carrito"
             return f"'{nombre}' se quedó sin stock justo ahora. Actualiza tu carrito e intenta de nuevo."
 
+        # La fila sigue bloqueada por nuestro propio UPDATE (misma transacción),
+        # así que este SELECT devuelve exactamente el stock que quedó.
+        stock_despues = _stock_actual(variante_id=variante_id, producto_id=producto_id)
         db.session.add(MovimientoStock(
             variante_id=variante_id,
             producto_id=producto_id,
             tipo="venta",
             cantidad=cantidad,
             pedido_id=pedido_id,
+            usuario_id=usuario_id,
+            motivo=motivo,
+            stock_antes=(stock_despues + cantidad) if stock_despues is not None else None,
+            stock_despues=stock_despues,
         ))
 
     return None
 
 
-def restaurar_stock_de_pedido(pedido):
+def restaurar_stock_de_pedido(pedido, usuario_id=None, motivo=None):
     """
     Devuelve al stock las cantidades de un pedido (al cancelarlo).
     Devuelve True si devolvió stock, False si ese pedido ya lo había devuelto.
@@ -238,12 +306,21 @@ def restaurar_stock_de_pedido(pedido):
             text("UPDATE variantes_producto SET stock = stock + :cantidad WHERE id = :vid"),
             {"cantidad": cantidad, "vid": variante_id},
         )
+        fila = db.session.execute(
+            text("SELECT producto_id, stock FROM variantes_producto WHERE id = :vid"),
+            {"vid": variante_id},
+        ).first()
+        stock_despues = fila.stock if fila else None
         db.session.add(MovimientoStock(
             variante_id=variante_id,
-            producto_id=None,
+            producto_id=fila.producto_id if fila else None,
             tipo="restauracion",
             cantidad=cantidad,
             pedido_id=pedido.id,
+            usuario_id=usuario_id,
+            motivo=motivo,
+            stock_antes=(stock_despues - cantidad) if stock_despues is not None else None,
+            stock_despues=stock_despues,
         ))
 
     # Camino de respaldo: detalles antiguos sin variante_id, o productos sin
@@ -255,7 +332,10 @@ def restaurar_stock_de_pedido(pedido):
             if not producto:
                 continue  # el producto pudo haber sido borrado; no hay a dónde devolver stock
 
+            variante_id_respaldo = None
             if producto.usa_variantes:
+                variante = producto.variante_para(talla, color)
+                variante_id_respaldo = variante.id if variante else None
                 db.session.execute(
                     text(
                         "UPDATE variantes_producto vp "
@@ -271,12 +351,17 @@ def restaurar_stock_de_pedido(pedido):
                     text("UPDATE productos SET stock = stock + :cantidad WHERE id = :pid"),
                     {"cantidad": cantidad, "pid": producto_id},
                 )
+            stock_despues = _stock_actual(variante_id=variante_id_respaldo, producto_id=producto_id)
             db.session.add(MovimientoStock(
-                variante_id=None,
+                variante_id=variante_id_respaldo,
                 producto_id=producto_id,
                 tipo="restauracion",
                 cantidad=cantidad,
                 pedido_id=pedido.id,
+                usuario_id=usuario_id,
+                motivo=motivo,
+                stock_antes=(stock_despues - cantidad) if stock_despues is not None else None,
+                stock_despues=stock_despues,
             ))
 
     return True

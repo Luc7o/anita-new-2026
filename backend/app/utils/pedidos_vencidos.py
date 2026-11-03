@@ -33,7 +33,7 @@ def _cancelar_uno(pedido):
     pedido.estado_pago = "rechazado"
     pedido.motivo_cancelacion = "vencimiento_pago"
     cambiar_estado_pedido(pedido, "cancelado")
-    restaurar_stock_de_pedido(pedido)
+    restaurar_stock_de_pedido(pedido, motivo="Vencimiento del plazo de pago")
 
 
 def _query_vencidos(usuario_id=None):
