@@ -4,11 +4,12 @@ import { api } from "../../../api/client.js";
 import { rutaAdmin } from "../../../lib/appMode.js";
 import { useAuth } from "../../../context/AuthContext.jsx";
 import { useToast } from "../../../context/ToastContext.jsx";
-import { PUEDE_AJUSTAR_STOCK } from "../../../roles.js";
+import { PUEDE_AJUSTAR_STOCK, PUEDE_VER_COSTOS } from "../../../roles.js";
 import Paginador from "../../../components/Paginador.jsx";
 import { SkeletonFilasAdmin } from "../../../components/admin/EsqueletosAdmin.jsx";
 import BarraFiltros from "../../../components/admin/BarraFiltros.jsx";
 import ModalAjusteStock from "./ModalAjusteStock.jsx";
+import PanelReportesCostos from "./PanelReportesCostos.jsx";
 
 const POR_PAGINA = 15;
 
@@ -79,6 +80,7 @@ export default function TabStock() {
   const toast = useToast();
   const { usuario } = useAuth();
   const puedeAjustar = PUEDE_AJUSTAR_STOCK.includes(usuario?.rol);
+  const puedeVerCostos = PUEDE_VER_COSTOS.includes(usuario?.rol);
 
   const [busqueda, setBusqueda] = useState("");
   const [busquedaAplicada, setBusquedaAplicada] = useState("");
@@ -124,6 +126,8 @@ export default function TabStock() {
 
   return (
     <div>
+      {puedeVerCostos && <PanelReportesCostos />}
+
       <div className="mb-4 grid grid-cols-3 gap-3">
         {["agotado", "bajo", "ok"].map((e) => (
           <button

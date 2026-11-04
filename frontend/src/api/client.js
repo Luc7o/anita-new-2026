@@ -497,6 +497,23 @@ export const api = {
     return descargarPdf(`/admin/reportes/clientes${query ? `?${query}` : ""}`, nombre);
   },
 
+  adminReporteKardex: ({ productoId, varianteId, desde, hasta, sku }) => {
+    const query = new URLSearchParams({
+      producto_id: productoId,
+      ...(varianteId && { variante_id: varianteId }),
+      ...(desde && { desde }),
+      ...(hasta && { hasta }),
+    }).toString();
+    return descargarPdf(`/admin/reportes/kardex?${query}`, `kardex-${sku || productoId}.pdf`);
+  },
+  adminReporteValorizacion: () =>
+    descargarPdf("/admin/reportes/valorizacion", "valorizacion-inventario.pdf"),
+  adminReporteMargen: (desde, hasta) => {
+    const query = new URLSearchParams({ ...(desde && { desde }), ...(hasta && { hasta }) }).toString();
+    const nombre = `margen${desde ? `-${desde}` : ""}${hasta ? `-a-${hasta}` : ""}.pdf`;
+    return descargarPdf(`/admin/reportes/margen${query ? `?${query}` : ""}`, nombre);
+  },
+
   // Datos públicos de la tienda (contacto, dirección, redes)
   configuracionTienda: () => request("/configuracion/tienda"),
 

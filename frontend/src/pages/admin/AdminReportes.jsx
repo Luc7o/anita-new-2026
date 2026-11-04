@@ -70,11 +70,13 @@ export default function AdminReportes() {
   const [desdeC, setDesdeC] = useState(haceUnMesISO());
   const [hastaC, setHastaC] = useState(hoyISO());
   const [soloAlerta, setSoloAlerta] = useState(false);
+  const [desdeM, setDesdeM] = useState(haceUnMesISO());
+  const [hastaM, setHastaM] = useState(hoyISO());
 
   return (
     <div>
       <h1 className="text-2xl font-semibold text-plum">Reportes</h1>
-      <p className="text-sm text-plum-soft">Descarga resúmenes en PDF de tus ventas, tu inventario y tus clientes.</p>
+      <p className="text-sm text-plum-soft">Descarga resúmenes en PDF de tus ventas, tu inventario, tus costos y tus clientes.</p>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-3">
         <TarjetaReporte
@@ -96,7 +98,7 @@ export default function AdminReportes() {
             <input type="checkbox" checked={soloAlerta} onChange={(e) => setSoloAlerta(e.target.checked)} className="mt-1 accent-berry" />
             <span>
               Solo productos por reponer
-              <span className="block text-xs text-plum-soft">Agotados o con 3 unidades o menos.</span>
+              <span className="block text-xs text-plum-soft">Agotados o con stock bajo (según el mínimo de cada producto).</span>
             </span>
           </label>
         </TarjetaReporte>
@@ -108,6 +110,24 @@ export default function AdminReportes() {
           onGenerar={() => api.adminReporteClientes(desdeC || undefined, hastaC || undefined)}
         >
           <CamposFechas desde={desdeC} hasta={hastaC} setDesde={setDesdeC} setHasta={setHastaC} />
+        </TarjetaReporte>
+
+        <TarjetaReporte
+          titulo="Valorización del inventario"
+          descripcion="Cuánto vale lo que tienes en stock a costo y a precio de venta, por categoría y por producto, y el margen potencial."
+          boton="Generar PDF"
+          onGenerar={() => api.adminReporteValorizacion()}
+        >
+          <p className="text-xs text-plum-soft/70">Usa el costo promedio de tus compras a proveedores. Los productos sin compras aparecen sin costo.</p>
+        </TarjetaReporte>
+
+        <TarjetaReporte
+          titulo="Margen por producto"
+          descripcion="Lo vendido, su costo y lo que ganaste en cada producto durante el periodo."
+          boton="Generar PDF"
+          onGenerar={() => api.adminReporteMargen(desdeM || undefined, hastaM || undefined)}
+        >
+          <CamposFechas desde={desdeM} hasta={hastaM} setDesde={setDesdeM} setHasta={setHastaM} />
         </TarjetaReporte>
       </div>
     </div>
