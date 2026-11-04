@@ -505,6 +505,17 @@ export const api = {
   adminActualizarConfiguracionTienda: (payload) =>
     request("/admin/configuracion/tienda", { method: "PUT", body: payload, auth: true }),
 
+  // Admin — compras a proveedores
+  adminCompras: (params = {}) => {
+    const query = new URLSearchParams(params).toString();
+    return request(`/admin/compras${query ? `?${query}` : ""}`, { auth: true });
+  },
+  adminCompra: (id) => request(`/admin/compras/${id}`, { auth: true }),
+  adminCrearCompra: (payload) =>
+    request("/admin/compras", { method: "POST", body: payload, auth: true }),
+  adminAnularCompra: (id, motivo) =>
+    request(`/admin/compras/${id}/anular`, { method: "POST", body: { motivo }, auth: true }),
+
   // Admin — proveedores
   adminProveedores: () => request("/admin/proveedores", { auth: true }),
   adminCrearProveedor: (payload) =>

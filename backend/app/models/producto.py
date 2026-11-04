@@ -59,6 +59,8 @@ class Producto(db.Model):
     precio_oferta = db.Column(db.Numeric(10, 2))
 
     stock = db.Column(db.Integer, default=0)
+    # Costo promedio ponderado de las compras (migración 056). NULL si nunca se compró.
+    costo_promedio = db.Column(db.Numeric(10, 2))
     sku = db.Column(db.String(60), unique=True)
     # Género al que va dirigido (filtro de la tienda). NULL = sin definir.
     genero = db.Column(db.String(20))
