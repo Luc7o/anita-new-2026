@@ -19,6 +19,10 @@ export const PUEDE_VER_PROMOCIONES = [...PUEDE_GESTIONAR_PROMOCIONES];
 export const PUEDE_GESTIONAR_PROVEEDORES = [SUPERADMIN, ADMINISTRATIVO, ALMACEN];
 export const PUEDE_VER_PROVEEDORES = [...PUEDE_GESTIONAR_PROVEEDORES];
 
+// Almacén: stock y alertas, kardex (movimientos), inventario físico y mermas.
+export const PUEDE_VER_ALMACEN = [SUPERADMIN, ADMINISTRATIVO, ALMACEN];
+export const PUEDE_AJUSTAR_STOCK = [SUPERADMIN, ADMINISTRATIVO, ALMACEN];
+
 // Compras a proveedores (ingreso de mercadería). Registrar sube el stock, anular lo baja.
 export const PUEDE_VER_COMPRAS = [SUPERADMIN, ADMINISTRATIVO, ALMACEN];
 export const PUEDE_REGISTRAR_COMPRAS = [SUPERADMIN, ADMINISTRATIVO, ALMACEN];

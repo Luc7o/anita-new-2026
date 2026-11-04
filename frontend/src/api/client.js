@@ -505,6 +505,22 @@ export const api = {
   adminActualizarConfiguracionTienda: (payload) =>
     request("/admin/configuracion/tienda", { method: "PUT", body: payload, auth: true }),
 
+  // Admin — almacén (stock, kardex, inventario físico)
+  adminMovimientos: (params = {}) => {
+    const query = new URLSearchParams(params).toString();
+    return request(`/admin/movimientos${query ? `?${query}` : ""}`, { auth: true });
+  },
+  adminAlmacenStock: (params = {}) => {
+    const query = new URLSearchParams(params).toString();
+    return request(`/admin/almacen/stock${query ? `?${query}` : ""}`, { auth: true });
+  },
+  adminCambiarStockMinimo: (productoId, stock_minimo) =>
+    request(`/admin/almacen/stock-minimo/${productoId}`, { method: "PUT", body: { stock_minimo }, auth: true }),
+  adminAjusteStock: (payload) =>
+    request("/admin/almacen/ajustes", { method: "POST", body: payload, auth: true }),
+  adminInventarioFisico: (payload) =>
+    request("/admin/almacen/inventario-fisico", { method: "POST", body: payload, auth: true }),
+
   // Admin — compras a proveedores
   adminCompras: (params = {}) => {
     const query = new URLSearchParams(params).toString();

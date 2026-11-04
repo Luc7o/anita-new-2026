@@ -11,18 +11,17 @@ from app.utils.formato import a_lima, logo_html
 from app.utils.pdf import html_a_pdf, formatear_moneda
 from app.utils.reporte_ventas import _CSS, NOMBRE_TIENDA, WEB_TIENDA
 
-# Mismo umbral que el aviso de "poco stock" del dashboard.
-UMBRAL_BAJO_STOCK = 3
 
 
 def _fila_vacia(cols, texto):
     return f"<tr><td colspan='{cols}' class='c gris'>{texto}</td></tr>"
 
 
-def _estado(stock):
-    if stock <= 0:
+def _estado(producto):
+    estado = producto.estado_stock
+    if estado == "agotado":
         return "Agotado"
-    if stock <= UMBRAL_BAJO_STOCK:
+    if estado == "bajo":
         return "Stock bajo"
     return "Disponible"
 
@@ -33,7 +32,7 @@ def generar_pdf_reporte_inventario(productos, solo_alerta=False):
 
     unidades = sum(p.stock_total for p in activos)
     agotados = [p for p in activos if p.stock_total <= 0]
-    bajos = [p for p in activos if 0 < p.stock_total <= UMBRAL_BAJO_STOCK]
+    bajos = [p for p in activos if p.estado_stock == "bajo"]
     valor = sum(p.precio_final * max(p.stock_total, 0) for p in activos)
 
     por_categoria = defaultdict(lambda: {"productos": 0, "unidades": 0, "valor": 0.0})
@@ -53,7 +52,7 @@ def generar_pdf_reporte_inventario(productos, solo_alerta=False):
     filas_reponer = "".join(
         f"<tr><td>{escape(p.sku or '—')}</td><td>{escape(p.nombre)}</td>"
         f"<td>{escape(p.categoria.nombre if p.categoria else '—')}</td>"
-        f"<td class='c'>{p.stock_total}</td><td>{_estado(p.stock_total)}</td></tr>"
+        f"<td class='c'>{p.stock_total}</td><td>{_estado(p)}</td></tr>"
         for p in por_reponer
     ) or _fila_vacia(5, "No hay productos por reponer")
 
@@ -122,7 +121,7 @@ def generar_pdf_reporte_inventario(productos, solo_alerta=False):
 
     <table class="criterio"><tr><td>
         <b>Criterio del reporte:</b> el stock de los productos con tallas o colores es la suma de todas sus variantes.
-        &laquo;Stock bajo&raquo; son {UMBRAL_BAJO_STOCK} unidades o menos. Los totales y el valor consideran solo productos activos.
+        &laquo;Stock bajo&raquo; es cuando el stock llega al m&iacute;nimo configurado en cada producto (3 unidades si no se cambi&oacute;). Los totales y el valor consideran solo productos activos.
     </td></tr></table>
 
     <div id="pie_contenido">

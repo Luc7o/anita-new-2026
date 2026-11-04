@@ -5,12 +5,12 @@ import { useAuth } from "../../context/AuthContext.jsx";
 import Logo from "../Logo.jsx";
 import {
   IconDashboard, IconBag, IconTag, IconPackage, IconStore, IconLogout, IconTruck, IconUsers, IconSettings,
-  IconCart, IconGift, IconBook, IconUser, IconSun, IconMoon, IconReport,
+  IconCart, IconGift, IconBook, IconUser, IconSun, IconMoon, IconReport, IconWarehouse, IconReceipt,
 } from "../Icons.jsx";
 import useTemaAdmin from "../../hooks/useTemaAdmin.js";
 import {
   PUEDE_VER_PRODUCTOS, PUEDE_GESTIONAR_CATEGORIAS, PUEDE_VER_PEDIDOS, PUEDE_REGISTRAR_VENTA, PUEDE_VER_INICIO, PUEDE_VER_PROVEEDORES,
-  PUEDE_GESTIONAR_USUARIOS, PUEDE_VER_CONFIGURACION, PUEDE_VER_PROMOCIONES, PUEDE_VER_RECLAMACIONES, PUEDE_VER_COMPRAS,
+  PUEDE_GESTIONAR_USUARIOS, PUEDE_VER_CONFIGURACION, PUEDE_VER_PROMOCIONES, PUEDE_VER_RECLAMACIONES, PUEDE_VER_COMPRAS, PUEDE_VER_ALMACEN,
   CAJERO, PUEDE_VER_RECOJOS, PUEDE_VER_REPORTES,
 } from "../../roles.js";
 
@@ -20,7 +20,8 @@ const TODOS_LOS_ITEMS = [
   { to: rutaAdmin("/categorias"), label: "Categorías", Icon: IconTag, roles: PUEDE_GESTIONAR_CATEGORIAS },
   { to: rutaAdmin("/promociones"), label: "Promociones", Icon: IconGift, roles: PUEDE_VER_PROMOCIONES },
   { to: rutaAdmin("/proveedores"), label: "Proveedores", Icon: IconTruck, roles: PUEDE_VER_PROVEEDORES },
-  { to: rutaAdmin("/compras"), label: "Compras", Icon: IconBag, roles: PUEDE_VER_COMPRAS },
+  { to: rutaAdmin("/almacen"), label: "Almacén", Icon: IconWarehouse, roles: PUEDE_VER_ALMACEN },
+  { to: rutaAdmin("/compras"), label: "Compras", Icon: IconReceipt, roles: PUEDE_VER_COMPRAS },
   { to: rutaAdmin("/pedidos"), label: "Pedidos", Icon: IconPackage, exact: true, roles: PUEDE_VER_PEDIDOS },
   { to: rutaAdmin("/pedidos/nueva-venta"), label: "Nueva venta", Icon: IconCart, roles: PUEDE_REGISTRAR_VENTA },
   { to: rutaAdmin("/pedidos/recojos"), label: "Recojos en tienda", Icon: IconStore, roles: PUEDE_VER_RECOJOS },

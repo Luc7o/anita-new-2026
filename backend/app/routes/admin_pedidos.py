@@ -426,7 +426,7 @@ def estadisticas():
     total_productos = Producto.query.filter_by(activo=True).count()
     productos_bajo_stock = sum(
         1 for p in Producto.query.filter_by(activo=True).options(selectinload(Producto.variantes)).all()
-        if p.stock_total <= 3
+        if p.stock_total <= (p.stock_minimo if p.stock_minimo is not None else 3)
     )
 
     hoy = datetime.utcnow()
