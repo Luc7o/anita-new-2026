@@ -42,7 +42,7 @@ class MovimientoStock(db.Model):
 
     TIPOS = (
         "venta", "restauracion", "stock_inicial", "ingreso_compra",
-        "ajuste_manual", "merma", "inventario_fisico",
+        "ajuste_manual", "merma", "inventario_fisico", "anulacion_compra",
     )
     ETIQUETAS = {
         "venta": "Venta",
@@ -52,6 +52,7 @@ class MovimientoStock(db.Model):
         "ajuste_manual": "Ajuste manual",
         "merma": "Merma",
         "inventario_fisico": "Inventario físico",
+        "anulacion_compra": "Anulación de compra",
     }
 
     id = db.Column(db.BigInteger, primary_key=True)
@@ -69,6 +70,7 @@ class MovimientoStock(db.Model):
     stock_despues = db.Column(db.Integer, nullable=True)
     costo_unitario = db.Column(db.Numeric(10, 2), nullable=True)
     proveedor_id = db.Column(db.Integer, db.ForeignKey("proveedores.id", ondelete="SET NULL"), nullable=True)
+    compra_id = db.Column(db.Integer, db.ForeignKey("compras.id", ondelete="SET NULL"), nullable=True)
 
     producto = db.relationship("Producto")
     variante = db.relationship("VarianteProducto")
@@ -96,6 +98,7 @@ class MovimientoStock(db.Model):
             "costo_unitario": float(self.costo_unitario) if self.costo_unitario is not None else None,
             "pedido_id": self.pedido_id,
             "proveedor_id": self.proveedor_id,
+            "compra_id": self.compra_id,
             "producto_id": self.producto_id,
             "producto_nombre": self.producto.nombre if self.producto else None,
             "sku": self.producto.sku if self.producto else None,

@@ -5,7 +5,7 @@ import { rutaAdmin } from "./lib/appMode.js";
 import {
   CAJERO, PUEDE_VER_PRODUCTOS, PUEDE_GESTIONAR_CATEGORIAS, PUEDE_VER_PROMOCIONES, PUEDE_VER_PEDIDOS,
   PUEDE_REGISTRAR_VENTA, PUEDE_VER_PROVEEDORES, PUEDE_VER_RECLAMACIONES, PUEDE_GESTIONAR_USUARIOS,
-  PUEDE_VER_CONFIGURACION, PUEDE_VER_RECOJOS, PUEDE_VER_REPORTES,
+  PUEDE_VER_CONFIGURACION, PUEDE_VER_RECOJOS, PUEDE_VER_REPORTES, PUEDE_VER_COMPRAS, PUEDE_REGISTRAR_COMPRAS,
 } from "./roles.js";
 import { lazyConReintento as lazy } from "./utils/lazyConReintento.js";
 import RutaAdmin from "./components/admin/RutaAdmin.jsx";
@@ -21,6 +21,9 @@ const AdminRecojosCajero = lazy(() => import("./pages/admin/AdminRecojosCajero.j
 const AdminReportes = lazy(() => import("./pages/admin/AdminReportes.jsx"));
 const AdminProveedores = lazy(() => import("./pages/admin/AdminProveedores.jsx"));
 const AdminProveedorDetalle = lazy(() => import("./pages/admin/AdminProveedorDetalle.jsx"));
+const AdminCompras = lazy(() => import("./pages/admin/AdminCompras.jsx"));
+const AdminCompraNueva = lazy(() => import("./pages/admin/AdminCompraNueva.jsx"));
+const AdminCompraDetalle = lazy(() => import("./pages/admin/AdminCompraDetalle.jsx"));
 const AdminUsuarios = lazy(() => import("./pages/admin/AdminUsuarios.jsx"));
 const AdminConfiguracion = lazy(() => import("./pages/admin/AdminConfiguracion.jsx"));
 const AdminReclamaciones = lazy(() => import("./pages/admin/AdminReclamaciones.jsx"));
@@ -65,6 +68,9 @@ export default function AdminApp() {
         <Route path="reportes" element={<Solo roles={PUEDE_VER_REPORTES}><AdminReportes /></Solo>} />
         <Route path="proveedores" element={<Solo roles={PUEDE_VER_PROVEEDORES}><AdminProveedores /></Solo>} />
         <Route path="proveedores/:id" element={<Solo roles={PUEDE_VER_PROVEEDORES}><AdminProveedorDetalle /></Solo>} />
+        <Route path="compras" element={<Solo roles={PUEDE_VER_COMPRAS}><AdminCompras /></Solo>} />
+        <Route path="compras/nueva" element={<Solo roles={PUEDE_REGISTRAR_COMPRAS}><AdminCompraNueva /></Solo>} />
+        <Route path="compras/:id" element={<Solo roles={PUEDE_VER_COMPRAS}><AdminCompraDetalle /></Solo>} />
         <Route path="reclamaciones" element={<Solo roles={PUEDE_VER_RECLAMACIONES}><AdminReclamaciones /></Solo>} />
         <Route path="usuarios" element={<Solo roles={PUEDE_GESTIONAR_USUARIOS}><AdminUsuarios /></Solo>} />
         <Route path="configuracion" element={<Solo roles={PUEDE_VER_CONFIGURACION}><AdminConfiguracion /></Solo>} />
