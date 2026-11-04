@@ -9,6 +9,7 @@ import { soles } from "../../../formato.js";
 import Paginador from "../../../components/Paginador.jsx";
 import { SkeletonFilasAdmin } from "../../../components/admin/EsqueletosAdmin.jsx";
 import { SelectFiltro, CampoFecha } from "../../../components/admin/BarraFiltros.jsx";
+import Spinner from "../../../components/Spinner.jsx";
 import { IconSearch, IconClose } from "../../../components/Icons.jsx";
 import { textoVariante } from "./TabStock.jsx";
 
@@ -50,6 +51,7 @@ export default function TabMovimientos() {
   const [resultados, setResultados] = useState([]);
   const [buscando, setBuscando] = useState(false);
   const pedidoBusqueda = useRef(0);
+  const [descargando, setDescargando] = useState(false);
 
   const elegirProducto = (p) => {
     setProducto({ id: p.id, nombre: p.nombre, sku: p.sku, variantes: p.variantes || [] });
@@ -127,6 +129,23 @@ export default function TabMovimientos() {
     setPagina(1);
   };
 
+  const descargarKardex = async () => {
+    setDescargando(true);
+    try {
+      await api.adminReporteKardex({
+        productoId: producto.id,
+        varianteId: varianteId || undefined,
+        desde: desde || undefined,
+        hasta: hasta || undefined,
+        sku: producto.sku,
+      });
+    } catch (err) {
+      toast.error(err.message || "No se pudo generar el kardex");
+    } finally {
+      setDescargando(false);
+    }
+  };
+
   const referencia = (m) => (
     <>
       {m.motivo && <span>{m.motivo}</span>}
@@ -152,6 +171,15 @@ export default function TabMovimientos() {
                 <IconClose size={14} />
               </button>
             </span>
+            <button
+              type="button"
+              onClick={descargarKardex}
+              disabled={descargando}
+              className="inline-flex items-center rounded-[10px] bg-white px-4 py-1.5 text-sm font-semibold text-berry ring-1 ring-berry/40 transition hover:bg-berry/10 disabled:opacity-60"
+            >
+              {descargando && <Spinner />}
+              Descargar kardex (PDF)
+            </button>
             {producto.variantes.length > 0 && (
               <SelectFiltro etiqueta="Talla y color" value={varianteId} onChange={reiniciar(setVarianteId)}>
                 <option value="">Todas las tallas y colores</option>

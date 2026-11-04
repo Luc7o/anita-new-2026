@@ -79,6 +79,9 @@ PUEDE_VER_ALMACEN = [SUPERADMIN, ADMINISTRATIVO, ALMACEN]
 # Corregir stock (merma, ajuste, inventario físico) y definir el stock mínimo de cada producto.
 PUEDE_AJUSTAR_STOCK = [SUPERADMIN, ADMINISTRATIVO, ALMACEN]
 
+# Costos del negocio (valorización del inventario y margen por producto): solo administración.
+PUEDE_VER_COSTOS = [SUPERADMIN, ADMINISTRATIVO]
+
 # --- Compras a proveedores (ingreso de mercadería) ---
 # Registrar una compra sube el stock: almacén la hace, administrativo la supervisa.
 PUEDE_VER_COMPRAS = [SUPERADMIN, ADMINISTRATIVO, ALMACEN]

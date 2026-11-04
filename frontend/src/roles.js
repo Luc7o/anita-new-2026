@@ -23,6 +23,9 @@ export const PUEDE_VER_PROVEEDORES = [...PUEDE_GESTIONAR_PROVEEDORES];
 export const PUEDE_VER_ALMACEN = [SUPERADMIN, ADMINISTRATIVO, ALMACEN];
 export const PUEDE_AJUSTAR_STOCK = [SUPERADMIN, ADMINISTRATIVO, ALMACEN];
 
+// Costos del negocio: valorización del inventario y margen por producto.
+export const PUEDE_VER_COSTOS = [SUPERADMIN, ADMINISTRATIVO];
+
 // Compras a proveedores (ingreso de mercadería). Registrar sube el stock, anular lo baja.
 export const PUEDE_VER_COMPRAS = [SUPERADMIN, ADMINISTRATIVO, ALMACEN];
 export const PUEDE_REGISTRAR_COMPRAS = [SUPERADMIN, ADMINISTRATIVO, ALMACEN];
