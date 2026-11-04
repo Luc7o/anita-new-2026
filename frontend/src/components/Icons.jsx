@@ -409,3 +409,21 @@ export function IconReport({ size = 18, className = "" }) {
     </svg>
   );
 }
+
+export function IconWarehouse({ size = 18, className = "" }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" {...base} className={className}>
+      <path d="M3 21V9l9-5 9 5v12" />
+      <path d="M7 21v-7h10v7M7 17.5h10" />
+    </svg>
+  );
+}
+
+export function IconReceipt({ size = 18, className = "" }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" {...base} className={className}>
+      <path d="M5 3h14v18l-3-2-2 2-2-2-2 2-2-2-3 2z" />
+      <path d="M9 8h6M9 12h6" />
+    </svg>
+  );
+}

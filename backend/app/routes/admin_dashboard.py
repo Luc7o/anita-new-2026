@@ -20,6 +20,7 @@ from app.roles import (
     PUEDE_VER_PEDIDOS,
     PUEDE_VER_PRODUCTOS,
     PUEDE_VER_RECLAMACIONES,
+    PUEDE_VER_ALMACEN,
 )
 from app.utils.decorators import requiere_roles
 
@@ -28,8 +29,6 @@ bp = Blueprint("admin_dashboard", __name__, url_prefix="/api/admin/dashboard")
 # Un reclamo "por vencer" es uno cuyo plazo legal termina en esta cantidad de
 # días corridos o menos.
 DIAS_AVISO_RECLAMO = 3
-# Mismo umbral que ya usaba el dashboard para "bajo stock".
-UMBRAL_BAJO_STOCK = 3
 
 
 def _item(clave, cantidad, singular, plural, enlace, urgente):
@@ -87,19 +86,19 @@ def atencion():
                                "pedido pendiente", "pedidos pendientes", link, False))
 
     if rol in PUEDE_VER_PRODUCTOS:
-        link = "/admin/productos"
-        stocks = [
-            p.stock_total
+        link = "/admin/almacen?vista=stock" if rol in PUEDE_VER_ALMACEN else "/admin/productos"
+        estados = [
+            p.estado_stock
             for p in Producto.query.filter_by(activo=True).options(selectinload(Producto.variantes)).all()
         ]
-        sin_stock = sum(1 for s in stocks if s <= 0)
-        bajo_stock = sum(1 for s in stocks if 0 < s <= UMBRAL_BAJO_STOCK)
+        sin_stock = estados.count("agotado")
+        bajo_stock = estados.count("bajo")
         if sin_stock:
             items.append(_item("productos_sin_stock", sin_stock,
                                "producto sin stock", "productos sin stock", link, True))
         if bajo_stock:
             items.append(_item("productos_bajo_stock", bajo_stock,
-                               "producto con poco stock (3 o menos)", "productos con poco stock (3 o menos)", link, False))
+                               "producto con poco stock", "productos con poco stock", link, False))
 
     # Lo urgente primero; dentro de cada grupo se respeta el orden de arriba.
     items.sort(key=lambda i: not i["urgente"])

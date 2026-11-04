@@ -74,6 +74,11 @@ PUEDE_VER_DASHBOARD_STOCK = [SUPERADMIN, ADMINISTRATIVO, ALMACEN]
 # Historial de movimientos de stock (kardex) — solo lectura en la fase 1
 PUEDE_VER_MOVIMIENTOS = [SUPERADMIN, ADMINISTRATIVO, ALMACEN]
 
+# --- Almacén: pantalla de stock, alertas, inventario físico y mermas ---
+PUEDE_VER_ALMACEN = [SUPERADMIN, ADMINISTRATIVO, ALMACEN]
+# Corregir stock (merma, ajuste, inventario físico) y definir el stock mínimo de cada producto.
+PUEDE_AJUSTAR_STOCK = [SUPERADMIN, ADMINISTRATIVO, ALMACEN]
+
 # --- Compras a proveedores (ingreso de mercadería) ---
 # Registrar una compra sube el stock: almacén la hace, administrativo la supervisa.
 PUEDE_VER_COMPRAS = [SUPERADMIN, ADMINISTRATIVO, ALMACEN]

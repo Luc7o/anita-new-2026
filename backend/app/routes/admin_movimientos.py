@@ -28,7 +28,8 @@ def listar():
     Historial de movimientos de stock (kardex), del más reciente al más antiguo.
 
     Filtros opcionales: producto_id, variante_id, tipo, usuario_id, pedido_id,
-    desde y hasta (YYYY-MM-DD, hasta inclusivo), pagina y por_pagina.
+    compra_id, desde y hasta (YYYY-MM-DD, hasta inclusivo), pagina y por_pagina.
+    orden=asc los devuelve del más antiguo al más reciente (vista de kardex).
     """
     q = MovimientoStock.query.options(
         joinedload(MovimientoStock.producto),
@@ -36,7 +37,7 @@ def listar():
         joinedload(MovimientoStock.usuario),
     )
 
-    for campo in ("producto_id", "variante_id", "usuario_id", "pedido_id"):
+    for campo in ("producto_id", "variante_id", "usuario_id", "pedido_id", "compra_id"):
         valor = request.args.get(campo, type=int)
         if valor is not None:
             q = q.filter(getattr(MovimientoStock, campo) == valor)
@@ -57,9 +58,14 @@ def listar():
     pagina = max(request.args.get("pagina", 1, type=int), 1)
     por_pagina = min(max(request.args.get("por_pagina", 25, type=int), 1), POR_PAGINA_MAX)
 
+    if request.args.get("orden") == "asc":
+        orden = (MovimientoStock.fecha_creacion.asc(), MovimientoStock.id.asc())
+    else:
+        orden = (MovimientoStock.fecha_creacion.desc(), MovimientoStock.id.desc())
+
     total = q.count()
     movimientos = (
-        q.order_by(MovimientoStock.fecha_creacion.desc(), MovimientoStock.id.desc())
+        q.order_by(*orden)
         .offset((pagina - 1) * por_pagina)
         .limit(por_pagina)
         .all()

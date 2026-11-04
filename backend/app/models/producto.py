@@ -61,6 +61,8 @@ class Producto(db.Model):
     stock = db.Column(db.Integer, default=0)
     # Costo promedio ponderado de las compras (migración 056). NULL si nunca se compró.
     costo_promedio = db.Column(db.Numeric(10, 2))
+    # Con este stock o menos el producto se marca como "stock bajo" (migración 057).
+    stock_minimo = db.Column(db.Integer, nullable=False, default=3, server_default="3")
     sku = db.Column(db.String(60), unique=True)
     # Género al que va dirigido (filtro de la tienda). NULL = sin definir.
     genero = db.Column(db.String(20))
@@ -151,6 +153,16 @@ class Producto(db.Model):
         if self.usa_variantes:
             return sum(v.stock for v in self.variantes)
         return self.stock or 0
+
+    @property
+    def estado_stock(self):
+        """'agotado', 'bajo' (llegó a su stock mínimo) u 'ok'."""
+        total = self.stock_total
+        if total <= 0:
+            return "agotado"
+        if total <= (self.stock_minimo if self.stock_minimo is not None else 3):
+            return "bajo"
+        return "ok"
 
     @property
     def sin_stock(self):
