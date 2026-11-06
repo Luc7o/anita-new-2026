@@ -14,6 +14,11 @@ import unicodedata
 DEPARTAMENTO_ENTREGA = "JUNIN"
 PROVINCIA_ENTREGA = "HUANCAYO"
 
+# Códigos oficiales (INEI) de esas mismas zonas: la búsqueda se hace por código,
+# con una sola consulta, en vez de traer todos los registros y comparar nombres.
+CODIGO_DEPARTAMENTO_ENTREGA = "12"
+CODIGO_PROVINCIA_ENTREGA = "1201"
+
 MENSAJE_FUERA_DE_ZONA = (
     "Por ahora el delivery solo está disponible en Huancayo. "
     "Puedes elegir recojo en tienda."
@@ -30,22 +35,13 @@ def _norm(texto):
 def departamento_entrega():
     from app.models import UbigeoDepartamento
 
-    for d in UbigeoDepartamento.query.all():
-        if _norm(d.nombre) == DEPARTAMENTO_ENTREGA:
-            return d
-    return None
+    return UbigeoDepartamento.query.filter_by(codigo=CODIGO_DEPARTAMENTO_ENTREGA).first()
 
 
 def provincia_entrega():
     from app.models import UbigeoProvincia
 
-    dep = departamento_entrega()
-    if dep is None:
-        return None
-    for p in UbigeoProvincia.query.filter_by(departamento_id=dep.id).all():
-        if _norm(p.nombre) == PROVINCIA_ENTREGA:
-            return p
-    return None
+    return UbigeoProvincia.query.filter_by(codigo=CODIGO_PROVINCIA_ENTREGA).first()
 
 
 def distritos_entrega():

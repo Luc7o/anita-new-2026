@@ -40,19 +40,23 @@ class UbigeoProvincia(db.Model):
 
 
 class UbigeoDistrito(db.Model):
-    """Distritos, cada uno ligado a su provincia (y, para consultas
-    rápidas sin tener que subir dos niveles, también a su departamento)."""
+    """Distritos, cada uno ligado a su provincia. El departamento NO se guarda
+    aquí (sería un dato repetido que podría contradecir al de la provincia):
+    se obtiene subiendo un nivel, distrito -> provincia -> departamento."""
     __tablename__ = "ubigeo_distritos"
 
     id = db.Column(db.Integer, primary_key=True)
     nombre = db.Column(db.String(150), nullable=False)
     codigo = db.Column(db.String(6), unique=True, nullable=False)
     provincia_id = db.Column(db.Integer, db.ForeignKey("ubigeo_provincias.id"), nullable=False)
-    departamento_id = db.Column(db.Integer, db.ForeignKey("ubigeo_departamentos.id"), nullable=False)
 
-    # Relación directa (además de provincia.departamento) para no tener
-    # que subir dos niveles cuando solo se necesita el nombre del depto.
-    departamento = db.relationship("UbigeoDepartamento")
+    @property
+    def departamento(self):
+        return self.provincia.departamento
+
+    @property
+    def departamento_id(self):
+        return self.provincia.departamento_id
 
     def to_dict(self):
         return {

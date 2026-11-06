@@ -211,6 +211,13 @@ def validar_stock_disponible_items(items, grupos=None, productos_cache=None):
     return problemas
 
 
+def _orden_de_bloqueo(producto_id, variante_id):
+    """Clave para recorrer filas de stock siempre en el mismo orden (el mismo que
+    usa utils/compras.py). Así dos operaciones simultáneas nunca se esperan en
+    círculo."""
+    return (producto_id, variante_id or 0)
+
+
 def descontar_stock(grupos, productos_cache, pedido_id=None, usuario_id=None, motivo=None):
     """
     Descuenta stock de forma ATÓMICA (a nivel de base de datos): cada UPDATE
@@ -224,34 +231,45 @@ def descontar_stock(grupos, productos_cache, pedido_id=None, usuario_id=None, mo
     el historial de stock después. usuario_id (quien registró la venta, si
     fue personal de la tienda) y motivo son opcionales.
     """
+    # Primero se resuelve la variante de cada grupo y se ordenan SIEMPRE igual
+    # (por producto y luego por variante, como utils/compras.py): si dos compras
+    # piden las mismas dos variantes en orden inverso y se descontaran en el orden
+    # del carrito, cada una bloquearía una fila esperando la otra (deadlock) y la
+    # base cancelaría una de las dos compras.
+    pendientes = []
     for (producto_id, talla, color), cantidad in grupos.items():
         producto = productos_cache.get(producto_id)
         variante_id = None
-
         if producto and producto.usa_variantes:
             variante = producto.variante_para(talla, color)
             variante_id = variante.id if variante else None
-            resultado = db.session.execute(
-                text(
-                    "UPDATE variantes_producto vp "
-                    "JOIN tallas t ON t.id = vp.talla_id "
-                    "JOIN colores c ON c.id = vp.color_id "
-                    "SET vp.stock = vp.stock - :cantidad "
-                    "WHERE vp.producto_id = :pid AND t.nombre = :talla AND c.nombre = :color "
-                    "AND vp.stock >= :cantidad"
-                ),
-                {"cantidad": cantidad, "pid": producto_id, "talla": talla, "color": color},
-            )
+        pendientes.append((producto_id, producto, variante_id, cantidad))
+    pendientes.sort(key=lambda p: _orden_de_bloqueo(p[0], p[2]))
+
+    for producto_id, producto, variante_id, cantidad in pendientes:
+        if producto and producto.usa_variantes:
+            # Se actualiza por id (clave primaria): una sola fila, sin unir con
+            # tallas ni colores. Si la combinación no existe, no hay fila que
+            # actualizar y se informa igual que cuando no alcanza el stock.
+            filas = 0
+            if variante_id is not None:
+                filas = db.session.execute(
+                    text(
+                        "UPDATE variantes_producto SET stock = stock - :cantidad "
+                        "WHERE id = :vid AND stock >= :cantidad"
+                    ),
+                    {"cantidad": cantidad, "vid": variante_id},
+                ).rowcount
         else:
-            resultado = db.session.execute(
+            filas = db.session.execute(
                 text(
                     "UPDATE productos SET stock = stock - :cantidad "
                     "WHERE id = :pid AND stock >= :cantidad"
                 ),
                 {"cantidad": cantidad, "pid": producto_id},
-            )
+            ).rowcount
 
-        if resultado.rowcount == 0:
+        if filas == 0:
             nombre = producto.nombre if producto else "un producto de tu carrito"
             return f"'{nombre}' se quedó sin stock justo ahora. Actualiza tu carrito e intenta de nuevo."
 
@@ -298,10 +316,17 @@ def restaurar_stock_de_pedido(pedido, usuario_id=None, motivo=None):
 
     # Camino preferido: variante_id directo.
     totales_por_variante = {}
+    producto_de_variante = {}
     for d in con_variante_id:
         totales_por_variante[d.variante_id] = totales_por_variante.get(d.variante_id, 0) + d.cantidad
+        producto_de_variante[d.variante_id] = d.producto_id
 
-    for variante_id, cantidad in totales_por_variante.items():
+    # Mismo orden de bloqueo que al descontar (ver descontar_stock).
+    orden_variantes = sorted(
+        totales_por_variante.items(),
+        key=lambda kv: _orden_de_bloqueo(producto_de_variante[kv[0]], kv[0]),
+    )
+    for variante_id, cantidad in orden_variantes:
         db.session.execute(
             text("UPDATE variantes_producto SET stock = stock + :cantidad WHERE id = :vid"),
             {"cantidad": cantidad, "vid": variante_id},
@@ -327,7 +352,10 @@ def restaurar_stock_de_pedido(pedido, usuario_id=None, motivo=None):
     # variantes (variante_id siempre es None ahí, se restauran por producto_id).
     if sin_variante_id:
         grupos, productos_cache = agrupar_por_producto(sin_variante_id)
-        for (producto_id, talla, color), cantidad in grupos.items():
+        orden_respaldo = sorted(
+            grupos.items(), key=lambda kv: (kv[0][0], kv[0][1] or "", kv[0][2] or "")
+        )
+        for (producto_id, talla, color), cantidad in orden_respaldo:
             producto = productos_cache.get(producto_id)
             if not producto:
                 continue  # el producto pudo haber sido borrado; no hay a dónde devolver stock
@@ -336,16 +364,11 @@ def restaurar_stock_de_pedido(pedido, usuario_id=None, motivo=None):
             if producto.usa_variantes:
                 variante = producto.variante_para(talla, color)
                 variante_id_respaldo = variante.id if variante else None
-                db.session.execute(
-                    text(
-                        "UPDATE variantes_producto vp "
-                        "JOIN tallas t ON t.id = vp.talla_id "
-                        "JOIN colores c ON c.id = vp.color_id "
-                        "SET vp.stock = vp.stock + :cantidad "
-                        "WHERE vp.producto_id = :pid AND t.nombre = :talla AND c.nombre = :color"
-                    ),
-                    {"cantidad": cantidad, "pid": producto_id, "talla": talla, "color": color},
-                )
+                if variante_id_respaldo is not None:
+                    db.session.execute(
+                        text("UPDATE variantes_producto SET stock = stock + :cantidad WHERE id = :vid"),
+                        {"cantidad": cantidad, "vid": variante_id_respaldo},
+                    )
             else:
                 db.session.execute(
                     text("UPDATE productos SET stock = stock + :cantidad WHERE id = :pid"),

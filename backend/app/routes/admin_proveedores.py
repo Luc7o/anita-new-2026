@@ -9,6 +9,22 @@ from app.roles import PUEDE_VER_PROVEEDORES, PUEDE_GESTIONAR_PROVEEDORES
 bp = Blueprint("admin_proveedores", __name__, url_prefix="/api/admin/proveedores")
 
 
+def _ruc_limpio(valor):
+    """RUC sin espacios, o None si viene vacío (un vacío no cuenta como RUC)."""
+    ruc = str(valor).strip() if valor is not None else ""
+    return ruc or None
+
+
+def _proveedor_con_ruc(ruc, excluir_id=None):
+    """El proveedor que ya tiene ese RUC (la base exige un RUC por proveedor)."""
+    if not ruc:
+        return None
+    consulta = Proveedor.query.filter(Proveedor.ruc == ruc)
+    if excluir_id is not None:
+        consulta = consulta.filter(Proveedor.id != excluir_id)
+    return consulta.first()
+
+
 @bp.get("")
 @requiere_roles(*PUEDE_VER_PROVEEDORES)
 def listar():
@@ -35,13 +51,18 @@ def crear():
     if not nombre:
         return jsonify({"error": "El nombre es obligatorio"}), 400
 
+    ruc = _ruc_limpio(data.get("ruc"))
+    existente = _proveedor_con_ruc(ruc)
+    if existente:
+        return jsonify({"error": f"Ya existe un proveedor con ese RUC: {existente.nombre}"}), 409
+
     proveedor = Proveedor(
         nombre=nombre,
         contacto_nombre=data.get("contacto_nombre"),
         telefono=data.get("telefono"),
         email=data.get("email"),
         direccion=data.get("direccion"),
-        ruc=data.get("ruc"),
+        ruc=ruc,
         notas=data.get("notas"),
     )
     db.session.add(proveedor)
@@ -55,7 +76,14 @@ def actualizar(proveedor_id):
     proveedor = Proveedor.query.get_or_404(proveedor_id)
     data = request.get_json(force=True) or {}
 
-    campos = ["nombre", "contacto_nombre", "telefono", "email", "direccion", "ruc", "notas", "activo"]
+    if "ruc" in data:
+        ruc = _ruc_limpio(data["ruc"])
+        existente = _proveedor_con_ruc(ruc, excluir_id=proveedor.id)
+        if existente:
+            return jsonify({"error": f"Ya existe un proveedor con ese RUC: {existente.nombre}"}), 409
+        proveedor.ruc = ruc
+
+    campos = ["nombre", "contacto_nombre", "telefono", "email", "direccion", "notas", "activo"]
     for campo in campos:
         if campo in data:
             setattr(proveedor, campo, data[campo])
