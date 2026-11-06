@@ -3,58 +3,43 @@ from app.extensions import db
 
 
 class ItemCarrito(db.Model):
+    """Una línea del carrito: un producto y, si el producto tiene variantes
+    (talla/color), la VARIANTE exacta elegida.
+
+    variante_id es NULL solo en productos sin variantes (su stock vive en
+    productos.stock). La clave foránea es compuesta (variante_id, producto_id),
+    así la base garantiza que la variante pertenece al mismo producto de la
+    línea. Talla y color ya no se guardan aquí: se leen de la variante."""
     __tablename__ = "carrito"
+    __table_args__ = (
+        db.ForeignKeyConstraint(
+            ["variante_id", "producto_id"],
+            ["variantes_producto.id", "variantes_producto.producto_id"],
+            ondelete="CASCADE", name="fk_carrito_variante",
+        ),
+    )
 
     id = db.Column(db.Integer, primary_key=True)
     usuario_id = db.Column(db.Integer, db.ForeignKey("usuarios.id", ondelete="CASCADE"), nullable=False)
     producto_id = db.Column(db.Integer, db.ForeignKey("productos.id", ondelete="CASCADE"), nullable=False)
+    variante_id = db.Column(db.Integer, nullable=True)
     cantidad = db.Column(db.Integer, nullable=False, default=1)
     # KPIs: para medir abandono de carrito (cuánto tiempo pasa desde que se
     # agrega algo hasta que se compra o queda huérfano).
     fecha_creacion = db.Column(db.DateTime, default=datetime.utcnow)
-    # Referencian el catálogo (tallas/colores) en vez de texto libre. Acá sí
-    # puede ser NULL de verdad (no hay UNIQUE que dependa de esto, a
-    # diferencia de variantes_producto).
-    talla_id = db.Column(db.Integer, db.ForeignKey("tallas.id"), nullable=True)
-    color_id = db.Column(db.Integer, db.ForeignKey("colores.id"), nullable=True)
 
-    talla_obj = db.relationship("Talla", lazy="joined")
-    color_obj = db.relationship("Color", lazy="joined")
+    # Solo lectura: id y producto se asignan siempre con las columnas de arriba.
+    variante = db.relationship("VarianteProducto", lazy="joined", viewonly=True)
 
-    # --- Compatibilidad: carrito.py sigue leyendo/escribiendo item.talla /
-    # item.color como texto. A diferencia del catálogo del admin, acá el
-    # nombre debe corresponder a una talla/color que YA existe (viene de un
-    # cliente eligiendo una variante real) — por eso el setter solo busca,
-    # nunca crea.
+    # --- Compatibilidad: el resto del código sigue leyendo item.talla /
+    # item.color como texto (None si el producto no varía por ese eje).
     @property
     def talla(self):
-        return self.talla_obj.nombre if self.talla_obj else None
-
-    @talla.setter
-    def talla(self, nombre):
-        if not nombre:
-            self.talla_obj = None
-            return
-        from app.models.catalogo import Talla
-        talla = Talla.por_nombre(nombre)
-        if not talla:
-            raise ValueError(f"Talla no reconocida: {nombre}")
-        self.talla_obj = talla
+        return self.variante.talla if self.variante else None
 
     @property
     def color(self):
-        return self.color_obj.nombre if self.color_obj else None
-
-    @color.setter
-    def color(self, nombre):
-        if not nombre:
-            self.color_obj = None
-            return
-        from app.models.catalogo import Color
-        color = Color.por_nombre(nombre)
-        if not color:
-            raise ValueError(f"Color no reconocido: {nombre}")
-        self.color_obj = color
+        return self.variante.color if self.variante else None
 
     @property
     def subtotal(self):
