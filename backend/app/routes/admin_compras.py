@@ -4,6 +4,7 @@ from decimal import Decimal
 
 from flask import Blueprint, request, jsonify, g
 from sqlalchemy import func, or_
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import joinedload, selectinload
 
 from app.extensions import db
@@ -111,6 +112,12 @@ def crear():
     except ErrorCompra as e:
         db.session.rollback()
         return jsonify({"error": e.mensaje}), e.status
+    except IntegrityError as e:
+        db.session.rollback()
+        # Dos registros simultáneos del mismo documento: la base se queda con uno.
+        if "uq_compras_documento" in str(e.orig):
+            return jsonify({"error": "Ese documento ya fue registrado para este proveedor."}), 409
+        raise
     except Exception:
         db.session.rollback()
         raise

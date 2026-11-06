@@ -91,6 +91,22 @@ def _validar_cabecera(data):
     if notas and len(notas) > 1000:
         raise ErrorCompra("Las notas son demasiado largas (máximo 1000 caracteres)")
 
+    # El mismo documento de un proveedor no se registra dos veces: duplicaría el
+    # ingreso de stock. Una compra anulada no cuenta (se puede volver a registrar).
+    # La base también lo exige (migración 059): esta revisión solo da el mensaje claro.
+    if tipo and numero_doc:
+        repetida = Compra.query.filter(
+            Compra.proveedor_id == proveedor.id,
+            Compra.tipo_documento == tipo,
+            Compra.numero_documento == numero_doc,
+            Compra.estado == "recibida",
+        ).first()
+        if repetida:
+            raise ErrorCompra(
+                f"Ya registraste el documento {numero_doc} de este proveedor (compra #{repetida.id}). "
+                "Si fue un error, anula esa compra y vuelve a registrarla."
+            )
+
     return proveedor, tipo, numero_doc, fecha, notas
 
 
