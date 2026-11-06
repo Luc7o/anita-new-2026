@@ -422,7 +422,7 @@ def estadisticas():
         Pedido.estado == "cancelado"
     ).scalar()
 
-    total_clientes = Usuario.query.filter_by(es_admin=False).count()
+    total_clientes = Usuario.clientes().count()
     total_productos = Producto.query.filter_by(activo=True).count()
     productos_bajo_stock = sum(
         1 for p in Producto.query.filter_by(activo=True).options(selectinload(Producto.variantes)).all()

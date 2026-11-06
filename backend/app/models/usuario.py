@@ -50,7 +50,6 @@ class Usuario(db.Model):
     # aplicación, solo queda como histórico.
 
     activo = db.Column(db.Boolean, default=True)
-    es_admin = db.Column(db.Boolean, default=False)  # legado, se mantiene por compatibilidad
     # Cuenta creada por /auth/invitado (checkout como invitado), sin
     # contraseña todavía. No tiene ningún efecto en permisos — solo indica
     # que le falta poner contraseña si quiere volver a entrar después. Se
@@ -143,6 +142,19 @@ class Usuario(db.Model):
     @property
     def rol(self):
         return self.rol_obj.codigo if self.rol_obj else None
+
+    # es_admin ya no se guarda en la base (migración 064): era una copia del rol
+    # que había que mantener a mano. Se deduce del rol, así no puede contradecirlo.
+    @property
+    def es_admin(self):
+        """True si la cuenta es del equipo (cualquier rol distinto de cliente)."""
+        return self.rol != "cliente"
+
+    @classmethod
+    def clientes(cls):
+        """Consulta de las cuentas con rol cliente (sin el equipo)."""
+        from app.models.rol import Rol
+        return cls.query.filter(cls.rol_id.in_(db.select(Rol.id).where(Rol.codigo == "cliente")))
 
     @rol.setter
     def rol(self, codigo):

@@ -991,7 +991,7 @@ def eliminar_cuenta():
     usuario = Usuario.query.get_or_404(int(get_jwt_identity()))
     data = request.get_json(force=True) or {}
 
-    if usuario.rol != "cliente" or usuario.es_admin:
+    if usuario.rol != "cliente":
         return jsonify({"error": "Las cuentas del equipo se eliminan desde el panel de usuarios, no desde aquí"}), 403
 
     if (data.get("confirmacion") or "").strip().upper() != "ELIMINAR":
