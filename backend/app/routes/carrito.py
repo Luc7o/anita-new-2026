@@ -1,5 +1,6 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import get_jwt_identity
+from sqlalchemy.exc import IntegrityError
 from app.extensions import db, limiter
 from app.models import ItemCarrito, Producto
 from app.utils.decorators import requiere_activo
@@ -22,14 +23,10 @@ def _resumen(usuario_id):
     }
 
 
-def _ids_talla_color(producto, variante):
-    """Los ids reales para filtrar ItemCarrito por esta variante — no se
-    puede usar `.filter_by(talla=..., color=...)` porque talla/color ya no
-    son columnas (son properties de compatibilidad), así que se resuelve a
-    talla_id/color_id explícitamente."""
-    talla_id = variante.talla_id if producto.tallas_lista else None
-    color_id = variante.color_id if producto.colores_lista else None
-    return talla_id, color_id
+def _es_linea_repetida(error):
+    """True si el error es el UNIQUE del carrito: dos pedidos simultáneos de la
+    misma línea (usuario + producto + variante)."""
+    return "uq_carrito_linea" in str(error.orig)
 
 
 def _disponibilidad(producto, talla=None, color=None, usuario_id=None, excluir_item_id=None):
@@ -49,10 +46,8 @@ def _disponibilidad(producto, talla=None, color=None, usuario_id=None, excluir_i
         variante = producto.variante_para(talla, color)
         if not variante:
             return None, None
-        talla_id, color_id = _ids_talla_color(producto, variante)
         query = ItemCarrito.query.filter_by(
-            usuario_id=usuario_id, producto_id=producto.id,
-            talla_id=talla_id, color_id=color_id,
+            usuario_id=usuario_id, producto_id=producto.id, variante_id=variante.id,
         )
         if excluir_item_id:
             query = query.filter(ItemCarrito.id != excluir_item_id)
@@ -105,27 +100,23 @@ def _sumar_al_carrito(usuario_id, producto, cantidad, talla, color):
     if ya_en_carrito + cantidad > stock_disponible:
         return _mensaje_sin_stock(stock_disponible, ya_en_carrito)
 
-    item = None
-    if producto.usa_variantes:
-        variante_actual = producto.variante_para(talla, color)
-        talla_id, color_id = _ids_talla_color(producto, variante_actual)
-        item = ItemCarrito.query.filter_by(
-            usuario_id=usuario_id, producto_id=producto.id,
-            talla_id=talla_id, color_id=color_id,
-        ).first()
-    else:
-        item = ItemCarrito.query.filter_by(
-            usuario_id=usuario_id, producto_id=producto.id,
-        ).first()
+    # La variante exacta (None en productos sin variantes): una línea por
+    # usuario, producto y variante.
+    variante_actual = producto.variante_para(talla, color) if producto.usa_variantes else None
+    variante_id = variante_actual.id if variante_actual else None
+    item = ItemCarrito.query.filter_by(
+        usuario_id=usuario_id, producto_id=producto.id, variante_id=variante_id,
+    ).first()
 
     if item:
-        item.cantidad += cantidad
+        # La suma la hace la base (cantidad = cantidad + n): si dos solicitudes suman
+        # a la vez, no se pisan ni se pierde ninguna.
+        item.cantidad = ItemCarrito.cantidad + cantidad
     else:
-        item = ItemCarrito(usuario_id=usuario_id, producto_id=producto.id, cantidad=cantidad)
-        if producto.usa_variantes:
-            item.talla = talla if producto.tallas_lista else None
-            item.color = color if producto.colores_lista else None
-        db.session.add(item)
+        db.session.add(ItemCarrito(
+            usuario_id=usuario_id, producto_id=producto.id,
+            variante_id=variante_id, cantidad=cantidad,
+        ))
     return None
 
 
@@ -153,12 +144,20 @@ def agregar_item():
     if not producto:
         return jsonify({"error": "Producto no encontrado"}), 404
 
-    error = _sumar_al_carrito(usuario_id, producto, cantidad, talla, color)
-    if error:
-        db.session.rollback()
-        return jsonify({"error": error}), 400
-
-    db.session.commit()
+    # Si dos solicitudes agregan la misma línea a la vez, la base deja pasar una
+    # y rechaza la otra: se repite una vez y esa ya encuentra la línea y suma.
+    for intento in range(2):
+        error = _sumar_al_carrito(usuario_id, producto, cantidad, talla, color)
+        if error:
+            db.session.rollback()
+            return jsonify({"error": error}), 400
+        try:
+            db.session.commit()
+            break
+        except IntegrityError as e:
+            db.session.rollback()
+            if intento == 1 or not _es_linea_repetida(e):
+                raise
     return jsonify(_resumen(usuario_id)), 201
 
 
@@ -350,44 +349,51 @@ def fusionar_carrito_invitado():
         {"producto": None, "mensaje": d["motivo"]} for d in descartadas
     ]
 
-    for linea in lineas:
-        producto = Producto.query.filter_by(id=linea["producto_id"], activo=True).first()
-        if not producto:
-            ajustes.append({"producto": None, "mensaje": "Un producto de tu carrito ya no está disponible."})
-            continue
+    try:
+        for linea in lineas:
+            producto = Producto.query.filter_by(id=linea["producto_id"], activo=True).first()
+            if not producto:
+                ajustes.append({"producto": None, "mensaje": "Un producto de tu carrito ya no está disponible."})
+                continue
 
-        talla, color, cantidad = linea["talla"], linea["color"], linea["cantidad"]
+            talla, color, cantidad = linea["talla"], linea["color"], linea["cantidad"]
 
-        stock_disponible, ya_en_carrito = _disponibilidad(
-            producto, talla, color, usuario_id=usuario_id
-        )
-        if _falta_elegir_opciones(producto, talla, color) or stock_disponible is None:
-            ajustes.append({
-                "producto": producto.nombre,
-                "mensaje": f"{producto.nombre}: esa opción ya no está disponible.",
-            })
-            continue
+            stock_disponible, ya_en_carrito = _disponibilidad(
+                producto, talla, color, usuario_id=usuario_id
+            )
+            if _falta_elegir_opciones(producto, talla, color) or stock_disponible is None:
+                ajustes.append({
+                    "producto": producto.nombre,
+                    "mensaje": f"{producto.nombre}: esa opción ya no está disponible.",
+                })
+                continue
 
-        cabe = stock_disponible - ya_en_carrito
-        if cabe <= 0:
-            ajustes.append({
-                "producto": producto.nombre,
-                "mensaje": f"{producto.nombre}: se agotó y no se pudo agregar.",
-            })
-            continue
+            cabe = stock_disponible - ya_en_carrito
+            if cabe <= 0:
+                ajustes.append({
+                    "producto": producto.nombre,
+                    "mensaje": f"{producto.nombre}: se agotó y no se pudo agregar.",
+                })
+                continue
 
-        a_agregar = min(cantidad, cabe)
-        error = _sumar_al_carrito(usuario_id, producto, a_agregar, talla, color)
-        if error:
-            ajustes.append({"producto": producto.nombre, "mensaje": f"{producto.nombre}: {error}"})
-            continue
-        if a_agregar < cantidad:
-            ajustes.append({
-                "producto": producto.nombre,
-                "mensaje": f"{producto.nombre}: solo pudimos agregar {a_agregar} de {cantidad} por falta de stock.",
-            })
+            a_agregar = min(cantidad, cabe)
+            error = _sumar_al_carrito(usuario_id, producto, a_agregar, talla, color)
+            if error:
+                ajustes.append({"producto": producto.nombre, "mensaje": f"{producto.nombre}: {error}"})
+                continue
+            if a_agregar < cantidad:
+                ajustes.append({
+                    "producto": producto.nombre,
+                    "mensaje": f"{producto.nombre}: solo pudimos agregar {a_agregar} de {cantidad} por falta de stock.",
+                })
 
-    db.session.commit()
+        db.session.commit()
+    except IntegrityError as e:
+        db.session.rollback()
+        if not _es_linea_repetida(e):
+            raise
+        return jsonify({"error": "Tu carrito cambió mientras se procesaba. Inténtalo de nuevo."}), 409
+
     respuesta = _resumen(usuario_id)
     respuesta["ajustes"] = ajustes
     return jsonify(respuesta)
