@@ -30,14 +30,13 @@ def crear_admin(email, password, nombre="Admin", apellido="Anita", rol="superadm
 
         if usuario:
             usuario.rol = rol
-            usuario.es_admin = rol != "cliente"
             db.session.commit()
             print(f"✅ {email} ya existía, ahora tiene el rol: {ROLES[rol]}")
             return
 
         usuario = Usuario(
             nombre=nombre, apellido=apellido, email=email,
-            rol=rol, es_admin=rol != "cliente",
+            rol=rol,
         )
         usuario.set_password(password)
         db.session.add(usuario)

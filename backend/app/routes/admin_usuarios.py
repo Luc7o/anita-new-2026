@@ -55,7 +55,6 @@ def crear_usuario_admin():
         apellido=data["apellido"].strip(),
         email=email,
         rol=data["rol"],
-        es_admin=data["rol"] != "cliente",
     )
     usuario.set_password(data["password"])
     db.session.add(usuario)
@@ -78,7 +77,6 @@ def cambiar_rol(usuario_id):
         return jsonify({"error": "Solo un Super Administrador puede asignar ese rol"}), 403
 
     usuario.rol = nuevo_rol
-    usuario.es_admin = nuevo_rol != "cliente"
     db.session.commit()
     return jsonify(usuario.to_dict())
 

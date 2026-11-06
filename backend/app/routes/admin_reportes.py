@@ -111,7 +111,7 @@ def reporte_clientes():
     pedidos = query.all()
 
     clientes = (
-        Usuario.query.filter_by(es_admin=False, es_invitado=False)
+        Usuario.clientes().filter_by(es_invitado=False)
         .order_by(Usuario.fecha_registro.desc())
         .all()
     )
