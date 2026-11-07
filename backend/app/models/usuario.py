@@ -82,7 +82,6 @@ class Usuario(db.Model):
     totp_secreto = db.Column(db.String(255), nullable=True)
     totp_activo = db.Column(db.Boolean, nullable=False, default=False)
     totp_ultimo_paso = db.Column(db.BigInteger, nullable=True)  # evita reutilizar un código
-    codigos_respaldo = db.Column(db.Text, nullable=True)        # JSON con hashes, no los códigos
     # Cuando la persona eliminó su cuenta (los datos personales se anonimizan).
     eliminado_en = db.Column(db.DateTime, nullable=True)
 
