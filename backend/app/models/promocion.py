@@ -30,11 +30,11 @@ class Promocion(db.Model):
     fecha_inicio = db.Column(db.Date, nullable=True)
     fecha_fin = db.Column(db.Date, nullable=True)
 
-    activo = db.Column(db.Boolean, default=True)
+    activo = db.Column(db.Boolean, default=True, nullable=False)
     orden = db.Column(db.Integer, default=0)
 
-    fecha_creacion = db.Column(db.DateTime, default=datetime.utcnow)
-    fecha_actualizacion = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    fecha_creacion = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    fecha_actualizacion = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 
     @property
     def vigente(self):

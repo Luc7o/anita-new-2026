@@ -13,8 +13,8 @@ class Proveedor(db.Model):
     direccion = db.Column(db.String(200))
     ruc = db.Column(db.String(20))
     notas = db.Column(db.Text)
-    activo = db.Column(db.Boolean, default=True)
-    fecha_creacion = db.Column(db.DateTime, default=datetime.utcnow)
+    activo = db.Column(db.Boolean, default=True, nullable=False)
+    fecha_creacion = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
 
     productos_suministrados = db.relationship(
         "ProveedorProducto", backref="proveedor",
@@ -52,8 +52,8 @@ class ProveedorProducto(db.Model):
     proveedor_id = db.Column(db.Integer, db.ForeignKey("proveedores.id"), nullable=False)
     producto_id = db.Column(db.Integer, db.ForeignKey("productos.id"), nullable=False)
     precio_compra = db.Column(db.Numeric(10, 2))
-    activo = db.Column(db.Boolean, default=True)
-    fecha_creacion = db.Column(db.DateTime, default=datetime.utcnow)
+    activo = db.Column(db.Boolean, default=True, nullable=False)
+    fecha_creacion = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
 
     producto = db.relationship("Producto")
 

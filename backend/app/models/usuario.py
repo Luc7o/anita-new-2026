@@ -49,7 +49,7 @@ class Usuario(db.Model):
     # registro no calzó exacto con el catálogo oficial. Ya no se usa en la
     # aplicación, solo queda como histórico.
 
-    activo = db.Column(db.Boolean, default=True)
+    activo = db.Column(db.Boolean, default=True, nullable=False)
     # Cuenta creada por /auth/invitado (checkout como invitado), sin
     # contraseña todavía. No tiene ningún efecto en permisos — solo indica
     # que le falta poner contraseña si quiere volver a entrar después. Se
@@ -72,7 +72,7 @@ class Usuario(db.Model):
     # consistente entre todas las instancias serverless.
     intentos_fallidos_login = db.Column(db.Integer, nullable=False, default=0)
     bloqueado_hasta = db.Column(db.DateTime, nullable=True)
-    fecha_registro = db.Column(db.DateTime, default=datetime.utcnow)
+    fecha_registro = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
 
     # --- Preferencias y seguridad de la cuenta (Mi Cuenta > Configuración) ---
     # Consentimiento para recibir correos de promociones (opt-in: por defecto NO).

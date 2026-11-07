@@ -14,10 +14,10 @@ class Resena(db.Model):
 
     calificacion = db.Column(db.Integer, nullable=False)  # 1 a 5
     comentario = db.Column(db.Text)
-    compra_verificada = db.Column(db.Boolean, default=False)
+    compra_verificada = db.Column(db.Boolean, default=False, nullable=False)
 
-    fecha_creacion = db.Column(db.DateTime, default=datetime.utcnow)
-    fecha_actualizacion = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    fecha_creacion = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    fecha_actualizacion = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 
     usuario = db.relationship("Usuario")
 

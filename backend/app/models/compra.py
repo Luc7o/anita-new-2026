@@ -21,7 +21,7 @@ class Compra(db.Model):
     anulada_por = db.Column(db.Integer, db.ForeignKey("usuarios.id", ondelete="SET NULL"))
     fecha_anulacion = db.Column(db.DateTime)
     motivo_anulacion = db.Column(db.String(255))
-    fecha_creacion = db.Column(db.DateTime, default=datetime.utcnow)
+    fecha_creacion = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
 
     proveedor = db.relationship("Proveedor")
     usuario = db.relationship("Usuario", foreign_keys=[usuario_id])
