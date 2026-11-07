@@ -22,7 +22,7 @@ class EventoAnalitica(db.Model):
     usuario_id = db.Column(db.Integer, db.ForeignKey("usuarios.id", ondelete="SET NULL"), nullable=True)
     sesion_id = db.Column(db.String(64), nullable=False)
     metadata_json = db.Column("metadata", db.JSON, nullable=True)
-    creado_en = db.Column(db.DateTime, default=datetime.utcnow)
+    creado_en = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
 
     def __repr__(self):
         return f"<EventoAnalitica {self.tipo_evento} sesion={self.sesion_id}>"
@@ -62,7 +62,7 @@ class MovimientoStock(db.Model):
     tipo = db.Column(db.Enum(*TIPOS, name="movimiento_stock_tipo_enum"), nullable=False)
     cantidad = db.Column(db.Integer, nullable=False)
     pedido_id = db.Column(db.Integer, db.ForeignKey("pedidos.id", ondelete="SET NULL"), nullable=True)
-    fecha_creacion = db.Column(db.DateTime, default=datetime.utcnow)
+    fecha_creacion = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
 
     # Fase 1 del módulo de almacén (migración 055)
     usuario_id = db.Column(db.Integer, db.ForeignKey("usuarios.id", ondelete="SET NULL"), nullable=True)
@@ -166,7 +166,7 @@ class HistorialEstadoPedido(db.Model):
     estado_anterior = db.Column(db.String(30), nullable=False)
     estado_nuevo = db.Column(db.String(30), nullable=False)
     cambiado_por = db.Column(db.Integer, db.ForeignKey("usuarios.id", ondelete="SET NULL"), nullable=True)
-    fecha_creacion = db.Column(db.DateTime, default=datetime.utcnow)
+    fecha_creacion = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
 
     def __repr__(self):
         return f"<HistorialEstadoPedido pedido={self.pedido_id} {self.estado_anterior}->{self.estado_nuevo}>"
@@ -183,7 +183,7 @@ class IntentoPago(db.Model):
     estado = db.Column(db.Enum(*ESTADOS, name="intento_pago_estado_enum"), nullable=False)
     codigo_culqi = db.Column(db.String(40), nullable=True)
     motivo_rechazo = db.Column(db.String(255), nullable=True)
-    fecha_creacion = db.Column(db.DateTime, default=datetime.utcnow)
+    fecha_creacion = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
 
     def __repr__(self):
         return f"<IntentoPago pedido={self.pedido_id} {self.estado}>"
@@ -202,7 +202,7 @@ class PromocionUso(db.Model):
     pedido_id = db.Column(db.Integer, db.ForeignKey("pedidos.id", ondelete="CASCADE"), nullable=False)
     usuario_id = db.Column(db.Integer, db.ForeignKey("usuarios.id", ondelete="SET NULL"), nullable=True)
     monto_descuento = db.Column(db.Numeric(10, 2), nullable=False)
-    fecha_creacion = db.Column(db.DateTime, default=datetime.utcnow)
+    fecha_creacion = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
 
     def __repr__(self):
         return f"<PromocionUso pedido={self.pedido_id}>"
@@ -216,7 +216,7 @@ class LatenciaRequest(db.Model):
     metodo = db.Column(db.String(10), nullable=False)
     latencia_ms = db.Column(db.Integer, nullable=False)
     status_code = db.Column(db.SmallInteger, nullable=False)
-    fecha_creacion = db.Column(db.DateTime, default=datetime.utcnow)
+    fecha_creacion = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
 
     def __repr__(self):
         return f"<LatenciaRequest {self.metodo} {self.endpoint} {self.status_code}>"

@@ -26,7 +26,7 @@ class ItemCarrito(db.Model):
     cantidad = db.Column(db.Integer, nullable=False, default=1)
     # KPIs: para medir abandono de carrito (cuánto tiempo pasa desde que se
     # agrega algo hasta que se compra o queda huérfano).
-    fecha_creacion = db.Column(db.DateTime, default=datetime.utcnow)
+    fecha_creacion = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
 
     # Solo lectura: id y producto se asignan siempre con las columnas de arriba.
     variante = db.relationship("VarianteProducto", lazy="joined", viewonly=True)

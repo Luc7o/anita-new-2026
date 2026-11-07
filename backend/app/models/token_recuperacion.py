@@ -17,7 +17,7 @@ class TokenRecuperacion(db.Model):
     token = db.Column(db.String(64), unique=True, nullable=False, index=True)
     usado = db.Column(db.Boolean, default=False, nullable=False)
     expira_en = db.Column(db.DateTime, nullable=False)
-    creado_en = db.Column(db.DateTime, default=datetime.utcnow)
+    creado_en = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
 
     @staticmethod
     def generar(usuario_id, minutos_validez=30):

@@ -11,7 +11,7 @@ class Categoria(db.Model):
     descripcion = db.Column(db.String(300))
     icono = db.Column(db.String(100), default="bag")
     imagen_url = db.Column(db.String(500))
-    activo = db.Column(db.Boolean, default=True)
+    activo = db.Column(db.Boolean, default=True, nullable=False)
 
     productos = db.relationship("Producto", backref="categoria", lazy="dynamic")
 
@@ -70,11 +70,11 @@ class Producto(db.Model):
     categoria_id = db.Column(db.Integer, db.ForeignKey("categorias.id"), nullable=False)
 
 
-    destacado = db.Column(db.Boolean, default=False)
-    es_nuevo = db.Column(db.Boolean, default=True)
-    activo = db.Column(db.Boolean, default=True)
+    destacado = db.Column(db.Boolean, default=False, nullable=False)
+    es_nuevo = db.Column(db.Boolean, default=True, nullable=False)
+    activo = db.Column(db.Boolean, default=True, nullable=False)
 
-    fecha_creacion = db.Column(db.DateTime, default=datetime.utcnow)
+    fecha_creacion = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     fecha_actualizacion = db.Column(
         db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow
     )

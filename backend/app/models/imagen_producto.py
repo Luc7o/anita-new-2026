@@ -13,7 +13,7 @@ class ImagenProducto(db.Model):
     # texto libre, igual que en variantes_producto.
     color_id = db.Column(db.Integer, db.ForeignKey("colores.id"), nullable=True)
     orden = db.Column(db.Integer, default=0)
-    fecha_creacion = db.Column(db.DateTime, default=datetime.utcnow)
+    fecha_creacion = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
 
     color_obj = db.relationship("Color", lazy="joined")
 

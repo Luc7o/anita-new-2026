@@ -112,7 +112,7 @@ class Pedido(db.Model):
     pago_idempotency_key = db.Column(db.String(64))
 
     nota = db.Column(db.Text)
-    fecha_creacion = db.Column(db.DateTime, default=datetime.utcnow)
+    fecha_creacion = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
 
     # --- KPIs ---
     # Cuándo se confirmó el pago de verdad (no cuándo se creó el pedido).
