@@ -116,10 +116,7 @@ def generar_pdf_kardex(producto, movimientos, desde_str=None, hasta_str=None, tr
     """
     grupos = OrderedDict()
     for m in movimientos:
-        etiqueta = None
-        if m.variante:
-            etiqueta = " · ".join(x for x in (f"Talla {m.variante.talla}" if m.variante.talla else None, m.variante.color) if x)
-        grupos.setdefault(etiqueta, []).append(m)
+        grupos.setdefault(m.variante_etiqueta, []).append(m)
 
     bloques = []
     total_entradas = total_salidas = 0
