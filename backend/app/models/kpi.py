@@ -4,6 +4,7 @@ lógica de negocio del checkout/pagos en sí — solo registran lo que ya pasó,
 para poder calcular métricas después.
 """
 from datetime import datetime
+from sqlalchemy import event, text
 from app.extensions import db
 
 
@@ -72,9 +73,34 @@ class MovimientoStock(db.Model):
     proveedor_id = db.Column(db.Integer, db.ForeignKey("proveedores.id", ondelete="SET NULL"), nullable=True)
     compra_id = db.Column(db.Integer, db.ForeignKey("compras.id", ondelete="SET NULL"), nullable=True)
 
+    # Foto de la variante en el momento del movimiento (como ya hacen detalles_pedido
+    # y detalle_compra). Si la variante se elimina después, variante_id queda en NULL
+    # pero el kardex sigue diciendo de qué talla y color era el movimiento.
+    talla = db.Column(db.String(20), nullable=True)
+    color = db.Column(db.String(50), nullable=True)
+
     producto = db.relationship("Producto")
     variante = db.relationship("VarianteProducto")
     usuario = db.relationship("Usuario")
+
+    @property
+    def talla_mostrada(self):
+        """La talla del movimiento: la foto guardada o, si falta, la de la variante."""
+        if self.talla is not None:
+            return self.talla
+        return self.variante.talla if self.variante else None
+
+    @property
+    def color_mostrado(self):
+        if self.color is not None:
+            return self.color
+        return self.variante.color if self.variante else None
+
+    @property
+    def variante_etiqueta(self):
+        """Texto como "Talla M · Rojo", o None si el producto no tiene variantes."""
+        partes = (f"Talla {self.talla_mostrada}" if self.talla_mostrada else None, self.color_mostrado)
+        return " · ".join(x for x in partes if x) or None
 
     @property
     def delta(self):
@@ -103,14 +129,33 @@ class MovimientoStock(db.Model):
             "producto_nombre": self.producto.nombre if self.producto else None,
             "sku": self.producto.sku if self.producto else None,
             "variante_id": self.variante_id,
-            "talla": self.variante.talla if self.variante else None,
-            "color": self.variante.color if self.variante else None,
+            "talla": self.talla_mostrada,
+            "color": self.color_mostrado,
             "usuario_id": self.usuario_id,
             "usuario_nombre": self.usuario.nombre_completo if self.usuario else None,
         }
 
     def __repr__(self):
         return f"<MovimientoStock {self.tipo} cantidad={self.cantidad}>"
+
+
+@event.listens_for(MovimientoStock, "before_insert")
+def _fotografiar_variante(mapper, connection, movimiento):
+    """Antes de guardar un movimiento, copia en él la talla y el color de su
+    variante. Se hace aquí, en un solo lugar, para que ningún movimiento nuevo
+    (venta, compra, ajuste...) pueda quedar sin esa foto por olvido."""
+    if movimiento.variante_id is None or movimiento.talla is not None or movimiento.color is not None:
+        return
+    fila = connection.execute(
+        text(
+            "SELECT NULLIF(t.nombre, ''), NULLIF(c.nombre, '') FROM variantes_producto v "
+            "JOIN tallas t ON t.id = v.talla_id JOIN colores c ON c.id = v.color_id "
+            "WHERE v.id = :vid"
+        ),
+        {"vid": movimiento.variante_id},
+    ).first()
+    if fila:
+        movimiento.talla, movimiento.color = fila
 
 
 class HistorialEstadoPedido(db.Model):
