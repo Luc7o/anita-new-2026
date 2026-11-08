@@ -5,6 +5,7 @@ para poder calcular métricas después.
 """
 from datetime import datetime
 from sqlalchemy import event, text
+from sqlalchemy.dialects.postgresql import JSONB
 from app.extensions import db
 
 
@@ -17,11 +18,11 @@ class EventoAnalitica(db.Model):
     )
 
     id = db.Column(db.BigInteger, primary_key=True)
-    tipo_evento = db.Column(db.Enum(*TIPOS, name="tipo_evento_enum"), nullable=False)
+    tipo_evento = db.Column(db.Enum(*TIPOS, name="tipo_evento_enum", native_enum=False, create_constraint=False), nullable=False)
     producto_id = db.Column(db.Integer, db.ForeignKey("productos.id", ondelete="SET NULL"), nullable=True)
     usuario_id = db.Column(db.Integer, db.ForeignKey("usuarios.id", ondelete="SET NULL"), nullable=True)
     sesion_id = db.Column(db.String(64), nullable=False)
-    metadata_json = db.Column("metadata", db.JSON, nullable=True)
+    metadata_json = db.Column("metadata", JSONB, nullable=True)
     creado_en = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
 
     def __repr__(self):
@@ -59,7 +60,7 @@ class MovimientoStock(db.Model):
     id = db.Column(db.BigInteger, primary_key=True)
     variante_id = db.Column(db.Integer, db.ForeignKey("variantes_producto.id", ondelete="SET NULL"), nullable=True)
     producto_id = db.Column(db.Integer, db.ForeignKey("productos.id", ondelete="SET NULL"), nullable=True)
-    tipo = db.Column(db.Enum(*TIPOS, name="movimiento_stock_tipo_enum"), nullable=False)
+    tipo = db.Column(db.Enum(*TIPOS, name="movimiento_stock_tipo_enum", native_enum=False, create_constraint=False), nullable=False)
     cantidad = db.Column(db.Integer, nullable=False)
     pedido_id = db.Column(db.Integer, db.ForeignKey("pedidos.id", ondelete="SET NULL"), nullable=True)
     fecha_creacion = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
@@ -180,7 +181,7 @@ class IntentoPago(db.Model):
     id = db.Column(db.BigInteger, primary_key=True)
     pedido_id = db.Column(db.Integer, db.ForeignKey("pedidos.id", ondelete="CASCADE"), nullable=False)
     monto = db.Column(db.Numeric(10, 2), nullable=False)
-    estado = db.Column(db.Enum(*ESTADOS, name="intento_pago_estado_enum"), nullable=False)
+    estado = db.Column(db.Enum(*ESTADOS, name="intento_pago_estado_enum", native_enum=False, create_constraint=False), nullable=False)
     codigo_culqi = db.Column(db.String(40), nullable=True)
     motivo_rechazo = db.Column(db.String(255), nullable=True)
     fecha_creacion = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)

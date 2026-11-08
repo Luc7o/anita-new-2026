@@ -14,7 +14,7 @@ class Compra(db.Model):
     tipo_documento = db.Column(db.String(20))
     numero_documento = db.Column(db.String(40))
     fecha_compra = db.Column(db.Date, nullable=False)
-    estado = db.Column(db.Enum(*ESTADOS, name="compra_estado_enum"), nullable=False, default="recibida")
+    estado = db.Column(db.Enum(*ESTADOS, name="compra_estado_enum", native_enum=False, create_constraint=False), nullable=False, default="recibida")
     total = db.Column(db.Numeric(12, 2), nullable=False, default=0)
     notas = db.Column(db.Text)
     usuario_id = db.Column(db.Integer, db.ForeignKey("usuarios.id", ondelete="SET NULL"))

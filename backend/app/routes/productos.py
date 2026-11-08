@@ -7,6 +7,7 @@ from app.models import Producto, Categoria, Resena, DetallePedido, Pedido, Varia
 from app.models.producto import GENEROS, precargar_resumen_resenas
 from app.utils.decorators import requiere_activo
 from app.utils.cache import cache_publico
+from app.utils.busqueda import contiene
 
 bp = Blueprint("productos", __name__, url_prefix="/api")
 
@@ -37,10 +38,10 @@ def _filtro_busqueda(texto):
         for forma in _variantes_termino(palabra):
             patron = "%" + forma.replace("/", "//").replace("%", "/%").replace("_", "/_") + "%"
             opciones += [
-                Producto.nombre.ilike(patron, escape="/"),
-                Producto.descripcion.ilike(patron, escape="/"),
+                contiene(Producto.nombre, patron, escape="/"),
+                contiene(Producto.descripcion, patron, escape="/"),
                 Producto.sku.ilike(patron, escape="/"),
-                Producto.categoria.has(Categoria.nombre.ilike(patron, escape="/")),
+                Producto.categoria.has(contiene(Categoria.nombre, patron, escape="/")),
             ]
         condiciones.append(db.or_(*opciones))
     return db.and_(*condiciones)

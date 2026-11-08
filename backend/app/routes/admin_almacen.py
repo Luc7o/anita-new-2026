@@ -7,6 +7,7 @@ from app.models import Producto, Categoria
 from app.roles import PUEDE_VER_ALMACEN, PUEDE_AJUSTAR_STOCK
 from app.utils.almacen import ErrorAlmacen, registrar_ajuste, aplicar_inventario_fisico
 from app.utils.decorators import requiere_roles
+from app.utils.busqueda import contiene
 
 bp = Blueprint("admin_almacen", __name__, url_prefix="/api/admin/almacen")
 
@@ -54,7 +55,7 @@ def stock():
 
     q = (request.args.get("q") or "").strip()[:100]
     if q:
-        query = query.filter(or_(Producto.nombre.ilike(f"%{q}%"), Producto.sku.ilike(f"%{q}%")))
+        query = query.filter(or_(contiene(Producto.nombre, f"%{q}%"), Producto.sku.ilike(f"%{q}%")))
 
     categoria_id = request.args.get("categoria_id", type=int)
     if categoria_id:

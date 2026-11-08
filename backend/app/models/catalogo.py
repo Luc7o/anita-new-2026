@@ -1,3 +1,4 @@
+from sqlalchemy.dialects.postgresql import CITEXT
 from app.extensions import db
 
 
@@ -18,10 +19,7 @@ class Talla(db.Model):
     __tablename__ = "tallas"
 
     id = db.Column(db.Integer, primary_key=True)
-    nombre = db.Column(
-        db.String(20).with_variant(db.String(20, collation="utf8mb4_unicode_ci"), "mysql"),
-        unique=True, nullable=False,
-    )
+    nombre = db.Column(CITEXT, unique=True, nullable=False)  # "m" y "M" son la misma talla
     orden = db.Column(db.Integer, default=0)  # para mostrarlas siempre en el mismo orden (S, M, L...)
 
     @classmethod
@@ -58,10 +56,7 @@ class Color(db.Model):
     __tablename__ = "colores"
 
     id = db.Column(db.Integer, primary_key=True)
-    nombre = db.Column(
-        db.String(50).with_variant(db.String(50, collation="utf8mb4_unicode_ci"), "mysql"),
-        unique=True, nullable=False,
-    )
+    nombre = db.Column(CITEXT, unique=True, nullable=False)  # "rojo" y "Rojo" son el mismo color
     codigo_hex = db.Column(db.String(7))  # opcional, para pintar un swatch en el frontend
 
     @classmethod

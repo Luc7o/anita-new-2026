@@ -1,4 +1,5 @@
 from datetime import datetime
+from sqlalchemy.dialects.postgresql import CITEXT
 from app.extensions import db
 
 
@@ -6,8 +7,8 @@ class Categoria(db.Model):
     __tablename__ = "categorias"
 
     id = db.Column(db.Integer, primary_key=True)
-    nombre = db.Column(db.String(80), nullable=False, unique=True)
-    slug = db.Column(db.String(80), nullable=False, unique=True)
+    nombre = db.Column(CITEXT, nullable=False, unique=True)
+    slug = db.Column(CITEXT, nullable=False, unique=True)
     descripcion = db.Column(db.String(300))
     icono = db.Column(db.String(100), default="bag")
     imagen_url = db.Column(db.String(500))
@@ -63,7 +64,7 @@ class Producto(db.Model):
     costo_promedio = db.Column(db.Numeric(10, 2))
     # Con este stock o menos el producto se marca como "stock bajo" (migración 057).
     stock_minimo = db.Column(db.Integer, nullable=False, default=3, server_default="3")
-    sku = db.Column(db.String(60), unique=True)
+    sku = db.Column(CITEXT, unique=True)
     # Género al que va dirigido (filtro de la tienda). NULL = sin definir.
     genero = db.Column(db.String(20))
 
@@ -91,6 +92,9 @@ class Producto(db.Model):
     variantes = db.relationship(
         "VarianteProducto", backref="producto",
         cascade="all, delete-orphan",
+        # Orden fijo: sin esto, PostgreSQL devuelve las variantes en el orden en que
+        # quedaron guardadas, que puede cambiar entre consultas.
+        order_by="[VarianteProducto.talla_id, VarianteProducto.color_id]",
     )
     resenas = db.relationship(
         "Resena", backref="producto",
@@ -243,7 +247,7 @@ class Producto(db.Model):
 def precargar_resumen_resenas(productos):
     """
     Calcula cantidad y promedio de reseñas de TODOS los productos dados con
-    UNA sola consulta agrupada (COUNT/AVG en MySQL), en vez de traer cada
+    UNA sola consulta agrupada (COUNT/AVG), en vez de traer cada
     reseña completa solo para contarla y promediarla en Python.
 
     Deja el resultado en cada producto; total_resenas y promedio_calificacion

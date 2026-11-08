@@ -1,4 +1,5 @@
 import os
+import re
 from datetime import timedelta
 from urllib.parse import quote_plus
 from dotenv import load_dotenv
@@ -9,20 +10,33 @@ load_dotenv()
 class Config:
     SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret-key")
 
-    DB_USER = os.getenv("DB_USER", "root")
-    DB_PASSWORD = os.getenv("DB_PASSWORD", "")
-    DB_HOST = os.getenv("DB_HOST", "localhost")
-    DB_PORT = os.getenv("DB_PORT", "3306")
-    DB_NAME = os.getenv("DB_NAME", "anita_new_style")
+    # --- Base de datos: PostgreSQL (Neon) ---
+    # Neon entrega UNA sola URL (DATABASE_URL, con ?sslmode=require). Para desarrollo
+    # local también se puede armar con DB_HOST, DB_PORT, DB_USER, DB_PASSWORD y DB_NAME.
+    @staticmethod
+    def _armar_uri():
+        url = os.getenv("DATABASE_URL", "").strip()
+        if url:
+            # Algunos proveedores la entregan como postgres:// (formato viejo)
+            return re.sub(r"^postgres(ql)?://", "postgresql+psycopg2://", url)
+        usuario = quote_plus(os.getenv("DB_USER", "postgres"))
+        password = quote_plus(os.getenv("DB_PASSWORD", ""))
+        host = os.getenv("DB_HOST", "localhost")
+        puerto = os.getenv("DB_PORT", "5432")
+        nombre = os.getenv("DB_NAME", "anita_new_style")
+        return f"postgresql+psycopg2://{usuario}:{password}@{host}:{puerto}/{nombre}"
 
-    # Escapamos usuario y password por si tienen caracteres especiales (@, :, /, etc.)
-    _usuario_escapado = quote_plus(DB_USER)
-    _password_escapado = quote_plus(DB_PASSWORD)
-
-    SQLALCHEMY_DATABASE_URI = (
-        f"mysql+pymysql://{_usuario_escapado}:{_password_escapado}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
-    )
+    SQLALCHEMY_DATABASE_URI = _armar_uri.__func__()
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    # Vercel abre una conexión por cada instancia de la función, y Neon (con su
+    # pooler) cierra las conexiones que pasan un rato inactivas: se revisa que la
+    # conexión siga viva antes de usarla y se mantienen pocas por instancia.
+    SQLALCHEMY_ENGINE_OPTIONS = {
+        "pool_pre_ping": True,
+        "pool_recycle": 240,
+        "pool_size": int(os.getenv("DB_POOL_SIZE", "2")),
+        "max_overflow": int(os.getenv("DB_MAX_OVERFLOW", "3")),
+    }
 
     JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", "dev-jwt-secret")
     # Access token de corta duración: se usa en cada request y se refresca
