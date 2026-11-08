@@ -5,7 +5,7 @@ promociones, ubicaciones).
 Tres capas que trabajan juntas:
 
 1. Servidor: la respuesta ya armada se guarda unos segundos, así que miles de
-   visitas al catálogo no repiten la misma consulta a MySQL. Usa Redis si hay
+   visitas al catálogo no repiten la misma consulta a la base de datos. Usa Redis si hay
    REDIS_URL (compartido entre todas las instancias serverless) y, si no, un
    diccionario en memoria del proceso (más limitado en Vercel: cada instancia
    tiene el suyo).

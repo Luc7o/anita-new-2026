@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 from werkzeug.security import generate_password_hash, check_password_hash
+from sqlalchemy.dialects.postgresql import CITEXT
 from app.extensions import db
 
 
@@ -21,7 +22,7 @@ class Usuario(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     nombre = db.Column(db.String(80), nullable=False)
     apellido = db.Column(db.String(80), nullable=False)
-    email = db.Column(db.String(120), unique=True, nullable=False, index=True)
+    email = db.Column(CITEXT, unique=True, nullable=False)
     # Nullable: una cuenta de checkout como invitado (ver /auth/invitado) se
     # crea SIN contraseña — la persona compra sin pasar por el registro
     # completo, y puede ponerle contraseña después si quiere (ver
@@ -82,7 +83,6 @@ class Usuario(db.Model):
     totp_secreto = db.Column(db.String(255), nullable=True)
     totp_activo = db.Column(db.Boolean, nullable=False, default=False)
     totp_ultimo_paso = db.Column(db.BigInteger, nullable=True)  # evita reutilizar un código
-    codigos_respaldo = db.Column(db.Text, nullable=True)        # JSON con hashes, no los códigos
     # Cuando la persona eliminó su cuenta (los datos personales se anonimizan).
     eliminado_en = db.Column(db.DateTime, nullable=True)
 
@@ -112,7 +112,7 @@ class Usuario(db.Model):
 
     def registrar_intento_fallido(self):
         """Se llama tras un password incorrecto. Al llegar al umbral,
-        bloquea la cuenta por un rato — este contador vive en MySQL, así
+        bloquea la cuenta por un rato — este contador vive en la base de datos, así
         que funciona igual sin importar si el rate limiter tiene Redis."""
         self.intentos_fallidos_login += 1
         if self.intentos_fallidos_login >= self.UMBRAL_INTENTOS_FALLIDOS:

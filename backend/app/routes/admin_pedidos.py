@@ -31,6 +31,7 @@ from app.utils.notificaciones import (
     notificar_estado_pedido, notificar_pago_confirmado, notificar_reembolso,
 )
 from app.models import IntentoPago
+from app.utils.busqueda import contiene
 
 bp = Blueprint("admin_pedidos", __name__, url_prefix="/api/admin/pedidos")
 
@@ -64,7 +65,7 @@ def recojos_pendientes_cajero():
         termino = f"%{busqueda}%"
         query = query.filter(db.or_(
             Pedido.numero_pedido.ilike(termino),
-            Pedido.envio_nombre.ilike(termino),
+            contiene(Pedido.envio_nombre, termino),
         ))
 
     pagina = max(request.args.get("pagina", 1, type=int) or 1, 1)
@@ -164,13 +165,13 @@ def listar():
         patron = "%" + palabra.replace("/", "//").replace("%", "/%").replace("_", "/_") + "%"
         query = query.filter(db.or_(
             Pedido.numero_pedido.ilike(patron, escape="/"),
-            Pedido.envio_nombre.ilike(patron, escape="/"),
+            contiene(Pedido.envio_nombre, patron, escape="/"),
             Pedido.envio_telefono.ilike(patron, escape="/"),
             Pedido.envio_email.ilike(patron, escape="/"),
             Pedido.envio_numero_documento.ilike(patron, escape="/"),
             Pedido.cliente.has(db.or_(
-                Usuario.nombre.ilike(patron, escape="/"),
-                Usuario.apellido.ilike(patron, escape="/"),
+                contiene(Usuario.nombre, patron, escape="/"),
+                contiene(Usuario.apellido, patron, escape="/"),
                 Usuario.email.ilike(patron, escape="/"),
             )),
         ))
@@ -492,7 +493,7 @@ def estadisticas():
         )
         .join(DetallePedido, DetallePedido.producto_id == Producto.id)
         .join(Categoria, Producto.categoria_id == Categoria.id)
-        .group_by(Producto.id)
+        .group_by(Producto.id, Categoria.nombre)
         .order_by(db.func.sum(DetallePedido.subtotal).desc())
         .limit(5)
         .all()

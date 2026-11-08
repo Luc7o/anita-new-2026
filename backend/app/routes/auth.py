@@ -13,7 +13,7 @@ from flask_jwt_extended import (
     get_jwt_identity,
 )
 from app.extensions import db, limiter
-from app.models import Usuario, TokenRecuperacion, UbigeoDistrito
+from app.models import Usuario, TokenRecuperacion, UbigeoDistrito, CodigoRespaldo
 from app.utils.decorators import requiere_activo
 from app.utils.correo import enviar_correo
 from app.utils.google_auth import verificar_token_google, TokenGoogleInvalido
@@ -184,9 +184,7 @@ def _verificar_segundo_factor(usuario, codigo):
         if paso is not None:
             usuario.totp_ultimo_paso = paso
             return True, False
-    restantes = totp.consumir_codigo_respaldo(usuario.codigos_respaldo, codigo)
-    if restantes is not None:
-        usuario.codigos_respaldo = restantes
+    if CodigoRespaldo.consumir(usuario.id, codigo):
         return True, True
     return False, False
 
@@ -507,7 +505,7 @@ def login_2fa():
     db.session.commit()
     extra = None
     if uso_respaldo:
-        extra = {"codigos_respaldo_restantes": totp.cantidad_codigos_respaldo(usuario.codigos_respaldo)}
+        extra = {"codigos_respaldo_restantes": CodigoRespaldo.restantes(usuario.id)}
     respuesta, _ = _respuesta_con_sesion(usuario, extra=extra)
     if data.get("recordar_dispositivo") is True:
         _recordar_dispositivo(respuesta, usuario)
@@ -794,7 +792,7 @@ def _estado_seguridad(usuario):
     return {
         "acepta_promociones": bool(usuario.acepta_promociones),
         "totp_activo": bool(usuario.totp_activo),
-        "codigos_respaldo_restantes": totp.cantidad_codigos_respaldo(usuario.codigos_respaldo) if usuario.totp_activo else 0,
+        "codigos_respaldo_restantes": CodigoRespaldo.restantes(usuario.id) if usuario.totp_activo else 0,
         # Las cuentas creadas con Google o como invitado no tienen contraseña
         # propia: para eliminarlas se confirma escribiendo ELIMINAR.
         "requiere_password": bool(usuario.password_hash),
@@ -853,10 +851,10 @@ def activar_2fa():
     if paso is None:
         return jsonify({"error": "El código no es correcto. Revisa que la hora de tu celular sea automática e inténtalo de nuevo."}), 400
 
-    codigos, guardados = totp.generar_codigos_respaldo()
+    codigos, hashes = totp.generar_codigos_respaldo()
     usuario.totp_activo = True
     usuario.totp_ultimo_paso = paso
-    usuario.codigos_respaldo = guardados
+    CodigoRespaldo.reemplazar(usuario.id, hashes)
     db.session.commit()
 
     enviar_correo(
@@ -907,7 +905,7 @@ def desactivar_2fa():
     usuario.totp_activo = False
     usuario.totp_secreto = None
     usuario.totp_ultimo_paso = None
-    usuario.codigos_respaldo = None
+    CodigoRespaldo.borrar_de(usuario.id)
     db.session.commit()
 
     enviar_correo(
@@ -931,8 +929,8 @@ def regenerar_codigos_respaldo():
     if error:
         return error
 
-    codigos, guardados = totp.generar_codigos_respaldo()
-    usuario.codigos_respaldo = guardados
+    codigos, hashes = totp.generar_codigos_respaldo()
+    CodigoRespaldo.reemplazar(usuario.id, hashes)
     db.session.commit()
     return jsonify({**_estado_seguridad(usuario), "codigos_respaldo": codigos})
 
@@ -1039,7 +1037,7 @@ def eliminar_cuenta():
     usuario.totp_activo = False
     usuario.totp_secreto = None
     usuario.totp_ultimo_paso = None
-    usuario.codigos_respaldo = None
+    CodigoRespaldo.borrar_de(usuario.id)
     usuario.es_invitado = False
     usuario.sesion_version += 1
     usuario.eliminado_en = datetime.utcnow()

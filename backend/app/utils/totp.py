@@ -6,7 +6,6 @@ Microsoft Authenticator, Authy, etc. Implementado con la librería estándar
 import base64
 import hashlib
 import hmac
-import json
 import secrets
 import struct
 import time
@@ -83,36 +82,15 @@ def descifrar(token):
 
 
 # ------------------------------------------------------- códigos de respaldo
-def _hash_respaldo(codigo):
+def hash_codigo_respaldo(codigo):
     limpio = "".join(ch for ch in codigo.lower() if ch.isalnum())
     return hashlib.sha256(limpio.encode()).hexdigest()
 
 
 def generar_codigos_respaldo():
-    """(lista para mostrar al usuario UNA vez, JSON con sus hashes para guardar)."""
+    """(lista para mostrar al usuario UNA vez, lista de sus hashes para guardar)."""
     codigos = []
     for _ in range(CANTIDAD_CODIGOS_RESPALDO):
         crudo = secrets.token_hex(5)  # 40 bits
         codigos.append(f"{crudo[:5]}-{crudo[5:]}")
-    return codigos, json.dumps([_hash_respaldo(c) for c in codigos])
-
-
-def consumir_codigo_respaldo(guardados_json, codigo):
-    """Si el código está entre los guardados, lo gasta. Devuelve el JSON nuevo o None."""
-    try:
-        hashes = json.loads(guardados_json or "[]")
-    except ValueError:
-        return None
-    candidato = _hash_respaldo(codigo or "")
-    for guardado in hashes:
-        if hmac.compare_digest(guardado, candidato):
-            hashes.remove(guardado)
-            return json.dumps(hashes)
-    return None
-
-
-def cantidad_codigos_respaldo(guardados_json):
-    try:
-        return len(json.loads(guardados_json or "[]"))
-    except ValueError:
-        return 0
+    return codigos, [hash_codigo_respaldo(c) for c in codigos]

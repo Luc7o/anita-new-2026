@@ -9,6 +9,7 @@ from app.utils.decorators import requiere_roles
 from app.roles import PUEDE_VER_PRODUCTOS, PUEDE_GESTIONAR_PRODUCTOS, PUEDE_GESTIONAR_STOCK
 from app.utils.sku import asignar_sku_si_falta
 from app.utils.stock import foto_stock, registrar_cambios_de_stock
+from app.utils.busqueda import contiene
 
 bp = Blueprint("admin_productos", __name__, url_prefix="/api/admin/productos")
 
@@ -171,7 +172,7 @@ def listar():
     if busqueda:
         # Busca por nombre o por código SKU (parcial, sin distinguir mayúsculas)
         query = query.filter(or_(
-            Producto.nombre.ilike(f"%{busqueda}%"),
+            contiene(Producto.nombre, f"%{busqueda}%"),
             Producto.sku.ilike(f"%{busqueda}%"),
         ))
 

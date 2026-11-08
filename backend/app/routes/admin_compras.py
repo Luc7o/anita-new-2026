@@ -12,6 +12,7 @@ from app.models import Compra, DetalleCompra, Proveedor
 from app.roles import PUEDE_VER_COMPRAS, PUEDE_REGISTRAR_COMPRAS, PUEDE_ANULAR_COMPRAS
 from app.utils.compras import ErrorCompra, registrar_compra, anular_compra
 from app.utils.decorators import requiere_roles
+from app.utils.busqueda import contiene
 
 bp = Blueprint("admin_compras", __name__, url_prefix="/api/admin/compras")
 
@@ -59,7 +60,7 @@ def listar():
     if q:
         condiciones = [
             Compra.numero_documento.ilike(f"%{q}%"),
-            Compra.proveedor.has(Proveedor.nombre.ilike(f"%{q}%")),
+            Compra.proveedor.has(contiene(Proveedor.nombre, f"%{q}%")),
         ]
         m = re.fullmatch(r"c-?0*(\d+)", q, flags=re.IGNORECASE)
         if m:

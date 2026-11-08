@@ -22,7 +22,7 @@ def listar():
         # `rol` ahora es una FK (rol_id -> roles.id), se filtra por el
         # código del rol vía join en vez de comparar texto directo.
         query = query.join(Rol, Usuario.rol_id == Rol.id).filter(Rol.codigo == rol)
-    usuarios = query.order_by(Usuario.fecha_registro.desc()).all()
+    usuarios = query.order_by(Usuario.fecha_registro.desc(), Usuario.id.desc()).all()
     return jsonify([u.to_dict() for u in usuarios])
 
 
