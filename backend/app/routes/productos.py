@@ -70,7 +70,7 @@ def opciones_filtros():
         db.session.query(Color.nombre)
         .join(VarianteProducto, VarianteProducto.color_id == Color.id)
         .join(Producto, Producto.id == VarianteProducto.producto_id)
-        .filter(Producto.activo.is_(True), VarianteProducto.stock > 0, Color.nombre != "")
+        .filter(Producto.activo.is_(True), VarianteProducto.stock > 0)
         .distinct()
         .order_by(Color.nombre)
         .all()

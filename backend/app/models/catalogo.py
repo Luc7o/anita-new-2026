@@ -11,10 +11,8 @@ class Talla(db.Model):
     importar en cuántos productos aparezca — renombrarlo o corregirlo se
     hace en un solo lugar.
 
-    El registro con nombre='' es un valor especial (placeholder): significa
-    "este producto no varía por talla". Se necesita como fila real (no NULL)
-    para que el UNIQUE de variantes_producto siga funcionando igual que
-    antes — en MySQL, NULL nunca es igual a otro NULL dentro de un UNIQUE.
+    Un producto que no varía por talla simplemente no tiene talla en su variante
+    (NULL): ya no existe una talla "vacía".
     """
     __tablename__ = "tallas"
 
@@ -28,6 +26,8 @@ class Talla(db.Model):
         la crea si no existe todavía. Se usa desde el panel admin, donde
         el administrador define el catálogo escribiendo el nombre."""
         nombre = (nombre or "").strip()
+        if not nombre:
+            raise ValueError("El nombre de la talla no puede estar vacío")
         existente = cls.query.filter(db.func.lower(cls.nombre) == nombre.lower()).first()
         if existente:
             return existente
@@ -51,8 +51,8 @@ class Talla(db.Model):
 
 
 class Color(db.Model):
-    """Catálogo de colores. Mismo principio que Talla: nombre='' es el
-    placeholder para "este producto no varía por color"."""
+    """Catálogo de colores. Mismo principio que Talla: un producto que no varía por
+    color tiene el color en NULL en su variante."""
     __tablename__ = "colores"
 
     id = db.Column(db.Integer, primary_key=True)
@@ -64,6 +64,8 @@ class Color(db.Model):
         from app.utils.colores import hex_de_color, normalizar_nombre_color
 
         nombre = normalizar_nombre_color(nombre)
+        if not nombre:
+            raise ValueError("El nombre del color no puede estar vacío")
         existente = cls.query.filter(db.func.lower(cls.nombre) == nombre.lower()).first()
         if existente:
             return existente

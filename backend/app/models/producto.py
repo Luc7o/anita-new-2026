@@ -59,7 +59,8 @@ class Producto(db.Model):
     precio = db.Column(db.Numeric(10, 2), nullable=False)
     precio_oferta = db.Column(db.Numeric(10, 2))
 
-    stock = db.Column(db.Integer, default=0)
+    # El stock NO se guarda aquí: vive en las variantes (ver stock_total). Un producto
+    # simple tiene una única variante sin talla ni color.
     # Costo promedio ponderado de las compras (migración 056). NULL si nunca se compró.
     costo_promedio = db.Column(db.Numeric(10, 2))
     # Con este stock o menos el producto se marca como "stock bajo" (migración 057).
@@ -80,10 +81,6 @@ class Producto(db.Model):
         db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow
     )
 
-    items_carrito = db.relationship(
-        "ItemCarrito", backref="producto", lazy="dynamic",
-        cascade="all, delete-orphan",
-    )
     detalles_pedido = db.relationship("DetallePedido", backref="producto", lazy="dynamic")
     imagenes = db.relationship(
         "ImagenProducto", backref="producto",
@@ -145,18 +142,32 @@ class Producto(db.Model):
 
     @property
     def usa_variantes(self):
-        """True si este producto controla su stock por talla/color en vez de un total único."""
-        return len(self.variantes) > 0
+        """True si el producto se ofrece por talla y/o color. Un producto simple tiene una
+        única variante sin talla ni color, que no cuenta como "variantes" para la tienda."""
+        return any(v.talla_id is not None or v.color_id is not None for v in self.variantes)
+
+    @property
+    def variante_unica(self):
+        """La única variante de un producto simple (None si el producto usa talla/color)."""
+        if self.usa_variantes:
+            return None
+        return self.variantes[0] if self.variantes else None
 
     @property
     def variantes_lista(self):
+        # La variante única de un producto simple es interna: la tienda no la muestra
+        if not self.usa_variantes:
+            return []
         return [v.to_dict() for v in self.variantes]
 
     @property
     def stock_total(self):
-        if self.usa_variantes:
-            return sum(v.stock for v in self.variantes)
-        return self.stock or 0
+        return sum(v.stock for v in self.variantes)
+
+    @property
+    def stock(self):
+        """Solo lectura: el stock del producto es la suma del de sus variantes."""
+        return self.stock_total
 
     @property
     def estado_stock(self):
@@ -176,14 +187,15 @@ class Producto(db.Model):
         """
         Busca la variante que corresponde a la talla/color pedidos, respetando
         solo los ejes que el producto realmente usa (si no tiene tallas, ignora
-        la talla pedida y busca por color=''/talla='' según corresponda).
+        la talla pedida). Un producto simple devuelve siempre su variante única.
+        Devuelve None si esa combinación no existe.
         """
         if not self.usa_variantes:
-            return None
-        talla_buscada = (talla or "") if self.tallas_lista else ""
-        color_buscado = (color or "") if self.colores_lista else ""
+            return self.variante_unica
+        talla_buscada = (talla or None) if self.tallas_lista else None
+        color_buscado = (color or None) if self.colores_lista else None
         for v in self.variantes:
-            if (v.talla or "") == talla_buscada and (v.color or "") == color_buscado:
+            if v.talla == talla_buscada and v.color == color_buscado:
                 return v
         return None
 

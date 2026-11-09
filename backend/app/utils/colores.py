@@ -23,7 +23,7 @@ HEX_POR_COLOR = {
 
 def normalizar_nombre_color(nombre):
     """Sin espacios de más y con la primera letra en mayúscula. El nombre vacío
-    se respeta: es el marcador de "este producto no varía por color"."""
+    no se usa: un producto que no varía por color tiene el color en NULL."""
     nombre = " ".join((nombre or "").split())
     return nombre[:1].upper() + nombre[1:]
 

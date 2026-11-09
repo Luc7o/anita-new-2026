@@ -29,7 +29,7 @@ def _fila_producto(p):
         "costo_promedio": float(p.costo_promedio) if p.costo_promedio is not None else None,
         "variantes": [
             {"variante_id": v.id, "talla": v.talla, "color": v.color, "stock": v.stock}
-            for v in p.variantes
+            for v in (p.variantes if p.usa_variantes else [])  # la variante única de un producto simple es interna
         ],
     }
 
