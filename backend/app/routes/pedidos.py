@@ -5,7 +5,7 @@ from flask_jwt_extended import get_jwt_identity
 from app.extensions import db, limiter
 from app.models import ItemCarrito, Pedido, DetallePedido, Usuario
 from app.utils.stock import (
-    agrupar_por_producto,
+    agrupar_por_variante,
     validar_stock_disponible_items,
     descontar_stock,
     restaurar_stock_de_pedido,
@@ -56,7 +56,9 @@ def checkout():
     # de hacer commit. Cuando por fin lee el carrito, ya lo encuentra vacío
     # (la primera ya lo vació) y responde "carrito vacío" en vez de crear un
     # segundo pedido duplicado a partir del mismo carrito.
-    db.session.query(Usuario).filter_by(id=usuario_id).with_for_update().first()
+    # of=Usuario: PostgreSQL no deja bloquear filas de tablas unidas por LEFT JOIN (el rol y el
+    # distrito del usuario se cargan junto con él), así que se pide bloquear solo la de usuarios.
+    db.session.query(Usuario).filter_by(id=usuario_id).with_for_update(of=Usuario).first()
 
     # Idempotencia: si el cliente ya mandó este mismo checkout antes (doble
     # clic, reintento de red), devolvemos el pedido que ya se creó en vez de
@@ -139,8 +141,8 @@ def checkout():
     # y descontar stock de verdad), no solo cuando se agregó al carrito —
     # el carrito puede llevar minutos u horas armado, y mientras tanto otra
     # persona pudo haberse llevado el último stock de alguna variante.
-    grupos_stock, productos_cache = agrupar_por_producto(items)
-    problemas_stock = validar_stock_disponible_items(items, grupos_stock, productos_cache)
+    grupos_stock, variantes_cache = agrupar_por_variante(items)
+    problemas_stock = validar_stock_disponible_items(items, grupos_stock, variantes_cache)
     if problemas_stock:
         return jsonify({
             "error": "Algunos productos de tu carrito ya no tienen stock suficiente",
@@ -196,15 +198,10 @@ def checkout():
     db.session.flush()  # para obtener pedido.id
 
     for item in items:
-        variante_id = None
-        if item.producto and item.producto.usa_variantes:
-            variante = item.producto.variante_para(item.talla, item.color)
-            variante_id = variante.id if variante else None
-
         detalle = DetallePedido(
             pedido_id=pedido.id,
             producto_id=item.producto_id,
-            variante_id=variante_id,
+            variante_id=item.variante_id,
             cantidad=item.cantidad,
             precio_unit=item.producto.precio_final,
             talla=item.talla,
@@ -214,10 +211,9 @@ def checkout():
         db.session.add(detalle)
         db.session.delete(item)
 
-    # Descuento de stock ATÓMICO a nivel de base de datos (por variante o por
-    # producto, según corresponda) — evita sobreventa si dos compras del mismo
-    # producto llegan casi al mismo tiempo.
-    error_descuento = descontar_stock(grupos_stock, productos_cache, pedido_id=pedido.id, motivo="Venta online")
+    # Descuento de stock ATÓMICO a nivel de base de datos (por variante) — evita
+    # sobreventa si dos compras de la misma variante llegan casi al mismo tiempo.
+    error_descuento = descontar_stock(grupos_stock, variantes_cache, pedido_id=pedido.id, motivo="Venta online")
     if error_descuento:
         db.session.rollback()
         return jsonify({"error": error_descuento}), 409
@@ -313,7 +309,7 @@ def pagar_pedido(pedido_id):
 
     pedido = (
         Pedido.query.filter_by(id=pedido_id, usuario_id=usuario_id)
-        .with_for_update()
+        .with_for_update(of=Pedido)
         .first_or_404()
     )
 

@@ -60,7 +60,7 @@ def _resolver(producto_id, variante_id, etiqueta="El producto"):
         return producto, variante
     if variante_id:
         raise ErrorAlmacen(f"{producto.nombre} no maneja tallas ni colores")
-    return producto, None
+    return producto, producto.variante_unica  # producto simple: su única variante
 
 
 def _aplicar_delta(producto, variante, delta, tipo, usuario_id, motivo):
@@ -68,26 +68,20 @@ def _aplicar_delta(producto, variante, delta, tipo, usuario_id, motivo):
     Suma `delta` (con signo) al stock de forma atómica y registra el movimiento.
     No deja el stock en negativo. Devuelve el movimiento.
     """
-    if variante:
-        resultado = db.session.execute(
-            text("UPDATE variantes_producto SET stock = stock + :d WHERE id = :id AND stock + :d >= 0"),
-            {"d": delta, "id": variante.id},
-        )
-    else:
-        resultado = db.session.execute(
-            text("UPDATE productos SET stock = stock + :d WHERE id = :id AND stock + :d >= 0"),
-            {"d": delta, "id": producto.id},
-        )
+    resultado = db.session.execute(
+        text("UPDATE variantes_producto SET stock = stock + :d WHERE id = :id AND stock + :d >= 0"),
+        {"d": delta, "id": variante.id},
+    )
     if resultado.rowcount == 0:
-        actual = _stock_actual(variante_id=variante.id if variante else None, producto_id=producto.id)
+        actual = _stock_actual(variante.id)
         raise ErrorAlmacen(
             f"No se puede aplicar el cambio de {delta:+d} en {_nombre(producto, variante)}: "
             f"el stock actual es {actual} y no puede quedar en negativo.", status=409,
         )
 
-    stock_despues = _stock_actual(variante_id=variante.id if variante else None, producto_id=producto.id)
+    stock_despues = _stock_actual(variante.id)
     movimiento = MovimientoStock(
-        variante_id=variante.id if variante else None,
+        variante_id=variante.id,
         producto_id=producto.id,
         tipo=tipo,
         cantidad=delta,

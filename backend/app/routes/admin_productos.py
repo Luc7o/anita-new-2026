@@ -88,7 +88,7 @@ def _validar_variantes(tallas, colores, variantes):
     Si el producto tiene tallas y/o colores, exige que venga el stock de
     CADA combinación posible — ni una de más, ni una de menos.
     Si no tiene tallas ni colores, no debería mandarse ninguna variante
-    (ese producto usa el campo "stock" simple).
+    (ese producto usa el campo "stock" simple, que se guarda en su única variante).
     """
     combos_esperados = _combos_esperados(tallas, colores)
 
@@ -110,10 +110,19 @@ def _validar_variantes(tallas, colores, variantes):
     return None
 
 
-def _guardar_variantes(producto, tallas, colores, variantes):
+def _stock_simple(data):
+    """El "stock" suelto que manda el panel para un producto sin tallas ni colores
+    (None si no lo mandó)."""
+    valor = data.get("stock")
+    return None if valor in (None, "") else int(valor)
+
+
+def _guardar_variantes(producto, tallas, colores, variantes, stock_simple=None):
     """
     Sincroniza las variantes del producto con las recibidas, ACTUALIZANDO las
     que ya existen (misma talla+color) en vez de borrarlas y recrearlas.
+    Todo producto queda con al menos una variante: uno sin tallas ni colores tiene
+    una sola, sin talla ni color, con `stock_simple` como stock.
 
     Antes se borraban todas y se volvían a crear en cada guardado: eso les
     cambiaba el id y dejaba en NULL la referencia de cada pedido y de cada
@@ -126,9 +135,15 @@ def _guardar_variantes(producto, tallas, colores, variantes):
     }
 
     if not _combos_esperados(tallas, colores):
-        # producto simple: no guarda variantes
+        # Producto simple: una única variante sin talla ni color. Si antes tenía tallas
+        # o colores, esas variantes se eliminan.
+        unica = existentes.pop(("", ""), None)
         for v in existentes.values():
             db.session.delete(v)
+        if unica is None:
+            db.session.add(VarianteProducto(producto_id=producto.id, stock=stock_simple or 0))
+        elif stock_simple is not None:
+            unica.stock = stock_simple
         return
 
     claves_recibidas = set()
@@ -249,7 +264,6 @@ def crear():
         descripcion=data.get("descripcion", ""),
         precio=data["precio"],
         precio_oferta=data.get("precio_oferta") or None,
-        stock=data.get("stock", 0),
         categoria_id=data["categoria_id"],
         destacado=bool(data.get("destacado", False)),
         es_nuevo=bool(data.get("es_nuevo", True)),
@@ -267,7 +281,7 @@ def crear():
         return jsonify({"error": "No se pudo generar un SKU único, intenta de nuevo"}), 409
 
     _guardar_imagenes(producto, data["imagenes"])
-    _guardar_variantes(producto, tallas, colores, data.get("variantes") or [])
+    _guardar_variantes(producto, tallas, colores, data.get("variantes") or [], stock_simple=_stock_simple(data))
 
     # Kardex: lo que se carga al crear el producto es su stock inicial.
     registrar_cambios_de_stock(
@@ -318,7 +332,7 @@ def actualizar(producto_id):
     stock_antes = foto_stock(producto)
 
     campos_directos = [
-        "nombre", "descripcion", "precio", "precio_oferta", "stock",
+        "nombre", "descripcion", "precio", "precio_oferta",
         "categoria_id", "destacado", "es_nuevo", "genero", "activo",
     ]
     for campo in campos_directos:
@@ -340,7 +354,10 @@ def actualizar(producto_id):
         error_variantes = _validar_variantes(tallas, colores, data.get("variantes"))
         if error_variantes:
             return jsonify({"error": error_variantes}), 400
-        _guardar_variantes(producto, tallas, colores, data.get("variantes") or [])
+        _guardar_variantes(producto, tallas, colores, data.get("variantes") or [], stock_simple=_stock_simple(data))
+    elif "stock" in data and not producto.usa_variantes:
+        # Producto simple: su stock vive en su única variante
+        producto.variante_unica.stock = _stock_simple(data) or 0
 
     if "imagenes" in data:
         error_imagenes = _validar_imagenes(data["imagenes"])

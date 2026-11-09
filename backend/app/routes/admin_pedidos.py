@@ -23,7 +23,7 @@ from app.roles import (
     SUPERADMIN,
     VENTAS,
 )
-from app.utils.stock import restaurar_stock_de_pedido, agrupar_por_producto, validar_stock_disponible, descontar_stock
+from app.utils.stock import restaurar_stock_de_pedido, agrupar_por_variante, variante_de, validar_stock_disponible, descontar_stock
 from app.utils.boleta import responder_boleta
 from app.utils.culqi import reembolsar_en_culqi
 from app.utils.historial import cambiar_estado_pedido
@@ -97,7 +97,7 @@ def entregar_recojo_cajero(pedido_id):
     # pedido y crear dos entradas de historial.
     pedido = Pedido.query.filter_by(
         id=pedido_id, origen="online", tipo_entrega="recojo"
-    ).with_for_update().first_or_404()
+    ).with_for_update(of=Pedido).first_or_404()
 
     if pedido.estado != "listo_recojo" or not pedido.puede_pasar_a("entregado"):
         return jsonify({"error": "Este pedido ya no está listo para recoger"}), 409
@@ -909,7 +909,7 @@ class _ItemVentaPresencial:
     """
     Envoltorio mínimo con la misma forma que ItemCarrito (producto_id, talla,
     color, cantidad, .producto, .subtotal) — así se reutilizan tal cual
-    agrupar_por_producto/validar_stock_disponible/descontar_stock, que ya
+    agrupar_por_variante/validar_stock_disponible/descontar_stock, que ya
     están probadas por el checkout público, en vez de duplicar esa lógica
     de stock para la venta presencial.
     """
@@ -970,8 +970,8 @@ def venta_presencial():
             producto=producto,
         ))
 
-    grupos_stock, productos_cache = agrupar_por_producto(items)
-    error_stock = validar_stock_disponible(grupos_stock, productos_cache)
+    grupos_stock, variantes_cache = agrupar_por_variante(items)
+    error_stock = validar_stock_disponible(grupos_stock, variantes_cache)
     if error_stock:
         return jsonify({"error": error_stock}), 400
 
@@ -997,20 +997,20 @@ def venta_presencial():
     db.session.flush()  # para obtener pedido.id
 
     for item in items:
-        variante = item.producto.variante_para(item.talla, item.color) if item.producto.usa_variantes else None
+        variante = variante_de(item)
         db.session.add(DetallePedido(
             pedido_id=pedido.id,
             producto_id=item.producto_id,
-            variante_id=variante.id if variante else None,
+            variante_id=variante.id,
             cantidad=item.cantidad,
             precio_unit=item.producto.precio_final,
-            talla=item.talla,
-            color=item.color,
+            talla=variante.talla,
+            color=variante.color,
             subtotal=item.subtotal,
         ))
 
     error_descuento = descontar_stock(
-        grupos_stock, productos_cache, pedido_id=pedido.id,
+        grupos_stock, variantes_cache, pedido_id=pedido.id,
         usuario_id=g.usuario.id, motivo="Venta en tienda",
     )
     if error_descuento:

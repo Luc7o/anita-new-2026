@@ -103,7 +103,6 @@ def seed():
                 destacado=datos["destacado"], es_nuevo=datos["nuevo"],
             )
             # El stock vive en las variantes (talla x color).
-            producto.stock = 0
             crear_variantes(producto, datos["tallas"], datos["colores"], datos["stock"])
             db.session.add(producto)
             db.session.commit()

@@ -125,7 +125,6 @@ def _validar_items(items_raw):
         if not producto:
             raise ErrorCompra(f"El producto de la línea {i} no existe")
 
-        variante = None
         if producto.usa_variantes:
             if not raw.get("variante_id"):
                 raise ErrorCompra(f"Elige talla y color de {producto.nombre} (línea {i})")
@@ -135,6 +134,8 @@ def _validar_items(items_raw):
                 raise ErrorCompra(f"La variante de la línea {i} no pertenece a {producto.nombre}")
         elif raw.get("variante_id"):
             raise ErrorCompra(f"{producto.nombre} no maneja tallas ni colores (línea {i})")
+        else:
+            variante = producto.variante_unica  # producto simple: su única variante
 
         items.append({
             "producto": producto,
@@ -152,14 +153,13 @@ def _costo_promedio_nuevo(producto_id, cantidad, costo):
     producto para que dos compras simultáneas no se pisen.
     """
     fila = db.session.execute(
-        text("SELECT costo_promedio, stock FROM productos WHERE id = :pid FOR UPDATE"),
+        text("SELECT costo_promedio FROM productos WHERE id = :pid FOR UPDATE"),
         {"pid": producto_id},
     ).first()
-    suma_variantes = db.session.execute(
-        text("SELECT COUNT(*) AS n, COALESCE(SUM(stock), 0) AS total FROM variantes_producto WHERE producto_id = :pid"),
+    stock_total = int(db.session.execute(
+        text("SELECT COALESCE(SUM(stock), 0) FROM variantes_producto WHERE producto_id = :pid"),
         {"pid": producto_id},
-    ).first()
-    stock_total = int(suma_variantes.total) if suma_variantes.n else int(fila.stock or 0)
+    ).scalar())
 
     if fila.costo_promedio is not None and stock_total > 0:
         nuevo = (Decimal(stock_total) * Decimal(fila.costo_promedio) + Decimal(cantidad) * costo) / Decimal(stock_total + cantidad)
@@ -189,32 +189,26 @@ def registrar_compra(data, usuario_id):
 
         nuevo_costo = _costo_promedio_nuevo(producto.id, cantidad, costo)
 
-        if variante:
-            db.session.execute(
-                text("UPDATE variantes_producto SET stock = stock + :c WHERE id = :vid AND producto_id = :pid"),
-                {"c": cantidad, "vid": variante.id, "pid": producto.id},
-            )
-        else:
-            db.session.execute(
-                text("UPDATE productos SET stock = stock + :c WHERE id = :pid"),
-                {"c": cantidad, "pid": producto.id},
-            )
+        db.session.execute(
+            text("UPDATE variantes_producto SET stock = stock + :c WHERE id = :vid AND producto_id = :pid"),
+            {"c": cantidad, "vid": variante.id, "pid": producto.id},
+        )
         db.session.execute(
             text("UPDATE productos SET costo_promedio = :v WHERE id = :pid"),
             {"v": nuevo_costo, "pid": producto.id},
         )
 
-        stock_despues = _stock_actual(variante_id=variante.id if variante else None, producto_id=producto.id)
+        stock_despues = _stock_actual(variante.id)
 
         db.session.add(DetalleCompra(
             compra_id=compra.id, producto_id=producto.id,
-            variante_id=variante.id if variante else None,
-            talla=(variante.talla or None) if variante else None,
-            color=(variante.color or None) if variante else None,
+            variante_id=variante.id,
+            talla=variante.talla,
+            color=variante.color,
             cantidad=cantidad, costo_unitario=costo, subtotal=costo * cantidad,
         ))
         db.session.add(MovimientoStock(
-            variante_id=variante.id if variante else None,
+            variante_id=variante.id,
             producto_id=producto.id,
             tipo="ingreso_compra",
             cantidad=cantidad,
@@ -251,8 +245,8 @@ def anular_compra(compra, usuario_id, motivo):
     for d in detalles:
         producto = db.session.get(Producto, d.producto_id)
         variante_id = d.variante_id
-        if variante_id is None and producto.usa_variantes:
-            variante = producto.variante_para(d.talla or "", d.color or "")
+        if variante_id is None:
+            variante = producto.variante_para(d.talla, d.color)
             variante_id = variante.id if variante else None
             if variante_id is None:
                 raise ErrorCompra(
@@ -260,25 +254,19 @@ def anular_compra(compra, usuario_id, motivo):
                     f"{producto.nombre} ya no existe.", status=409,
                 )
 
-        if variante_id is not None:
-            resultado = db.session.execute(
-                text("UPDATE variantes_producto SET stock = stock - :c WHERE id = :vid AND stock >= :c"),
-                {"c": d.cantidad, "vid": variante_id},
-            )
-        else:
-            resultado = db.session.execute(
-                text("UPDATE productos SET stock = stock - :c WHERE id = :pid AND stock >= :c"),
-                {"c": d.cantidad, "pid": d.producto_id},
-            )
+        resultado = db.session.execute(
+            text("UPDATE variantes_producto SET stock = stock - :c WHERE id = :vid AND stock >= :c"),
+            {"c": d.cantidad, "vid": variante_id},
+        )
         if resultado.rowcount == 0:
-            actual = _stock_actual(variante_id=variante_id, producto_id=d.producto_id)
+            actual = _stock_actual(variante_id)
             raise ErrorCompra(
                 f"No se puede anular: de {producto.nombre}{_etiqueta_variante(d.talla, d.color)} ingresaron "
                 f"{d.cantidad} unidades y ahora solo quedan {actual}. Ya se vendió parte de esa mercadería, "
                 f"corrígelo con un ajuste de stock.", status=409,
             )
 
-        stock_despues = _stock_actual(variante_id=variante_id, producto_id=d.producto_id)
+        stock_despues = _stock_actual(variante_id)
         db.session.add(MovimientoStock(
             variante_id=variante_id,
             producto_id=d.producto_id,

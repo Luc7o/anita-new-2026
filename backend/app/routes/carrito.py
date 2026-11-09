@@ -25,7 +25,7 @@ def _resumen(usuario_id):
 
 def _es_linea_repetida(error):
     """True si el error es el UNIQUE del carrito: dos pedidos simultáneos de la
-    misma línea (usuario + producto + variante)."""
+    misma línea (usuario + variante)."""
     return "uq_carrito_linea" in str(error.orig)
 
 
@@ -34,31 +34,19 @@ def _disponibilidad(producto, talla=None, color=None, usuario_id=None, excluir_i
     Calcula cuánto stock hay disponible para lo que se quiere agregar/actualizar,
     y cuánto de eso ya está apartado en el carrito del usuario.
 
-    - Si el producto usa variantes (stock por talla/color), todo se calcula sobre
-      esa variante específica.
-    - Si no, se calcula sobre el stock total del producto, sumando todas las
-      entradas del carrito para ese producto (sin importar talla/color).
+    Todo se calcula sobre la variante exacta (un producto simple tiene una sola).
 
     Devuelve (stock_disponible, ya_en_carrito) o (None, None) si la variante
     pedida no existe.
     """
-    if producto.usa_variantes:
-        variante = producto.variante_para(talla, color)
-        if not variante:
-            return None, None
-        query = ItemCarrito.query.filter_by(
-            usuario_id=usuario_id, producto_id=producto.id, variante_id=variante.id,
-        )
-        if excluir_item_id:
-            query = query.filter(ItemCarrito.id != excluir_item_id)
-        ya_en_carrito = sum(i.cantidad for i in query.all())
-        return variante.stock, ya_en_carrito
-
-    query = ItemCarrito.query.filter_by(usuario_id=usuario_id, producto_id=producto.id)
+    variante = producto.variante_para(talla, color)
+    if not variante:
+        return None, None
+    query = ItemCarrito.query.filter_by(usuario_id=usuario_id, variante_id=variante.id)
     if excluir_item_id:
         query = query.filter(ItemCarrito.id != excluir_item_id)
     ya_en_carrito = sum(i.cantidad for i in query.all())
-    return producto.stock, ya_en_carrito
+    return variante.stock, ya_en_carrito
 
 
 def _falta_elegir_opciones(producto, talla, color):
@@ -100,23 +88,16 @@ def _sumar_al_carrito(usuario_id, producto, cantidad, talla, color):
     if ya_en_carrito + cantidad > stock_disponible:
         return _mensaje_sin_stock(stock_disponible, ya_en_carrito)
 
-    # La variante exacta (None en productos sin variantes): una línea por
-    # usuario, producto y variante.
-    variante_actual = producto.variante_para(talla, color) if producto.usa_variantes else None
-    variante_id = variante_actual.id if variante_actual else None
-    item = ItemCarrito.query.filter_by(
-        usuario_id=usuario_id, producto_id=producto.id, variante_id=variante_id,
-    ).first()
+    # La variante exacta (ya se comprobó que existe): una línea por usuario y variante.
+    variante_id = producto.variante_para(talla, color).id
+    item = ItemCarrito.query.filter_by(usuario_id=usuario_id, variante_id=variante_id).first()
 
     if item:
         # La suma la hace la base (cantidad = cantidad + n): si dos solicitudes suman
         # a la vez, no se pisan ni se pierde ninguna.
         item.cantidad = ItemCarrito.cantidad + cantidad
     else:
-        db.session.add(ItemCarrito(
-            usuario_id=usuario_id, producto_id=producto.id,
-            variante_id=variante_id, cantidad=cantidad,
-        ))
+        db.session.add(ItemCarrito(usuario_id=usuario_id, variante_id=variante_id, cantidad=cantidad))
     return None
 
 
@@ -292,14 +273,12 @@ def validar_carrito_invitado():
 
         if _falta_elegir_opciones(producto, talla, color):
             problema = "Elige talla y/o color"
-        elif producto.usa_variantes:
+        else:
             variante = producto.variante_para(talla, color)
             if not variante:
                 problema = "Esa combinación de talla/color no está disponible"
             else:
-                clave_stock, stock = ("v", variante.id), variante.stock
-        else:
-            clave_stock, stock = ("p", producto.id), producto.stock or 0
+                clave_stock, stock = variante.id, variante.stock
 
         if clave_stock is not None:
             ya = asignado.get(clave_stock, 0)

@@ -3,9 +3,10 @@ from app.extensions import db
 
 class VarianteProducto(db.Model):
     """
-    Stock específico de una combinación de talla/color de un producto.
-    Si un producto no tiene tallas ni colores, no usa variantes: su stock
-    vive directamente en Producto.stock (comportamiento simple, sin cambios).
+    Una variante de un producto: una combinación de talla y/o color con su stock.
+    TODO producto tiene al menos una. Un producto simple (sin tallas ni colores)
+    tiene una única variante con talla y color en NULL; el stock del producto es la
+    suma de sus variantes. La base hace cumplir esa regla (migración 003).
 
     talla_id/color_id referencian el catálogo (tallas/colores) en vez de
     repetir el texto en cada fila — antes "Rojo" se escribía una vez por
@@ -19,11 +20,10 @@ class VarianteProducto(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     producto_id = db.Column(db.Integer, db.ForeignKey("productos.id", ondelete="CASCADE"), nullable=False)
-    # Igual que antes con '' de texto: apuntan al registro placeholder
-    # (Talla/Color con nombre='') cuando el producto no varía por ese eje,
-    # nunca NULL — así el UNIQUE de arriba sigue protegiendo duplicados.
-    talla_id = db.Column(db.Integer, db.ForeignKey("tallas.id"), nullable=False)
-    color_id = db.Column(db.Integer, db.ForeignKey("colores.id"), nullable=False)
+    # NULL = el producto no varía por ese eje. El UNIQUE de la base cuenta dos NULL como
+    # iguales (NULLS NOT DISTINCT), así que no hay variantes repetidas.
+    talla_id = db.Column(db.Integer, db.ForeignKey("tallas.id"), nullable=True)
+    color_id = db.Column(db.Integer, db.ForeignKey("colores.id"), nullable=True)
     stock = db.Column(db.Integer, nullable=False, default=0)
 
     talla_obj = db.relationship("Talla", lazy="joined")
@@ -34,21 +34,21 @@ class VarianteProducto(db.Model):
     # variante.talla / variante.color como texto, igual que antes.
     @property
     def talla(self):
-        return self.talla_obj.nombre if self.talla_obj and self.talla_obj.nombre else None
+        return self.talla_obj.nombre if self.talla_obj else None
 
     @talla.setter
     def talla(self, nombre):
         from app.models.catalogo import Talla
-        self.talla_obj = Talla.obtener_o_crear(nombre or "")
+        self.talla_obj = Talla.obtener_o_crear(nombre) if nombre else None
 
     @property
     def color(self):
-        return self.color_obj.nombre if self.color_obj and self.color_obj.nombre else None
+        return self.color_obj.nombre if self.color_obj else None
 
     @color.setter
     def color(self, nombre):
         from app.models.catalogo import Color
-        self.color_obj = Color.obtener_o_crear(nombre or "")
+        self.color_obj = Color.obtener_o_crear(nombre) if nombre else None
 
     def to_dict(self):
         return {

@@ -64,9 +64,9 @@ def _cancelar_y_avisar(vencidos):
 def cancelar_pedidos_vencidos_del_usuario(usuario_id):
     """Chequeo lazy y barato: solo mira los pedidos de ESTE usuario.
     Se usa antes de listar/consultar sus pedidos o de intentar pagar uno."""
-    return _cancelar_y_avisar(_query_vencidos(usuario_id=usuario_id).with_for_update().all())
+    return _cancelar_y_avisar(_query_vencidos(usuario_id=usuario_id).with_for_update(of=Pedido).all())
 
 
 def cancelar_pedidos_vencidos_global():
     """Barrido completo — pensado para correr desde un cron / job externo."""
-    return _cancelar_y_avisar(_query_vencidos().with_for_update().all())
+    return _cancelar_y_avisar(_query_vencidos().with_for_update(of=Pedido).all())
