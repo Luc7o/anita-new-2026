@@ -109,24 +109,43 @@ async function refrescarAccessToken() {
   }
 }
 
-// Wrapper de fetch para llamadas autenticadas: si el access token expiró
-// (code "token_expirado"), pide uno nuevo con el refresh token UNA vez y
-// reintenta la misma llamada. Si el refresh también falla, cierra la
-// sesión localmente. Lo usan tanto `request()` (JSON) como las subidas de
-// archivos (FormData) más abajo.
+// Wrapper de fetch para llamadas autenticadas.
+// - Si todavía no hay access token en memoria (p. ej. se recargó la página o
+//   se entró directo a /pedidos/1), primero espera el refresh compartido
+//   (el mismo que lanza AuthContext) en vez de salir sin token y recibir un
+//   401 "Debes iniciar sesión" por pura carrera.
+// - Si el servidor responde 401 por token vencido o ausente, pide uno nuevo
+//   UNA vez y reintenta la misma llamada.
+// - Si el refresh también falla, cierra la sesión localmente.
+// Lo usan tanto `request()` (JSON) como las subidas y descargas de archivos.
 async function fetchAutenticado(url, construirInit) {
+  let intentoRefresh = false;
+
+  if (!getToken()) {
+    intentoRefresh = true;
+    try {
+      await refrescarAccessToken();
+    } catch {
+      // Sin sesión recuperable: se sigue sin token y el servidor responderá 401.
+    }
+  }
+
   let res = await fetch(url, { credentials: "include", ...construirInit(getToken()) });
 
   if (res.status === 401) {
     const data = await res.clone().json().catch(() => null);
-    if (data?.code === "token_expirado") {
+    const codigo = data?.code;
+    const puedeRefrescar =
+      codigo === "token_expirado" || (codigo === "token_faltante" && !intentoRefresh);
+
+    if (puedeRefrescar) {
       try {
         const nuevoToken = await refrescarAccessToken();
         res = await fetch(url, { credentials: "include", ...construirInit(nuevoToken) });
       } catch {
         notificarSesionExpirada();
       }
-    } else if (data?.code === "token_invalido") {
+    } else if (codigo === "token_invalido") {
       notificarSesionExpirada();
     }
   }
