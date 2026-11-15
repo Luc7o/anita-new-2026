@@ -4,6 +4,7 @@ import PaginaInfo from "./PaginaInfo.jsx";
 import DatosProveedor from "../components/DatosProveedor.jsx";
 import useConfigTienda from "../hooks/useConfigTienda.js";
 import SeccionLegal from "../components/SeccionLegal.jsx";
+import { FECHA_ACTUALIZACION_LEGAL, VERSION_TERMINOS } from "../legal.js";
 
 const enlace = "font-semibold text-berry hover:underline";
 
@@ -14,7 +15,7 @@ export default function TerminosCondiciones() {
       titulo="Términos y condiciones"
       contenido={
         <div className="space-y-6 text-sm leading-relaxed">
-          <p className="text-xs">Última actualización: octubre de 2026</p>
+          <p className="text-xs">Última actualización: {FECHA_ACTUALIZACION_LEGAL} (versión {VERSION_TERMINOS})</p>
 
           <p>
             Al usar esta tienda en línea y hacer compras en ella aceptas estos términos. Si no estás de acuerdo con

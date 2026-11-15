@@ -217,7 +217,7 @@ export default function AdminConfiguracion() {
             </div>
             {dirMapa.direccion || /maps\/embed/i.test(dirMapa.maps_url) ? (
               <div className="space-y-2">
-                <MapaTienda {...dirMapa} />
+                <MapaTienda {...dirMapa} cargaInmediata />
                 {urlMapaEnlace(dirMapa) && (
                   <a href={urlMapaEnlace(dirMapa)} target="_blank" rel="noopener noreferrer"
                     className="inline-block text-xs font-semibold text-berry hover:underline">

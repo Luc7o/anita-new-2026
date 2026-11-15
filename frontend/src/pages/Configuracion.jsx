@@ -6,6 +6,7 @@ import { api } from "../api/client.js";
 import { useAuth } from "../context/AuthContext.jsx";
 import CuentaLayout from "../components/CuentaLayout.jsx";
 import { IconLogout, IconCheck } from "../components/Icons.jsx";
+import { useConsentimiento } from "../hooks/useConsentimiento.js";
 
 const tarjeta = "glass rounded-2xl p-5 shadow-glass sm:p-6";
 const campoTexto =
@@ -53,6 +54,7 @@ export default function Configuracion() {
           <>
             <Notificaciones estado={estado} setEstado={setEstado} />
             <DosPasos estado={estado} setEstado={setEstado} />
+            <PrivacidadEstadisticas />
             <TusDatos />
             <EliminarCuenta estado={estado} />
           </>
@@ -67,6 +69,37 @@ export default function Configuracion() {
         </button>
       </div>
     </CuentaLayout>
+  );
+}
+
+// ------------------------------------------------------------ Privacidad (estadísticas)
+function PrivacidadEstadisticas() {
+  const { estado, decision, abrirPreferencias } = useConsentimiento();
+  const texto = {
+    aceptado: "Activadas: medimos el uso de la tienda con un identificador anónimo.",
+    rechazado: "Desactivadas: no medimos tu uso de la tienda.",
+    pendiente: "Aún no elegiste. Mientras tanto no medimos nada.",
+  }[estado];
+  const fecha = decision?.decidido_en && estado !== "pendiente"
+    ? new Date(decision.decidido_en).toLocaleDateString("es-PE", { day: "numeric", month: "long", year: "numeric" })
+    : null;
+  return (
+    <section className={tarjeta} aria-labelledby="cfg-privacidad">
+      <h2 id="cfg-privacidad" className="text-lg font-semibold text-plum">Privacidad y estadísticas</h2>
+      <p className="mt-1 text-xs text-plum-soft">
+        Estadísticas de uso: {texto}{fecha ? ` (elegido el ${fecha})` : ""} Puedes cambiarlo o retirarlo cuando quieras. Esta
+        elección se guarda en este navegador; en otro dispositivo se te preguntará de nuevo.
+      </p>
+      <div className="mt-4">
+        <button
+          type="button"
+          onClick={abrirPreferencias}
+          className="rounded-full bg-plum/10 px-5 py-2.5 text-sm font-semibold text-plum transition hover:bg-plum/20"
+        >
+          Cambiar mis preferencias de privacidad
+        </button>
+      </div>
+    </section>
   );
 }
 

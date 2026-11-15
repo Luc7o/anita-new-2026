@@ -16,6 +16,7 @@ from app.models.favorito import Favorito
 from app.models.promocion import Promocion
 from app.models.reclamacion import Reclamacion
 from app.models.configuracion_tienda import ConfiguracionTienda
+from app.models.consentimiento import ConsentimientoPrivacidad
 from app.models.kpi import (
     EventoAnalitica,
     MovimientoStock,
@@ -26,6 +27,7 @@ from app.models.kpi import (
 )
 
 __all__ = [
+    "ConsentimientoPrivacidad",
     "Rol",
     "UbigeoDepartamento",
     "UbigeoProvincia",

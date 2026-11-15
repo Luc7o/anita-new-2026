@@ -17,6 +17,7 @@ from app.models import Usuario, TokenRecuperacion, UbigeoDistrito, CodigoRespald
 from app.utils.decorators import requiere_activo
 from app.utils.correo import enviar_correo
 from app.utils.google_auth import verificar_token_google, TokenGoogleInvalido
+from app.utils.legal import VERSION_TERMINOS
 from app.utils import totp
 
 bp = Blueprint("auth", __name__, url_prefix="/api/auth")
@@ -275,6 +276,24 @@ def _enviar_correo_crear_password(usuario, cuenta_existente=False):
     return True
 
 
+def _falta_aceptar_terminos(data, mensaje=None):
+    """Devuelve la respuesta de error si la persona NO aceptó expresamente los Términos y
+    Condiciones y la Política de Privacidad (la casilla del frontend, que empieza sin marcar),
+    o None si sí los aceptó. Solo cuenta un `true` literal: un texto o un 1 no valen."""
+    if data.get("acepta_terminos") is True:
+        return None
+    return jsonify({
+        "error": mensaje or "Debes aceptar los Términos y Condiciones y la Política de Privacidad para crear tu cuenta.",
+        "code": "requiere_aceptacion",
+    }), 400
+
+
+def _registrar_aceptacion(usuario):
+    """Deja constancia de cuándo aceptó y qué versión de los textos estaba vigente."""
+    usuario.acepto_terminos_en = datetime.utcnow()
+    usuario.version_terminos = VERSION_TERMINOS
+
+
 def _conflicto_cuenta_existente(mensaje):
     return jsonify({"error": mensaje, "code": "cuenta_existente"}), 409
 
@@ -284,6 +303,7 @@ def _crear_cuenta_sin_password(**campos):
     enlace para que cree su contraseña real cuando quiera."""
     usuario = Usuario(es_invitado=True, **campos)
     _asignar_password_aleatoria(usuario)
+    _registrar_aceptacion(usuario)
     db.session.add(usuario)
     db.session.commit()
     _enviar_correo_crear_password(usuario)
@@ -301,6 +321,10 @@ def registro():
 
     if len(data["password"]) < 6:
         return jsonify({"error": "La contraseña debe tener al menos 6 caracteres"}), 400
+
+    sin_aceptar = _falta_aceptar_terminos(data)
+    if sin_aceptar:
+        return sin_aceptar
 
     if Usuario.query.filter_by(email=data["email"].lower().strip()).first():
         return jsonify({"error": "Ese email ya está registrado"}), 409
@@ -325,6 +349,7 @@ def registro():
         numero_documento=numero_documento,
     )
     usuario.set_password(data["password"])
+    _registrar_aceptacion(usuario)
     db.session.add(usuario)
     db.session.commit()
 
@@ -360,6 +385,10 @@ def continuar_como_invitado():
     email, error = _normalizar_email(data.get("email"))
     if error:
         return jsonify({"error": error}), 400
+
+    sin_aceptar = _falta_aceptar_terminos(data)
+    if sin_aceptar:
+        return sin_aceptar
 
     if Usuario.query.filter_by(email=email).first():
         # No decimos si esa cuenta ya tiene contraseña o sigue siendo de
@@ -399,6 +428,10 @@ def registro_con_email():
     email, error = _normalizar_email(data.get("email"))
     if error:
         return jsonify({"error": error}), 400
+
+    sin_aceptar = _falta_aceptar_terminos(data)
+    if sin_aceptar:
+        return sin_aceptar
 
     if Usuario.query.filter_by(email=email).first():
         return _conflicto_cuenta_existente(
@@ -566,6 +599,15 @@ def login_google():
 
     nueva = usuario is None
     if nueva:
+        # Crear una cuenta nueva exige aceptar los términos (iniciar sesión en una ya existente, no).
+        sin_aceptar = _falta_aceptar_terminos(
+            data,
+            "Para crear una cuenta nueva con Google debes aceptar los Términos y Condiciones y la "
+            "Política de Privacidad. Hazlo desde «Crear cuenta».",
+        )
+        if sin_aceptar:
+            db.session.rollback()
+            return sin_aceptar
         usuario = Usuario(
             nombre=perfil_google["nombre"][:80],
             apellido=perfil_google["apellido"][:80],
@@ -575,6 +617,7 @@ def login_google():
             es_invitado=False,
             activo=True,
         )
+        _registrar_aceptacion(usuario)
         db.session.add(usuario)
 
     if not usuario.activo:
@@ -954,6 +997,8 @@ def descargar_mis_datos():
             **usuario.to_dict(incluir_direccion=True),
             "fecha_registro": usuario.fecha_registro.isoformat() if usuario.fecha_registro else None,
             "recibe_promociones": bool(usuario.acepta_promociones),
+            "acepto_terminos_en": usuario.acepto_terminos_en.isoformat() if usuario.acepto_terminos_en else None,
+            "version_terminos": usuario.version_terminos,
             "verificacion_en_dos_pasos": bool(usuario.totp_activo),
         },
         "pedidos": [p.to_dict() for p in pedidos],

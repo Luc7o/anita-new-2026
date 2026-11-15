@@ -5,6 +5,7 @@ import { IconBook } from "./Icons.jsx";
 import Logo from "./Logo.jsx";
 import RedesAuth from "./RedesAuth.jsx";
 import useConfigTienda from "../hooks/useConfigTienda.js";
+import { abrirPreferencias } from "../consentimiento.js";
 
 export default function Footer() {
   const c = useConfigTienda();
@@ -76,6 +77,7 @@ export default function Footer() {
           <p className="mt-2 flex flex-wrap items-center justify-center gap-x-4 gap-y-1">
             <Link to="/politica-de-privacidad" className="hover:text-white transition duration-200">Política de privacidad</Link>
             <Link to="/terminos-y-condiciones" className="hover:text-white transition duration-200">Términos y condiciones</Link>
+            <button type="button" onClick={abrirPreferencias} className="hover:text-white transition duration-200">Preferencias de privacidad</button>
           </p>
         </div>
       </div>

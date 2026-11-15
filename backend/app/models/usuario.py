@@ -79,6 +79,10 @@ class Usuario(db.Model):
     # Consentimiento para recibir correos de promociones (opt-in: por defecto NO).
     # Los correos de sus pedidos y de seguridad se envían siempre.
     acepta_promociones = db.Column(db.Boolean, nullable=False, default=False)
+    # Aceptación de Términos y Condiciones y Política de Privacidad: cuándo y qué versión
+    # vio la persona (NULL en cuentas anteriores al registro de aceptación).
+    acepto_terminos_en = db.Column(db.DateTime, nullable=True)
+    version_terminos = db.Column(db.String(20), nullable=True)
     # Verificación en dos pasos (TOTP). El secreto se guarda CIFRADO.
     totp_secreto = db.Column(db.String(255), nullable=True)
     totp_activo = db.Column(db.Boolean, nullable=False, default=False)
