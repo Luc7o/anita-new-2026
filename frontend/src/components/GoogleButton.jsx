@@ -32,7 +32,7 @@ function cargarScriptGoogle() {
  * para registrarse: el backend crea la cuenta si todavía no existe.
  * Si falta VITE_GOOGLE_CLIENT_ID no se muestra nada.
  */
-export default function GoogleButton({ onSuccess, onError, texto = "continue_with" }) {
+export default function GoogleButton({ onSuccess, onError, texto = "continue_with", aceptaTerminos, bloqueado = false }) {
   const { loginConGoogle } = useAuth();
   const contenedor = useRef(null);
   const [fallo, setFallo] = useState(false);
@@ -42,6 +42,10 @@ export default function GoogleButton({ onSuccess, onError, texto = "continue_wit
   const alError = useRef(onError);
   alExito.current = onSuccess;
   alError.current = onError;
+  // Si quien lo usa muestra la casilla de términos (página de registro), pasa su valor;
+  // si no (inicio de sesión), solo sirve para entrar a una cuenta que ya existe.
+  const aceptaRef = useRef(aceptaTerminos);
+  aceptaRef.current = aceptaTerminos;
 
   useEffect(() => {
     if (!CLIENT_ID) return;
@@ -54,7 +58,7 @@ export default function GoogleButton({ onSuccess, onError, texto = "continue_wit
           client_id: CLIENT_ID,
           callback: async ({ credential }) => {
             try {
-              const usuario = await loginConGoogle(credential);
+              const usuario = await loginConGoogle(credential, aceptaRef.current === true);
               alExito.current?.(usuario);
             } catch (err) {
               alError.current?.(err.message || "No se pudo iniciar sesión con Google");
@@ -86,14 +90,29 @@ export default function GoogleButton({ onSuccess, onError, texto = "continue_wit
       </p>
     );
   }
+  const conCasilla = aceptaTerminos !== undefined;
   return (
     <div>
-      <div ref={contenedor} className="flex w-full justify-center" />
-      <p className="mt-3 text-center text-xs text-plum-soft">
-        Al continuar con Google aceptas nuestros{" "}
-        <Link to="/terminos-y-condiciones" className="font-semibold text-berry hover:underline">Términos</Link> y la{" "}
-        <Link to="/politica-de-privacidad" className="font-semibold text-berry hover:underline">Política de privacidad</Link>.
-      </p>
+      <div className="relative">
+        {/* Mientras la casilla no esté marcada, el botón (que dibuja Google dentro de un
+            iframe) queda tapado e inerte: ni con el mouse ni con el teclado se puede usar. */}
+        <div ref={contenedor} inert={bloqueado ? "" : undefined} className={`flex w-full justify-center ${bloqueado ? "opacity-50" : ""}`} />
+        {bloqueado && (
+          <button
+            type="button"
+            onClick={() => alError.current?.("Marca la casilla de Términos y Política de Privacidad para continuar con Google.")}
+            className="absolute inset-0 cursor-not-allowed"
+            aria-label="Marca primero la casilla de Términos y Política de Privacidad para continuar con Google"
+          />
+        )}
+      </div>
+      {!conCasilla && (
+        <p className="mt-3 text-center text-xs text-plum-soft">
+          Si ya tienes cuenta, entra con Google. Para crear una cuenta nueva,{" "}
+          <Link to="/registro" className="font-semibold text-berry hover:underline">regístrate aquí</Link>{" "}
+          y acepta los Términos y la Política de privacidad.
+        </p>
+      )}
     </div>
   );
 }

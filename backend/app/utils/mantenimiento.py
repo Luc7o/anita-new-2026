@@ -14,16 +14,24 @@ from app.extensions import db
 DIAS_LATENCIA = 30
 DIAS_EVENTOS = 180
 DIAS_TOKENS_RECUPERACION = 7
+# Un consentimiento "aceptado" se vuelve a pedir a los 12 meses (lo hace el banner); el registro con
+# su identificador se borra poco después si la persona no volvió a confirmar.
+DIAS_CONSENTIMIENTO_ACEPTADO = 400
 
 LOTE = 5000                 # filas por DELETE, para no bloquear la tabla mucho rato
 PRESUPUESTO_SEGUNDOS = 6    # la función serverless tiene un tiempo máximo corto
 
 
-def _borrar_en_lotes(sql, parametros, inicio):
-    """Ejecuta un DELETE ... LIMIT repetido hasta vaciar lo viejo o agotar el tiempo."""
+def _borrar_en_lotes(tabla, columna_fecha, limite, inicio, condicion_extra=""):
+    """Borra lo viejo de una tabla en tandas (ctid + LIMIT en una subconsulta, porque
+    PostgreSQL no admite DELETE ... LIMIT) hasta vaciarlo o agotar el tiempo."""
+    sql = (
+        f"DELETE FROM {tabla} WHERE ctid IN ("
+        f"SELECT ctid FROM {tabla} WHERE {columna_fecha} < :limite {condicion_extra} LIMIT {LOTE})"
+    )
     total = 0
     while time.monotonic() - inicio < PRESUPUESTO_SEGUNDOS:
-        resultado = db.session.execute(text(sql + f" LIMIT {LOTE}"), parametros)
+        resultado = db.session.execute(text(sql), {"limite": limite})
         db.session.commit()
         total += resultado.rowcount
         if resultado.rowcount < LOTE:
@@ -38,15 +46,17 @@ def purgar_metricas_antiguas(ahora=None):
     inicio = time.monotonic()
     return {
         "latencia_requests": _borrar_en_lotes(
-            "DELETE FROM latencia_requests WHERE fecha_creacion < :limite",
-            {"limite": ahora - timedelta(days=DIAS_LATENCIA)}, inicio,
+            "latencia_requests", "fecha_creacion", ahora - timedelta(days=DIAS_LATENCIA), inicio,
         ),
         "evento_analitica": _borrar_en_lotes(
-            "DELETE FROM evento_analitica WHERE creado_en < :limite",
-            {"limite": ahora - timedelta(days=DIAS_EVENTOS)}, inicio,
+            "evento_analitica", "creado_en", ahora - timedelta(days=DIAS_EVENTOS), inicio,
         ),
         "tokens_recuperacion": _borrar_en_lotes(
-            "DELETE FROM tokens_recuperacion WHERE expira_en < :limite",
-            {"limite": ahora - timedelta(days=DIAS_TOKENS_RECUPERACION)}, inicio,
+            "tokens_recuperacion", "expira_en", ahora - timedelta(days=DIAS_TOKENS_RECUPERACION), inicio,
+        ),
+        "consentimientos_vencidos": _borrar_en_lotes(
+            "consentimientos_privacidad", "decidido_en",
+            ahora - timedelta(days=DIAS_CONSENTIMIENTO_ACEPTADO), inicio,
+            condicion_extra="AND decision = 'aceptado'",
         ),
     }

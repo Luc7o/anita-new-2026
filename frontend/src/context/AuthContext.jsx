@@ -57,8 +57,8 @@ export function AuthProvider({ children }) {
     return abrirSesion(data);
   };
 
-  const loginConGoogle = async (credential) => {
-    const data = await api.loginGoogle(credential);
+  const loginConGoogle = async (credential, aceptaTerminos = false) => {
+    const data = await api.loginGoogle(credential, aceptaTerminos);
     if (data.requiere_2fa) {
       setSegundoPaso({ token: data.token_2fa });
       return { requiere2fa: true };
@@ -89,8 +89,8 @@ export function AuthProvider({ children }) {
 
   // Registro rápido solo con el correo: el backend crea la cuenta (nombre y
   // contraseña aleatorios) y devuelve sesión, así se puede seguir comprando.
-  const registroConEmail = async (email) => {
-    const data = await api.registroConEmail(email);
+  const registroConEmail = async (email, aceptaTerminos = false) => {
+    const data = await api.registroConEmail(email, aceptaTerminos);
     setAccessToken(data.token);
     guardarCsrf(data.csrf);
     setUsuario(data.usuario);

@@ -4,6 +4,16 @@ import { BrowserRouter } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext.jsx";
 import { ToastProvider } from "./context/ToastContext.jsx";
 import { ConfirmProvider } from "./components/ConfirmDialog.jsx";
+// Fuentes alojadas en nuestro propio sitio (paquetes @fontsource, licencia OFL):
+// así no se le envía la IP de cada visitante a Google Fonts. Solo el subconjunto
+// latino, que cubre español (tildes, ñ, ¿ ¡).
+import "@fontsource/dm-sans/latin-400.css";
+import "@fontsource/dm-sans/latin-500.css";
+import "@fontsource/dm-sans/latin-600.css";
+import "@fontsource/dm-sans/latin-700.css";
+import "@fontsource/dm-sans/latin-800.css";
+import "@fontsource/dm-serif-display/latin-400.css";
+import "@fontsource/dm-serif-display/latin-400-italic.css";
 import "./styles/theme.css";
 import { importarConReintento } from "./utils/lazyConReintento.js";
 
@@ -36,8 +46,9 @@ async function arrancarAdmin() {
 }
 
 async function arrancarTienda() {
-  const [{ default: App }, { FavoritosProvider }, { CarritoProvider }] = await Promise.all([
+  const [{ default: App }, { default: BannerPrivacidad }, { FavoritosProvider }, { CarritoProvider }] = await Promise.all([
     importarConReintento(() => import("./App.jsx")),
+    importarConReintento(() => import("./components/BannerPrivacidad.jsx")),
     importarConReintento(() => import("./context/FavoritosContext.jsx")),
     importarConReintento(() => import("./context/CarritoContext.jsx")),
   ]);
@@ -45,6 +56,7 @@ async function arrancarTienda() {
     <FavoritosProvider>
       <CarritoProvider>
         <App />
+        <BannerPrivacidad />
       </CarritoProvider>
     </FavoritosProvider>
   );

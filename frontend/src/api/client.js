@@ -1,4 +1,5 @@
 import { IS_ADMIN_APP } from "../lib/appMode.js";
+import { obtenerSesionAnalitica } from "../consentimiento.js";
 
 const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 
@@ -310,24 +311,17 @@ async function descargarPdf(path, nombreArchivo) {
 }
 
 // --- KPIs: eventos de analítica (embudo de compra) ---
-// sesion_id: un id anónimo por navegador, generado una sola vez y guardado
-// en localStorage (no es el JWT ni depende de tener cuenta — sirve para
-// medir embudo también de visitantes no logueados).
-function obtenerSesionAnalitica() {
-  const CLAVE = "ans_sesion_analitica";
-  let sesion = localStorage.getItem(CLAVE);
-  if (!sesion) {
-    sesion = (crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`);
-    localStorage.setItem(CLAVE, sesion);
-  }
-  return sesion;
-}
-
+// SOLO con consentimiento: sin que la persona haya aceptado las estadísticas en el banner de
+// privacidad, obtenerSesionAnalitica() devuelve null y no se envía NADA (ni se crea identificador).
+// Ver consentimiento.js. El servidor además descarta todo evento sin consentimiento registrado.
+//
 // Fire-and-forget a propósito: un evento de analítica que falla (red caída,
 // ad-blocker, etc.) nunca debe romper ni frenar la acción real del usuario
 // (agregar al carrito, pagar...), así que nunca se propaga el error ni se
 // espera con await en el caller.
 function registrarEvento(tipoEvento, { productoId, metadata } = {}) {
+  const sesionId = obtenerSesionAnalitica();
+  if (!sesionId) return;
   fetch(`${BASE_URL}/eventos`, {
     method: "POST",
     credentials: "include",
@@ -337,7 +331,7 @@ function registrarEvento(tipoEvento, { productoId, metadata } = {}) {
     },
     body: JSON.stringify({
       tipo_evento: tipoEvento,
-      sesion_id: obtenerSesionAnalitica(),
+      sesion_id: sesionId,
       producto_id: productoId ?? null,
       metadata: metadata ?? null,
     }),
@@ -348,12 +342,18 @@ function registrarEvento(tipoEvento, { productoId, metadata } = {}) {
 
 export const api = {
   registrarEvento,
+  // Consentimiento de estadísticas (banner de privacidad). No son analítica: solo dejan constancia
+  // de la decisión y, al retirarla, borran lo recogido. Con sesión iniciada también se borra lo asociado a la cuenta.
+  registrarConsentimiento: (body) => request("/consentimiento", { method: "POST", body }),
+  retirarConsentimiento: (body) =>
+    request("/consentimiento/retirar", { method: "POST", body, auth: Boolean(getToken()) }),
 
   // Auth
   registro: (payload) => request("/auth/registro", { method: "POST", body: payload }),
   continuarComoInvitado: (payload) => request("/auth/invitado", { method: "POST", body: payload }),
   // Registro solo con correo: NO inicia sesión, solo envía el enlace para crear la contraseña.
-  registroConEmail: (email) => request("/auth/registro-email", { method: "POST", body: { email } }),
+  registroConEmail: (email, aceptaTerminos) =>
+    request("/auth/registro-email", { method: "POST", body: { email, acepta_terminos: aceptaTerminos === true } }),
   completarCuenta: (payload) =>
     request("/auth/completar-cuenta", { method: "POST", body: payload, auth: true }),
   refrescarToken: () => refrescarAccessToken(),
@@ -369,7 +369,8 @@ export const api = {
   codigosNuevos2fa: (codigo) => request("/auth/2fa/codigos-nuevos", { method: "POST", body: { codigo }, auth: true }),
   misDatos: () => request("/auth/mis-datos", { auth: true }),
   eliminarCuenta: (payload) => request("/auth/cuenta", { method: "DELETE", body: payload, auth: true }),
-  loginGoogle: (credential) => request("/auth/google", { method: "POST", body: { credential } }),
+  loginGoogle: (credential, aceptaTerminos) =>
+    request("/auth/google", { method: "POST", body: { credential, acepta_terminos: aceptaTerminos === true } }),
   perfil: () => request("/auth/perfil", { auth: true }),
   actualizarPerfil: (payload) =>
     request("/auth/perfil", { method: "PUT", body: payload, auth: true }),

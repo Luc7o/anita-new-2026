@@ -10,6 +10,7 @@ import { useNavigate } from "react-router-dom";
 import registroHero from "../assets/auth/registro-hero.webp";
 import { claseInputAuth as claseInput, claseLabel } from "../estilos.js";
 import { useToast } from "../context/ToastContext.jsx";
+import CasillaTerminos from "../components/CasillaTerminos.jsx";
 
 // Registro mínimo: solo el correo. La cuenta se crea al instante con un nombre
 // y una contraseña aleatorios y la persona queda con sesión iniciada para
@@ -25,13 +26,19 @@ export default function Registro() {
   const [email, setEmail] = useState("");
   const [enviando, setEnviando] = useState(false);
   const [error, setError] = useState("");
+  // Empieza SIEMPRE sin marcar: sin aceptar no se crea la cuenta (ni con correo ni con Google).
+  const [aceptaTerminos, setAceptaTerminos] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    if (!aceptaTerminos) {
+      setError("Marca la casilla de Términos y Política de Privacidad para crear tu cuenta.");
+      return;
+    }
     setEnviando(true);
     try {
-      await registroConEmail(email.trim());
+      await registroConEmail(email.trim(), true);
       toast.success("¡Cuenta creada! Ya puedes seguir comprando");
       navigate(destino);
     } catch (err) {
@@ -77,10 +84,19 @@ export default function Registro() {
             </p>
           </div>
 
+          <CasillaTerminos
+            id="reg-acepta-terminos"
+            checked={aceptaTerminos}
+            onChange={setAceptaTerminos}
+            className="mb-5"
+          />
+
           {import.meta.env.VITE_GOOGLE_CLIENT_ID && (
             <>
               <GoogleButton
                 texto="signup_with"
+                aceptaTerminos={aceptaTerminos}
+                bloqueado={!aceptaTerminos}
                 onSuccess={(u) => {
                   if (!u?.requiere2fa) toast.success("¡Cuenta creada! Ya puedes seguir comprando");
                   navigate(u?.requiere2fa ? "/ingresar" : "/");
@@ -121,7 +137,7 @@ export default function Registro() {
 
             <button
               type="submit"
-              disabled={enviando}
+              disabled={enviando || !aceptaTerminos}
               className="flex w-full items-center justify-center gap-2 rounded-lg bg-plum py-3.5 font-semibold text-white transition hover:bg-berry-dark disabled:opacity-60"
             >
               {enviando ? (
@@ -133,18 +149,6 @@ export default function Registro() {
                 "Crear Cuenta"
               )}
             </button>
-
-            <p className="text-center text-xs text-plum-soft">
-              Al continuar aceptas los{" "}
-              <Link to="/terminos-y-condiciones" className="font-semibold text-berry hover:underline">
-                Términos y Condiciones
-              </Link>{" "}
-              y la{" "}
-              <Link to="/politica-de-privacidad" className="font-semibold text-berry hover:underline">
-                Política de Privacidad
-              </Link>
-              .
-            </p>
           </form>
 
           <p className="mt-6 text-center text-sm text-plum-soft">

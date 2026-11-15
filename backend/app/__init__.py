@@ -161,7 +161,7 @@ def create_app(config_class=Config):
     from app.routes import admin_productos, admin_categorias, admin_pedidos, admin_reportes
     from app.routes import admin_proveedores, admin_usuarios, admin_uploads, admin_configuracion
     from app.routes import admin_promociones, jobs, eventos, reclamaciones, admin_reclamaciones, admin_dashboard
-    from app.routes import configuracion, admin_movimientos, admin_compras, admin_almacen
+    from app.routes import configuracion, admin_movimientos, admin_compras, admin_almacen, consentimiento
     app.register_blueprint(auth.bp)
     app.register_blueprint(productos.bp)
     app.register_blueprint(carrito.bp)
@@ -171,6 +171,7 @@ def create_app(config_class=Config):
     app.register_blueprint(promociones.bp)
     app.register_blueprint(ubicaciones.bp)
     app.register_blueprint(eventos.bp)
+    app.register_blueprint(consentimiento.bp)
     app.register_blueprint(admin_productos.bp)
     app.register_blueprint(admin_categorias.bp)
     app.register_blueprint(admin_pedidos.bp)

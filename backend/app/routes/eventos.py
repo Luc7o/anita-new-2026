@@ -1,7 +1,8 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import verify_jwt_in_request, get_jwt_identity
 from app.extensions import db, limiter
-from app.models import EventoAnalitica
+from app.models import EventoAnalitica, ConsentimientoPrivacidad
+from app.utils.legal import VERSION_CONSENTIMIENTO
 
 bp = Blueprint("eventos", __name__, url_prefix="/api/eventos")
 
@@ -15,6 +16,10 @@ def registrar_evento():
     No requiere sesión — se llama tanto para visitantes anónimos como para
     clientes logueados; si hay un JWT válido en la petición, se guarda el
     usuario_id, si no, queda NULL (solo con sesion_id).
+
+    SOLO se guarda si ese sesion_id tiene un consentimiento 'aceptado' de la versión
+    vigente (banner de privacidad). Así, aunque un navegador con una versión vieja de la
+    tienda siga enviando eventos, sin consentimiento no se registra nada.
     """
     data = request.get_json(force=True) or {}
 
@@ -25,6 +30,12 @@ def registrar_evento():
     sesion_id = (data.get("sesion_id") or "").strip()[:64]
     if not sesion_id:
         return jsonify({"error": "Falta sesion_id"}), 400
+
+    consentido = db.session.query(ConsentimientoPrivacidad.id).filter_by(
+        sesion_id=sesion_id, decision="aceptado", finalidad="analitica", version=VERSION_CONSENTIMIENTO,
+    ).first()
+    if not consentido:
+        return jsonify({"error": "Sin consentimiento para estadísticas", "code": "sin_consentimiento"}), 403
 
     usuario_id = None
     try:

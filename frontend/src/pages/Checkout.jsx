@@ -13,6 +13,8 @@ import {
 } from "../validacion.js";
 import UbicacionEntrega from "../components/UbicacionEntrega.jsx";
 import Spinner from "../components/Spinner.jsx";
+import CasillaTerminos from "../components/CasillaTerminos.jsx";
+import { COSTO_ENVIO_DELIVERY } from "../tienda.js";
 import { abrirCulqiCheckout } from "../culqi.js";
 import { obtenerPagoIdempotencyKey, limpiarPagoIdempotencyKey } from "../pagoIdempotencia.js";
 import { useToast } from "../context/ToastContext.jsx";
@@ -82,6 +84,8 @@ export default function Checkout() {
   });
   const [enviando, setEnviando] = useState(false);
   const [error, setError] = useState("");
+  // Solo se pide a quien compra sin cuenta (se le crea una); empieza sin marcar.
+  const [aceptaTerminos, setAceptaTerminos] = useState(false);
   // Resultado de validar el documento: idle | validando | valido | invalido | no_verificado
   const [docEstado, setDocEstado] = useState(DOC_SIN_VALIDAR);
   // Memoria de consultas ya hechas (clave "tipo:numero"). Así, si el usuario
@@ -242,7 +246,7 @@ export default function Checkout() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const costoEnvio = form.tipo_entrega === "delivery" ? 10 : 0;
+  const costoEnvio = form.tipo_entrega === "delivery" ? COSTO_ENVIO_DELIVERY : 0;
 
   const quitarItemSinStock = async (itemId) => {
     setQuitandoItemId(itemId);
@@ -272,6 +276,11 @@ export default function Checkout() {
       return;
     }
 
+    if (!usuario && !aceptaTerminos) {
+      setError("Marca la casilla de Términos y Política de Privacidad para continuar con tu compra.");
+      return;
+    }
+
     setEnviando(true);
 
     try {
@@ -282,7 +291,7 @@ export default function Checkout() {
       if (!usuarioActual) {
         setCuentaExistente(false);
         try {
-          usuarioActual = await continuarComoInvitado({ email: form.envio_email.trim() });
+          usuarioActual = await continuarComoInvitado({ email: form.envio_email.trim(), acepta_terminos: true });
           cuentaNueva = true;
         } catch (err) {
           if (err.status === 409) setCuentaExistente(true);
@@ -490,6 +499,7 @@ export default function Checkout() {
                 ¿Ya tienes cuenta? Ingresa
               </Link>
             </div>
+            <CasillaTerminos id="checkout-acepta-terminos" checked={aceptaTerminos} onChange={setAceptaTerminos} />
             {cuentaExistente && (
               <Link
                 to="/ingresar"

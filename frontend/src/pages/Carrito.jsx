@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { COSTO_ENVIO_DELIVERY } from "../tienda.js";
 import { Link } from "react-router-dom";
 import { useCarrito } from "../context/CarritoContext.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
@@ -202,12 +203,16 @@ export default function Carrito() {
               </div>
               <div className="flex justify-between">
                 <dt className="text-plum-soft">Envío</dt>
-                <dd className="text-plum-soft">Se calcula al pagar</dd>
+                <dd className="text-right text-plum-soft">
+                  S/ {COSTO_ENVIO_DELIVERY.toFixed(2)} con delivery
+                  <br />
+                  Gratis con recojo en tienda
+                </dd>
               </div>
             </dl>
 
             <div className="flex items-center justify-between border-t border-plum/10 pt-4 text-lg font-semibold text-plum">
-              <span>Total</span>
+              <span>Total (sin envío)</span>
               <span key={total} className="animate-fade-in">S/ {total.toFixed(2)}</span>
             </div>
 
