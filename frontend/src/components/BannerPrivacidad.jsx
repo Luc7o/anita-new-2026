@@ -46,9 +46,9 @@ export default function BannerPrivacidad() {
           aria-labelledby="aviso-privacidad-titulo"
           className="glass-strong fixed inset-x-3 bottom-3 z-50 rounded-2xl p-4 shadow-glass-lg sm:left-4 sm:right-auto sm:max-w-md"
         >
-          <h2 id="aviso-privacidad-titulo" className="text-base font-semibold text-plum">Tu privacidad</h2>
+          <h2 id="aviso-privacidad-titulo" className="text-base font-semibold text-plum">Tu privacidad y cookies</h2>
           <p className="mt-1 text-xs leading-relaxed text-plum-soft">
-            Usamos almacenamiento esencial para que la tienda funcione (tu sesión, carrito, pedidos y pagos). Con tu
+            Usamos cookies y almacenamiento esencial para que la tienda funcione (tu sesión, carrito, pedidos y pagos). Con tu
             permiso, también medimos cómo se usa la tienda —páginas y productos vistos, carrito y compra— con un
             identificador anónimo, solo para mejorarla. Sin publicidad ni terceros. Puedes cambiar tu elección cuando
             quieras.{" "}
