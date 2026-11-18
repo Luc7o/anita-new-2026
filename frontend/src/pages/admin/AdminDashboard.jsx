@@ -1,6 +1,8 @@
 import { rutaAdmin } from "../../lib/appMode.js";
 import { SkeletonPanelAdmin } from "../../components/admin/EsqueletosAdmin.jsx";
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import NumeroAnimado from "../../components/admin/NumeroAnimado.jsx";
+import TituloAnimado from "../../components/admin/TituloAnimado.jsx";
 import { Link, useSearchParams } from "react-router-dom";
 import { api } from "../../api/client.js";
 import { soles } from "../../formato.js";
@@ -37,6 +39,8 @@ export default function AdminDashboard() {
   const { cargando, usuario } = useAuth();
   const rol = usuario?.rol;
   const vistas = vistasDelRol(rol);
+  const primerNombre = String(usuario?.nombre || "").trim().split(/\s+/)[0];
+  const nombre = primerNombre ? primerNombre.charAt(0).toUpperCase() + primerNombre.slice(1).toLowerCase() : "equipo";
   const [params, setParams] = useSearchParams();
   const pedida = params.get("vista");
   const vista = vistas.some((v) => v.id === pedida) ? pedida : "resumen";
@@ -83,7 +87,7 @@ export default function AdminDashboard() {
 
   return (
     <div>
-      <h1 className="mb-4 text-2xl font-semibold text-plum">Dashboard</h1>
+      <TituloAnimado antes="Hola de nuevo," destacado={nombre} className="mb-5 text-4xl text-plum sm:text-5xl" />
 
       {vistas.length > 1 && <Pestanas vistas={vistas} activa={vista} onCambiar={cambiarVista} />}
 
@@ -106,6 +110,7 @@ export default function AdminDashboard() {
 
 function Pestanas({ vistas, activa, onCambiar }) {
   const botones = useRef({});
+  const [marca, setMarca] = useState(null);
 
   const alTeclear = (e, indice) => {
     let destino = null;
@@ -120,26 +125,52 @@ function Pestanas({ vistas, activa, onCambiar }) {
     botones.current[id]?.focus();
   };
 
+  // La píldora de color se desliza hasta la pestaña activa.
+  useLayoutEffect(() => {
+    const medir = () => {
+      const el = botones.current[activa];
+      if (!el) return;
+      setMarca((previa) => ({ x: el.offsetLeft, w: el.offsetWidth, anima: previa !== null }));
+    };
+    medir();
+    window.addEventListener("resize", medir);
+    return () => window.removeEventListener("resize", medir);
+  }, [activa, vistas.length]);
+
   return (
-    <div role="tablist" aria-label="Secciones del dashboard" className="mb-6 flex gap-2 overflow-x-auto pb-1">
-      {vistas.map((v, i) => (
-        <button
-          key={v.id}
-          ref={(el) => (botones.current[v.id] = el)}
-          role="tab"
-          id={`tab-${v.id}`}
-          aria-selected={activa === v.id}
-          aria-controls={`panel-${v.id}`}
-          tabIndex={activa === v.id ? 0 : -1}
-          onClick={() => onCambiar(v.id)}
-          onKeyDown={(e) => alTeclear(e, i)}
-          className={`shrink-0 rounded-full px-4 py-1.5 text-sm font-medium transition ${
-            activa === v.id ? "bg-berry text-white" : "glass text-plum hover:bg-white"
-          }`}
-        >
-          {v.label}
-        </button>
-      ))}
+    <div className="mb-6 max-w-full overflow-x-auto pb-1">
+      <div role="tablist" aria-label="Secciones del dashboard" className="glass relative inline-flex gap-1 rounded-full p-1">
+        <span
+          aria-hidden="true"
+          className="pointer-events-none absolute bottom-1 left-0 top-1 rounded-full bg-berry shadow-md"
+          style={{
+            width: marca?.w ?? 0,
+            transform: `translateX(${marca?.x ?? 0}px)`,
+            opacity: marca ? 1 : 0,
+            transition: marca?.anima
+              ? "transform .45s cubic-bezier(.65,-.2,.25,1.2), width .45s cubic-bezier(.65,-.2,.25,1.2)"
+              : "none",
+          }}
+        />
+        {vistas.map((v, i) => (
+          <button
+            key={v.id}
+            ref={(el) => (botones.current[v.id] = el)}
+            role="tab"
+            id={`tab-${v.id}`}
+            aria-selected={activa === v.id}
+            aria-controls={`panel-${v.id}`}
+            tabIndex={activa === v.id ? 0 : -1}
+            onClick={() => onCambiar(v.id)}
+            onKeyDown={(e) => alTeclear(e, i)}
+            className={`relative z-10 shrink-0 rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
+              activa === v.id ? "text-white" : "text-plum-soft hover:text-plum"
+            }`}
+          >
+            {v.label}
+          </button>
+        ))}
+      </div>
     </div>
   );
 }
@@ -182,25 +213,49 @@ function PanelAtencion({ items }) {
   if (items.length === 0) {
     return (
       <div className="glass rounded-2xl p-6">
-        <p className="font-semibold text-plum">Todo al día ✓</p>
-        <p className="text-sm text-plum-soft">No tienes nada pendiente por atender ahora mismo.</p>
+        <div className="flex items-center gap-4">
+          <svg width="44" height="44" viewBox="0 0 46 46" aria-hidden="true" className="shrink-0">
+            <circle cx="23" cy="23" r="21" fill="none" pathLength="1" strokeWidth="2.5" className="adm-draw stroke-emerald-600" />
+            <path
+              d="M14 24 L21 31 L33 16"
+              fill="none"
+              pathLength="1"
+              strokeWidth="3"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="adm-draw stroke-emerald-600"
+              style={{ animationDelay: "0.7s" }}
+            />
+          </svg>
+          <div>
+            <p className="font-semibold text-plum">Todo al día</p>
+            <p className="text-sm text-plum-soft">No tienes nada pendiente por atender ahora mismo.</p>
+          </div>
+        </div>
       </div>
     );
   }
   return (
-    <section aria-labelledby="atencion-titulo" className="glass rounded-2xl p-6">
-      <h2 id="atencion-titulo" className="text-lg font-semibold text-plum">Necesita tu atención</h2>
-      <ul className="mt-3 divide-y divide-plum/10">
-        {items.map((it) => (
-          <li key={it.clave}>
-            <Link to={rutaAdmin(String(it.enlace || "").replace(/^\/admin(?=\/|$)/, ""))} className="flex items-center justify-between gap-3 py-2.5 text-sm transition hover:text-berry">
-              <span className="flex items-center gap-2 text-plum">
+    <section aria-labelledby="atencion-titulo" className="rounded-2xl bg-gradient-to-br from-[#5a0a20] to-[#2c0107] p-6 text-white shadow-lg">
+      <h2 id="atencion-titulo" className="text-lg font-semibold">Necesita tu atención</h2>
+      <ul className="mt-3 grid gap-2 sm:grid-cols-2">
+        {items.map((it, i) => (
+          <li key={it.clave} className="adm-in-right" style={{ "--i": i }}>
+            <Link
+              to={rutaAdmin(String(it.enlace || "").replace(/^\/admin(?=\/|$)/, ""))}
+              className="flex items-center gap-3 rounded-[14px] bg-white/10 px-3.5 py-3 text-sm transition hover:-translate-x-0.5 hover:bg-white/20"
+            >
+              <span
+                aria-hidden="true"
+                className={`adm-pulse h-2.5 w-2.5 shrink-0 rounded-full ${it.urgente ? "bg-[#ff4d7a] text-[#ff4d7a]" : "bg-[#ffb454] text-[#ffb454]"}`}
+              />
+              <span className="min-w-0 flex-1">
                 {it.urgente && (
-                  <span className="rounded-md bg-gold/30 px-2 py-0.5 text-xs font-semibold text-plum">Urgente</span>
+                  <span className="mr-2 rounded-md bg-white/20 px-2 py-0.5 text-xs font-semibold">Urgente</span>
                 )}
                 {it.texto}
               </span>
-              <span aria-hidden="true" className="text-berry">Ver →</span>
+              <span aria-hidden="true" className="text-white/70">Ver →</span>
             </Link>
           </li>
         ))}
@@ -719,9 +774,9 @@ function GrupoKpis({ titulo, nota, columnas = "grid-cols-2 sm:grid-cols-3", chil
 
 function Tarjeta({ label, valor, destacar = false, small = false, detalle }) {
   return (
-    <div className={`glass rounded-2xl ${small ? "p-5" : "p-6"} ${destacar ? "ring-2 ring-inset ring-gold" : ""}`}>
+    <div className={`adm-kpi glass rounded-2xl ${small ? "p-5" : "p-6"} ${destacar ? "ring-2 ring-inset ring-gold" : ""}`}>
       <p className="text-xs uppercase tracking-wide text-plum-soft">{label}</p>
-      <p className={`mt-1 font-semibold text-plum ${small ? "text-lg" : "text-2xl"}`}>{valor}</p>
+      <p className={`mt-1 font-semibold text-plum ${small ? "text-lg" : "text-2xl"}`}><NumeroAnimado valor={valor} /></p>
       {detalle && <p className="mt-1 text-xs text-plum-soft">{detalle}</p>}
     </div>
   );
@@ -783,7 +838,8 @@ function GraficoBarras({ datos, resumen, dinero = true }) {
             {h > 0 && (
               <path
                 d={`M${x} ${y + r} Q${x} ${y} ${x + r} ${y} H${x + anchoBarra - r} Q${x + anchoBarra} ${y} ${x + anchoBarra} ${y + r} V${yDe(0)} H${x} Z`}
-                className={mejor ? "fill-acento" : "fill-berry/45"}
+                className={`adm-bar ${mejor ? "fill-acento" : "fill-berry/45"}`}
+                style={{ "--d": `${0.15 + i * 0.07}s` }}
               />
             )}
             {mostrarEtiqueta(i) && (
@@ -877,16 +933,16 @@ function VentasChart({ datos, pie }) {
             );
           })}
 
-          <path d={area} fill="url(#ventas-relleno)" />
-          <path d={linea} fill="none" className="stroke-berry" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" />
+          <path d={area} fill="url(#ventas-relleno)" className="adm-area" />
+          <path d={linea} fill="none" pathLength="1" className="adm-draw stroke-berry" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" />
 
           {puntos.map((p, i) => (
             <g key={p.mes}>
               <title>{`${p.mes}: S/ ${p.total.toFixed(2)}`}</title>
               {i === iMejor ? (
-                <circle cx={p.x} cy={p.y} r="7" className="fill-berry stroke-white" strokeWidth="3" />
+                <circle cx={p.x} cy={p.y} r="7" className="adm-dot fill-berry stroke-white" strokeWidth="3" style={{ "--d": `${0.6 + i * 0.17}s` }} />
               ) : (
-                <circle cx={p.x} cy={p.y} r="4.5" className="fill-white stroke-berry" strokeWidth="2.5" />
+                <circle cx={p.x} cy={p.y} r="4.5" className="adm-dot fill-white stroke-berry" strokeWidth="2.5" style={{ "--d": `${0.6 + i * 0.17}s` }} />
               )}
               <text
                 x={p.x}
@@ -902,8 +958,8 @@ function VentasChart({ datos, pie }) {
           ))}
 
           {/* Etiqueta con el monto del mejor mes */}
-          <rect x={xEtiqueta} y={mejor.y - 36} width={anchoEtiqueta} height="24" rx="6" className="fill-plum" />
-          <text x={xEtiqueta + anchoEtiqueta / 2} y={mejor.y - 20} textAnchor="middle" fontSize="12" fontWeight="700" className="fill-ivory">
+          <rect x={xEtiqueta} y={mejor.y - 36} width={anchoEtiqueta} height="24" rx="6" className="adm-area fill-plum" />
+          <text x={xEtiqueta + anchoEtiqueta / 2} y={mejor.y - 20} textAnchor="middle" fontSize="12" fontWeight="700" className="adm-area fill-ivory">
             {etiqueta}
           </text>
         </svg>
@@ -997,7 +1053,7 @@ function BarrasHorizontales({ titulo, subtitulo, vacioTexto, datos, acento = fal
                 </span>
               </div>
               <div className="mt-1 h-2.5 w-full overflow-hidden rounded-full bg-plum/10">
-                <div className={`h-full rounded-full ${acento ? "bg-acento" : "bg-berry"}`} style={{ width: `${Math.max((d.valor / max) * 100, 3)}%`, opacity: i === 0 ? 1 : 0.55 }} />
+                <div className={`adm-hbar h-full rounded-full ${acento ? "bg-acento" : "bg-berry"}`} style={{ "--d": `${0.2 + i * 0.1}s`, width: `${Math.max((d.valor / max) * 100, 3)}%`, opacity: i === 0 ? 1 : 0.55 }} />
               </div>
             </div>
           ))}
