@@ -1,5 +1,5 @@
 import { rutaAdmin, IS_ADMIN_APP, TIENDA_URL } from "../../lib/appMode.js";
-import React from "react";
+import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { NavLink, Outlet, Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext.jsx";
 import Logo from "../Logo.jsx";
@@ -8,6 +8,7 @@ import {
   IconCart, IconGift, IconBook, IconUser, IconSun, IconMoon, IconReport, IconWarehouse, IconReceipt,
 } from "../Icons.jsx";
 import useTemaAdmin from "../../hooks/useTemaAdmin.js";
+import useReducirMovimiento from "../../hooks/useReducirMovimiento.js";
 import {
   PUEDE_VER_PRODUCTOS, PUEDE_GESTIONAR_CATEGORIAS, PUEDE_VER_PEDIDOS, PUEDE_REGISTRAR_VENTA, PUEDE_VER_INICIO, PUEDE_VER_PROVEEDORES,
   PUEDE_GESTIONAR_USUARIOS, PUEDE_VER_CONFIGURACION, PUEDE_VER_PROMOCIONES, PUEDE_VER_RECLAMACIONES, PUEDE_VER_COMPRAS, PUEDE_VER_ALMACEN,
@@ -30,6 +31,24 @@ const TODOS_LOS_ITEMS = [
   { to: rutaAdmin("/usuarios"), label: "Usuarios y roles", Icon: IconUsers, roles: PUEDE_GESTIONAR_USUARIOS },
   { to: rutaAdmin("/configuracion"), label: "Configuración", Icon: IconSettings, roles: PUEDE_VER_CONFIGURACION },
 ];
+
+// Qué opción del menú corresponde a la ruta actual: la de ruta más larga que coincida
+// (así "/pedidos/nueva-venta" marca "Nueva venta" y "/pedidos/123" marca "Pedidos").
+// Devuelve -1 si ninguna coincide.
+function indiceActivo(items, ruta) {
+  const raiz = rutaAdmin();
+  let mejor = -1;
+  let largo = -1;
+  items.forEach((it, i) => {
+    const coincide =
+      it.to === raiz ? ruta === it.to || ruta === `${it.to}/` : ruta === it.to || ruta.startsWith(`${it.to}/`);
+    if (coincide && it.to.length > largo) {
+      mejor = i;
+      largo = it.to.length;
+    }
+  });
+  return mejor;
+}
 
 function TiendaLink() {
   const clases =
@@ -63,6 +82,51 @@ export default function AdminLayout() {
     navigate(IS_ADMIN_APP ? "/login" : "/ingresar", { replace: true });
   };
   const items = TODOS_LOS_ITEMS.filter((item) => !item.roles || item.roles.includes(usuario?.rol));
+  const activo = indiceActivo(items, location.pathname);
+  const reducir = useReducirMovimiento();
+  const fecha = useMemo(
+    () => new Date().toLocaleDateString("es-PE", { weekday: "long", day: "numeric", month: "long" }),
+    [],
+  );
+
+  // Indicador que se desliza hasta la opción activa del menú lateral.
+  const botonesMenu = useRef([]);
+  const [marca, setMarca] = useState(null);
+  useLayoutEffect(() => {
+    const medir = () => {
+      const el = botonesMenu.current[activo];
+      if (!el) {
+        setMarca(null);
+        return;
+      }
+      setMarca((previa) => ({ y: el.offsetTop, h: el.offsetHeight, anima: previa !== null }));
+    };
+    medir();
+    window.addEventListener("resize", medir);
+    return () => window.removeEventListener("resize", medir);
+  }, [activo, items.length]);
+
+  // Transición entre secciones: un círculo oscuro nace en el botón pulsado, cubre la
+  // pantalla, se cambia de ruta y se cierra descubriendo la sección nueva.
+  const [onda, setOnda] = useState(null);
+  const temporizadores = useRef([]);
+  useEffect(() => () => temporizadores.current.forEach(clearTimeout), []);
+  const irCon = (e, destino) => {
+    if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    if (onda) {
+      e.preventDefault();
+      return;
+    }
+    if (reducir || destino === location.pathname) return;
+    e.preventDefault();
+    const r = e.currentTarget.getBoundingClientRect();
+    setOnda({ x: r.left + r.width / 2, y: r.top + r.height / 2, fase: "previa" });
+    const en = (fn, ms) => temporizadores.current.push(setTimeout(fn, ms));
+    en(() => setOnda((o) => o && { ...o, fase: "cubre" }), 30);
+    en(() => navigate(destino), 600);
+    en(() => setOnda((o) => o && { ...o, fase: "abre" }), 760);
+    en(() => setOnda(null), 1450);
+  };
 
   return (
     <div className="admin-ui admin-pagina flex min-h-screen flex-col">
@@ -84,7 +148,7 @@ export default function AdminLayout() {
             <button
               type="button"
               onClick={alternar}
-              className="rounded-[10px] p-2.5 text-white/70 hover:bg-white/10 hover:text-white"
+              className="rounded-[10px] p-2.5 text-white/70 transition-transform hover:-rotate-12 hover:scale-110 hover:bg-white/10 hover:text-white"
               aria-label={tema === "oscuro" ? "Activar modo claro" : "Activar modo oscuro"}
               title={tema === "oscuro" ? "Modo claro" : "Modo oscuro"}
             >
@@ -108,19 +172,32 @@ export default function AdminLayout() {
       <div className="flex flex-1">
         {/* Barra lateral (pantallas grandes): ocupa todo el lado izquierdo, bajo la cabecera */}
         <aside className="sticky top-[57px] hidden h-[calc(100vh-57px)] w-60 shrink-0 flex-col overflow-y-auto border-r border-plum/10 bg-white lg:flex">
-          <nav className="flex flex-1 flex-col gap-1 p-3" aria-label="Administración">
-            {items.map((item) => (
+          <nav className="relative flex flex-1 flex-col gap-1 p-3" aria-label="Administración">
+            <span
+              aria-hidden="true"
+              className="pointer-events-none absolute left-3 right-3 top-0 rounded-[10px] bg-berry shadow-md"
+              style={{
+                height: marca?.h ?? 0,
+                transform: `translateY(${marca?.y ?? 0}px)`,
+                opacity: marca ? 1 : 0,
+                transition: marca?.anima
+                  ? "transform .55s cubic-bezier(.65,-.2,.25,1.15), height .3s"
+                  : "none",
+              }}
+            />
+            {items.map((item, i) => (
               <NavLink
                 key={item.to}
+                ref={(el) => {
+                  botonesMenu.current[i] = el;
+                }}
                 to={item.to}
                 end={item.exact}
-                className={({ isActive }) =>
-                  `flex items-center gap-3 rounded-[10px] px-3.5 py-2.5 text-sm font-semibold transition-colors ${
-                    isActive
-                      ? "bg-berry text-white shadow-sm"
-                      : "text-plum-soft hover:bg-plum/5 hover:text-plum"
-                  }`
-                }
+                onClick={(e) => irCon(e, item.to)}
+                style={{ "--i": i }}
+                className={`adm-nav-in relative z-10 flex items-center gap-3 rounded-[10px] px-3.5 py-2.5 text-sm font-semibold transition-colors ${
+                  i === activo ? "text-white" : "text-plum-soft hover:bg-plum/5 hover:text-plum"
+                }`}
               >
                 <item.Icon size={18} />
                 {item.label}
@@ -164,6 +241,7 @@ export default function AdminLayout() {
                   key={item.to}
                   to={item.to}
                   end={item.exact}
+                  onClick={(e) => irCon(e, item.to)}
                   className={({ isActive }) =>
                     `flex shrink-0 items-center gap-2 whitespace-nowrap border-b-2 px-3.5 py-3 text-sm font-semibold transition-colors ${
                       isActive
@@ -182,9 +260,26 @@ export default function AdminLayout() {
           <main className="mx-auto w-full min-w-0 max-w-7xl flex-1 px-4 pb-16 pt-8 sm:px-6 lg:px-8">
             {/* key: al cambiar de sección el contenido entra con fundido + leve subida */}
             <div key={location.pathname} className="animate-fade-in-up">
+              <div className="mb-5 flex flex-wrap items-center gap-2 text-xs text-plum-soft">
+                <span className="glass rounded-full px-3 py-1.5">
+                  <span className="font-semibold text-berry">Anita</span> › {items[activo]?.label ?? "Panel"}
+                </span>
+                <span className="glass flex items-center gap-1.5 rounded-full px-3 py-1.5">
+                  <span aria-hidden="true" className="adm-live h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                  <span className="first-letter:uppercase">{fecha}</span>
+                </span>
+              </div>
               <Outlet />
             </div>
           </main>
+          {onda && (
+            <div
+              aria-hidden="true"
+              className="adm-wipe"
+              data-fase={onda.fase}
+              style={{ "--x": `${onda.x}px`, "--y": `${onda.y}px` }}
+            />
+          )}
         </div>
       </div>
     </div>

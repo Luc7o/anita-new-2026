@@ -15,6 +15,7 @@ import "@fontsource/dm-sans/latin-800.css";
 import "@fontsource/dm-serif-display/latin-400.css";
 import "@fontsource/dm-serif-display/latin-400-italic.css";
 import "./styles/theme.css";
+import "./styles/admin-motion.css";
 import { importarConReintento } from "./utils/lazyConReintento.js";
 
 // La comparación se hace directo con import.meta.env para que Vite la resuelva al
