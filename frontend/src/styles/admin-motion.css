@@ -147,22 +147,28 @@ html.admin-dark h1.adm-titulo em { color: #ee6f94; }
   animation-delay: calc(var(--i, 0) * 120ms + 300ms);
 }
 
-/* --- Transición entre secciones: círculo que se expande -------------- */
-.adm-wipe {
-  position: fixed;
-  inset: 0;
-  z-index: 70;
-  background: radial-gradient(circle at 30% 20%, #5a0a20, rgb(var(--c-chrome)));
-  clip-path: circle(0 at var(--x) var(--y));
+/* --- Cambio de sección: sale lo viejo, entra lo nuevo en cascada ----- */
+@keyframes adm-page-in {
+  from { opacity: 0; }
 }
-.adm-wipe[data-fase="cubre"] {
-  clip-path: circle(150% at var(--x) var(--y));
-  transition: clip-path 0.55s cubic-bezier(0.7, 0, 0.3, 1);
+.adm-page {
+  animation: adm-page-in 0.25s ease-out backwards;
+  transition: opacity 0.15s ease-in, transform 0.15s ease-in, filter 0.15s ease-in;
 }
-.adm-wipe[data-fase="abre"] {
-  clip-path: circle(0 at var(--x) var(--y));
-  transition: clip-path 0.6s cubic-bezier(0.7, 0, 0.3, 1);
+.adm-page.adm-saliendo {
+  opacity: 0;
+  transform: translateY(-6px);
+  filter: blur(4px);
 }
+
+/* --- Modo oscuro: círculo que crece desde el botón (View Transitions) -- */
+html.adm-circulo::view-transition-old(root),
+html.adm-circulo::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+html.adm-circulo::view-transition-old(root) { z-index: 1; }
+html.adm-circulo::view-transition-new(root) { z-index: 2; }
 
 /* --- Botones y campos ------------------------------------------------ */
 html.admin-mode :is(.btn-primary, .btn-secondary, .btn) {
@@ -186,3 +192,44 @@ html.admin-mode main [role="search"] > .relative {
   transition: max-width 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 html.admin-mode main [role="search"] > .relative:focus-within { max-width: 32rem; }
+
+/* ====================================================================
+   Modo oscuro carmesí: fondo con luz suave, superficies sólidas (sin
+   vidrio) y botones que irradian luz. Solo existe con html.admin-dark.
+   ==================================================================== */
+html.admin-dark .admin-pagina {
+  background:
+    radial-gradient(900px 560px at 92% 100%, rgb(125 20 52 / 0.34), transparent 70%),
+    radial-gradient(780px 440px at 26% 4%, rgb(196 39 89 / 0.14), transparent 70%),
+    var(--admin-pg);
+  background-attachment: fixed;
+}
+html.admin-dark .glass,
+html.admin-dark .glass-strong {
+  border-color: rgb(255 255 255 / 0.1);
+}
+
+/* Halo de luz: indicador del menú, píldora de pestañas y botones berry */
+html.admin-dark .adm-brillo {
+  box-shadow: 0 0 22px rgb(196 39 89 / 0.6), 0 6px 18px rgb(196 39 89 / 0.35);
+}
+html.admin-dark :is(button, a).bg-berry,
+html.admin-dark .btn-primary {
+  box-shadow: 0 0 18px rgb(196 39 89 / 0.45);
+}
+html.admin-dark :is(button, a).bg-berry:not(:disabled):hover,
+html.admin-dark .btn-primary:not(:disabled):hover {
+  box-shadow: 0 0 30px rgb(196 39 89 / 0.75);
+}
+html.admin-dark .btn-secondary:not(:disabled):hover {
+  border-color: rgb(196 39 89 / 0.6);
+  box-shadow: 0 0 16px rgb(196 39 89 / 0.28);
+}
+html.admin-dark .adm-kpi:hover {
+  border-color: rgb(196 39 89 / 0.45);
+  box-shadow: 0 0 0 1px rgb(196 39 89 / 0.25), 0 14px 34px rgb(196 39 89 / 0.22);
+}
+html.admin-dark header button:hover,
+html.admin-dark header a:hover {
+  filter: drop-shadow(0 0 8px rgb(238 111 148 / 0.55));
+}

@@ -17,7 +17,8 @@
   --admin-surface-2: #f7f5f5;
 }
 
-/* Admin en modo oscuro: fondo negro puro. La clase "admin-dark" la pone
+/* Admin en modo oscuro: fondo carmesí muy oscuro con luz suave (ver admin-motion.css).
+   La clase "admin-dark" la pone
    useTemaAdmin en <html>; solo existe mientras el panel está abierto. */
 html.admin-dark {
   color-scheme: dark;
@@ -27,9 +28,9 @@ html.admin-dark {
   --c-lilac: 30 14 19;
   --c-chrome: 24 2 5;
   --c-acento: 216 214 215;
-  --admin-pg: #000000;
-  --admin-surface: #0b0b0b;
-  --admin-surface-2: #151515;
+  --admin-pg: #060203;
+  --admin-surface: #170a0f;
+  --admin-surface-2: #22111a;
 }
 
 * {

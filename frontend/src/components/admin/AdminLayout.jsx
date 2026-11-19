@@ -1,5 +1,6 @@
 import { rutaAdmin, IS_ADMIN_APP, TIENDA_URL } from "../../lib/appMode.js";
 import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { flushSync } from "react-dom";
 import { NavLink, Outlet, Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext.jsx";
 import Logo from "../Logo.jsx";
@@ -106,26 +107,53 @@ export default function AdminLayout() {
     return () => window.removeEventListener("resize", medir);
   }, [activo, items.length]);
 
-  // Transición entre secciones: un círculo oscuro nace en el botón pulsado, cubre la
-  // pantalla, se cambia de ruta y se cierra descubriendo la sección nueva.
-  const [onda, setOnda] = useState(null);
+  // Transición entre secciones (como en el video de referencia): lo que había se desvanece
+  // rápido y la sección nueva entra en cascada (título, tarjetas y números).
+  const [saliendoDe, setSaliendoDe] = useState(null);
   const temporizadores = useRef([]);
   useEffect(() => () => temporizadores.current.forEach(clearTimeout), []);
+  useEffect(() => setSaliendoDe(null), [location.pathname]);
   const irCon = (e, destino) => {
     if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
-    if (onda) {
-      e.preventDefault();
+    if (saliendoDe === location.pathname) {
+      e.preventDefault(); // ya está saliendo: evita pulsaciones dobles
       return;
     }
     if (reducir || destino === location.pathname) return;
     e.preventDefault();
+    setSaliendoDe(location.pathname);
+    temporizadores.current.push(setTimeout(() => navigate(destino), 150));
+  };
+
+  // Modo oscuro: un círculo oscuro nace en el botón de la luna y crece hasta cubrir la pantalla.
+  // Al volver a modo claro solo hay un fundido suave. Si el navegador no soporta View Transitions
+  // (o la persona pidió menos movimiento), el cambio es directo.
+  const cambiarTema = (e) => {
+    const html = document.documentElement;
+    if (!document.startViewTransition || reducir) {
+      alternar();
+      return;
+    }
+    const haciaOscuro = tema !== "oscuro";
     const r = e.currentTarget.getBoundingClientRect();
-    setOnda({ x: r.left + r.width / 2, y: r.top + r.height / 2, fase: "previa" });
-    const en = (fn, ms) => temporizadores.current.push(setTimeout(fn, ms));
-    en(() => setOnda((o) => o && { ...o, fase: "cubre" }), 30);
-    en(() => navigate(destino), 600);
-    en(() => setOnda((o) => o && { ...o, fase: "abre" }), 760);
-    en(() => setOnda(null), 1450);
+    const x = r.left + r.width / 2;
+    const y = r.top + r.height / 2;
+    const radio = Math.hypot(Math.max(x, window.innerWidth - x), Math.max(y, window.innerHeight - y));
+    if (haciaOscuro) html.classList.add("adm-circulo");
+    const transicion = document.startViewTransition(() => {
+      flushSync(() => alternar());
+      html.classList.toggle("admin-dark", haciaOscuro);
+    });
+    transicion.ready
+      .then(() => {
+        if (!haciaOscuro) return;
+        html.animate(
+          { clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${radio}px at ${x}px ${y}px)`] },
+          { duration: 750, easing: "cubic-bezier(.7,0,.3,1)", pseudoElement: "::view-transition-new(root)" },
+        );
+      })
+      .catch(() => {});
+    transicion.finished.catch(() => {}).then(() => html.classList.remove("adm-circulo"));
   };
 
   return (
@@ -147,7 +175,7 @@ export default function AdminLayout() {
                 aparece si se definió VITE_TIENDA_URL, y abre la tienda aparte. */}
             <button
               type="button"
-              onClick={alternar}
+              onClick={cambiarTema}
               className="rounded-[10px] p-2.5 text-white/70 transition-transform hover:-rotate-12 hover:scale-110 hover:bg-white/10 hover:text-white"
               aria-label={tema === "oscuro" ? "Activar modo claro" : "Activar modo oscuro"}
               title={tema === "oscuro" ? "Modo claro" : "Modo oscuro"}
@@ -175,7 +203,7 @@ export default function AdminLayout() {
           <nav className="relative flex flex-1 flex-col gap-1 p-3" aria-label="Administración">
             <span
               aria-hidden="true"
-              className="pointer-events-none absolute left-3 right-3 top-0 rounded-[10px] bg-berry shadow-md"
+              className="adm-brillo pointer-events-none absolute left-3 right-3 top-0 rounded-[10px] bg-berry shadow-md"
               style={{
                 height: marca?.h ?? 0,
                 transform: `translateY(${marca?.y ?? 0}px)`,
@@ -258,8 +286,8 @@ export default function AdminLayout() {
           </div>
 
           <main className="mx-auto w-full min-w-0 max-w-7xl flex-1 px-4 pb-16 pt-8 sm:px-6 lg:px-8">
-            {/* key: al cambiar de sección el contenido entra con fundido + leve subida */}
-            <div key={location.pathname} className="animate-fade-in-up">
+            {/* key: al cambiar de sección el contenido se vuelve a montar y entra en cascada */}
+            <div key={location.pathname} className={`adm-page ${saliendoDe === location.pathname ? "adm-saliendo" : ""}`}>
               <div className="mb-5 flex flex-wrap items-center gap-2 text-xs text-plum-soft">
                 <span className="glass rounded-full px-3 py-1.5">
                   <span className="font-semibold text-berry">Anita</span> › {items[activo]?.label ?? "Panel"}
@@ -272,14 +300,6 @@ export default function AdminLayout() {
               <Outlet />
             </div>
           </main>
-          {onda && (
-            <div
-              aria-hidden="true"
-              className="adm-wipe"
-              data-fase={onda.fase}
-              style={{ "--x": `${onda.x}px`, "--y": `${onda.y}px` }}
-            />
-          )}
         </div>
       </div>
     </div>

@@ -142,7 +142,7 @@ function Pestanas({ vistas, activa, onCambiar }) {
       <div role="tablist" aria-label="Secciones del dashboard" className="glass relative inline-flex gap-1 rounded-full p-1">
         <span
           aria-hidden="true"
-          className="pointer-events-none absolute bottom-1 left-0 top-1 rounded-full bg-berry shadow-md"
+          className="adm-brillo pointer-events-none absolute bottom-1 left-0 top-1 rounded-full bg-berry shadow-md"
           style={{
             width: marca?.w ?? 0,
             transform: `translateX(${marca?.x ?? 0}px)`,
