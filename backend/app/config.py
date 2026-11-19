@@ -135,8 +135,8 @@ class Config:
     # una instancia distinta, así que guardar los contadores en memoria
     # (el default de Flask-Limiter) NO funciona ahí — cada instancia cuenta
     # por su cuenta y los límites dejan de cumplirse de verdad. Por eso en
-    # producción esto debe apuntar a un Redis compartido (ej. el add-on de
-    # Railway) vía REDIS_URL. Si REDIS_URL no está seteado, cae a memoria
+    # producción esto debe apuntar a un Redis compartido (Upstash, Redis Cloud,
+    # etc.) vía REDIS_URL. Si REDIS_URL no está seteado, cae a memoria
     # (memory://), que sigue sirviendo para desarrollo local.
     REDIS_URL = os.getenv("REDIS_URL", "")
     RATELIMIT_STORAGE_URI = REDIS_URL or "memory://"

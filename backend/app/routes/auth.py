@@ -588,14 +588,33 @@ def login_google():
             if usuario.google_id and usuario.google_id != google_id:
                 return jsonify({"error": "Ese correo ya está vinculado a otra cuenta de Google"}), 409
             usuario.google_id = google_id
-            # Una cuenta de invitado que entra con Google pasa a ser una
-            # cuenta completa (ya tiene una forma de volver a entrar). Si era
-            # de invitado, se cierran las sesiones abiertas antes: pudo
-            # haberla creado otra persona con el correo de quien entra ahora
-            # (Google sí garantiza que este correo es suyo).
-            if usuario.es_invitado:
-                usuario.sesion_version += 1
+            # Primera vez que esta cuenta se vincula a Google. El registro con correo no
+            # verifica que el correo sea de quien se registra, así que alguien pudo crear la
+            # cuenta con el correo de esta persona (y ponerle contraseña o incluso 2FA) para
+            # seguir entrando después. Google SÍ garantiza que quien entra ahora es la dueña
+            # del correo: por eso se borran las credenciales anteriores y se cierran todas las
+            # sesiones. Si la contraseña era suya, la recupera con «¿Olvidaste tu contraseña?».
+            tenia_credenciales = bool(usuario.password_hash) or usuario.totp_activo
+            usuario.password_hash = None
+            usuario.totp_activo = False
+            usuario.totp_secreto = None
+            usuario.totp_ultimo_paso = None
+            CodigoRespaldo.query.filter_by(usuario_id=usuario.id).delete()
+            usuario.sesion_version += 1
             usuario.es_invitado = False
+            if tenia_credenciales:
+                enviar_correo(
+                    destinatario=usuario.email,
+                    asunto="Vinculaste tu cuenta con Google — Anita New Style",
+                    texto=(
+                        f"Hola {usuario.nombre},\n\n"
+                        "Acabas de entrar a Anita New Style con Google. Por seguridad cerramos las "
+                        "demás sesiones y desactivamos la contraseña y la verificación en dos pasos "
+                        "que tenía la cuenta. Desde ahora entra con Google, o crea una contraseña "
+                        "nueva con «¿Olvidaste tu contraseña?».\n\n"
+                        "Si no fuiste tú, escríbenos de inmediato."
+                    ),
+                )
 
     nueva = usuario is None
     if nueva:

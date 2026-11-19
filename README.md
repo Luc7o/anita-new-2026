@@ -4,12 +4,12 @@ Tienda en línea completa para una tienda de moda de Huancayo, Perú: catálogo,
 carrito, checkout con pago real, pedidos con seguimiento, panel de
 administración y venta presencial.
 
-- **Backend**: Flask + SQLAlchemy + MySQL, autenticación con JWT
+- **Backend**: Flask + SQLAlchemy + PostgreSQL, autenticación con JWT
 - **Frontend**: React + Vite + Tailwind
 - **Pagos**: Culqi (tarjeta y Yape)
 - **Correos**: Resend
 - **Imágenes**: Vercel Blob (se convierten a WebP con miniaturas)
-- **Hosting**: Vercel (frontend y backend por separado) + Railway (MySQL y Redis)
+- **Hosting**: Vercel (frontend y backend por separado) + Neon (PostgreSQL) + un Redis compartido para el rate limiter
 
 ```
 anita-new-2026/
@@ -57,7 +57,9 @@ Corre en `http://localhost:5173`.
 | Variable | Para qué |
 |---|---|
 | `SECRET_KEY` / `JWT_SECRET_KEY` | Firma de sesión y de los tokens JWT |
-| `DB_USER` / `DB_PASSWORD` / `DB_HOST` / `DB_PORT` / `DB_NAME` | Conexión a MySQL |
+| `DATABASE_URL` | Conexión a PostgreSQL. En producción es la URL que entrega Neon (con `?sslmode=require`) |
+| `DB_USER` / `DB_PASSWORD` / `DB_HOST` / `DB_PORT` / `DB_NAME` | Opcional, solo si no usas `DATABASE_URL` (por ejemplo un PostgreSQL local) |
+| `DB_POOL_SIZE` / `DB_MAX_OVERFLOW` | Opcional. Conexiones por instancia (2 y 3 por defecto, pensado para el pooler de Neon) |
 | `FRONTEND_TIENDA_URL` | URL del frontend de la tienda (enlaces de los correos) |
 | `COOKIE_DOMAIN` | Opcional. Con `.anita-new-style.xyz` la cookie de sesión se comparte entre tienda y admin. Vacío en local |
 | `REDIS_URL` | Backend del rate limiter. En local puede quedar vacío; en producción es obligatorio (ver más abajo) |
@@ -93,7 +95,7 @@ integración de Blob en el proyecto de Vercel.
 En Vercel el backend corre como funciones serverless: cada invocación puede
 caer en una instancia distinta, así que un rate limiter en memoria no cumple
 de verdad los límites de intentos. En producción `REDIS_URL` debe apuntar a un
-Redis compartido (por ejemplo el de Railway). Si no está configurado, el
+Redis compartido (por ejemplo Upstash). Si no está configurado, el
 backend arranca igual pero avisa por logs que quedó en modo memoria.
 
 ## Tienda y panel en dominios separados
@@ -241,17 +243,47 @@ responde desde el panel (plazo legal de 15 días hábiles).
 ## Migraciones de base de datos
 
 Cada cambio de esquema queda como un archivo `.sql` numerado en
-`backend/migraciones/`. Para aplicar las que falten (en orden, sin repetir las
-ya corridas):
+`backend/migraciones_postgres/` (001, 002, 003...). Para aplicar las que falten
+(en orden, sin repetir las ya corridas), con `DATABASE_URL` apuntando a la base:
 
 ```bash
 cd backend
 python aplicar_migraciones.py
 ```
 
+Cada archivo corre dentro de una transacción: si falla, la base queda como
+estaba. Las migraciones antiguas de MySQL se eliminaron al pasar a Neon; siguen
+en el historial de git.
+
 Los valores válidos de estados y métodos de pago también están como
 restricciones en la base de datos: si agregas uno nuevo en el código, agrega
 una migración que lo permita.
+
+## Pruebas
+
+**Backend** (desde `backend/`). Hay dos tipos de prueba:
+
+- **Unitarias**: no necesitan base de datos y corren siempre.
+- **De integración**: login, permisos, checkout, pagos, cancelaciones y cron. Necesitan un
+  PostgreSQL **local y desechable**, porque borran sus datos entre prueba y prueba. Nunca leen
+  `backend/.env` y se niegan a correr contra una base que no sea local, así que no pueden tocar Neon.
+
+```bash
+pip install -r requirements-dev.txt
+
+# Base de prueba con Docker (una sola vez; después: docker start anita-test-db)
+docker run -d --name anita-test-db -e POSTGRES_PASSWORD=test -e POSTGRES_DB=anita_test -p 54329:5432 postgres:16-alpine
+
+# PowerShell
+$env:TEST_DATABASE_URL="postgresql://postgres:test@localhost:54329/anita_test"
+python -m pytest
+```
+
+Sin `TEST_DATABASE_URL` solo corren las unitarias y las demás aparecen como saltadas.
+Las pruebas marcadas `xfail` documentan errores conocidos que todavía no se corrigen:
+cuando se arregle uno, su prueba pasará y pytest pedirá quitarle la marca.
+
+**Frontend** (desde `frontend/`): `npm test` (usa el ejecutor de pruebas que trae Node).
 
 ## Scripts útiles (carpeta `backend/`)
 

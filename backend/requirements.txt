@@ -3,7 +3,7 @@ Flask-SQLAlchemy==3.1.1
 Flask-Migrate==4.0.7
 Flask-JWT-Extended==4.6.0
 Flask-Cors==4.0.1
-psycopg2-binary==2.9.10
+psycopg2-binary==2.9.13
 python-dotenv==1.0.1
 email-validator==2.2.0
 Flask-Limiter==3.8.0
@@ -12,7 +12,7 @@ cryptography==43.0.0
 resend==2.7.0
 requests==2.32.3
 vercel_blob==0.4.2
-xhtml2pdf
+xhtml2pdf==0.2.16
 pypdf<7
 redis==5.0.8
 google-auth==2.35.0

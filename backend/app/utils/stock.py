@@ -144,6 +144,21 @@ def validar_stock_disponible_items(items, grupos=None, variantes=None):
             continue
 
         producto = variante.producto
+        # Un producto desactivado desde el panel ya no se vende, aunque siguiera en carritos
+        # armados antes (agregar al carrito ya lo filtra, pero el carrito puede ser viejo).
+        if not producto.activo:
+            problemas.append({
+                "item_id": item.id,
+                "producto_id": producto.id,
+                "producto_nombre": producto.nombre,
+                "talla": variante.talla,
+                "color": variante.color,
+                "disponible": 0,
+                "pedido": item.cantidad,
+                "mensaje": f"{producto.nombre} ya no está disponible.",
+            })
+            continue
+
         # Cuánto pide el GRUPO en total (normalmente coincide con este ítem solo, ya que
         # el carrito guarda una única línea por variante).
         cantidad_grupo = grupos.get(variante.id, item.cantidad)

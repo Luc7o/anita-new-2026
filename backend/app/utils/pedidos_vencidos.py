@@ -30,6 +30,9 @@ METODOS_PAGO_PASARELA = {"tarjeta", "yape"}
 
 
 def _cancelar_uno(pedido):
+    # Defensa extra: nunca se cancela (ni se devuelve stock de) un pedido que ya avanzó.
+    if not pedido.puede_pasar_a("cancelado"):
+        return
     pedido.estado_pago = "rechazado"
     pedido.motivo_cancelacion = "vencimiento_pago"
     cambiar_estado_pedido(pedido, "cancelado")
@@ -38,6 +41,9 @@ def _cancelar_uno(pedido):
 
 def _query_vencidos(usuario_id=None):
     query = Pedido.query.filter(
+        # Solo pedidos que siguen esperando el pago. Uno ya confirmado, preparado o enviado no
+        # se toca aunque su plazo haya pasado: devolver su stock inflaría el inventario.
+        Pedido.estado == "pendiente",
         Pedido.estado_pago == "pendiente",
         Pedido.metodo_pago.in_(METODOS_PAGO_PASARELA),
         Pedido.fecha_limite_pago.isnot(None),

@@ -107,8 +107,8 @@ class Pedido(db.Model):
     culqi_cargo_id = db.Column(db.String(40))
 
     # Clave de idempotencia del INTENTO DE PAGO (distinta de idempotency_key,
-    # que es de la creación del pedido). Ver migraciones/023_*.sql para el
-    # detalle de por qué hace falta una columna separada.
+    # que es de la creación del pedido): la de checkout evita pedidos duplicados y
+    # esta evita cobrar dos veces el mismo pedido si el navegador reintenta el pago.
     pago_idempotency_key = db.Column(db.String(64))
 
     nota = db.Column(db.Text)

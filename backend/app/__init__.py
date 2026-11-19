@@ -92,6 +92,11 @@ def create_app(config_class=Config):
     @app.after_request
     def _kpi_registrar_latencia(response):
         from flask import g as _g
+        # Una respuesta de error NUNCA debe guardar cambios a medias. Varias rutas modifican
+        # objetos y después responden 4xx al encontrar un dato inválido sin hacer rollback; si
+        # el commit del KPI de abajo corriera con esa sesión, guardaría esos cambios igual.
+        if response.status_code >= 400:
+            db.session.rollback()
         if request.path == "/api/salud":
             return response
         tasa = app.config.get("KPI_LATENCIA_SAMPLE_RATE", 1.0)

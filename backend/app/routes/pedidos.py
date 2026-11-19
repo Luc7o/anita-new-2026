@@ -11,7 +11,7 @@ from app.utils.stock import (
     restaurar_stock_de_pedido,
 )
 from app.utils.decorators import requiere_activo
-from app.utils.culqi import culqi_configurado, crear_cargo
+from app.utils.culqi import INCIERTO, culqi_configurado, crear_cargo
 from app.utils.boleta import responder_boleta
 from app.utils.pedidos_vencidos import METODOS_PAGO_PASARELA, cancelar_pedidos_vencidos_del_usuario
 from app.utils.historial import cambiar_estado_pedido
@@ -248,7 +248,14 @@ def detalle_pedido(pedido_id):
 @requiere_activo
 def cancelar_pedido(pedido_id):
     usuario_id = int(get_jwt_identity())
-    pedido = Pedido.query.filter_by(id=pedido_id, usuario_id=usuario_id).first_or_404()
+    # Fila bloqueada: si en este momento se está cobrando el pedido (/pagar tiene el lock
+    # mientras habla con Culqi), esta cancelación espera y luego ve que ya está pagado, en vez
+    # de cancelar un pedido que se acaba de cobrar y devolver su stock.
+    pedido = (
+        Pedido.query.filter_by(id=pedido_id, usuario_id=usuario_id)
+        .with_for_update(of=Pedido)
+        .first_or_404()
+    )
 
     if not pedido.puede_pasar_a("cancelado"):
         return jsonify({
@@ -265,7 +272,16 @@ def cancelar_pedido(pedido_id):
             "error": "Este pedido ya fue pagado. Contáctanos para cancelarlo y gestionar tu reembolso."
         }), 403
 
+    if pedido.estado_pago == "en_revision":
+        return jsonify({
+            "error": "Estamos confirmando tu pago con el banco. Espera unos minutos antes de cancelar."
+        }), 409
+
     pedido.motivo_cancelacion = "cliente"
+    # Un pago que nunca llegó a cobrarse ya no está "pendiente": así el pedido no vuelve a
+    # entrar en el barrido de pedidos vencidos ni suma en "pagos pendientes" del dashboard.
+    if pedido.estado_pago == "pendiente":
+        pedido.estado_pago = "rechazado"
     cambiar_estado_pedido(pedido, "cancelado", cambiado_por=usuario_id)
     restaurar_stock_de_pedido(pedido, motivo="Cancelado por el cliente")
     db.session.commit()
@@ -335,10 +351,12 @@ def pagar_pedido(pedido_id):
         # ahora mismo (ya tenemos el lock de la fila) en vez de esperar al
         # cron/chequeo lazy, para no dejarlo "flotando" un rato más.
         pedido.estado_pago = "rechazado"
+        # El stock solo vuelve si el pedido de verdad se cancela: uno que ya avanzó (por
+        # ejemplo despachado) se queda con su mercadería.
         if pedido.puede_pasar_a("cancelado"):
             pedido.motivo_cancelacion = "vencimiento_pago"
             cambiar_estado_pedido(pedido, "cancelado", cambiado_por=usuario_id)
-        restaurar_stock_de_pedido(pedido, motivo="Vencimiento del plazo de pago")
+            restaurar_stock_de_pedido(pedido, motivo="Vencimiento del plazo de pago")
         db.session.commit()
         notificar_estado_pedido(pedido)
         return jsonify({
@@ -357,6 +375,20 @@ def pagar_pedido(pedido_id):
     pedido.pago_idempotency_key = pago_idempotency_key
 
     ok, cargo_id, error = crear_cargo(pedido, usuario, token_id, data.get("email"))
+    if ok is INCIERTO:
+        # Culqi no respondió a tiempo o respondió algo inesperado: el cobro PUDO hacerse. El
+        # pedido pasa a "en revisión" (no vence, no se puede volver a pagar ni cancelar) hasta
+        # que alguien del equipo lo confirme o lo rechace mirando el panel de Culqi. Así el
+        # cliente no paga dos veces ni pierde un pedido que sí pagó.
+        pedido.estado_pago = "en_revision"
+        db.session.commit()
+        current_app.logger.warning(
+            f"Pago del pedido {pedido.id} en revisión: Culqi no confirmó el resultado del cargo."
+        )
+        return jsonify({
+            **pedido.to_dict(),
+            "mensaje": "Estamos confirmando tu pago con el banco. Te avisaremos por correo; no vuelvas a pagar.",
+        }), 202
     if not ok:
         # Rechazo del banco o de Culqi — el pedido queda "pendiente" tal
         # cual, así el cliente puede intentar de nuevo (otra tarjeta, etc.)

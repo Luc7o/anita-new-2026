@@ -116,6 +116,9 @@ export default function AdminPedidoDetalle() {
       await api.adminRevisarPago(id, estadoPago);
       toast.success("Pago revisado");
       cargar();
+    } catch (err) {
+      // El backend explica por qué no se puede (p. ej. un pago ya cobrado en Culqi no se rechaza).
+      toast.error(err.message);
     } finally {
       setActualizando(false);
     }
@@ -264,8 +267,13 @@ export default function AdminPedidoDetalle() {
               </span>
             </div>
 
-            {puedeRevisarPago && pedido.estado !== "cancelado" &&
-              (pedido.estado_pago === "en_revision" || (pedido.metodo_pago === "tarjeta" && pedido.estado_pago === "pendiente")) && (
+            {puedeRevisarPago && pedido.estado !== "cancelado" && pedido.estado_pago === "en_revision" && (
+              <p className="mt-3 text-sm text-plum-soft">
+                Culqi no confirmó a tiempo si este pago se cobró. Búscalo en el panel de Culqi:
+                si aparece el cargo, verifícalo; si no, recházalo.
+              </p>
+            )}
+            {puedeRevisarPago && pedido.estado !== "cancelado" && pedido.estado_pago === "en_revision" && (
               <div className="mt-3 flex gap-2">
                 <button
                   onClick={() => revisarPago("verificado")}

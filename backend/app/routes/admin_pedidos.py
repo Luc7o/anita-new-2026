@@ -32,8 +32,24 @@ from app.utils.notificaciones import (
 )
 from app.models import IntentoPago
 from app.utils.busqueda import contiene
+from app.utils.pedidos_vencidos import METODOS_PAGO_PASARELA
 
 bp = Blueprint("admin_pedidos", __name__, url_prefix="/api/admin/pedidos")
+
+
+def _pedido_bloqueado(pedido_id):
+    """
+    El pedido con su fila BLOQUEADA hasta el commit/rollback. Todo endpoint que cambia el
+    estado o el pago de un pedido debe leerlo así: si el cliente está pagando (/pagar tiene el
+    lock mientras habla con Culqi), o hay un doble clic en el panel, la segunda petición espera
+    a la primera y decide con el estado ya actualizado. Sin esto, dos cancelaciones a la vez
+    devolvían el stock dos veces, o se cancelaba un pedido que en ese mismo instante se cobraba.
+    """
+    pedido = db.session.query(Pedido).filter_by(id=pedido_id).with_for_update(of=Pedido).first()
+    if pedido is None:
+        from flask import abort
+        abort(404)
+    return pedido
 
 
 def _ventas_no_gestiona(pedido):
@@ -217,7 +233,7 @@ def detalle(pedido_id):
 @bp.put("/<int:pedido_id>/estado")
 @requiere_roles(*PUEDE_GESTIONAR_PEDIDOS)
 def cambiar_estado(pedido_id):
-    pedido = Pedido.query.get_or_404(pedido_id)
+    pedido = _pedido_bloqueado(pedido_id)
     if _ventas_no_gestiona(pedido):
         return jsonify({"error": "Ventas solo puede gestionar pedidos de delivery"}), 403
     data = request.get_json(force=True) or {}
@@ -249,12 +265,31 @@ def cambiar_estado(pedido_id):
             "error": f"No se puede pasar de \"{pedido.estado_label}\" a \"{Pedido.ESTADOS[nuevo_estado]}\""
         }), 400
 
+    # Un pedido de tarjeta/Yape no avanza (confirmar, preparar, despachar...) mientras su pago
+    # no esté verificado: se estaría despachando mercadería que nadie pagó, y además el barrido
+    # de pedidos vencidos lo cancelaría después aunque ya hubiera salido de la tienda.
+    if (
+        nuevo_estado != "cancelado"
+        and pedido.metodo_pago in METODOS_PAGO_PASARELA
+        and pedido.estado_pago != "verificado"
+    ):
+        return jsonify({
+            "error": "Este pedido todavía no tiene el pago verificado. Espera a que el cliente pague antes de avanzarlo."
+        }), 409
+
     # Si se está cancelando y ya se le había confirmado el pago, marcamos que
     # hay que devolverle el dinero.
     if nuevo_estado == "cancelado":
+        if pedido.estado_pago == "en_revision":
+            # No sabemos todavía si Culqi cobró: primero hay que resolver el pago.
+            return jsonify({
+                "error": "El pago de este pedido está en revisión. Confírmalo o recházalo en Culqi antes de cancelar."
+            }), 409
         restaurar_stock_de_pedido(pedido, usuario_id=g.usuario.id, motivo="Cancelado desde el panel")
         if pedido.estado_pago == "verificado":
             pedido.estado_pago = "reembolso_pendiente"
+        elif pedido.estado_pago == "pendiente":
+            pedido.estado_pago = "rechazado"
         pedido.motivo_cancelacion = "admin"
     if nuevo_estado == "listo_recojo":
         # El pedido ya está esperando en la tienda: se genera el código que
@@ -281,8 +316,8 @@ def cambiar_estado(pedido_id):
 @bp.put("/<int:pedido_id>/pago")
 @requiere_roles(*PUEDE_GESTIONAR_REEMBOLSOS)
 def revisar_pago(pedido_id):
-    """Aprueba/rechaza el comprobante subido, o marca un reembolso como completado."""
-    pedido = Pedido.query.get_or_404(pedido_id)
+    """Confirma un pago que quedó en revisión, rechaza un pago no cobrado, o completa un reembolso."""
+    pedido = _pedido_bloqueado(pedido_id)
     if _ventas_no_gestiona(pedido):
         return jsonify({"error": "Ventas solo puede gestionar pedidos de delivery"}), 403
     data = request.get_json(force=True) or {}
@@ -323,6 +358,31 @@ def revisar_pago(pedido_id):
         return jsonify({
             "error": "Este pedido ya está cancelado y no se puede modificar"
         }), 400
+
+    es_pasarela = pedido.metodo_pago in METODOS_PAGO_PASARELA
+
+    # Un pago que Culqi YA cobró no se puede "rechazar": eso cancelaba el pedido y devolvía el
+    # stock, pero el dinero se quedaba cobrado y el pedido no aparecía en la bandeja de
+    # reembolsos. Para devolverlo hay que cancelar el pedido (queda "reembolso pendiente") y
+    # luego marcarlo como reembolsado, que sí reembolsa en Culqi.
+    if nuevo_estado_pago == "rechazado" and es_pasarela and (
+        pedido.estado_pago == "verificado" or pedido.culqi_cargo_id
+    ):
+        return jsonify({
+            "error": "Este pago ya se cobró en Culqi. Cancela el pedido para que quede como reembolso pendiente."
+        }), 409
+
+    # Tarjeta y Yape se verifican solos al cobrar en Culqi. A mano solo se confirma un pago que
+    # quedó "en revisión" (Culqi no respondió a tiempo) después de revisarlo en el panel de
+    # Culqi; nunca un pedido que sigue pendiente y que nadie pagó.
+    if nuevo_estado_pago == "verificado" and es_pasarela and pedido.estado_pago != "en_revision":
+        return jsonify({
+            "error": "Los pagos con tarjeta o Yape se verifican solos al cobrarse. Solo puedes confirmar a mano un pago en revisión."
+        }), 409
+    if nuevo_estado_pago == "verificado" and pedido.estado_pago == "en_revision":
+        cargo_id = (data.get("culqi_cargo_id") or "").strip()[:40]
+        if cargo_id:
+            pedido.culqi_cargo_id = cargo_id
 
     pago_ya_estaba_verificado = pedido.estado_pago == "verificado"
     pedido.estado_pago = nuevo_estado_pago
