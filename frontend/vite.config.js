@@ -1,8 +1,14 @@
+import { fileURLToPath } from "node:url";
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 
 export default defineConfig({
   plugins: [react()],
+  // "@/..." apunta a src/: lo usan los componentes que se agregan con el CLI de shadcn
+  // (por ejemplo los íconos animados de Animate UI en src/components/animate-ui/icons).
+  resolve: {
+    alias: { "@": fileURLToPath(new URL("./src", import.meta.url)) },
+  },
   build: {
     rollupOptions: {
       output: {

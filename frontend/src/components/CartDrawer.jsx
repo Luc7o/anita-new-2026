@@ -8,6 +8,7 @@ import { IconClose, IconCart, IconTrash, IconArrowRight } from "./Icons.jsx";
 import ImagenOptimizada from "./ImagenOptimizada.jsx";
 import { SkeletonLineasCarrito } from "./Skeleton.jsx";
 import { useFocusTrap } from "../hooks/useFocusTrap.js";
+import { AnimateIcon } from "@animate-ui/react/icons";
 
 const RESORTE = { type: "spring", stiffness: 380, damping: 38 };
 
@@ -50,13 +51,15 @@ function LineaCarrito({ item, onCantidad, onQuitar, error, onNavegar }) {
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
         <div className="flex items-start justify-between gap-2">
           <span className="text-sm font-bold leading-snug text-plum">{item.producto.nombre}</span>
-          <button
-            onClick={() => onQuitar(item.id)}
-            className="-mr-1 -mt-1 flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-plum-soft transition-colors hover:bg-ivory hover:text-berry"
-            aria-label={`Quitar ${item.producto.nombre} del carrito`}
-          >
-            <IconTrash size={16} />
-          </button>
+          <AnimateIcon animateOnHover animateOnTap asChild>
+            <button
+              onClick={() => onQuitar(item.id)}
+              className="-mr-1 -mt-1 flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-plum-soft transition-colors hover:bg-ivory hover:text-berry"
+              aria-label={`Quitar ${item.producto.nombre} del carrito`}
+            >
+              <IconTrash size={16} />
+            </button>
+          </AnimateIcon>
         </div>
         {(item.talla || item.color) && (
           <span className="text-xs text-plum-soft">
@@ -172,13 +175,15 @@ export default function CartDrawer() {
                   </span>
                 )}
               </h2>
-              <button
-                onClick={cerrar}
-                className="flex h-11 w-11 items-center justify-center rounded-full border border-plum/10 bg-white text-plum transition-colors hover:border-berry hover:text-berry"
-                aria-label="Cerrar"
-              >
-                <IconClose size={18} />
-              </button>
+              <AnimateIcon animateOnHover animateOnTap asChild>
+                <button
+                  onClick={cerrar}
+                  className="flex h-11 w-11 items-center justify-center rounded-full border border-plum/10 bg-white text-plum transition-colors hover:border-berry hover:text-berry"
+                  aria-label="Cerrar"
+                >
+                  <IconClose size={18} />
+                </button>
+              </AnimateIcon>
             </div>
 
             {cargando && items.length === 0 ? (
@@ -240,10 +245,12 @@ export default function CartDrawer() {
                       Ir a pagar
                     </button>
                   ) : (
-                    <Link to="/checkout" onClick={cerrar} className="btn-primary icono-avance w-full min-h-13! text-base!">
-                      Ir a pagar
-                      <IconArrowRight size={18} />
-                    </Link>
+                    <AnimateIcon animateOnHover animateOnTap asChild>
+                      <Link to="/checkout" onClick={cerrar} className="btn-primary w-full min-h-13! text-base!">
+                        Ir a pagar
+                        <IconArrowRight size={18} />
+                      </Link>
+                    </AnimateIcon>
                   )}
                   <Link to="/carrito" onClick={cerrar} className="btn-relleno w-full">
                     Ver carrito completo

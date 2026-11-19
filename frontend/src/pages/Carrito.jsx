@@ -9,6 +9,7 @@ import { IconCart, IconTrash, IconArrowRight } from "../components/Icons.jsx";
 import ImagenOptimizada from "../components/ImagenOptimizada.jsx";
 import EstadoVacio from "../components/EstadoVacio.jsx";
 import { Skeleton, SkeletonRegion } from "../components/Skeleton.jsx";
+import { AnimateIcon } from "@animate-ui/react/icons";
 
 // Carrito "a detalle": vista completa del carrito (foto grande, precio
 // unitario, cantidades y resumen del pedido). El drawer es el atajo rápido;
@@ -131,13 +132,15 @@ export default function Carrito() {
                           {[item.talla && `Talla ${item.talla}`, item.color].filter(Boolean).join(" · ")}
                         </p>
                       </div>
-                      <button
-                        onClick={() => quitar(item.id)}
-                        aria-label={`Quitar ${producto.nombre} del carrito`}
-                        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-plum-soft transition-colors hover:bg-ivory hover:text-berry"
-                      >
-                        <IconTrash size={16} />
-                      </button>
+                      <AnimateIcon animateOnHover animateOnTap asChild>
+                        <button
+                          onClick={() => quitar(item.id)}
+                          aria-label={`Quitar ${producto.nombre} del carrito`}
+                          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-plum-soft transition-colors hover:bg-ivory hover:text-berry"
+                        >
+                          <IconTrash size={16} />
+                        </button>
+                      </AnimateIcon>
                     </div>
 
                     <div className="mt-1 flex items-baseline gap-2 text-sm">
@@ -239,10 +242,12 @@ export default function Carrito() {
                 Ir a pagar
               </button>
             ) : (
-              <Link to="/checkout" className="btn-primary icono-avance w-full min-h-13! text-base!">
-                Ir a pagar
-                <IconArrowRight size={18} />
-              </Link>
+              <AnimateIcon animateOnHover animateOnTap asChild>
+                <Link to="/checkout" className="btn-primary w-full min-h-13! text-base!">
+                  Ir a pagar
+                  <IconArrowRight size={18} />
+                </Link>
+              </AnimateIcon>
             )}
             <Link to="/tienda" className="btn-relleno w-full">
               Seguir comprando

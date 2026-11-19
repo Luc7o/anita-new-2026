@@ -479,13 +479,7 @@ textarea:focus-visible {
   background: repeating-linear-gradient(135deg, #ece7e0 0 14px, #e5dfd7 14px 28px);
 }
 
-/* Íconos que reaccionan al pasar el mouse (corazón que late, bolsa que rebota, flecha que avanza). */
-@keyframes latir { 40% { transform: scale(1.25); } }
-@keyframes rebotar { 35% { transform: translateY(-4px); } 65% { transform: translateY(1px); } }
-@keyframes avanzar { 50% { transform: translateX(4px); } }
-.icono-latido:hover svg { animation: latir 0.45s cubic-bezier(0.3, 1.6, 0.5, 1); }
-.icono-rebote:hover svg { animation: rebotar 0.5s ease; }
-.icono-avance:hover svg { animation: avanzar 0.6s ease; }
+/* Los íconos se animan con Animate UI (ver components/Icons.jsx y <AnimateIcon>). */
 
 /* Enlace con subrayado que se dibuja de izquierda a derecha (menú principal). */
 .subrayado { position: relative; }
