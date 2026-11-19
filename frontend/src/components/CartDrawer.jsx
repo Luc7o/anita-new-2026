@@ -1,37 +1,109 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { AnimatePresence, motion } from "motion/react";
+import { SlidingNumber } from "@animate-ui/react/primitives/texts/sliding-number";
 import { useCarrito } from "../context/CarritoContext.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
-import { IconClose, IconCart } from "./Icons.jsx";
+import { IconClose, IconCart, IconTrash, IconArrowRight } from "./Icons.jsx";
 import ImagenOptimizada from "./ImagenOptimizada.jsx";
 import { SkeletonLineasCarrito } from "./Skeleton.jsx";
 import { useFocusTrap } from "../hooks/useFocusTrap.js";
 
-// Lo que tarda la animación de salida; después de esto el drawer se desmonta.
-const DURACION_SALIDA_MS = 220;
+const RESORTE = { type: "spring", stiffness: 380, damping: 38 };
+
+// En el celular el carrito sube desde abajo (como una hoja); en pantallas grandes entra por la derecha.
+function useEsCelular() {
+  const consulta = "(max-width: 639px)";
+  const [esCelular, setEsCelular] = useState(
+    () => typeof window !== "undefined" && window.matchMedia?.(consulta).matches
+  );
+  useEffect(() => {
+    const mq = window.matchMedia?.(consulta);
+    if (!mq) return undefined;
+    const alCambiar = (e) => setEsCelular(e.matches);
+    mq.addEventListener?.("change", alCambiar);
+    return () => mq.removeEventListener?.("change", alCambiar);
+  }, []);
+  return esCelular;
+}
+
+function LineaCarrito({ item, onCantidad, onQuitar, error, onNavegar }) {
+  return (
+    <motion.li
+      layout
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, x: 40, height: 0, marginBottom: 0, paddingTop: 0, paddingBottom: 0 }}
+      transition={{ duration: 0.28, ease: [0.2, 0.8, 0.2, 1] }}
+      className="flex gap-3.5 overflow-hidden rounded-2xl bg-white p-3"
+    >
+      <Link
+        to={`/producto/${item.producto.id}`}
+        onClick={onNavegar}
+        aria-label={`Ver ${item.producto.nombre}`}
+        className="foto-vacia h-20 w-16 shrink-0 overflow-hidden rounded-xl"
+      >
+        {item.producto.imagen_url && (
+          <ImagenOptimizada src={item.producto.imagen_url} variante="thumb" alt="" className="h-full w-full object-cover" />
+        )}
+      </Link>
+      <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+        <div className="flex items-start justify-between gap-2">
+          <span className="text-sm font-bold leading-snug text-plum">{item.producto.nombre}</span>
+          <button
+            onClick={() => onQuitar(item.id)}
+            className="-mr-1 -mt-1 flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-plum-soft transition-colors hover:bg-ivory hover:text-berry"
+            aria-label={`Quitar ${item.producto.nombre} del carrito`}
+          >
+            <IconTrash size={16} />
+          </button>
+        </div>
+        {(item.talla || item.color) && (
+          <span className="text-xs text-plum-soft">
+            {item.talla && `Talla ${item.talla}`}
+            {item.talla && item.color && " · "}
+            {item.color}
+          </span>
+        )}
+        <div className="mt-1.5 flex items-center justify-between">
+          <div className="flex items-center rounded-xl border border-plum/15">
+            <button
+              onClick={() => onCantidad(item.id, item.cantidad - 1)}
+              aria-label={`Restar una unidad de ${item.producto.nombre}`}
+              className="flex h-10 w-10 items-center justify-center text-lg text-plum transition-colors hover:text-berry"
+            >
+              −
+            </button>
+            <span className="w-6 text-center text-sm font-bold" aria-live="polite">
+              <SlidingNumber number={item.cantidad} />
+            </span>
+            <button
+              onClick={() => onCantidad(item.id, item.cantidad + 1)}
+              aria-label={`Sumar una unidad de ${item.producto.nombre}`}
+              className="flex h-10 w-10 items-center justify-center text-lg text-plum transition-colors hover:text-berry"
+            >
+              +
+            </button>
+          </div>
+          <span className="text-sm font-extrabold text-plum">S/ {item.subtotal.toFixed(2)}</span>
+        </div>
+        {item.problema && (
+          <p className="mt-1 text-xs font-semibold text-berry-dark" role="alert">{item.problema}</p>
+        )}
+        {error && (
+          <p className="mt-1 text-xs font-semibold text-berry-dark" role="alert">{error}</p>
+        )}
+      </div>
+    </motion.li>
+  );
+}
 
 export default function CartDrawer() {
   const { drawerAbierto, setDrawerAbierto, items, total, cargando, actualizarCantidad, eliminar } =
     useCarrito();
   const { usuario } = useAuth();
   const [errorPorItem, setErrorPorItem] = useState({});
-
-  // Animación de salida: al cerrar, el drawer sigue montado DURACION_SALIDA_MS
-  // para poder deslizarse hacia afuera en vez de desaparecer de golpe.
-  const [cerrando, setCerrando] = useState(false);
-  const estabaAbierto = useRef(drawerAbierto);
-  useEffect(() => {
-    if (drawerAbierto) {
-      setCerrando(false);
-      estabaAbierto.current = true;
-      return undefined;
-    }
-    if (!estabaAbierto.current) return undefined;
-    estabaAbierto.current = false;
-    setCerrando(true);
-    const temporizador = setTimeout(() => setCerrando(false), DURACION_SALIDA_MS);
-    return () => clearTimeout(temporizador);
-  }, [drawerAbierto]);
+  const esCelular = useEsCelular();
 
   const cambiarCantidad = async (itemId, nuevaCantidad) => {
     setErrorPorItem((prev) => ({ ...prev, [itemId]: null }));
@@ -54,176 +126,134 @@ export default function CartDrawer() {
   const cerrar = () => setDrawerAbierto(false);
   const refDialogo = useFocusTrap(drawerAbierto, cerrar);
 
-  if (!drawerAbierto && !cerrando) return null;
-
   // Una línea con "problema" (por ejemplo, el stock bajó desde que se agregó)
   // sigue visible para que la persona la corrija, pero no se puede pagar así.
   const hayProblemas = items.some((item) => item.problema);
+  const totalUnidades = items.reduce((suma, item) => suma + item.cantidad, 0);
+
+  const panel = esCelular
+    ? { initial: { y: "100%" }, animate: { y: 0 }, exit: { y: "100%" } }
+    : { initial: { x: "100%" }, animate: { x: 0 }, exit: { x: "100%" } };
 
   return (
-    <div className={`fixed inset-0 z-50 flex justify-end ${cerrando ? "pointer-events-none" : ""}`}>
-      {/* Fondo del drawer */}
-      <button
-        aria-label="Cerrar carrito"
-        onClick={cerrar}
-        className={`absolute inset-0 bg-plum/30 backdrop-blur-xs ${
-          cerrando ? "animate-fade-out" : "animate-fade-in"
-        }`}
-      />
-
-      <aside
-        ref={refDialogo}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="carrito-titulo"
-        tabIndex={-1}
-        className={`glass-strong relative flex h-full w-full max-w-md flex-col gap-4 rounded-l-3xl p-6 shadow-glass-lg ${
-          cerrando ? "animate-slide-out-right" : "animate-slide-in-right"
-        }`}
-      >
-        <div className="flex items-center justify-between">
-          <h2 id="carrito-titulo" className="text-xl font-semibold text-plum">Tu carrito</h2>
-          <button
+    <AnimatePresence>
+      {drawerAbierto && (
+        <div className="fixed inset-0 z-50 flex items-end justify-end sm:items-stretch">
+          <motion.button
+            key="fondo"
+            aria-label="Cerrar carrito"
             onClick={cerrar}
-            className="rounded-full p-2 text-plum-soft transition hover:bg-white/50 active:scale-90"
-            aria-label="Cerrar"
+            className="absolute inset-0 bg-plum/40 backdrop-blur-[2px]"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.25 }}
+          />
+
+          <motion.aside
+            key="panel"
+            ref={refDialogo}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="carrito-titulo"
+            tabIndex={-1}
+            {...panel}
+            transition={RESORTE}
+            className="relative flex max-h-[88vh] w-full flex-col gap-4 rounded-t-3xl bg-ivory p-5 shadow-pop sm:h-full sm:max-h-none sm:max-w-md sm:rounded-none sm:rounded-l-3xl sm:p-6"
           >
-            <IconClose />
-          </button>
-        </div>
-
-        {cargando && items.length === 0 ? (
-          <SkeletonLineasCarrito cantidad={2} />
-        ) : items.length === 0 ? (
-          <div className="flex flex-1 flex-col items-center justify-center gap-3 text-center text-plum-soft">
-            <span className="flex h-14 w-14 items-center justify-center rounded-full bg-lilac text-berry">
-              <IconCart size={24} />
-            </span>
-            <p className="font-semibold text-plum">Tu carrito está vacío</p>
-            <p className="max-w-[16rem] text-sm">Mira lo nuevo y agrega lo que te guste.</p>
-            <Link to="/tienda" onClick={cerrar} className="btn-primary btn mt-1 px-6!">
-              Ver lo nuevo
-            </Link>
-          </div>
-        ) : (
-          <>
-            <div className="flex-1 space-y-3 overflow-y-auto pr-1">
-              {items.map((item, i) => (
-                <div
-                  key={item.id}
-                  className="glass flex animate-fade-in-up gap-3 rounded-2xl p-3"
-                  style={{ animationDelay: `${Math.min(i, 6) * 50}ms` }}
-                >
-                  <Link
-                    to={`/producto/${item.producto.id}`}
-                    onClick={cerrar}
-                    aria-label={`Ver ${item.producto.nombre}`}
-                    className="h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-linear-to-br from-lilac to-white"
-                  >
-                    {item.producto.imagen_url && (
-                      <ImagenOptimizada
-                        src={item.producto.imagen_url}
-                        variante="thumb"
-                        alt=""
-                        className="h-full w-full object-cover"
-                      />
-                    )}
-                  </Link>
-                  <div className="flex flex-1 flex-col">
-                    <span className="text-sm font-medium text-plum">
-                      {item.producto.nombre}
-                    </span>
-                    <span className="text-xs text-plum-soft">
-                      {item.talla && `Talla ${item.talla} · `}
-                      {item.color}
-                    </span>
-                    <div className="mt-1 flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => cambiarCantidad(item.id, item.cantidad - 1)}
-                          aria-label={`Restar una unidad de ${item.producto.nombre}`}
-                          className="h-6 w-6 rounded-full bg-white/70 text-sm leading-none text-plum transition hover:bg-white active:scale-90"
-                        >
-                          −
-                        </button>
-                        <span key={item.cantidad} className="w-4 animate-pop text-center text-sm" aria-live="polite">
-                          {item.cantidad}
-                        </span>
-                        <button
-                          onClick={() => cambiarCantidad(item.id, item.cantidad + 1)}
-                          aria-label={`Sumar una unidad de ${item.producto.nombre}`}
-                          className="h-6 w-6 rounded-full bg-white/70 text-sm leading-none text-plum transition hover:bg-white active:scale-90"
-                        >
-                          +
-                        </button>
-                      </div>
-                      <span className="text-sm font-semibold text-berry-dark">
-                        S/ {item.subtotal.toFixed(2)}
-                      </span>
-                    </div>
-                    {item.problema && (
-                      <p className="mt-1 text-xs text-berry-dark" role="alert">{item.problema}</p>
-                    )}
-                    {errorPorItem[item.id] && (
-                      <p className="mt-1 text-xs text-berry-dark" role="alert">{errorPorItem[item.id]}</p>
-                    )}
-                  </div>
-                  <button
-                    onClick={() => quitar(item.id)}
-                    className="self-start text-plum-soft transition hover:text-berry active:scale-90"
-                    aria-label="Quitar producto"
-                  >
-                    <IconClose size={14} />
-                  </button>
-                </div>
-              ))}
-            </div>
-
-            <div className="space-y-3 border-t border-white/50 pt-4">
-              <div className="flex items-center justify-between text-lg font-semibold text-plum">
-                <span>Total</span>
-                <span key={total} className="animate-fade-in">S/ {total.toFixed(2)}</span>
-              </div>
-              {hayProblemas && (
-                <p className="text-xs text-berry-dark" role="alert">
-                  Algunos productos cambiaron de disponibilidad. Ajusta las cantidades para continuar.
-                </p>
-              )}
-              {!usuario && !hayProblemas && (
-                <p className="text-center text-xs text-plum-soft">
-                  No necesitas cuenta para comprar: solo tu correo al finalizar.
-                </p>
-              )}
-              <Link
-                to="/carrito"
+            {/* Asa de la hoja en el celular */}
+            <span className="mx-auto -mt-1 h-1.5 w-12 rounded-full bg-plum/15 sm:hidden" aria-hidden="true" />
+            <div className="flex items-center justify-between">
+              <h2 id="carrito-titulo" className="text-2xl text-plum">
+                Tu carrito
+                {totalUnidades > 0 && (
+                  <span className="ml-2 align-middle font-sans text-sm font-bold tracking-normal text-plum-soft">
+                    ({totalUnidades} {totalUnidades === 1 ? "producto" : "productos"})
+                  </span>
+                )}
+              </h2>
+              <button
                 onClick={cerrar}
-                className="block w-full rounded-full border border-plum/20 bg-white/60 py-3 text-center font-semibold text-plum transition hover:bg-white active:scale-[0.98]"
+                className="flex h-11 w-11 items-center justify-center rounded-full border border-plum/10 bg-white text-plum transition-colors hover:border-berry hover:text-berry"
+                aria-label="Cerrar"
               >
-                Ver carrito
-              </Link>
-              {/* Con problemas de stock se muestra un botón deshabilitado de verdad: un enlace con
-                  aria-disabled seguía recibiendo el foco y se activaba con Enter. */}
-              {hayProblemas ? (
-                <button
-                  type="button"
-                  disabled
-                  className="block w-full cursor-not-allowed rounded-full bg-berry py-3 text-center font-semibold text-white opacity-50 shadow-glass"
-                >
-                  Ir a pagar
-                </button>
-              ) : (
-                <Link
-                  to="/checkout"
-                  onClick={cerrar}
-                  className="block w-full rounded-full bg-berry py-3 text-center font-semibold text-white shadow-glass transition hover:bg-berry-dark active:scale-[0.98]"
-                >
-                  Ir a pagar
-                </Link>
-              )}
+                <IconClose size={18} />
+              </button>
             </div>
-          </>
-        )}
-      </aside>
-    </div>
+
+            {cargando && items.length === 0 ? (
+              <SkeletonLineasCarrito cantidad={2} />
+            ) : items.length === 0 ? (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.96 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="flex flex-1 flex-col items-center justify-center gap-3 py-10 text-center text-plum-soft"
+              >
+                <span className="flex h-16 w-16 items-center justify-center rounded-full bg-lilac text-berry">
+                  <IconCart size={26} />
+                </span>
+                <p className="font-display text-xl font-bold text-plum">Tu carrito está vacío</p>
+                <p className="max-w-[16rem] text-sm">Mira lo nuevo y agrega lo que te guste.</p>
+                <Link to="/tienda" onClick={cerrar} className="btn-primary mt-1 px-6!">
+                  Ver lo nuevo
+                </Link>
+              </motion.div>
+            ) : (
+              <>
+                <ul className="flex flex-1 flex-col gap-3 overflow-y-auto pr-1" aria-label="Productos en el carrito">
+                  <AnimatePresence initial={false}>
+                    {items.map((item) => (
+                      <LineaCarrito
+                        key={item.id}
+                        item={item}
+                        onCantidad={cambiarCantidad}
+                        onQuitar={quitar}
+                        error={errorPorItem[item.id]}
+                        onNavegar={cerrar}
+                      />
+                    ))}
+                  </AnimatePresence>
+                </ul>
+
+                <div className="space-y-3 border-t border-plum/10 pt-4">
+                  <div className="flex items-center justify-between text-plum">
+                    <span className="font-bold">Total</span>
+                    <span className="flex items-baseline text-xl font-extrabold">
+                      S/&nbsp;
+                      <SlidingNumber number={total} decimalPlaces={2} />
+                    </span>
+                  </div>
+                  {hayProblemas && (
+                    <p className="text-xs font-semibold text-berry-dark" role="alert">
+                      Algunos productos cambiaron de disponibilidad. Ajusta las cantidades para continuar.
+                    </p>
+                  )}
+                  {!usuario && !hayProblemas && (
+                    <p className="text-center text-xs text-plum-soft">
+                      No necesitas cuenta para comprar: solo tu correo al finalizar.
+                    </p>
+                  )}
+                  {/* Con problemas de stock se muestra un botón deshabilitado de verdad: un enlace con
+                      aria-disabled seguía recibiendo el foco y se activaba con Enter. */}
+                  {hayProblemas ? (
+                    <button type="button" disabled className="btn-primary w-full min-h-13! cursor-not-allowed opacity-50">
+                      Ir a pagar
+                    </button>
+                  ) : (
+                    <Link to="/checkout" onClick={cerrar} className="btn-primary icono-avance w-full min-h-13! text-base!">
+                      Ir a pagar
+                      <IconArrowRight size={18} />
+                    </Link>
+                  )}
+                  <Link to="/carrito" onClick={cerrar} className="btn-relleno w-full">
+                    Ver carrito completo
+                  </Link>
+                </div>
+              </>
+            )}
+          </motion.aside>
+        </div>
+      )}
+    </AnimatePresence>
   );
 }

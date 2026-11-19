@@ -142,13 +142,13 @@ function Pestanas({ vistas, activa, onCambiar }) {
       <div role="tablist" aria-label="Secciones del dashboard" className="glass relative inline-flex gap-1 rounded-full p-1">
         <span
           aria-hidden="true"
-          className="adm-brillo pointer-events-none absolute bottom-1 left-0 top-1 rounded-full bg-berry shadow-md"
+          className="pointer-events-none absolute bottom-1 left-0 top-1 rounded-full bg-plum"
           style={{
             width: marca?.w ?? 0,
             transform: `translateX(${marca?.x ?? 0}px)`,
             opacity: marca ? 1 : 0,
             transition: marca?.anima
-              ? "transform .45s cubic-bezier(.65,-.2,.25,1.2), width .45s cubic-bezier(.65,-.2,.25,1.2)"
+              ? "transform .35s cubic-bezier(.25,1,.5,1), width .35s cubic-bezier(.25,1,.5,1)"
               : "none",
           }}
         />
@@ -164,7 +164,7 @@ function Pestanas({ vistas, activa, onCambiar }) {
             onClick={() => onCambiar(v.id)}
             onKeyDown={(e) => alTeclear(e, i)}
             className={`relative z-10 shrink-0 rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
-              activa === v.id ? "text-white" : "text-plum-soft hover:text-plum"
+              activa === v.id ? "text-ivory" : "text-plum-soft hover:text-plum"
             }`}
           >
             {v.label}
@@ -236,7 +236,7 @@ function PanelAtencion({ items }) {
     );
   }
   return (
-    <section aria-labelledby="atencion-titulo" className="rounded-2xl bg-linear-to-br from-[#5a0a20] to-[#2c0107] p-6 text-white shadow-lg">
+    <section aria-labelledby="atencion-titulo" className="rounded-2xl bg-[#1f1e1c] p-6 text-white">
       <h2 id="atencion-titulo" className="text-lg font-semibold">Necesita tu atención</h2>
       <ul className="mt-3 grid gap-2 sm:grid-cols-2">
         {items.map((it, i) => (

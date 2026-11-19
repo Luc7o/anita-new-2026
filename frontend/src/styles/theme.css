@@ -149,20 +149,20 @@
   --admin-surface-2: #f6f3ee;
 }
 
-/* Admin en modo oscuro: fondo carmesí muy oscuro con luz suave (ver admin-motion.css).
+/* Admin en modo oscuro: carbón neutro, con el magenta del logo como acento.
    La clase "admin-dark" la pone
    useTemaAdmin en <html>; solo existe mientras el panel está abierto. */
 html.admin-dark {
   color-scheme: dark;
-  --c-plum: 236 232 233;
-  --c-plum-soft: 171 171 171;
-  --c-ivory: 0 0 0;
-  --c-lilac: 30 14 19;
-  --c-chrome: 24 2 5;
-  --c-acento: 216 214 215;
-  --admin-pg: #060203;
-  --admin-surface: #170a0f;
-  --admin-surface-2: #22111a;
+  --c-plum: 240 236 230;
+  --c-plum-soft: 176 171 164;
+  --c-ivory: 14 13 12;
+  --c-lilac: 46 31 43;
+  --c-chrome: 14 13 12;
+  --c-acento: 233 166 221;
+  --admin-pg: #0e0d0c;
+  --admin-surface: #191816;
+  --admin-surface-2: #23211f;
 }
 
 * {
@@ -416,6 +416,43 @@ textarea:focus-visible {
 
 /* ===================== «Galería Carbón»: tienda ===================== */
 
+/* En la capa «components»: así una utilidad puntual de Tailwind (bg-..., text-...) puede
+   cambiar un campo concreto, por ejemplo el gris de un dato bloqueado. */
+@layer components {
+/* Campos de formulario: un solo estilo para la tienda (checkout, registro, ubicación...). */
+.campo-texto {
+  width: 100%;
+  min-height: 48px;
+  border-radius: 12px;
+  border: 1.5px solid rgba(31, 30, 28, 0.16);
+  background: #fff;
+  padding: 0.65rem 1rem;
+  color: #1f1e1c;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.campo-texto::placeholder { color: #6b6863; opacity: 1; }
+.campo-texto:hover { border-color: rgba(31, 30, 28, 0.32); }
+.campo-texto:focus { outline: none; border-color: #a53694; box-shadow: 0 0 0 4px rgba(165, 54, 148, 0.15); }
+.campo-texto:focus-visible { outline: none; }
+
+/* Opciones tipo «elige una» (entrega, documento, método de pago): borde que se marca al elegir. */
+.opcion {
+  min-height: 48px;
+  border-radius: 12px;
+  border: 1.5px solid rgba(31, 30, 28, 0.16);
+  background: #fff;
+  padding: 0.6rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #1f1e1c;
+  transition: border-color 0.2s, background-color 0.2s, color 0.2s, transform 0.15s;
+}
+.opcion:hover { border-color: #1f1e1c; }
+.opcion:active { transform: scale(0.98); }
+.opcion-on,
+.opcion-on:hover { border-color: #1f1e1c; background: #1f1e1c; color: #f6f3ee; }
+}
+
 /* Tarjeta de producto: sube un poco, la foto hace zoom y «Agregar» entra desde abajo. */
 .tarjeta {
   transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.35s;
@@ -559,10 +596,10 @@ html.admin-dark .to-white {
 }
 
 /* Textos de acento: versiones más claras para que se lean sobre negro */
-html.admin-dark .text-berry { color: #ee6f94; }
-html.admin-dark .text-berry-dark { color: #f08aa8; }
-html.admin-dark .hover\:text-berry:hover { color: #ee6f94; }
-html.admin-dark .hover\:text-berry-dark:hover { color: #f5a3bb; }
+html.admin-dark .text-berry { color: #e9a6dd; }
+html.admin-dark .text-berry-dark { color: #f0bfe7; }
+html.admin-dark .hover\:text-berry:hover { color: #e9a6dd; }
+html.admin-dark .hover\:text-berry-dark:hover { color: #f6d3ef; }
 html.admin-dark .text-red-600,
 html.admin-dark .text-red-700 { color: #fca5a5; }
 html.admin-dark .text-green-700 { color: #86efac; }

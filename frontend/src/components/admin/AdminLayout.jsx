@@ -16,21 +16,23 @@ import {
   CAJERO, PUEDE_VER_RECOJOS, PUEDE_VER_REPORTES,
 } from "../../roles.js";
 
+// El menú va agrupado por sección (antes eran 14 opciones seguidas): cada grupo muestra su
+// título solo si el rol ve al menos una de sus opciones.
 const TODOS_LOS_ITEMS = [
-  { to: rutaAdmin(), label: "Dashboard", Icon: IconDashboard, exact: true, roles: PUEDE_VER_INICIO },
-  { to: rutaAdmin("/productos"), label: "Productos", Icon: IconBag, roles: PUEDE_VER_PRODUCTOS },
-  { to: rutaAdmin("/categorias"), label: "Categorías", Icon: IconTag, roles: PUEDE_GESTIONAR_CATEGORIAS },
-  { to: rutaAdmin("/promociones"), label: "Promociones", Icon: IconGift, roles: PUEDE_VER_PROMOCIONES },
-  { to: rutaAdmin("/proveedores"), label: "Proveedores", Icon: IconTruck, roles: PUEDE_VER_PROVEEDORES },
-  { to: rutaAdmin("/almacen"), label: "Almacén", Icon: IconWarehouse, roles: PUEDE_VER_ALMACEN },
-  { to: rutaAdmin("/compras"), label: "Compras", Icon: IconReceipt, roles: PUEDE_VER_COMPRAS },
-  { to: rutaAdmin("/pedidos"), label: "Pedidos", Icon: IconPackage, exact: true, roles: PUEDE_VER_PEDIDOS },
-  { to: rutaAdmin("/pedidos/nueva-venta"), label: "Nueva venta", Icon: IconCart, roles: PUEDE_REGISTRAR_VENTA },
-  { to: rutaAdmin("/pedidos/recojos"), label: "Recojos en tienda", Icon: IconStore, roles: PUEDE_VER_RECOJOS },
-  { to: rutaAdmin("/reclamaciones"), label: "Reclamaciones", Icon: IconBook, roles: PUEDE_VER_RECLAMACIONES },
-  { to: rutaAdmin("/reportes"), label: "Reportes", Icon: IconReport, roles: PUEDE_VER_REPORTES },
-  { to: rutaAdmin("/usuarios"), label: "Usuarios y roles", Icon: IconUsers, roles: PUEDE_GESTIONAR_USUARIOS },
-  { to: rutaAdmin("/configuracion"), label: "Configuración", Icon: IconSettings, roles: PUEDE_VER_CONFIGURACION },
+  { to: rutaAdmin(), label: "Dashboard", Icon: IconDashboard, exact: true, roles: PUEDE_VER_INICIO, grupo: "General" },
+  { to: rutaAdmin("/pedidos"), label: "Pedidos", Icon: IconPackage, exact: true, roles: PUEDE_VER_PEDIDOS, grupo: "Ventas" },
+  { to: rutaAdmin("/pedidos/nueva-venta"), label: "Nueva venta", Icon: IconCart, roles: PUEDE_REGISTRAR_VENTA, grupo: "Ventas" },
+  { to: rutaAdmin("/pedidos/recojos"), label: "Recojos en tienda", Icon: IconStore, roles: PUEDE_VER_RECOJOS, grupo: "Ventas" },
+  { to: rutaAdmin("/reclamaciones"), label: "Reclamaciones", Icon: IconBook, roles: PUEDE_VER_RECLAMACIONES, grupo: "Ventas" },
+  { to: rutaAdmin("/productos"), label: "Productos", Icon: IconBag, roles: PUEDE_VER_PRODUCTOS, grupo: "Catálogo" },
+  { to: rutaAdmin("/categorias"), label: "Categorías", Icon: IconTag, roles: PUEDE_GESTIONAR_CATEGORIAS, grupo: "Catálogo" },
+  { to: rutaAdmin("/promociones"), label: "Promociones", Icon: IconGift, roles: PUEDE_VER_PROMOCIONES, grupo: "Catálogo" },
+  { to: rutaAdmin("/almacen"), label: "Almacén", Icon: IconWarehouse, roles: PUEDE_VER_ALMACEN, grupo: "Inventario" },
+  { to: rutaAdmin("/compras"), label: "Compras", Icon: IconReceipt, roles: PUEDE_VER_COMPRAS, grupo: "Inventario" },
+  { to: rutaAdmin("/proveedores"), label: "Proveedores", Icon: IconTruck, roles: PUEDE_VER_PROVEEDORES, grupo: "Inventario" },
+  { to: rutaAdmin("/reportes"), label: "Reportes", Icon: IconReport, roles: PUEDE_VER_REPORTES, grupo: "Sistema" },
+  { to: rutaAdmin("/usuarios"), label: "Usuarios y roles", Icon: IconUsers, roles: PUEDE_GESTIONAR_USUARIOS, grupo: "Sistema" },
+  { to: rutaAdmin("/configuracion"), label: "Configuración", Icon: IconSettings, roles: PUEDE_VER_CONFIGURACION, grupo: "Sistema" },
 ];
 
 // Qué opción del menú corresponde a la ruta actual: la de ruta más larga que coincida
@@ -107,23 +109,9 @@ export default function AdminLayout() {
     return () => window.removeEventListener("resize", medir);
   }, [activo, items.length]);
 
-  // Transición entre secciones (como en el video de referencia): lo que había se desvanece
-  // rápido y la sección nueva entra en cascada (título, tarjetas y números).
-  const [saliendoDe, setSaliendoDe] = useState(null);
-  const temporizadores = useRef([]);
-  useEffect(() => () => temporizadores.current.forEach(clearTimeout), []);
-  useEffect(() => setSaliendoDe(null), [location.pathname]);
-  const irCon = (e, destino) => {
-    if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
-    if (saliendoDe === location.pathname) {
-      e.preventDefault(); // ya está saliendo: evita pulsaciones dobles
-      return;
-    }
-    if (reducir || destino === location.pathname) return;
-    e.preventDefault();
-    setSaliendoDe(location.pathname);
-    temporizadores.current.push(setTimeout(() => navigate(destino), 150));
-  };
+  // Antes cada clic del menú esperaba 150 ms para una animación de salida: en una herramienta
+  // de trabajo eso solo retrasa. Ahora se navega al instante y la sección nueva entra con un
+  // fundido corto (ver .adm-page en admin-motion.css).
 
   // Modo oscuro: un círculo oscuro nace en el botón de la luna y crece hasta cubrir la pantalla.
   // Al volver a modo claro solo hay un fundido suave. Si el navegador no soporta View Transitions
@@ -176,7 +164,7 @@ export default function AdminLayout() {
             <button
               type="button"
               onClick={cambiarTema}
-              className="rounded-[10px] p-2.5 text-white/70 transition-transform hover:-rotate-12 hover:scale-110 hover:bg-white/10 hover:text-white"
+              className="flex h-11 w-11 items-center justify-center rounded-[10px] text-white/70 transition-colors hover:bg-white/10 hover:text-white"
               aria-label={tema === "oscuro" ? "Activar modo claro" : "Activar modo oscuro"}
               title={tema === "oscuro" ? "Modo claro" : "Modo oscuro"}
             >
@@ -203,33 +191,37 @@ export default function AdminLayout() {
           <nav className="relative flex flex-1 flex-col gap-1 p-3" aria-label="Administración">
             <span
               aria-hidden="true"
-              className="adm-brillo pointer-events-none absolute left-3 right-3 top-0 rounded-[10px] bg-berry shadow-md"
+              className="pointer-events-none absolute left-3 right-3 top-0 rounded-[10px] bg-plum"
               style={{
                 height: marca?.h ?? 0,
                 transform: `translateY(${marca?.y ?? 0}px)`,
                 opacity: marca ? 1 : 0,
                 transition: marca?.anima
-                  ? "transform .55s cubic-bezier(.65,-.2,.25,1.15), height .3s"
+                  ? "transform .35s cubic-bezier(.25,1,.5,1), height .3s"
                   : "none",
               }}
             />
             {items.map((item, i) => (
-              <NavLink
-                key={item.to}
-                ref={(el) => {
-                  botonesMenu.current[i] = el;
-                }}
-                to={item.to}
-                end={item.exact}
-                onClick={(e) => irCon(e, item.to)}
-                style={{ "--i": i }}
-                className={`adm-nav-in relative z-10 flex items-center gap-3 rounded-[10px] px-3.5 py-2.5 text-sm font-semibold transition-colors ${
-                  i === activo ? "text-white" : "text-plum-soft hover:bg-plum/5 hover:text-plum"
-                }`}
-              >
-                <item.Icon size={18} />
-                {item.label}
-              </NavLink>
+              <React.Fragment key={item.to}>
+                {(i === 0 || items[i - 1].grupo !== item.grupo) && (
+                  <span className={`px-3.5 text-[11px] font-bold uppercase tracking-[0.12em] text-plum-soft ${i === 0 ? "pt-1" : "pt-4"} pb-1`}>
+                    {item.grupo}
+                  </span>
+                )}
+                <NavLink
+                  ref={(el) => {
+                    botonesMenu.current[i] = el;
+                  }}
+                  to={item.to}
+                  end={item.exact}
+                  className={`relative z-10 flex items-center gap-3 rounded-[10px] px-3.5 py-2.5 text-sm font-semibold transition-colors ${
+                    i === activo ? "text-ivory" : "text-plum-soft hover:bg-plum/5 hover:text-plum"
+                  }`}
+                >
+                  <item.Icon size={18} />
+                  {item.label}
+                </NavLink>
+              </React.Fragment>
             ))}
           </nav>
 
@@ -269,7 +261,6 @@ export default function AdminLayout() {
                   key={item.to}
                   to={item.to}
                   end={item.exact}
-                  onClick={(e) => irCon(e, item.to)}
                   className={({ isActive }) =>
                     `flex shrink-0 items-center gap-2 whitespace-nowrap border-b-2 px-3.5 py-3 text-sm font-semibold transition-colors ${
                       isActive
@@ -287,13 +278,12 @@ export default function AdminLayout() {
 
           <main className="mx-auto w-full min-w-0 max-w-7xl flex-1 px-4 pb-16 pt-8 sm:px-6 lg:px-8">
             {/* key: al cambiar de sección el contenido se vuelve a montar y entra en cascada */}
-            <div key={location.pathname} className={`adm-page ${saliendoDe === location.pathname ? "adm-saliendo" : ""}`}>
+            <div key={location.pathname} className="adm-page">
               <div className="mb-5 flex flex-wrap items-center gap-2 text-xs text-plum-soft">
                 <span className="glass rounded-full px-3 py-1.5">
                   <span className="font-semibold text-berry">Anita</span> › {items[activo]?.label ?? "Panel"}
                 </span>
                 <span className="glass flex items-center gap-1.5 rounded-full px-3 py-1.5">
-                  <span aria-hidden="true" className="adm-live h-1.5 w-1.5 rounded-full bg-emerald-500" />
                   <span className="first-letter:uppercase">{fecha}</span>
                 </span>
               </div>

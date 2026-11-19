@@ -1,9 +1,11 @@
 import React, { useState } from "react";
 import { COSTO_ENVIO_DELIVERY } from "../tienda.js";
 import { Link } from "react-router-dom";
+import { AnimatePresence, motion } from "motion/react";
+import { SlidingNumber } from "@animate-ui/react/primitives/texts/sliding-number";
 import { useCarrito } from "../context/CarritoContext.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
-import { IconCart, IconTrash } from "../components/Icons.jsx";
+import { IconCart, IconTrash, IconArrowRight } from "../components/Icons.jsx";
 import ImagenOptimizada from "../components/ImagenOptimizada.jsx";
 import EstadoVacio from "../components/EstadoVacio.jsx";
 import { Skeleton, SkeletonRegion } from "../components/Skeleton.jsx";
@@ -16,7 +18,6 @@ export default function Carrito() {
   const { usuario } = useAuth();
   const [errorPorItem, setErrorPorItem] = useState({});
   const [ocupados, setOcupados] = useState({}); // líneas con una petición en curso
-  const [quitando, setQuitando] = useState({}); // líneas animándose antes de salir
 
   const marcar = (setter, id, valor) => setter((prev) => ({ ...prev, [id]: valor }));
 
@@ -34,23 +35,20 @@ export default function Carrito() {
 
   const quitar = async (itemId) => {
     marcar(setErrorPorItem, itemId, null);
-    marcar(setQuitando, itemId, true);
-    // Deja correr la animación de salida antes de quitar la línea de verdad.
-    await new Promise((resolver) => setTimeout(resolver, 250));
+    // La línea sale con su propia animación (AnimatePresence): no hace falta esperar aquí.
     try {
       await eliminar(itemId);
     } catch (err) {
       marcar(setErrorPorItem, itemId, err.message);
-      marcar(setQuitando, itemId, false);
     }
   };
 
   const hayProblemas = items.some((item) => item.problema);
 
   return (
-    <div className="mx-auto max-w-5xl px-4 pb-16">
-      <div className="mb-6 flex items-baseline justify-between gap-3">
-        <h1 className="text-3xl font-semibold text-plum">Tu carrito</h1>
+    <div className="mx-auto max-w-6xl px-4 pb-20 sm:px-8">
+      <div className="mb-8 flex items-baseline justify-between gap-3">
+        <h1 className="text-4xl font-extrabold text-plum sm:text-5xl">Tu carrito</h1>
         {!cargando && items.length > 0 && (
           <span className="text-sm text-plum-soft">
             {totalItems} {totalItems === 1 ? "producto" : "productos"}
@@ -62,7 +60,7 @@ export default function Carrito() {
         <SkeletonRegion etiqueta="Cargando tu carrito" className="grid gap-6 md:grid-cols-[1.6fr_1fr]">
           <div className="space-y-4" aria-hidden="true">
             {Array.from({ length: 3 }, (_, i) => (
-              <div key={i} className="glass flex gap-4 rounded-3xl p-4 shadow-glass">
+              <div key={i} className="flex gap-4 rounded-[20px] bg-white p-4">
                 <Skeleton className="h-28 w-24 shrink-0 rounded-2xl" />
                 <div className="flex flex-1 flex-col gap-2">
                   <Skeleton className="h-4 w-3/4" />
@@ -72,7 +70,7 @@ export default function Carrito() {
               </div>
             ))}
           </div>
-          <div className="glass h-fit space-y-4 rounded-3xl p-6 shadow-glass" aria-hidden="true">
+          <div className="h-fit space-y-4 rounded-[20px] bg-white p-6" aria-hidden="true">
             <Skeleton className="h-5 w-32" />
             <Skeleton className="h-4 w-full" />
             <Skeleton className="h-4 w-full" />
@@ -90,22 +88,25 @@ export default function Carrito() {
         />
       ) : (
         <div className="grid items-start gap-6 md:grid-cols-[1.6fr_1fr]">
-          <ul className="space-y-4">
+          <ul className="flex flex-col gap-4">
+            <AnimatePresence initial={false}>
             {items.map((item, i) => {
               const producto = item.producto;
               const conOferta = producto.tiene_oferta && producto.precio > producto.precio_final;
               return (
-                <li
+                <motion.li
                   key={item.id}
-                  className={`glass flex animate-fade-in-up gap-4 rounded-3xl p-4 shadow-glass transition-all duration-300 ${
-                    quitando[item.id] ? "scale-95 opacity-0" : ""
-                  }`}
-                  style={{ animationDelay: `${Math.min(i, 8) * 60}ms` }}
+                  layout
+                  initial={{ opacity: 0, y: 16 }}
+                  animate={{ opacity: 1, y: 0, transition: { delay: Math.min(i, 8) * 0.05 } }}
+                  exit={{ opacity: 0, x: 60, height: 0, paddingTop: 0, paddingBottom: 0 }}
+                  transition={{ duration: 0.3, ease: [0.2, 0.8, 0.2, 1] }}
+                  className="flex gap-4 overflow-hidden rounded-[20px] bg-white p-4"
                 >
                   <Link
                     to={`/producto/${producto.id}`}
                     aria-label={`Ver ${producto.nombre}`}
-                    className="h-28 w-24 shrink-0 overflow-hidden rounded-2xl bg-linear-to-br from-lilac to-white sm:h-32 sm:w-28"
+                    className="foto-vacia h-32 w-26 shrink-0 overflow-hidden rounded-2xl sm:h-36 sm:w-28"
                   >
                     {producto.imagen_url && (
                       <ImagenOptimizada
@@ -122,7 +123,7 @@ export default function Carrito() {
                       <div className="min-w-0">
                         <Link
                           to={`/producto/${producto.id}`}
-                          className="block font-semibold leading-snug text-plum transition hover:text-berry"
+                          className="block font-bold leading-snug text-plum transition-colors hover:text-berry"
                         >
                           {producto.nombre}
                         </Link>
@@ -133,7 +134,7 @@ export default function Carrito() {
                       <button
                         onClick={() => quitar(item.id)}
                         aria-label={`Quitar ${producto.nombre} del carrito`}
-                        className="shrink-0 rounded-full p-2 text-plum-soft transition hover:bg-white/60 hover:text-berry active:scale-90"
+                        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-plum-soft transition-colors hover:bg-ivory hover:text-berry"
                       >
                         <IconTrash size={16} />
                       </button>
@@ -150,28 +151,28 @@ export default function Carrito() {
                     </div>
 
                     <div className="mt-auto flex items-center justify-between gap-3 pt-3">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center rounded-xl border-[1.5px] border-plum/15">
                         <button
                           onClick={() => cambiarCantidad(item.id, item.cantidad - 1)}
                           disabled={ocupados[item.id]}
                           aria-label={`Restar una unidad de ${producto.nombre}`}
-                          className="h-8 w-8 rounded-full border border-plum/15 bg-white/70 text-plum transition hover:bg-white active:scale-90 disabled:opacity-50"
+                          className="flex h-11 w-11 items-center justify-center text-lg text-plum transition-colors hover:text-berry disabled:opacity-50"
                         >
                           −
                         </button>
-                        <span key={item.cantidad} className="w-6 animate-pop text-center font-semibold" aria-live="polite">
-                          {item.cantidad}
+                        <span className="w-7 text-center font-bold" aria-live="polite">
+                          <SlidingNumber number={item.cantidad} />
                         </span>
                         <button
                           onClick={() => cambiarCantidad(item.id, item.cantidad + 1)}
                           disabled={ocupados[item.id]}
                           aria-label={`Sumar una unidad de ${producto.nombre}`}
-                          className="h-8 w-8 rounded-full border border-plum/15 bg-white/70 text-plum transition hover:bg-white active:scale-90 disabled:opacity-50"
+                          className="flex h-11 w-11 items-center justify-center text-lg text-plum transition-colors hover:text-berry disabled:opacity-50"
                         >
                           +
                         </button>
                       </div>
-                      <span key={item.subtotal} className="animate-fade-in font-bold text-berry-dark">
+                      <span className="text-lg font-extrabold text-plum">
                         S/ {item.subtotal.toFixed(2)}
                       </span>
                     </div>
@@ -183,23 +184,24 @@ export default function Carrito() {
                       <p className="mt-2 text-xs text-berry-dark" role="alert">{errorPorItem[item.id]}</p>
                     )}
                   </div>
-                </li>
+                </motion.li>
               );
             })}
+            </AnimatePresence>
           </ul>
 
           <aside
-            className="glass h-fit animate-fade-in space-y-4 rounded-3xl p-6 shadow-glass md:sticky md:top-24"
+            className="h-fit animate-fade-in space-y-4 rounded-[20px] bg-white p-6 md:sticky md:top-28"
             aria-labelledby="resumen-titulo"
           >
-            <h2 id="resumen-titulo" className="text-lg font-semibold text-plum">Resumen del pedido</h2>
+            <h2 id="resumen-titulo" className="text-2xl text-plum">Resumen</h2>
 
             <dl className="space-y-2 text-sm">
               <div className="flex justify-between">
                 <dt className="text-plum-soft">
                   Subtotal ({totalItems} {totalItems === 1 ? "producto" : "productos"})
                 </dt>
-                <dd key={total} className="animate-fade-in font-medium text-plum">S/ {total.toFixed(2)}</dd>
+                <dd className="font-bold text-plum">S/ {total.toFixed(2)}</dd>
               </div>
               <div className="flex justify-between">
                 <dt className="text-plum-soft">Envío</dt>
@@ -211,9 +213,12 @@ export default function Carrito() {
               </div>
             </dl>
 
-            <div className="flex items-center justify-between border-t border-plum/10 pt-4 text-lg font-semibold text-plum">
-              <span>Total (sin envío)</span>
-              <span key={total} className="animate-fade-in">S/ {total.toFixed(2)}</span>
+            <div className="flex items-center justify-between border-t border-plum/10 pt-4 text-plum">
+              <span className="font-bold">Total (sin envío)</span>
+              <span className="flex items-baseline text-2xl font-extrabold">
+                S/&nbsp;
+                <SlidingNumber number={total} decimalPlaces={2} />
+              </span>
             </div>
 
             {hayProblemas && (
@@ -227,19 +232,19 @@ export default function Carrito() {
               </p>
             )}
 
-            <Link
-              to="/checkout"
-              aria-disabled={hayProblemas}
-              className={`block w-full rounded-full bg-berry py-3 text-center font-semibold text-white shadow-glass transition hover:bg-berry-dark active:scale-[0.98] ${
-                hayProblemas ? "pointer-events-none opacity-50" : ""
-              }`}
-            >
-              Ir a pagar
-            </Link>
-            <Link
-              to="/tienda"
-              className="block w-full rounded-full border border-plum/20 bg-white/60 py-3 text-center text-sm font-semibold text-plum transition hover:bg-white active:scale-[0.98]"
-            >
+            {/* Con problemas de stock va un botón deshabilitado de verdad (un enlace con
+                aria-disabled seguía recibiendo el foco y se activaba con Enter). */}
+            {hayProblemas ? (
+              <button type="button" disabled className="btn-primary w-full min-h-13! cursor-not-allowed opacity-50">
+                Ir a pagar
+              </button>
+            ) : (
+              <Link to="/checkout" className="btn-primary icono-avance w-full min-h-13! text-base!">
+                Ir a pagar
+                <IconArrowRight size={18} />
+              </Link>
+            )}
+            <Link to="/tienda" className="btn-relleno w-full">
               Seguir comprando
             </Link>
           </aside>
