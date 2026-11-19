@@ -1,36 +1,168 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
+
+@theme {
+  --color-ivory: rgb(var(--c-ivory));
+  --color-lilac: rgb(var(--c-lilac));
+  --color-chrome: rgb(var(--c-chrome));
+  --color-acento: rgb(var(--c-acento));
+
+  --color-plum: rgb(var(--c-plum));
+  --color-plum-soft: rgb(var(--c-plum-soft));
+
+  /* «Galería Carbón»: el acento es el magenta del logo (#A53694). Los nombres berry/plum se
+     conservan para no tocar cada pantalla, pero ya no son ciruela ni frambuesa. */
+  --color-berry: #a53694;
+  --color-berry-dark: #7e2470;
+  --color-berry-light: #e9a6dd;
+  --color-carbon: #1f1e1c;
+  --color-hueso: #f6f3ee;
+  --color-piedra: #6b6863;
+
+  --color-gold: #ababab;
+
+  --font-sans: 'Manrope', ui-sans-serif, system-ui, sans-serif;
+  --font-display: 'Syne', 'Manrope', ui-sans-serif, sans-serif;
+
+  /* Una sola familia de sombras, neutras: lo que flota (tarjeta al pasar el mouse, menús). */
+  --shadow-glass: 0 10px 30px -18px rgba(31, 30, 28, 0.35);
+  --shadow-glass-lg: 0 24px 48px -24px rgba(31, 30, 28, 0.38);
+  --shadow-pop: 0 18px 40px -16px rgba(31, 30, 28, 0.45);
+
+  /* Radios: 12 px en controles, 20 px en tarjetas. */
+  --radius-2xl: 1.25rem;
+  --radius-3xl: 1.5rem;
+
+  --animate-fade-in: fade-in 0.3s ease-out backwards;
+  --animate-fade-out: fade-out 0.22s ease-in forwards;
+  --animate-fade-in-up: fade-in-up 0.5s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+  --animate-scale-in: scale-in 0.22s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+  --animate-slide-in-right: slide-in-right 0.32s cubic-bezier(0.22, 1, 0.36, 1)
+    backwards;
+  --animate-slide-out-right: slide-out-right 0.22s ease-in forwards;
+  --animate-slide-in-up: slide-in-up 0.32s cubic-bezier(0.22, 1, 0.36, 1)
+    backwards;
+  --animate-pop: pop 0.4s ease-out;
+
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  @keyframes fade-out {
+    from {
+      opacity: 1;
+    }
+    to {
+      opacity: 0;
+    }
+  }
+  @keyframes fade-in-up {
+    from {
+      opacity: 0;
+      transform: translateY(14px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  @keyframes scale-in {
+    from {
+      opacity: 0;
+      transform: scale(0.94);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+  @keyframes slide-in-right {
+    from {
+      transform: translateX(100%);
+    }
+    to {
+      transform: translateX(0);
+    }
+  }
+  @keyframes slide-out-right {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(100%);
+    }
+  }
+  @keyframes slide-in-up {
+    from {
+      transform: translateY(100%);
+    }
+    to {
+      transform: translateY(0);
+    }
+  }
+  @keyframes pop {
+    0% {
+      transform: scale(1);
+    }
+    40% {
+      transform: scale(1.35);
+    }
+    100% {
+      transform: scale(1);
+    }
+  }
+}
+
+/*
+  The default border color has changed to `currentcolor` in Tailwind CSS v4,
+  so we've added these compatibility styles to make sure everything still
+  looks the same as it did with Tailwind CSS v3.
+
+  If we ever want to remove these styles, we need to add an explicit border
+  color utility to any element that depends on these defaults.
+*/
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentcolor);
+  }
+}
 
 /* Colores base como variables (canales RGB para que Tailwind pueda aplicar
    opacidad: text-plum/60, bg-plum/10...). Valores de siempre = tienda y admin claro. */
 :root {
-  --c-plum: 44 1 7;
-  --c-plum-soft: 107 106 107;
-  --c-ivory: 247 245 245;
-  --c-lilac: 242 228 232;
-  --c-chrome: 44 1 7;
-  --c-berry: 196 39 89;
-  --c-acento: 85 4 22;
+  --c-plum: 31 30 28;        /* carbón: texto y fondos oscuros */
+  --c-plum-soft: 107 104 99; /* piedra: texto secundario (5:1 sobre hueso) */
+  --c-ivory: 246 243 238;    /* hueso: fondo de la tienda */
+  --c-lilac: 243 228 240;    /* rosa niebla: etiquetas y estados */
+  --c-chrome: 31 30 28;
+  --c-berry: 165 54 148;     /* magenta del logo */
+  --c-acento: 126 36 112;
   --admin-pg: #ffffff;
   --admin-surface: #ffffff;
-  --admin-surface-2: #f7f5f5;
+  --admin-surface-2: #f6f3ee;
 }
 
-/* Admin en modo oscuro: fondo carmesí muy oscuro con luz suave (ver admin-motion.css).
+/* Admin en modo oscuro: carbón neutro, con el magenta del logo como acento.
    La clase "admin-dark" la pone
    useTemaAdmin en <html>; solo existe mientras el panel está abierto. */
 html.admin-dark {
   color-scheme: dark;
-  --c-plum: 236 232 233;
-  --c-plum-soft: 171 171 171;
-  --c-ivory: 0 0 0;
-  --c-lilac: 30 14 19;
-  --c-chrome: 24 2 5;
-  --c-acento: 216 214 215;
-  --admin-pg: #060203;
-  --admin-surface: #170a0f;
-  --admin-surface-2: #22111a;
+  --c-plum: 240 236 230;
+  --c-plum-soft: 176 171 164;
+  --c-ivory: 14 13 12;
+  --c-lilac: 46 31 43;
+  --c-chrome: 14 13 12;
+  --c-acento: 233 166 221;
+  --admin-pg: #0e0d0c;
+  --admin-surface: #191816;
+  --admin-surface-2: #23211f;
 }
 
 * {
@@ -58,46 +190,45 @@ html {
 }
 
 body {
-  font-family: "DM Sans", ui-sans-serif, system-ui, sans-serif;
-  color: #2c0107;
-  background: #f7f5f5;
+  font-family: "Manrope", ui-sans-serif, system-ui, sans-serif;
+  color: #1f1e1c;
+  background: #f6f3ee;
   -webkit-font-smoothing: antialiased;
 }
 
-/* Tienda: títulos en DM Serif Display. Esa fuente solo existe en peso 400,
-   así que se evita la "negrita falsa" del navegador (font-synthesis). */
+/* Tienda: títulos en Syne, geométrica como las letras del logo. */
 h1,
 h2,
 h3,
 .font-display {
-  font-family: "DM Serif Display", Georgia, serif;
-  font-synthesis-weight: none;
-  letter-spacing: 0;
+  font-family: "Syne", "Manrope", ui-sans-serif, sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.02em;
 }
 
-/* Panel de administración: todo en sans-serif (DM Sans) para leer mejor datos y tablas. */
+/* Panel de administración: todo en Manrope para leer mejor datos y tablas. */
 .admin-ui h1,
 .admin-ui h2,
 .admin-ui h3,
 .admin-ui .font-display {
-  font-family: "DM Sans", ui-sans-serif, system-ui, sans-serif;
+  font-family: "Manrope", ui-sans-serif, system-ui, sans-serif;
   letter-spacing: -0.01em;
 }
 
 ::selection {
-  background: rgba(196, 39, 89, 0.22);
+  background: rgba(165, 54, 148, 0.22);
 }
 
 /* Superficies planas (sin vidrio): tarjeta blanca con borde fino, como en Malhu.
    Se conservan los nombres .glass / .glass-strong para no tocar cada pantalla. */
 .glass {
   background: #ffffff;
-  border: 1px solid rgba(44, 1, 7, 0.1);
+  border: 1px solid rgba(31, 30, 28, 0.1);
 }
 
 .glass-strong {
   background: #ffffff;
-  border: 1px solid rgba(44, 1, 7, 0.12);
+  border: 1px solid rgba(31, 30, 28, 0.12);
 }
 
 /* Scrollbar discreto */
@@ -106,7 +237,7 @@ h3,
   height: 8px;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(196, 39, 89, 0.35);
+  background: rgba(165, 54, 148, 0.35);
   border-radius: 999px;
 }
 
@@ -123,7 +254,7 @@ h3,
 }
 
 .skeleton {
-  background-color: rgba(196, 39, 89, 0.08);
+  background-color: rgba(165, 54, 148, 0.08);
   background-image: linear-gradient(
     100deg,
     rgba(255, 255, 255, 0) 20%,
@@ -140,7 +271,7 @@ button:focus-visible,
 input:focus-visible,
 select:focus-visible,
 textarea:focus-visible {
-  outline: 2px solid #c42759;
+  outline: 2px solid #a53694;
   outline-offset: 2px;
   border-radius: 4px;
 }
@@ -151,9 +282,11 @@ textarea:focus-visible {
    Tailwind y con la misma especificidad, así que ganan solo para el foco por teclado
    (focus-visible); con el mouse no se ve ningún contorno extra. */
 .focus\:outline-none:focus-visible,
+.focus\:outline-hidden:focus-visible,
 .outline-none:focus-visible,
+.outline-hidden:focus-visible,
 .focus-visible\:outline-none:focus-visible {
-  outline: 2px solid #c42759;
+  outline: 2px solid #a53694;
   outline-offset: 2px;
 }
 
@@ -167,44 +300,67 @@ textarea:focus-visible {
 /* ---------- Sistema de componentes (estructura tomada de Malhu) ---------- */
 .btn,
 .btn-primary,
-.btn-secondary {
+.btn-secondary,
+.btn-dark {
+  position: relative;
+  overflow: hidden;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  border-radius: 10px;
-  padding: 0.625rem 1rem;
-  font-size: 0.875rem;
-  font-weight: 600;
-  transition: background-color 0.15s, border-color 0.15s, color 0.15s;
+  min-height: 44px;
+  border-radius: 12px;
+  padding: 0.625rem 1.25rem;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  transition: background-color 0.25s, border-color 0.25s, color 0.25s, box-shadow 0.25s,
+    transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
+.btn:active:not(:disabled),
+.btn-primary:active:not(:disabled),
+.btn-dark:active:not(:disabled) { transform: scale(0.97); }
+/* Brillo que cruza el botón principal al pasar el mouse */
+.btn-primary::after,
+.btn-dark::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(110deg, transparent 30%, rgba(255, 255, 255, 0.4) 50%, transparent 70%);
+  transform: translateX(-120%);
+  transition: transform 0.7s ease;
+  pointer-events: none;
+}
+.btn-primary:hover::after,
+.btn-dark:hover::after { transform: translateX(120%); }
 .btn:disabled,
 .btn-primary:disabled,
 .btn-secondary:disabled { cursor: not-allowed; opacity: 0.5; }
-.btn-primary { background: #c42759; color: #fff; }
-.btn-primary:hover { background: #550416; }
-.btn-secondary { background: #fff; color: #2c0107; border: 1px solid rgba(44, 1, 7, 0.15); }
-.btn-secondary:hover { background: #f7f5f5; border-color: rgba(44, 1, 7, 0.3); }
+.btn-primary { background: #a53694; color: #fff; }
+.btn-primary:hover { background: #7e2470; box-shadow: 0 12px 28px -14px rgba(165, 54, 148, 0.8); }
+.btn-dark { background: #1f1e1c; color: #f6f3ee; }
+.btn-dark:hover { background: #000; }
+.btn-secondary { background: #fff; color: #1f1e1c; border: 1.5px solid rgba(31, 30, 28, 0.18); }
+.btn-secondary:hover { border-color: #1f1e1c; }
 
 .panel {
   background: #fff;
-  border: 1px solid rgba(44, 1, 7, 0.1);
-  border-radius: 1rem;
+  border: 1px solid rgba(31, 30, 28, 0.08);
+  border-radius: 1.25rem;
 }
 
 /* Superficie clara con vetas verticales muy suaves (la "mesa" de Malhu) */
 .wood {
   background-color: #fff;
   background-image:
-    repeating-linear-gradient(90deg, rgba(44, 1, 7, 0.03) 0 2px, transparent 2px 46px),
-    repeating-linear-gradient(90deg, rgba(44, 1, 7, 0.02) 0 1px, transparent 1px 17px);
+    repeating-linear-gradient(90deg, rgba(31, 30, 28, 0.03) 0 2px, transparent 2px 46px),
+    repeating-linear-gradient(90deg, rgba(31, 30, 28, 0.02) 0 1px, transparent 1px 17px);
 }
 
 
 /* Contraste: el texto gris con transparencia (text-plum-soft/50, /60, /70) quedaba
    demasiado pálido. Se fuerza el gris sólido que sí cumple el contraste mínimo. */
-[class*="text-plum-soft/"] { color: #6b6a6b; }
-[class*="placeholder:text-plum-soft/"]::placeholder { color: #6b6a6b; opacity: 1; }
+[class*="text-plum-soft/"] { color: #6b6863; }
+[class*="placeholder:text-plum-soft/"]::placeholder { color: #6b6863; opacity: 1; }
 
 /* Móvil: zonas táctiles de al menos 44px */
 @media (pointer: coarse) {
@@ -235,7 +391,7 @@ textarea:focus-visible {
   position: absolute; left: 0; right: 0; top: 50%; height: 4px; transform: translateY(-50%);
   border-radius: 9999px;
   background: linear-gradient(to right,
-    rgba(44, 1, 7, 0.12) var(--ini), #c42759 var(--ini), #c42759 var(--fin), rgba(44, 1, 7, 0.12) var(--fin));
+    rgba(31, 30, 28, 0.12) var(--ini), #a53694 var(--ini), #a53694 var(--fin), rgba(31, 30, 28, 0.12) var(--fin));
 }
 .rango-doble input[type="range"] {
   position: absolute; inset: 0; width: 100%; height: 28px; margin: 0;
@@ -247,16 +403,155 @@ textarea:focus-visible {
 .rango-doble input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none; appearance: none; pointer-events: auto; cursor: grab;
   width: 20px; height: 20px; margin-top: 4px; border-radius: 9999px;
-  background: #fff; border: 2px solid #c42759; box-shadow: 0 1px 4px rgba(44, 1, 7, 0.25);
+  background: #fff; border: 2px solid #a53694; box-shadow: 0 1px 4px rgba(31, 30, 28, 0.25);
 }
 .rango-doble input[type="range"]::-moz-range-thumb {
   pointer-events: auto; cursor: grab; box-sizing: border-box;
   width: 20px; height: 20px; border-radius: 9999px;
-  background: #fff; border: 2px solid #c42759; box-shadow: 0 1px 4px rgba(44, 1, 7, 0.25);
+  background: #fff; border: 2px solid #a53694; box-shadow: 0 1px 4px rgba(31, 30, 28, 0.25);
 }
-.rango-doble input[type="range"]:focus-visible::-webkit-slider-thumb { outline: 3px solid rgba(196, 39, 89, 0.35); }
-.rango-doble input[type="range"]:focus-visible::-moz-range-thumb { outline: 3px solid rgba(196, 39, 89, 0.35); }
+.rango-doble input[type="range"]:focus-visible::-webkit-slider-thumb { outline: 3px solid rgba(165, 54, 148, 0.35); }
+.rango-doble input[type="range"]:focus-visible::-moz-range-thumb { outline: 3px solid rgba(165, 54, 148, 0.35); }
 
+
+/* ===================== «Galería Carbón»: tienda ===================== */
+
+/* En la capa «components»: así una utilidad puntual de Tailwind (bg-..., text-...) puede
+   cambiar un campo concreto, por ejemplo el gris de un dato bloqueado. */
+@layer components {
+/* Campos de formulario: un solo estilo para la tienda (checkout, registro, ubicación...). */
+.campo-texto {
+  width: 100%;
+  min-height: 48px;
+  border-radius: 12px;
+  border: 1.5px solid rgba(31, 30, 28, 0.16);
+  background: #fff;
+  padding: 0.65rem 1rem;
+  color: #1f1e1c;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.campo-texto::placeholder { color: #6b6863; opacity: 1; }
+.campo-texto:hover { border-color: rgba(31, 30, 28, 0.32); }
+.campo-texto:focus { outline: none; border-color: #a53694; box-shadow: 0 0 0 4px rgba(165, 54, 148, 0.15); }
+.campo-texto:focus-visible { outline: none; }
+
+/* Opciones tipo «elige una» (entrega, documento, método de pago): borde que se marca al elegir. */
+.opcion {
+  min-height: 48px;
+  border-radius: 12px;
+  border: 1.5px solid rgba(31, 30, 28, 0.16);
+  background: #fff;
+  padding: 0.6rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #1f1e1c;
+  transition: border-color 0.2s, background-color 0.2s, color 0.2s, transform 0.15s;
+}
+.opcion:hover { border-color: #1f1e1c; }
+.opcion:active { transform: scale(0.98); }
+.opcion-on,
+.opcion-on:hover { border-color: #1f1e1c; background: #1f1e1c; color: #f6f3ee; }
+}
+
+/* Tarjeta de producto: sube un poco, la foto hace zoom y «Agregar» entra desde abajo. */
+.tarjeta {
+  transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.35s;
+}
+.tarjeta:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 24px 48px -24px rgba(31, 30, 28, 0.35);
+}
+.tarjeta-foto { transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1); }
+.tarjeta:hover .tarjeta-foto { transform: scale(1.06); }
+.tarjeta-rapido {
+  transform: translateY(130%);
+  transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.tarjeta:hover .tarjeta-rapido,
+.tarjeta:focus-within .tarjeta-rapido { transform: none; }
+/* En pantallas táctiles no hay "pasar el mouse": el botón queda siempre visible. */
+@media (hover: none) {
+  .tarjeta-rapido { transform: none; }
+}
+
+/* Foto que todavía no se subió: rayas suaves en vez de un bloque plano. */
+.foto-vacia {
+  background: repeating-linear-gradient(135deg, #ece7e0 0 14px, #e5dfd7 14px 28px);
+}
+
+/* Íconos que reaccionan al pasar el mouse (corazón que late, bolsa que rebota, flecha que avanza). */
+@keyframes latir { 40% { transform: scale(1.25); } }
+@keyframes rebotar { 35% { transform: translateY(-4px); } 65% { transform: translateY(1px); } }
+@keyframes avanzar { 50% { transform: translateX(4px); } }
+.icono-latido:hover svg { animation: latir 0.45s cubic-bezier(0.3, 1.6, 0.5, 1); }
+.icono-rebote:hover svg { animation: rebotar 0.5s ease; }
+.icono-avance:hover svg { animation: avanzar 0.6s ease; }
+
+/* Enlace con subrayado que se dibuja de izquierda a derecha (menú principal). */
+.subrayado { position: relative; }
+.subrayado::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -4px;
+  height: 2px;
+  background: #a53694;
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.subrayado:hover::after,
+.subrayado[aria-current="page"]::after { transform: scaleX(1); transform-origin: left; }
+
+/* Botón con contorno que se rellena de carbón desde la izquierda. */
+.btn-relleno {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 48px;
+  padding: 0 1.5rem;
+  border-radius: 12px;
+  font-weight: 700;
+  color: #1f1e1c;
+  box-shadow: inset 0 0 0 1.5px #1f1e1c;
+  transition: color 0.3s;
+}
+.btn-relleno::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: #1f1e1c;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.btn-relleno:hover { color: #f6f3ee; }
+.btn-relleno:hover::before { transform: scaleX(1); }
+.btn-relleno--claro { color: #f6f3ee; box-shadow: inset 0 0 0 1.5px #f6f3ee; }
+.btn-relleno--claro::before { background: #f6f3ee; }
+.btn-relleno--claro:hover { color: #1f1e1c; }
+
+/* Barra de anuncios que se desliza sola (se detiene con "reducir movimiento"). */
+@keyframes deslizar-anuncios { to { transform: translateX(-50%); } }
+.anuncios-pista { animation: deslizar-anuncios 32s linear infinite; }
+.anuncios:hover .anuncios-pista { animation-play-state: paused; }
+
+/* Fotos de la portada que flotan suavemente. */
+@keyframes flotar { 50% { transform: translateY(-12px); } }
+.flotar { animation: flotar 6s ease-in-out infinite; }
+.flotar-lento { animation: flotar 7.5s ease-in-out infinite; animation-delay: -3s; }
+
+/* Bloques de categoría: el fondo hace zoom y la flecha gira hacia arriba. */
+.bloque-cat .bloque-fondo { transition: transform 0.7s cubic-bezier(0.2, 0.8, 0.2, 1); }
+.bloque-cat:hover .bloque-fondo { transform: scale(1.07); }
+.bloque-cat .bloque-flecha { transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1); }
+.bloque-cat:hover .bloque-flecha { transform: translateX(6px) rotate(-45deg); }
 
 /* ===================== Panel de administración ===================== */
 html.admin-mode body { background: var(--admin-pg); }
@@ -301,10 +596,10 @@ html.admin-dark .to-white {
 }
 
 /* Textos de acento: versiones más claras para que se lean sobre negro */
-html.admin-dark .text-berry { color: #ee6f94; }
-html.admin-dark .text-berry-dark { color: #f08aa8; }
-html.admin-dark .hover\:text-berry:hover { color: #ee6f94; }
-html.admin-dark .hover\:text-berry-dark:hover { color: #f5a3bb; }
+html.admin-dark .text-berry { color: #e9a6dd; }
+html.admin-dark .text-berry-dark { color: #f0bfe7; }
+html.admin-dark .hover\:text-berry:hover { color: #e9a6dd; }
+html.admin-dark .hover\:text-berry-dark:hover { color: #f6d3ef; }
 html.admin-dark .text-red-600,
 html.admin-dark .text-red-700 { color: #fca5a5; }
 html.admin-dark .text-green-700 { color: #86efac; }

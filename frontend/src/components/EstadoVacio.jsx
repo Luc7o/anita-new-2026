@@ -13,7 +13,7 @@ export default function EstadoVacio({ icono: Icono, titulo, texto, enlace, etiqu
       <h2 className="text-xl text-plum">{titulo}</h2>
       {texto && <p className="max-w-sm text-sm text-plum-soft">{texto}</p>}
       {enlace && (
-        <Link to={enlace} onClick={onClick} className="btn-primary btn mt-2 !px-6">
+        <Link to={enlace} onClick={onClick} className="btn-primary btn mt-2 px-6!">
           {etiqueta}
         </Link>
       )}

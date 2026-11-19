@@ -134,7 +134,7 @@ function DetalleReclamo({ reclamo, puedeResponder, onCerrar, onRespondido }) {
           </label>
           <textarea id="reclamo-respuesta" required rows={5} minLength={10} maxLength={3000}
             value={respuesta} onChange={(e) => setRespuesta(e.target.value)}
-            className="w-full rounded-md border border-plum/20 bg-white px-3 py-2.5 text-plum focus:border-berry focus:outline-none" />
+            className="w-full rounded-md border border-plum/20 bg-white px-3 py-2.5 text-plum focus:border-berry focus:outline-hidden" />
           {error && <p role="alert" className="text-sm text-red-700">{error}</p>}
           <button type="submit" disabled={enviando}
             className="rounded-[10px] bg-berry px-6 py-2.5 text-sm font-semibold text-white transition hover:opacity-90 disabled:opacity-60">

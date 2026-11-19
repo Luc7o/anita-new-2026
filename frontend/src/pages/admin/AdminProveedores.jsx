@@ -303,7 +303,7 @@ export default function AdminProveedores() {
       {mostrarForm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <button
-            className="absolute inset-0 animate-fade-in bg-plum/30 backdrop-blur-sm"
+            className="absolute inset-0 animate-fade-in bg-plum/30 backdrop-blur-xs"
             onClick={() => setMostrarForm(false)}
             aria-label="Cerrar"
           />
@@ -331,7 +331,7 @@ export default function AdminProveedores() {
                   maxLength={150}
                   value={form.nombre}
                   onChange={actualizarCampo("nombre")}
-                  className="w-full rounded-2xl bg-white px-4 py-2.5 text-plum focus:outline-none"
+                  className="w-full rounded-2xl bg-white px-4 py-2.5 text-plum focus:outline-hidden"
                 />
               </div>
               <div>
@@ -343,7 +343,7 @@ export default function AdminProveedores() {
                   maxLength={120}
                   value={form.contacto_nombre}
                   onChange={actualizarTexto("contacto_nombre")}
-                  className="w-full rounded-2xl bg-white px-4 py-2.5 text-plum focus:outline-none"
+                  className="w-full rounded-2xl bg-white px-4 py-2.5 text-plum focus:outline-hidden"
                 />
               </div>
               <div className="grid grid-cols-2 gap-3">
@@ -357,7 +357,7 @@ export default function AdminProveedores() {
                     maxLength={9}
                     value={form.telefono}
                     onChange={actualizarTelefono}
-                    className="w-full rounded-2xl bg-white px-4 py-2.5 text-plum focus:outline-none"
+                    className="w-full rounded-2xl bg-white px-4 py-2.5 text-plum focus:outline-hidden"
                   />
                 </div>
                 <div>
@@ -370,7 +370,7 @@ export default function AdminProveedores() {
                     maxLength={11}
                     value={form.ruc}
                     onChange={actualizarRuc}
-                    className="w-full rounded-2xl bg-white px-4 py-2.5 text-plum focus:outline-none"
+                    className="w-full rounded-2xl bg-white px-4 py-2.5 text-plum focus:outline-hidden"
                   />
                 </div>
               </div>
@@ -384,7 +384,7 @@ export default function AdminProveedores() {
                   maxLength={120}
                   value={form.email}
                   onChange={actualizarCampo("email")}
-                  className="w-full rounded-2xl bg-white px-4 py-2.5 text-plum focus:outline-none"
+                  className="w-full rounded-2xl bg-white px-4 py-2.5 text-plum focus:outline-hidden"
                 />
               </div>
               <div>
@@ -396,7 +396,7 @@ export default function AdminProveedores() {
                   maxLength={200}
                   value={form.direccion}
                   onChange={actualizarCampo("direccion")}
-                  className="w-full rounded-2xl bg-white px-4 py-2.5 text-plum focus:outline-none"
+                  className="w-full rounded-2xl bg-white px-4 py-2.5 text-plum focus:outline-hidden"
                 />
               </div>
               <div>
@@ -409,7 +409,7 @@ export default function AdminProveedores() {
                   maxLength={500}
                   value={form.notas}
                   onChange={actualizarCampo("notas")}
-                  className="w-full rounded-2xl bg-white px-4 py-2.5 text-plum focus:outline-none"
+                  className="w-full rounded-2xl bg-white px-4 py-2.5 text-plum focus:outline-hidden"
                 />
               </div>
             </div>
@@ -423,7 +423,7 @@ export default function AdminProveedores() {
                 placeholder="Buscar producto..."
                 value={busquedaProducto}
                 onChange={(e) => setBusquedaProducto(e.target.value)}
-                className="mb-2 w-full rounded-2xl bg-white px-4 py-2 text-sm text-plum focus:outline-none"
+                className="mb-2 w-full rounded-2xl bg-white px-4 py-2 text-sm text-plum focus:outline-hidden"
               />
               <div className="max-h-48 space-y-1.5 overflow-y-auto rounded-2xl bg-white p-2">
                 {productosFiltrados.length === 0 && (
@@ -453,7 +453,7 @@ export default function AdminProveedores() {
                           placeholder="Costo S/"
                           value={seleccion[prod.id].precio_compra}
                           onChange={(e) => cambiarPrecioProducto(prod.id, e.target.value)}
-                          className="w-24 rounded-lg bg-white px-2 py-1 text-xs text-plum focus:outline-none"
+                          className="w-24 rounded-lg bg-white px-2 py-1 text-xs text-plum focus:outline-hidden"
                         />
                       )}
                     </div>

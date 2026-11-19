@@ -5,7 +5,7 @@ import { IconSearch, IconClose } from "../Icons.jsx";
 // buscador a la izquierda, filtros al lado y "Limpiar filtros" cuando hay alguno activo.
 
 const claseControl =
-  "rounded-[10px] bg-white text-sm text-plum ring-1 ring-plum/20 hover:ring-plum/40 focus:outline-none focus:ring-2 focus:ring-berry";
+  "rounded-[10px] bg-white text-sm text-plum ring-1 ring-plum/20 hover:ring-plum/40 focus:outline-hidden focus:ring-2 focus:ring-berry";
 
 // Compara sin importar mayúsculas ni tildes; cada palabra escrita debe aparecer en algún campo.
 const normalizar = (t) => String(t ?? "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();

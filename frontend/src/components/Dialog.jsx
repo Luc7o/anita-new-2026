@@ -65,7 +65,7 @@ export default function Dialog({ children, className = "", containerClassName = 
       className={`fixed inset-0 z-50 flex items-center justify-center p-4 ${containerClassName}`}
       onMouseDown={() => onCloseRef.current()}
     >
-      <div className="absolute inset-0 animate-fade-in bg-plum/30 backdrop-blur-sm" aria-hidden="true" />
+      <div className="absolute inset-0 animate-fade-in bg-plum/30 backdrop-blur-xs" aria-hidden="true" />
       <div
         ref={dialogRef}
         role="dialog"

@@ -15,7 +15,7 @@ export default function CasillaTerminos({ id = "acepta-terminos", checked, onCha
         required
         checked={checked}
         onChange={(e) => onChange(e.target.checked)}
-        className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer rounded border-plum/30 accent-berry"
+        className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer rounded-sm border-plum/30 accent-berry"
       />
       <span>
         He leído y acepto los{" "}

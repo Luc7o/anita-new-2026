@@ -16,7 +16,7 @@ import { textoVariante } from "./TabStock.jsx";
 const POR_PAGINA = 20;
 
 const campo =
-  "w-full rounded-[10px] bg-white px-3 py-2 text-sm text-plum ring-1 ring-plum/20 hover:ring-plum/40 focus:outline-none focus:ring-2 focus:ring-berry";
+  "w-full rounded-[10px] bg-white px-3 py-2 text-sm text-plum ring-1 ring-plum/20 hover:ring-plum/40 focus:outline-hidden focus:ring-2 focus:ring-berry";
 
 // El servidor manda la hora en UTC sin zona: se le agrega para mostrarla en hora local.
 const fechaHora = (iso) => {

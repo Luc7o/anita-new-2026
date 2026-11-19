@@ -16,7 +16,7 @@ const CAMPOS_VACIOS = {
 };
 
 const claseInput =
-  "w-full rounded-2xl bg-white px-4 py-2.5 text-plum focus:outline-none disabled:opacity-60";
+  "w-full rounded-2xl bg-white px-4 py-2.5 text-plum focus:outline-hidden disabled:opacity-60";
 
 function Campo({ id, etiqueta, ayuda, ...props }) {
   return (

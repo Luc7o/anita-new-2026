@@ -17,11 +17,11 @@ export default function QuienesSomos() {
           </p>
 
           <div className="grid gap-4 sm:grid-cols-2">
-            <div className="rounded-xl border border-plum/10 bg-white/50 p-5 shadow-sm">
+            <div className="rounded-xl border border-plum/10 bg-white/50 p-5 shadow-xs">
               <h3 className="font-semibold text-plum">Nuestra historia</h3>
               <p className="mt-1 text-sm text-plum-soft">Nacimos en {ciudad} con el sueño de ofrecer moda peruana de calidad, seleccionando cada prenda con dedicación y amor por el detalle.</p>
             </div>
-            <div className="rounded-xl border border-plum/10 bg-white/50 p-5 shadow-sm">
+            <div className="rounded-xl border border-plum/10 bg-white/50 p-5 shadow-xs">
               <h3 className="font-semibold text-plum">Nuestra misión</h3>
               <p className="mt-1 text-sm text-plum-soft">Somos una empresa ubicada en Huancayo dedicada a la
               comercialización de calzados, correas, mochilas y carteras de alta calidad,
@@ -31,7 +31,7 @@ export default function QuienesSomos() {
               variedad de productos.
               </p>
             </div>
-            <div className="rounded-xl border border-plum/10 bg-white/50 p-5 shadow-sm">
+            <div className="rounded-xl border border-plum/10 bg-white/50 p-5 shadow-xs">
               <h3 className="font-semibold text-plum">Nuestra visión</h3>
               <p className="mt-1 text-sm text-plum-soft">Ser una empresa reconocida en Huancayo y en el mercado digital como una de las principales
               tiendas de moda y accesorios, destacándonos por la innovación, la calidad
@@ -39,7 +39,7 @@ export default function QuienesSomos() {
               al cliente.
               </p>
             </div>
-            <div className="rounded-xl border border-plum/10 bg-white/50 p-5 shadow-sm">
+            <div className="rounded-xl border border-plum/10 bg-white/50 p-5 shadow-xs">
               <h3 className="font-semibold text-plum">Nuestros valores</h3>
               <p className="mt-1 text-sm text-plum-soft">Calidad, honestidad, calidez y pasión por la moda. Cada prenda que elegimos cuenta una historia de esfuerzo y dedicación.</p>
             </div>

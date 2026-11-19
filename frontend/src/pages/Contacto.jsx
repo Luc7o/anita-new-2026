@@ -6,7 +6,7 @@ import { urlMapaEnlace } from "../utils/mapa.js";
 
 function Tarjeta({ titulo, children, nota }) {
   return (
-    <div className="rounded-xl border border-plum/10 bg-white/50 p-5 shadow-sm">
+    <div className="rounded-xl border border-plum/10 bg-white/50 p-5 shadow-xs">
       <h3 className="font-semibold text-plum">{titulo}</h3>
       <div className="mt-1 text-sm text-plum-soft">{children}</div>
       {nota && <p className="text-xs text-plum-soft/70">{nota}</p>}

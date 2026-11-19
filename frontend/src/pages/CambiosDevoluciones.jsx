@@ -14,11 +14,11 @@ export default function CambiosDevoluciones() {
           </p>
 
           <div className="grid gap-4 sm:grid-cols-2">
-            <div className="rounded-xl border border-plum/10 bg-white/50 p-5 shadow-sm">
+            <div className="rounded-xl border border-plum/10 bg-white/50 p-5 shadow-xs">
               <h3 className="font-semibold text-plum">Plazo de cambio</h3>
               <p className="mt-1 text-sm text-plum-soft">Hasta 30 días después de la compra. Producto sin uso, con etiquetas y en su empaque original.</p>
             </div>
-            <div className="rounded-xl border border-plum/10 bg-white/50 p-5 shadow-sm">
+            <div className="rounded-xl border border-plum/10 bg-white/50 p-5 shadow-xs">
               <h3 className="font-semibold text-plum">Devoluciones</h3>
               <p className="mt-1 text-sm text-plum-soft">Por defectos de fábrica o productos incorrectos. Reembolso del 100% del valor.</p>
             </div>

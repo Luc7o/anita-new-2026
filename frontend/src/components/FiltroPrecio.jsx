@@ -13,7 +13,7 @@ function CampoPrecio({ etiqueta, valor, onCambio, onBlur, onKeyDown }) {
           onChange={(e) => onCambio(e.target.value)}
           onBlur={onBlur}
           onKeyDown={onKeyDown}
-          className="w-full bg-transparent py-1.5 pl-1 text-sm text-plum focus:outline-none"
+          className="w-full bg-transparent py-1.5 pl-1 text-sm text-plum focus:outline-hidden"
         />
       </span>
     </label>

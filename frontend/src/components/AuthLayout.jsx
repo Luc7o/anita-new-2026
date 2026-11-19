@@ -39,11 +39,11 @@ export default function AuthLayout({
         <Link
           to="/"
           aria-label="Volver al inicio"
-          className="absolute left-4 top-4 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-white/70 text-plum shadow-glass backdrop-blur transition hover:bg-white hover:text-berry sm:left-6 sm:top-6 group"
+          className="absolute left-4 top-4 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-white/70 text-plum shadow-glass backdrop-blur-sm transition hover:bg-white hover:text-berry sm:left-6 sm:top-6 group"
           title="Regresar a la tienda"
         >
           <IconArrowLeft size={18} />
-          <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 whitespace-nowrap rounded bg-plum/80 px-2 py-1 text-[10px] text-white opacity-0 transition-opacity group-hover:opacity-100 pointer-events-none">
+          <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-sm bg-plum/80 px-2 py-1 text-[10px] text-white opacity-0 transition-opacity group-hover:opacity-100 pointer-events-none">
             Regresar a la tienda
           </span>
         </Link>

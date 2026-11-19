@@ -129,12 +129,12 @@ export default function SelectorRapido({ producto, onClose, onAgregado }) {
   const idTitulo = `selector-rapido-${producto.id}`;
 
   return createPortal(
-    <div className="fixed inset-0 z-[60] flex items-end justify-center sm:items-center sm:p-4">
+    <div className="fixed inset-0 z-60 flex items-end justify-center sm:items-center sm:p-4">
       <button
         type="button"
         aria-label="Cerrar selector"
         onClick={onClose}
-        className="absolute inset-0 animate-fade-in bg-plum/40 backdrop-blur-sm"
+        className="absolute inset-0 animate-fade-in bg-plum/40 backdrop-blur-xs"
       />
 
       <div
@@ -221,7 +221,7 @@ export default function SelectorRapido({ producto, onClose, onAgregado }) {
                         aria-pressed={talla === t}
                         onClick={() => elegirTalla(t)}
                         title={disponible ? undefined : "Agotado"}
-                        className={`min-w-[3rem] rounded-xl border px-3 py-2 text-sm font-medium transition active:scale-95 ${
+                        className={`min-w-12 rounded-xl border px-3 py-2 text-sm font-medium transition active:scale-95 ${
                           talla === t
                             ? "border-berry bg-berry text-white"
                             : "border-plum/15 bg-white text-plum hover:border-berry/40"

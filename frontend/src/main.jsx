@@ -4,16 +4,19 @@ import { BrowserRouter } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext.jsx";
 import { ToastProvider } from "./context/ToastContext.jsx";
 import { ConfirmProvider } from "./components/ConfirmDialog.jsx";
+import { AnimateUIProvider } from "@animate-ui/react/provider";
 // Fuentes alojadas en nuestro propio sitio (paquetes @fontsource, licencia OFL):
 // así no se le envía la IP de cada visitante a Google Fonts. Solo el subconjunto
 // latino, que cubre español (tildes, ñ, ¿ ¡).
-import "@fontsource/dm-sans/latin-400.css";
-import "@fontsource/dm-sans/latin-500.css";
-import "@fontsource/dm-sans/latin-600.css";
-import "@fontsource/dm-sans/latin-700.css";
-import "@fontsource/dm-sans/latin-800.css";
-import "@fontsource/dm-serif-display/latin-400.css";
-import "@fontsource/dm-serif-display/latin-400-italic.css";
+// «Galería Carbón»: Manrope para textos y Syne (geométrica, como el logo) para títulos.
+import "@fontsource/manrope/latin-400.css";
+import "@fontsource/manrope/latin-500.css";
+import "@fontsource/manrope/latin-600.css";
+import "@fontsource/manrope/latin-700.css";
+import "@fontsource/manrope/latin-800.css";
+import "@fontsource/syne/latin-600.css";
+import "@fontsource/syne/latin-700.css";
+import "@fontsource/syne/latin-800.css";
 import "./styles/theme.css";
 import "./styles/admin-motion.css";
 import { importarConReintento } from "./utils/lazyConReintento.js";
@@ -30,6 +33,8 @@ async function arrancar() {
 
   ReactDOM.createRoot(document.getElementById("root")).render(
     <React.StrictMode>
+      {/* Ritmo común de las animaciones de Animate UI; con "reducir movimiento" quedan quietas. */}
+      <AnimateUIProvider reducedMotion="user">
       <BrowserRouter>
         <ToastProvider>
           <ConfirmProvider>
@@ -37,6 +42,7 @@ async function arrancar() {
           </ConfirmProvider>
         </ToastProvider>
       </BrowserRouter>
+      </AnimateUIProvider>
     </React.StrictMode>
   );
 }

@@ -107,7 +107,7 @@ export default function Login() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="ejemplo@correo.com"
-            className="w-full rounded-md border border-plum/20 bg-white px-4 py-3 text-plum placeholder:text-plum-soft/50 focus:outline-none"
+            className="w-full rounded-md border border-plum/20 bg-white px-4 py-3 text-plum placeholder:text-plum-soft/50 focus:outline-hidden"
           />
         </div>
 
@@ -128,7 +128,7 @@ export default function Login() {
               maxLength={128}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full rounded-md border border-plum/20 bg-white px-4 py-3 pr-11 text-plum focus:outline-none"
+              className="w-full rounded-md border border-plum/20 bg-white px-4 py-3 pr-11 text-plum focus:outline-hidden"
             />
             <button
               type="button"
@@ -146,7 +146,7 @@ export default function Login() {
             type="checkbox"
             checked={recordar}
             onChange={(e) => setRecordar(e.target.checked)}
-            className="w-4 h-4 accent-berry rounded border-plum/20"
+            className="w-4 h-4 accent-berry rounded-sm border-plum/20"
           />
           Recordarme en este dispositivo
         </label>

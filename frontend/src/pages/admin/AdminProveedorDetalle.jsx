@@ -171,7 +171,7 @@ export default function AdminProveedorDetalle() {
       {mostrarForm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <button
-            className="absolute inset-0 bg-plum/30 backdrop-blur-sm"
+            className="absolute inset-0 bg-plum/30 backdrop-blur-xs"
             onClick={() => setMostrarForm(false)}
             aria-label="Cerrar"
           />
@@ -185,7 +185,7 @@ export default function AdminProveedorDetalle() {
               <select
                 value={seleccion.producto_id}
                 onChange={(e) => setSeleccion({ ...seleccion, producto_id: e.target.value })}
-                className="w-full rounded-2xl bg-white px-4 py-2.5 text-plum focus:outline-none"
+                className="w-full rounded-2xl bg-white px-4 py-2.5 text-plum focus:outline-hidden"
               >
                 <option value="">Selecciona un producto...</option>
                 {opcionesSelect.map((p) => (
@@ -201,7 +201,7 @@ export default function AdminProveedorDetalle() {
                 placeholder="Precio de compra (opcional)"
                 value={seleccion.precio_compra}
                 onChange={(e) => setSeleccion({ ...seleccion, precio_compra: e.target.value })}
-                className="w-full rounded-2xl bg-white px-4 py-2.5 text-plum focus:outline-none"
+                className="w-full rounded-2xl bg-white px-4 py-2.5 text-plum focus:outline-hidden"
               />
             </div>
 

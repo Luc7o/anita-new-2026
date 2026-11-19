@@ -151,7 +151,7 @@ export default function Perfil() {
                   maxLength={80}
                   value={form.nombre}
                   onChange={actualizarTexto("nombre")}
-                  className="w-full rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-none"
+                  className="w-full rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-hidden"
                 />
               </div>
               <div>
@@ -163,7 +163,7 @@ export default function Perfil() {
                   maxLength={80}
                   value={form.apellido}
                   onChange={actualizarTexto("apellido")}
-                  className="w-full rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-none"
+                  className="w-full rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-hidden"
                 />
               </div>
             </div>
@@ -177,7 +177,7 @@ export default function Perfil() {
                 maxLength={9}
                 value={form.telefono}
                 onChange={actualizarTelefono}
-                className="w-full rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-none"
+                className="w-full rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-hidden"
               />
             </div>
             <div>
@@ -189,7 +189,7 @@ export default function Perfil() {
                 maxLength={200}
                 value={form.direccion}
                 onChange={actualizarCampo("direccion")}
-                className="w-full rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-none"
+                className="w-full rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-hidden"
               />
             </div>
             <SelectorUbicacion
@@ -207,7 +207,7 @@ export default function Perfil() {
                 maxLength={200}
                 value={form.referencia}
                 onChange={actualizarCampo("referencia")}
-                className="w-full rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-none"
+                className="w-full rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-hidden"
               />
             </div>
 

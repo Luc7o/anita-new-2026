@@ -57,7 +57,7 @@ export default function PasoDosFactores({ onVerificar, onCancelar, estilo = "tie
             setCodigo(usarRespaldo ? e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "") : e.target.value.replace(/[^\d ]/g, ""))
           }
           placeholder={usarRespaldo ? "xxxxx-xxxxx" : "000000"}
-          className="w-full rounded-md border border-plum/20 bg-white px-4 py-3 text-center text-xl tracking-[0.3em] text-plum placeholder:tracking-normal placeholder:text-plum-soft/40 focus:border-berry focus:outline-none"
+          className="w-full rounded-md border border-plum/20 bg-white px-4 py-3 text-center text-xl tracking-[0.3em] text-plum placeholder:tracking-normal placeholder:text-plum-soft/40 focus:border-berry focus:outline-hidden"
         />
       </div>
 

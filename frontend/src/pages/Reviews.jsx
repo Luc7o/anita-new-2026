@@ -19,7 +19,7 @@ function formatearFecha(iso) {
 
 function Resumen({ total, promedio, distribucion }) {
   return (
-    <div className="grid gap-4 rounded-xl border border-plum/10 bg-white/50 p-5 shadow-sm sm:grid-cols-[auto,1fr] sm:items-center">
+    <div className="grid gap-4 rounded-xl border border-plum/10 bg-white/50 p-5 shadow-xs sm:grid-cols-[auto_1fr] sm:items-center">
       <div className="text-center sm:px-6">
         <p className="text-4xl font-bold text-plum">{promedio?.toFixed(1)}</p>
         <div className="mt-1 flex justify-center">
@@ -50,7 +50,7 @@ function Resumen({ total, promedio, distribucion }) {
 
 function TarjetaResena({ r }) {
   return (
-    <article className="rounded-xl border border-plum/10 bg-white/50 p-5 shadow-sm">
+    <article className="rounded-xl border border-plum/10 bg-white/50 p-5 shadow-xs">
       <div className="flex items-start justify-between gap-3">
         <div>
           <h3 className="font-semibold text-plum">{r.autor}</h3>

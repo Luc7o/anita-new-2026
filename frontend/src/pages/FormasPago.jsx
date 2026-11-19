@@ -15,7 +15,7 @@ export default function FormasPago() {
           
           <div className="grid gap-4 sm:grid-cols-2">
             {METODOS_PAGO_TIENDA.map((m) => (
-              <div key={m.id} className="rounded-xl border border-plum/10 bg-white/50 p-5 shadow-sm">
+              <div key={m.id} className="rounded-xl border border-plum/10 bg-white/50 p-5 shadow-xs">
                 <h3 className="font-semibold text-plum">{m.titulo}</h3>
                 <p className="mt-1 text-sm text-plum-soft">{m.detalle}</p>
               </div>

@@ -108,7 +108,7 @@ export function ToastProvider({ children }) {
       {children}
       <div
         aria-live="polite"
-        className="pointer-events-none fixed inset-x-0 top-20 z-[100] flex flex-col items-center gap-2 px-4 sm:left-auto sm:right-4 sm:items-end sm:px-0"
+        className="pointer-events-none fixed inset-x-0 top-20 z-100 flex flex-col items-center gap-2 px-4 sm:left-auto sm:right-4 sm:items-end sm:px-0"
       >
         {avisos.map((a) => (
           <Aviso key={a.id} aviso={a} onCerrar={cerrar} />

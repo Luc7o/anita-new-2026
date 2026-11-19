@@ -115,7 +115,7 @@ function CampoPassword({ id, placeholder, value, onChange, visible, onToggle }) 
         maxLength={72}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full rounded-2xl bg-white/70 px-4 py-2.5 pr-11 text-plum shadow-glass focus:outline-none"
+        className="w-full rounded-2xl bg-white/70 px-4 py-2.5 pr-11 text-plum shadow-glass focus:outline-hidden"
       />
       <button
         type="button"

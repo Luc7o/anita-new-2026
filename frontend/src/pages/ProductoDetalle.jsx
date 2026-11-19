@@ -6,7 +6,11 @@ import { api } from "../api/client.js";
 import { useAuth } from "../context/AuthContext.jsx";
 import { useCarrito } from "../context/CarritoContext.jsx";
 import { useFavoritos } from "../context/FavoritosContext.jsx";
-import { IconCart, IconHeart, IconSearch } from "../components/Icons.jsx";
+import { IconCart, IconHeart, IconSearch, IconArrowRight } from "../components/Icons.jsx";
+import { AnimatePresence, motion } from "motion/react";
+import { RippleButton, RippleButtonRipples } from "@animate-ui/react/primitives/buttons/ripple";
+import { SlidingNumber } from "@animate-ui/react/primitives/texts/sliding-number";
+import { COSTO_ENVIO_DELIVERY } from "../tienda.js";
 import Estrellas from "../components/Estrellas.jsx";
 import ImagenOptimizada from "../components/ImagenOptimizada.jsx";
 import VisorImagen from "../components/VisorImagen.jsx";
@@ -197,6 +201,7 @@ export default function ProductoDetalle() {
   // el mensaje correcto es pedir que elija, no decir que no hay stock.
   const sinStockEnCombo = !seleccionIncompleta && producto.usa_variantes && stockSeleccion <= 0;
   const esFavorito = favoritos?.esFavorito(producto.id);
+  const descuento = producto.tiene_oferta ? Math.round((1 - producto.precio_final / producto.precio) * 100) : 0;
 
   const textoBotonPendiente = () => {
     if (faltaTalla && faltaColor) return "Elige talla y color";
@@ -261,15 +266,26 @@ export default function ProductoDetalle() {
           onClose={() => setVisorAbierto(false)}
         />
       )}
-      <div className="grid gap-8 md:grid-cols-2">
+      <nav aria-label="Ruta" className="flex flex-wrap items-center gap-2 py-6 text-sm text-plum-soft">
+        <Link to="/" className="hover:text-berry">Inicio</Link>
+        <span aria-hidden="true">/</span>
+        <Link to="/tienda" className="hover:text-berry">Tienda</Link>
+        {producto.categoria && (
+          <>
+            <span aria-hidden="true">/</span>
+            <Link to={`/tienda?categoria=${producto.categoria}`} className="hover:text-berry">{producto.categoria_nombre}</Link>
+          </>
+        )}
+      </nav>
+      <div className="grid items-start gap-10 md:grid-cols-2 lg:gap-14">
         {/* Galería: en mobile, la imagen grande arriba y las miniaturas debajo
             en fila horizontal (flex-col-reverse muestra el último hijo del DOM
             primero). Desde md hacia arriba, flex-row pone las miniaturas
             (primer hijo del DOM) a la izquierda de la imagen grande. */}
-        <div className="flex flex-col-reverse gap-3 md:flex-row md:gap-4">
+        <div className="flex flex-col-reverse gap-3 md:sticky md:top-28 md:flex-row md:gap-4">
           {producto.imagenes?.length > 1 && (
             <div
-              className="flex gap-2 overflow-x-auto pb-1 md:max-h-[560px] md:w-20 md:shrink-0 md:flex-col md:overflow-x-visible md:overflow-y-auto md:pb-0"
+              className="flex gap-2.5 overflow-x-auto pb-1 md:max-h-[600px] md:w-22 md:shrink-0 md:flex-col md:overflow-x-visible md:overflow-y-auto md:pb-0"
               role="group"
               aria-label="Otras fotos del producto"
             >
@@ -279,8 +295,8 @@ export default function ProductoDetalle() {
                   onClick={() => setImagenActiva(img.url)}
                   aria-label={`Ver foto${img.color ? ` — color ${img.color}` : ""}`}
                   aria-pressed={imagenActiva === img.url}
-                  className={`h-16 w-16 shrink-0 overflow-hidden rounded-xl shadow-glass transition ${
-                    imagenActiva === img.url ? "ring-2 ring-berry" : "opacity-80 hover:opacity-100"
+                  className={`h-20 w-20 shrink-0 overflow-hidden rounded-xl border-2 transition hover:-translate-y-0.5 ${
+                    imagenActiva === img.url ? "border-plum" : "border-transparent opacity-75 hover:opacity-100"
                   }`}
                 >
                   <ImagenOptimizada src={img.url} variante="thumb" alt="" className="h-full w-full object-cover" />
@@ -289,89 +305,103 @@ export default function ProductoDetalle() {
             </div>
           )}
 
-          <div className="glass aspect-[4/5] flex-1 overflow-hidden rounded-3xl shadow-glass">
+          <div className="relative aspect-4/5 flex-1 overflow-hidden rounded-3xl bg-[#ece7e0]">
             {imagenActiva ? (
               <button
                 type="button"
                 onClick={() => setVisorAbierto(true)}
                 aria-label="Ampliar imagen"
-                className="relative block h-full w-full cursor-zoom-in focus:outline-none focus-visible:ring-2 focus-visible:ring-berry"
+                className="group relative block h-full w-full cursor-zoom-in focus:outline-hidden focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-berry"
               >
-                <ImagenOptimizada
-                  src={imagenActiva}
-                  variante="med"
-                  prioridad
-                  alt={producto.nombre}
-                  className="h-full w-full object-cover transition"
-                />
+                {/* La foto nueva entra con un fundido y un leve zoom al cambiar de miniatura. */}
+                <AnimatePresence initial={false}>
+                  <motion.div
+                    key={imagenActiva}
+                    className="absolute inset-0"
+                    initial={{ opacity: 0, scale: 1.03 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.45, ease: [0.2, 0.8, 0.2, 1] }}
+                  >
+                    <ImagenOptimizada
+                      src={imagenActiva}
+                      variante="med"
+                      prioridad
+                      alt={producto.nombre}
+                      className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.04]"
+                    />
+                  </motion.div>
+                </AnimatePresence>
                 <span
-                  className="pointer-events-none absolute bottom-3 right-3 flex h-9 w-9 items-center justify-center rounded-full bg-white/85 text-plum shadow-glass"
+                  className="pointer-events-none absolute bottom-4 right-4 flex h-11 w-11 items-center justify-center rounded-full bg-white text-plum shadow-pop"
                   aria-hidden="true"
                 >
-                  <IconSearch size={16} />
+                  <IconSearch size={17} />
                 </span>
               </button>
             ) : (
-              <div className="flex h-full items-center justify-center bg-gradient-to-br from-lilac to-white font-display text-5xl text-berry-light/60">
+              <div className="foto-vacia flex h-full items-center justify-center font-display text-7xl font-extrabold text-plum/15">
                 {producto.nombre.slice(0, 1)}
               </div>
+            )}
+            {descuento > 0 && (
+              <span className="pointer-events-none absolute left-4 top-4 rounded-full bg-berry px-3 py-1.5 text-sm font-bold text-white">
+                -{descuento}%
+              </span>
             )}
           </div>
         </div>
 
-        <div className="glass rounded-3xl p-6 shadow-glass sm:p-8">
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <span className="text-xs uppercase tracking-wide text-plum-soft">
+        <div className="flex flex-col gap-6">
+          <div className="flex flex-col gap-2.5">
+            {producto.categoria_nombre && (
+              <span className="text-xs font-bold uppercase tracking-[0.12em] text-plum-soft">
                 {producto.categoria_nombre}
               </span>
-              <h1 className="mt-1 font-display text-3xl font-semibold text-plum">
-                {producto.nombre}
-                {talla && ` ${talla}`}
-              </h1>
-              {producto.sku && (
-                <p className="mt-1 text-xs text-plum-soft">
-                  SKU: <span className="font-mono tracking-wide text-plum">{producto.sku}</span>
-                </p>
-              )}
-            </div>
-            <button
-              onClick={handleFavorito}
-              aria-label={esFavorito ? "Quitar de favoritos" : "Agregar a favoritos"}
-              aria-pressed={esFavorito}
-              className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full border shadow-glass transition hover:scale-110 ${
-                esFavorito ? "border-berry bg-berry text-white" : "border-plum/15 bg-white text-plum-soft hover:text-berry"
-              }`}
-            >
-              <IconHeart size={18} relleno={esFavorito} />
-            </button>
-          </div>
-
-          {producto.total_resenas > 0 && (
-            <div className="mt-1 flex items-center gap-2">
-              <Estrellas valor={producto.promedio_calificacion} size={15} />
-              <span className="text-sm text-plum-soft">
-                {producto.promedio_calificacion} ({producto.total_resenas}{" "}
-                {producto.total_resenas === 1 ? "reseña" : "reseñas"})
+            )}
+            <h1 className="font-display text-4xl font-extrabold leading-[1.05] text-plum sm:text-5xl">
+              {producto.nombre}
+            </h1>
+            {producto.total_resenas > 0 && (
+              <div className="flex items-center gap-2">
+                <Estrellas valor={producto.promedio_calificacion} size={15} />
+                <span className="text-sm text-plum-soft">
+                  {producto.promedio_calificacion} ({producto.total_resenas}{" "}
+                  {producto.total_resenas === 1 ? "reseña" : "reseñas"})
+                </span>
+              </div>
+            )}
+            <p className="mt-1 flex flex-wrap items-baseline gap-3">
+              <span className={`text-3xl font-extrabold ${producto.tiene_oferta ? "text-berry" : "text-plum"}`}>
+                S/ {producto.precio_final.toFixed(2)}
               </span>
-            </div>
-          )}
-
-          <div className="mt-4 flex items-baseline gap-3">
-            <span className="text-2xl font-semibold text-berry-dark">
-              S/ {producto.precio_final.toFixed(2)}
-            </span>
-            {producto.tiene_oferta && (
-              <span className="text-plum-soft line-through">S/ {producto.precio.toFixed(2)}</span>
+              {producto.tiene_oferta && (
+                <>
+                  <span className="text-lg text-plum-soft line-through">S/ {producto.precio.toFixed(2)}</span>
+                  <span className="rounded-full bg-lilac px-3 py-1 text-sm font-bold text-berry-dark">
+                    Ahorras S/ {(producto.precio - producto.precio_final).toFixed(2)}
+                  </span>
+                </>
+              )}
+            </p>
+            {producto.sku && (
+              <p className="text-xs text-plum-soft">
+                SKU: <span className="font-mono tracking-wide text-plum">{producto.sku}</span>
+              </p>
             )}
           </div>
 
-          <p className="mt-4 text-sm leading-relaxed text-plum-soft">{producto.descripcion}</p>
+          {producto.descripcion && (
+            <p className="text-[15px] leading-relaxed text-plum-soft">{producto.descripcion}</p>
+          )}
 
           {producto.tallas?.length > 0 && (
-            <div className="mt-5">
-              <span id="talla-label" className="mb-2 block text-sm font-medium text-plum">Talla</span>
-              <div role="radiogroup" aria-labelledby="talla-label" className="flex flex-wrap gap-2">
+            <div>
+              <span id="talla-label" className="mb-3 block text-[15px] font-bold text-plum">
+                Talla
+                {talla && <span className="font-medium text-plum-soft"> · {talla}</span>}
+              </span>
+              <div role="radiogroup" aria-labelledby="talla-label" className="flex flex-wrap gap-2.5">
                 {producto.tallas.map((t) => {
                   const sinStock = producto.usa_variantes && !tallaDisponible(t);
                   return (
@@ -381,22 +411,14 @@ export default function ProductoDetalle() {
                       aria-checked={talla === t}
                       onClick={() => setTalla(t)}
                       disabled={sinStock}
-                      style={
-                        sinStock
-                          ? {
-                              backgroundImage:
-                                "linear-gradient(to top right, transparent 46%, currentColor 48%, currentColor 52%, transparent 54%)",
-                            }
-                          : undefined
-                      }
-                      className={`rounded-full px-4 py-1.5 text-sm shadow-glass transition disabled:cursor-not-allowed ${
-                        sinStock
-                          ? "text-plum-soft/50 glass"
-                          : talla === t
-                          ? "bg-berry text-white"
-                          : "glass text-plum"
-                      }`}
                       title={sinStock ? "Talla no disponible" : undefined}
+                      className={`min-h-12 min-w-14 rounded-xl border-[1.5px] px-4 text-[15px] font-bold transition-all active:scale-95 disabled:cursor-not-allowed ${
+                        sinStock
+                          ? "border-plum/10 bg-[#f1eee9] text-plum-soft line-through"
+                          : talla === t
+                          ? "border-plum bg-plum text-ivory"
+                          : "border-plum/18 bg-white text-plum hover:border-plum"
+                      }`}
                     >
                       {t}
                     </button>
@@ -407,8 +429,11 @@ export default function ProductoDetalle() {
           )}
 
           {producto.colores?.length > 0 && (
-            <div className="mt-4">
-              <span id="color-label" className="mb-2 block text-sm font-medium text-plum">Color</span>
+            <div>
+              <span id="color-label" className="mb-3 block text-[15px] font-bold text-plum">
+                Color
+                {color && <span className="font-medium text-plum-soft"> · {color}</span>}
+              </span>
               <div role="radiogroup" aria-labelledby="color-label" className="flex flex-wrap gap-3">
                 {producto.colores.map((c) => {
                   const sinStock = producto.usa_variantes && !colorDisponible(c);
@@ -421,16 +446,16 @@ export default function ProductoDetalle() {
                       onClick={() => setColor(c)}
                       disabled={sinStock}
                       title={sinStock ? "Sin stock en esta combinación" : c}
-                      className={`relative flex h-9 w-9 items-center justify-center rounded-full shadow-glass transition disabled:cursor-not-allowed ${
+                      className={`relative flex h-11 w-11 items-center justify-center rounded-full bg-white transition-all active:scale-95 disabled:cursor-not-allowed ${
                         sinStock
                           ? "opacity-40"
                           : color === c
-                          ? "ring-2 ring-berry ring-offset-2"
-                          : "ring-1 ring-plum/15"
+                          ? "ring-2 ring-plum ring-offset-2 ring-offset-ivory"
+                          : "ring-1 ring-plum/15 hover:ring-plum/40"
                       }`}
                     >
                       <span
-                        className="h-6 w-6 rounded-full border border-plum/10"
+                        className="h-7 w-7 rounded-full border border-plum/10"
                         style={{ backgroundColor: nombreColorAHex(c) }}
                         aria-hidden="true"
                       />
@@ -439,7 +464,7 @@ export default function ProductoDetalle() {
                           className="pointer-events-none absolute inset-0 rounded-full"
                           style={{
                             backgroundImage:
-                              "linear-gradient(to top right, transparent 46%, #78350F 48%, #78350F 52%, transparent 54%)",
+                              "linear-gradient(to top right, transparent 46%, #57534e 48%, #57534e 52%, transparent 54%)",
                           }}
                           aria-hidden="true"
                         />
@@ -451,74 +476,96 @@ export default function ProductoDetalle() {
             </div>
           )}
 
-          <div className="mt-5 flex items-center gap-3">
-            <span id="cantidad-label" className="text-sm font-medium text-plum">Cantidad</span>
-            <div className="glass flex items-center gap-3 rounded-full px-3 py-1.5 shadow-glass">
+          <div className="flex flex-wrap items-center gap-3">
+            <div
+              role="group"
+              aria-labelledby="cantidad-label"
+              className="flex h-13 items-center rounded-xl border-[1.5px] border-plum/18 bg-white"
+            >
+              <span id="cantidad-label" className="sr-only">Cantidad</span>
               <button
                 onClick={() => setCantidad((c) => Math.max(1, c - 1))}
                 aria-label="Restar una unidad"
-                className="text-plum"
+                className="flex h-12 w-12 items-center justify-center text-xl font-semibold text-plum hover:text-berry"
               >
                 −
               </button>
-              <span className="w-4 text-center" aria-live="polite" aria-labelledby="cantidad-label">{cantidad}</span>
+              <span className="w-8 text-center text-[17px] font-bold" aria-live="polite">
+                <SlidingNumber number={cantidad} />
+              </span>
               <button
                 onClick={() => setCantidad((c) => Math.min(stockSeleccion, c + 1))}
                 disabled={cantidad >= stockSeleccion}
                 aria-label="Sumar una unidad"
-                className="text-plum disabled:opacity-30"
+                className="flex h-12 w-12 items-center justify-center text-xl font-semibold text-plum hover:text-berry disabled:opacity-30"
               >
                 +
               </button>
             </div>
-            {producto.usa_variantes && stockSeleccion > 0 && (
-              <span className="text-xs text-plum-soft">{stockSeleccion} disponibles</span>
+            {producto.usa_variantes && stockSeleccion > 0 && stockSeleccion <= 3 && (
+              <span className="rounded-full bg-lilac px-3 py-1.5 text-sm font-bold text-berry-dark">
+                Quedan {stockSeleccion}
+              </span>
             )}
           </div>
 
           {seleccionIncompleta && (
-            <p className="mt-2 text-sm text-plum-soft" role="status">
+            <p className="-mt-2 text-sm font-semibold text-plum-soft" role="status">
               {textoBotonPendiente()} para continuar.
             </p>
           )}
 
           {sinStockEnCombo && (
-            <p className="mt-2 text-sm text-berry-dark" role="alert">
+            <p className="-mt-2 text-sm font-semibold text-berry-dark" role="alert">
               Sin stock para esta combinación de talla/color.
             </p>
           )}
 
-          <div className="mt-6 flex gap-3">
-            <button
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <RippleButton
               onClick={handleAgregar}
               disabled={producto.sin_stock || sinStockEnCombo || seleccionIncompleta || agregando}
-              className="glass flex flex-1 items-center justify-center gap-2 rounded-full py-3 font-semibold text-plum shadow-glass transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-50"
+              className="btn-dark min-h-13! flex-1 text-base! [--ripple-button-ripple-color:rgba(255,255,255,0.35)] disabled:cursor-not-allowed disabled:opacity-50"
             >
-              <IconCart size={16} />
-              {seleccionIncompleta
-                ? textoBotonPendiente()
-                : producto.sin_stock || sinStockEnCombo
-                ? "Sin stock"
-                : agregando
-                ? "..."
-                : "Agregar al carrito"}
-            </button>
-            <button
+              <IconCart size={18} />
+              {producto.sin_stock || sinStockEnCombo ? "Sin stock" : agregando ? "Agregando..." : "Agregar al carrito"}
+              <RippleButtonRipples />
+            </RippleButton>
+            <RippleButton
               onClick={handleComprar}
               disabled={producto.sin_stock || sinStockEnCombo || seleccionIncompleta || agregando}
-              className="flex-1 rounded-full bg-berry py-3 font-semibold text-white shadow-glass-lg transition hover:bg-berry-dark disabled:cursor-not-allowed disabled:opacity-50"
+              className="btn-primary icono-avance min-h-13! flex-1 text-base! [--ripple-button-ripple-color:rgba(255,255,255,0.35)] disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {seleccionIncompleta
-                ? textoBotonPendiente()
-                : producto.sin_stock || sinStockEnCombo
-                ? "Sin stock"
-                : agregando
-                ? "..."
-                : "Comprar ahora"}
+              Comprar ahora
+              <IconArrowRight size={18} />
+              <RippleButtonRipples />
+            </RippleButton>
+            <button
+              onClick={handleFavorito}
+              aria-label={esFavorito ? "Quitar de favoritos" : "Agregar a favoritos"}
+              aria-pressed={esFavorito}
+              className={`icono-latido flex h-13 w-full shrink-0 items-center justify-center rounded-xl border-[1.5px] bg-white transition-colors sm:w-13 ${
+                esFavorito ? "border-berry text-berry" : "border-plum/18 text-plum hover:border-berry hover:text-berry"
+              }`}
+            >
+              <span key={esFavorito ? "si" : "no"} className={`flex ${esFavorito ? "animate-pop" : ""}`}>
+                <IconHeart size={20} relleno={esFavorito} />
+              </span>
             </button>
           </div>
 
-          {mensaje && <p className="mt-3 text-sm text-berry-dark">{mensaje}</p>}
+          {mensaje && <p className="text-sm font-semibold text-berry-dark">{mensaje}</p>}
+
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="rounded-2xl bg-white p-4 text-sm leading-snug">
+              <strong className="block text-plum">Delivery en Huancayo</strong>
+              <span className="text-plum-soft">S/ {COSTO_ENVIO_DELIVERY.toFixed(2)} a tu puerta</span>
+            </div>
+            <div className="rounded-2xl bg-white p-4 text-sm leading-snug">
+              <strong className="block text-plum">Recojo en tienda</strong>
+              <span className="text-plum-soft">Gratis, con código de recojo</span>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -535,7 +582,7 @@ export default function ProductoDetalle() {
                 maxLength={1000}
                 value={miComentario}
                 onChange={(e) => setMiComentario(e.target.value)}
-                className="w-full rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-none"
+                className="w-full rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-hidden"
               />
               {errorResena && <p className="text-sm text-berry-dark">{errorResena}</p>}
               <button

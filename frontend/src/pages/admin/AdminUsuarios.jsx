@@ -142,7 +142,7 @@ export default function AdminUsuarios() {
                     value={u.rol}
                     onChange={(e) => cambiarRol(u, e.target.value)}
                     aria-label={`Rol de ${u.nombre_completo}`}
-                    className="rounded-md bg-white px-3 py-1 text-xs text-plum focus:outline-none"
+                    className="rounded-md bg-white px-3 py-1 text-xs text-plum focus:outline-hidden"
                   >
                     {Object.entries(roles).map(([valor, label]) => (
                       <option key={valor} value={valor}>
@@ -198,7 +198,7 @@ export default function AdminUsuarios() {
                 id={`rol-movil-${u.id}`}
                 value={u.rol}
                 onChange={(e) => cambiarRol(u, e.target.value)}
-                className="rounded-[10px] bg-white px-3 py-1.5 text-xs text-plum focus:outline-none"
+                className="rounded-[10px] bg-white px-3 py-1.5 text-xs text-plum focus:outline-hidden"
               >
                 {Object.entries(roles).map(([valor, label]) => (
                   <option key={valor} value={valor}>
@@ -223,7 +223,7 @@ export default function AdminUsuarios() {
       {mostrarForm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <button
-            className="absolute inset-0 animate-fade-in bg-plum/30 backdrop-blur-sm"
+            className="absolute inset-0 animate-fade-in bg-plum/30 backdrop-blur-xs"
             onClick={() => setMostrarForm(false)}
             aria-label="Cerrar"
           />
@@ -252,7 +252,7 @@ export default function AdminUsuarios() {
                     maxLength={80}
                     value={form.nombre}
                     onChange={actualizarTexto("nombre")}
-                    className="w-full rounded-2xl bg-white px-4 py-2.5 text-plum focus:outline-none"
+                    className="w-full rounded-2xl bg-white px-4 py-2.5 text-plum focus:outline-hidden"
                   />
                 </div>
                 <div>
@@ -265,7 +265,7 @@ export default function AdminUsuarios() {
                     maxLength={80}
                     value={form.apellido}
                     onChange={actualizarTexto("apellido")}
-                    className="w-full rounded-2xl bg-white px-4 py-2.5 text-plum focus:outline-none"
+                    className="w-full rounded-2xl bg-white px-4 py-2.5 text-plum focus:outline-hidden"
                   />
                 </div>
               </div>
@@ -280,7 +280,7 @@ export default function AdminUsuarios() {
                   maxLength={120}
                   value={form.email}
                   onChange={actualizarCampo("email")}
-                  className="w-full rounded-2xl bg-white px-4 py-2.5 text-plum focus:outline-none"
+                  className="w-full rounded-2xl bg-white px-4 py-2.5 text-plum focus:outline-hidden"
                 />
               </div>
               <div>
@@ -295,7 +295,7 @@ export default function AdminUsuarios() {
                   maxLength={72}
                   value={form.password}
                   onChange={actualizarCampo("password")}
-                  className="w-full rounded-2xl bg-white px-4 py-2.5 text-plum focus:outline-none"
+                  className="w-full rounded-2xl bg-white px-4 py-2.5 text-plum focus:outline-hidden"
                 />
               </div>
               <div>
@@ -306,7 +306,7 @@ export default function AdminUsuarios() {
                   id="staff-rol"
                   value={form.rol}
                   onChange={actualizarCampo("rol")}
-                  className="w-full rounded-2xl bg-white px-4 py-2.5 text-plum focus:outline-none"
+                  className="w-full rounded-2xl bg-white px-4 py-2.5 text-plum focus:outline-hidden"
                 >
                   {Object.entries(roles)
                     .filter(([valor]) => valor !== "cliente")

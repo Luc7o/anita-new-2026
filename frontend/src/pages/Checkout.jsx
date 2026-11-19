@@ -215,7 +215,7 @@ export default function Checkout() {
   // oficial y no se puede editar. Se desbloquea solo si el usuario cambia el
   // número o el tipo de documento (ahí el nombre se borra y se vuelve a pedir).
   const nombreBloqueado = docEstado.estado === "valido";
-  const claseBloqueado = "cursor-not-allowed bg-white/40 text-plum/70";
+  const claseBloqueado = "cursor-not-allowed bg-ivory text-plum-soft";
 
   // Texto y color del aviso que se muestra bajo el número de documento
   const avisoDocumento = (() => {
@@ -430,7 +430,7 @@ export default function Checkout() {
   // para no mantener el mismo JSX duplicado en dos lugares.
   const resumenContenido = (
     <>
-      <h2 className="text-lg font-semibold text-plum">Resumen</h2>
+      <h2 className="text-2xl text-plum">Resumen</h2>
       {items.map((item) => {
         const problema = itemsSinStock.find((p) => p.item_id === item.id);
         return (
@@ -450,7 +450,7 @@ export default function Checkout() {
                 <div className="flex flex-wrap gap-2">
                   <Link
                     to={`/producto/${item.producto.id}`}
-                    className="rounded-full bg-white/70 px-3 py-1 font-medium text-plum shadow-glass"
+                    className="min-h-9 rounded-full border border-plum/15 bg-white px-3 py-1 font-semibold text-plum"
                   >
                     Elegir otra opción
                   </Link>
@@ -458,7 +458,7 @@ export default function Checkout() {
                     type="button"
                     onClick={() => quitarItemSinStock(item.id)}
                     disabled={quitandoItemId === item.id}
-                    className="rounded-full bg-white/70 px-3 py-1 font-medium text-plum shadow-glass disabled:opacity-50"
+                    className="min-h-9 rounded-full border border-plum/15 bg-white px-3 py-1 font-semibold text-plum disabled:opacity-50"
                   >
                     {quitandoItemId === item.id ? "Quitando..." : "Quitar del carrito"}
                   </button>
@@ -499,7 +499,7 @@ export default function Checkout() {
           Procesando tu pedido… no cierres esta ventana
         </div>
       )}
-      <form onSubmit={handleSubmit} className="glass space-y-4 rounded-3xl p-6 shadow-glass sm:p-8">
+      <form onSubmit={handleSubmit} className="space-y-5 rounded-[20px] bg-white p-6 sm:p-8">
         {!usuario && (
           <section className="space-y-3 rounded-2xl border border-plum/10 bg-white/60 p-4">
             <div className="flex items-start justify-between gap-3">
@@ -523,7 +523,7 @@ export default function Checkout() {
               <Link
                 to="/ingresar"
                 state={{ from: "/checkout" }}
-                className="inline-block rounded-full bg-plum px-4 py-2 text-sm font-semibold text-white hover:bg-berry-dark"
+                className="btn-dark"
               >
                 Iniciar sesión para continuar
               </Link>
@@ -531,7 +531,7 @@ export default function Checkout() {
           </section>
         )}
 
-        <h1 className="text-2xl font-semibold text-plum">Datos de entrega</h1>
+        <h1 className="text-3xl font-extrabold text-plum">Datos de entrega</h1>
 
         <div role="radiogroup" aria-label="Tipo de entrega" className="grid grid-cols-2 gap-3">
           <button
@@ -539,8 +539,8 @@ export default function Checkout() {
             role="radio"
             aria-checked={form.tipo_entrega === "delivery"}
             onClick={() => setForm({ ...form, tipo_entrega: "delivery" })}
-            className={`rounded-2xl px-4 py-3 text-sm font-medium shadow-glass ${
-              form.tipo_entrega === "delivery" ? "bg-berry text-white" : "bg-white/60 text-plum"
+            className={`opcion ${
+              form.tipo_entrega === "delivery" ? "opcion-on" : ""
             }`}
           >
             Delivery (S/ 10.00)
@@ -550,8 +550,8 @@ export default function Checkout() {
             role="radio"
             aria-checked={form.tipo_entrega === "recojo"}
             onClick={() => setForm({ ...form, tipo_entrega: "recojo" })}
-            className={`rounded-2xl px-4 py-3 text-sm font-medium shadow-glass ${
-              form.tipo_entrega === "recojo" ? "bg-berry text-white" : "bg-white/60 text-plum"
+            className={`opcion ${
+              form.tipo_entrega === "recojo" ? "opcion-on" : ""
             }`}
           >
             Recojo en tienda
@@ -568,8 +568,8 @@ export default function Checkout() {
                 aria-checked={form.envio_tipo_documento === t.id}
                 key={t.id}
                 onClick={() => cambiarTipoDocumento(t.id)}
-                className={`rounded-full px-4 py-2 text-sm font-medium shadow-glass ${
-                  form.envio_tipo_documento === t.id ? "bg-berry text-white" : "bg-white/60 text-plum"
+                className={`opcion ${
+                  form.envio_tipo_documento === t.id ? "opcion-on" : ""
                 }`}
               >
                 {t.label}
@@ -588,7 +588,7 @@ export default function Checkout() {
             autoComplete="off"
             value={form.envio_numero_documento}
             onChange={actualizarNumeroDocumento}
-            className="w-full rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-none"
+            className="campo-texto"
           />
           {avisoDocumento && (
             <p
@@ -612,7 +612,7 @@ export default function Checkout() {
               value={form.razon_social}
               onChange={actualizar("razon_social")}
               readOnly={nombreBloqueado && !!form.razon_social}
-              className={`w-full rounded-2xl px-4 py-2.5 shadow-glass focus:outline-none ${
+              className={`campo-texto ${
                 nombreBloqueado && form.razon_social ? claseBloqueado : "bg-white/70 text-plum"
               }`}
             />
@@ -629,7 +629,7 @@ export default function Checkout() {
                 value={form.nombres}
                 onChange={actualizarTexto("nombres")}
                 readOnly={nombreBloqueado && !!form.nombres}
-                className={`w-full rounded-2xl px-4 py-2.5 shadow-glass focus:outline-none ${
+                className={`campo-texto ${
                   nombreBloqueado && form.nombres ? claseBloqueado : "bg-white/70 text-plum"
                 }`}
               />
@@ -644,7 +644,7 @@ export default function Checkout() {
                 value={form.apellidos}
                 onChange={actualizarTexto("apellidos")}
                 readOnly={nombreBloqueado && !!form.apellidos}
-                className={`w-full rounded-2xl px-4 py-2.5 shadow-glass focus:outline-none ${
+                className={`campo-texto ${
                   nombreBloqueado && form.apellidos ? claseBloqueado : "bg-white/70 text-plum"
                 }`}
               />
@@ -664,7 +664,7 @@ export default function Checkout() {
             title="El teléfono debe tener 9 dígitos y empezar con 9"
             value={form.envio_telefono}
             onChange={actualizarTelefonoEnvio}
-            className="w-full rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-none"
+            className="campo-texto"
           />
         </div>
 
@@ -683,7 +683,7 @@ export default function Checkout() {
               setForm({ ...form, envio_email: e.target.value });
               setCuentaExistente(false);
             }}
-            className="w-full rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-none"
+            className="campo-texto"
           />
         </div>
 
@@ -699,7 +699,7 @@ export default function Checkout() {
                 title="Solo letras, números y los símbolos . * ° #"
                 value={form.envio_direccion}
                 onChange={actualizarDireccion}
-                className="w-full rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-none"
+                className="campo-texto"
               />
             </div>
             <UbicacionEntrega
@@ -714,7 +714,7 @@ export default function Checkout() {
                 maxLength={200}
                 value={form.envio_referencia}
                 onChange={actualizar("envio_referencia")}
-                className="w-full rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-none"
+                className="campo-texto"
               />
             </div>
           </>
@@ -730,8 +730,8 @@ export default function Checkout() {
                 aria-checked={form.metodo_pago === m.id}
                 key={m.id}
                 onClick={() => setForm({ ...form, metodo_pago: m.id })}
-                className={`rounded-full px-4 py-2 text-sm font-medium shadow-glass ${
-                  form.metodo_pago === m.id ? "bg-berry text-white" : "bg-white/60 text-plum"
+                className={`opcion ${
+                  form.metodo_pago === m.id ? "opcion-on" : ""
                 }`}
               >
                 {m.label}
@@ -739,7 +739,7 @@ export default function Checkout() {
             ))}
           </div>
 
-          <div className="glass mt-3 rounded-2xl p-4 text-sm text-plum-soft" aria-live="polite">
+          <div className="mt-3 rounded-2xl bg-ivory p-4 text-sm text-plum-soft" aria-live="polite">
             {form.metodo_pago === "yape" ? (
               <p>
                 Al confirmar tu pedido se abrirá una ventana para que ingreses tu número de Yape
@@ -764,7 +764,7 @@ export default function Checkout() {
             value={form.nota}
             onChange={actualizar("nota")}
             rows={2}
-            className="w-full rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-none"
+            className="campo-texto"
           />
         </div>
 
@@ -773,13 +773,13 @@ export default function Checkout() {
         <button
           type="submit"
           disabled={enviando}
-          className="w-full rounded-full bg-berry py-3 font-semibold text-white shadow-glass-lg transition hover:bg-berry-dark disabled:cursor-not-allowed disabled:opacity-50"
+          className="btn-primary w-full min-h-13! text-base! disabled:cursor-not-allowed disabled:opacity-50"
         >
           {enviando ? <><Spinner />Confirmando pedido...</> : "Confirmar y pagar"}
         </button>
       </form>
 
-      <aside className="glass hidden h-fit space-y-3 rounded-3xl p-6 shadow-glass md:sticky md:top-24 md:block md:self-start">
+      <aside className="hidden h-fit space-y-3 rounded-[20px] bg-white p-6 md:sticky md:top-28 md:block md:self-start">
         {resumenContenido}
       </aside>
 
@@ -788,7 +788,7 @@ export default function Checkout() {
           desglose completo (mismo contenido que la columna de desktop). */}
       <div className="fixed inset-x-0 bottom-0 z-40 md:hidden">
         {resumenAbierto && (
-          <div className="glass-strong max-h-[60vh] space-y-3 overflow-y-auto rounded-t-3xl border-b border-white/40 p-5 shadow-glass-lg">
+          <div className="glass-strong max-h-[60vh] space-y-3 overflow-y-auto rounded-t-3xl border-b border-plum/10 p-5 shadow-glass-lg">
             {resumenContenido}
           </div>
         )}
@@ -796,7 +796,7 @@ export default function Checkout() {
           type="button"
           onClick={() => setResumenAbierto((abierto) => !abierto)}
           aria-expanded={resumenAbierto}
-          className="glass-strong flex w-full items-center justify-between rounded-t-3xl border-t border-white/50 px-5 py-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] shadow-glass-lg"
+          className="glass-strong flex w-full items-center justify-between rounded-t-3xl border-t border-plum/10 px-5 py-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] shadow-glass-lg"
         >
           <span className="text-sm font-medium text-plum">
             {resumenAbierto ? "Ocultar resumen ▴" : `Ver resumen (${items.length} ${items.length === 1 ? "producto" : "productos"}) ▾`}

@@ -12,7 +12,7 @@ export default function Footer() {
   const claseRed = "flex h-9 w-9 items-center justify-center rounded-full border border-white/25 text-white/80 transition-colors hover:border-white hover:text-white";
   return (
     <footer className="mt-20 bg-plum text-white/70">
-      <div className="max-w-6xl mx-auto px-4 py-12">
+      <div className="mx-auto max-w-7xl px-4 py-14 sm:px-8">
         {/* Grid principal: 3 columnas en desktop, 1 en móvil */}
         <div className="grid grid-cols-1 gap-10 md:grid-cols-3">
           

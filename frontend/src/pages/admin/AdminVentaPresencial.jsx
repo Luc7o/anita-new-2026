@@ -294,7 +294,7 @@ export default function AdminVentaPresencial() {
   const yaSel = seleccion ? enCarrito(seleccion, talla, color) : 0;
   const maxSel = Math.max(stockSel - yaSel, 0);
 
-  const campo = "mt-1 block w-full rounded-xl bg-white px-3 py-2 text-sm text-plum ring-1 ring-plum/15 focus:outline-none focus:ring-2 focus:ring-berry/40";
+  const campo = "mt-1 block w-full rounded-xl bg-white px-3 py-2 text-sm text-plum ring-1 ring-plum/15 focus:outline-hidden focus:ring-2 focus:ring-berry/40";
 
   return (
     <div>
@@ -320,7 +320,7 @@ export default function AdminVentaPresencial() {
                 onChange={(e) => setBusqueda(e.target.value)}
                 placeholder="Buscar por nombre o código SKU (ej. ROP-000123)…"
                 autoComplete="off"
-                className="w-full rounded-2xl bg-white px-4 py-2.5 pr-9 text-sm text-plum ring-1 ring-plum/15 focus:outline-none focus:ring-2 focus:ring-berry/40"
+                className="w-full rounded-2xl bg-white px-4 py-2.5 pr-9 text-sm text-plum ring-1 ring-plum/15 focus:outline-hidden focus:ring-2 focus:ring-berry/40"
               />
               {busqueda && (
                 <button
@@ -409,7 +409,7 @@ export default function AdminVentaPresencial() {
                     <select
                       value={talla}
                       onChange={(e) => { setTalla(e.target.value); setCantidad(1); }}
-                      className="mt-1 block rounded-xl bg-white px-3 py-2 text-sm text-plum ring-1 ring-plum/10 focus:outline-none"
+                      className="mt-1 block rounded-xl bg-white px-3 py-2 text-sm text-plum ring-1 ring-plum/10 focus:outline-hidden"
                     >
                       {seleccion.tallas.map((t) => {
                         const st = stockDe(seleccion, t, color);
@@ -424,7 +424,7 @@ export default function AdminVentaPresencial() {
                     <select
                       value={color}
                       onChange={(e) => { setColor(e.target.value); setCantidad(1); }}
-                      className="mt-1 block rounded-xl bg-white px-3 py-2 text-sm text-plum ring-1 ring-plum/10 focus:outline-none"
+                      className="mt-1 block rounded-xl bg-white px-3 py-2 text-sm text-plum ring-1 ring-plum/10 focus:outline-hidden"
                     >
                       {seleccion.colores.map((c) => {
                         const st = stockDe(seleccion, talla, c);
@@ -442,7 +442,7 @@ export default function AdminVentaPresencial() {
                     value={cantidad}
                     onChange={(e) => setCantidad(e.target.value)}
                     onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); confirmarSeleccion(); } }}
-                    className="mt-1 block w-20 rounded-xl bg-white px-3 py-2 text-sm text-plum ring-1 ring-plum/10 focus:outline-none"
+                    className="mt-1 block w-20 rounded-xl bg-white px-3 py-2 text-sm text-plum ring-1 ring-plum/10 focus:outline-hidden"
                   />
                 </label>
                 <button
@@ -555,7 +555,7 @@ export default function AdminVentaPresencial() {
                   maxLength={8}
                   pattern="[0-9]{8}"
                   placeholder="8 dígitos"
-                  className="block w-full rounded-xl bg-white px-3 py-2 text-sm text-plum ring-1 ring-plum/15 focus:outline-none focus:ring-2 focus:ring-berry/40"
+                  className="block w-full rounded-xl bg-white px-3 py-2 text-sm text-plum ring-1 ring-plum/15 focus:outline-hidden focus:ring-2 focus:ring-berry/40"
                 />
                 <button
                   type="button"

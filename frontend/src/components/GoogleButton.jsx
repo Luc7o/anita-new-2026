@@ -67,7 +67,7 @@ export default function GoogleButton({ onSuccess, onError, texto = "continue_wit
         });
         window.google.accounts.id.renderButton(contenedor.current, {
           type: "standard",
-          theme: "outline",
+          theme: "outline-solid",
           size: "large",
           text: texto,
           shape: "pill",

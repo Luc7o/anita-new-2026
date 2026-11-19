@@ -162,7 +162,7 @@ export default function App() {
       {/* Enlace para saltar el menú con el teclado: invisible hasta que recibe el foco. */}
       <a
         href="#contenido"
-        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-[10px] focus:bg-white focus:px-4 focus:py-2 focus:font-semibold focus:text-plum focus:shadow-pop"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-100 focus:rounded-[10px] focus:bg-white focus:px-4 focus:py-2 focus:font-semibold focus:text-plum focus:shadow-pop"
       >
         Saltar al contenido
       </a>
