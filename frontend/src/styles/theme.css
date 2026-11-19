@@ -537,11 +537,6 @@ textarea:focus-visible {
 .btn-relleno--claro::before { background: #f6f3ee; }
 .btn-relleno--claro:hover { color: #1f1e1c; }
 
-/* Barra de anuncios que se desliza sola (se detiene con "reducir movimiento"). */
-@keyframes deslizar-anuncios { to { transform: translateX(-50%); } }
-.anuncios-pista { animation: deslizar-anuncios 32s linear infinite; }
-.anuncios:hover .anuncios-pista { animation-play-state: paused; }
-
 /* Fotos de la portada que flotan suavemente. */
 @keyframes flotar { 50% { transform: translateY(-12px); } }
 .flotar { animation: flotar 6s ease-in-out infinite; }

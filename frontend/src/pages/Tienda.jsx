@@ -180,7 +180,16 @@ export default function Tienda() {
   return (
     <div>
       <PageHeader
-        eyebrow="Anita New Style"
+        ruta={[
+          { to: "/", label: "Inicio" },
+          categoriaDestacada || soloOfertas || busqueda
+            ? { to: "/tienda", label: "Tienda" }
+            : { label: "Tienda" },
+          ...(categoriaDestacada ? [{ label: categoriaDestacada.nombre }] : []),
+          ...(soloOfertas && !categoriaDestacada ? [{ label: "Ofertas" }] : []),
+          ...(busqueda && !categoriaDestacada && !soloOfertas ? [{ label: "Búsqueda" }] : []),
+        ]}
+        eyebrow={soloOfertas ? "Precios especiales" : categoriaDestacada ? "Categoría" : "Catálogo"}
         titulo={
           busqueda
             ? `Resultados para "${busqueda}"`

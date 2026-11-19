@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { SlidingNumber } from "@animate-ui/react/primitives/texts/sliding-number";
 import { useAuth } from "../context/AuthContext.jsx";
 import { useCarrito } from "../context/CarritoContext.jsx";
-import { IconSearch, IconCart, IconClose, IconUser, IconMenu } from "./Icons.jsx";
+import { IconSearch, IconCart, IconClose, IconUser, IconMenu, IconTruck, IconStore, IconTag, IconGift } from "./Icons.jsx";
 import UserMenu from "./UserMenu.jsx";
 import Logo from "./Logo.jsx";
 import { useToast } from "../context/ToastContext.jsx";
@@ -19,28 +19,49 @@ const ENLACES = [
 ];
 
 const ANUNCIOS = [
-  `Delivery en Huancayo por S/ ${COSTO_ENVIO_DELIVERY.toFixed(2)}`,
-  "Recojo en tienda gratis",
-  "Paga con Yape o tarjeta",
-  "Nuevos ingresos cada semana",
+  { Icono: IconTruck, texto: `Delivery en Huancayo por S/ ${COSTO_ENVIO_DELIVERY.toFixed(2)}` },
+  { Icono: IconStore, texto: "Recojo en tienda gratis" },
+  { Icono: IconTag, texto: "Paga con Yape o tarjeta" },
+  { Icono: IconGift, texto: "Nuevos ingresos cada semana" },
 ];
+const MS_POR_ANUNCIO = 4500;
 
-// Barra de anuncios que se desliza sola. El contenido va dos veces para que el bucle no
-// tenga corte; la segunda copia se oculta a los lectores de pantalla.
+// Barra de anuncios: UN mensaje a la vez, centrado, que cambia con un deslizamiento corto.
+// (Antes era una cinta que corría sin parar: llamaba la atención todo el tiempo.)
+// Se detiene mientras el mouse o el foco están encima y queda quieta con «reducir movimiento».
 function BarraAnuncios() {
-  const fila = (oculta) =>
-    ANUNCIOS.map((texto) => (
-      <span key={texto + oculta} className="flex items-center gap-12" aria-hidden={oculta || undefined}>
-        {texto}
-        <span className="text-berry-light" aria-hidden="true">✦</span>
-      </span>
-    ));
+  const [indice, setIndice] = useState(0);
+  const [pausado, setPausado] = useState(false);
+  const reducir = useReducedMotion();
+
+  useEffect(() => {
+    if (pausado || reducir) return undefined;
+    const id = setInterval(() => setIndice((i) => (i + 1) % ANUNCIOS.length), MS_POR_ANUNCIO);
+    return () => clearInterval(id);
+  }, [pausado, reducir]);
+
+  const { Icono, texto } = ANUNCIOS[indice];
   return (
-    <div className="anuncios overflow-hidden bg-plum py-2.5 text-[13px] font-semibold text-ivory">
-      <div className="anuncios-pista flex w-max gap-12 pr-12 whitespace-nowrap">
-        {fila(false)}
-        {fila(true)}
-      </div>
+    <div
+      className="relative flex h-9 items-center justify-center overflow-hidden bg-plum px-4 text-[13px] font-semibold text-ivory"
+      onMouseEnter={() => setPausado(true)}
+      onMouseLeave={() => setPausado(false)}
+      role="region"
+      aria-label="Anuncios de la tienda"
+    >
+      <AnimatePresence mode="wait" initial={false}>
+        <motion.p
+          key={texto}
+          className="flex items-center gap-2 whitespace-nowrap"
+          initial={{ y: 14, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          exit={{ y: -14, opacity: 0 }}
+          transition={{ duration: 0.35, ease: [0.2, 0.8, 0.2, 1] }}
+        >
+          <Icono size={15} className="text-berry-light" />
+          {texto}
+        </motion.p>
+      </AnimatePresence>
     </div>
   );
 }
