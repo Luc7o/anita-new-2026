@@ -109,7 +109,7 @@ export default function AdminRecojosCajero() {
         placeholder="N° de pedido o nombre del cliente"
         maxLength={80}
         autoComplete="off"
-        className="mb-5 w-full rounded-xl border border-plum/20 bg-white px-4 py-3 text-plum outline-none focus:border-berry sm:max-w-lg"
+        className="mb-5 w-full rounded-xl border border-plum/20 bg-white px-4 py-3 text-plum outline-hidden focus:border-berry sm:max-w-lg"
       />
 
       {errorCarga && (
@@ -160,7 +160,7 @@ export default function AdminRecojosCajero() {
                         setErrores((prev) => ({ ...prev, [pedido.id]: "" }));
                       }}
                       placeholder="6 dígitos"
-                      className="w-44 rounded-xl border border-plum/20 bg-white px-4 py-2.5 font-mono tracking-widest text-plum outline-none focus:border-berry"
+                      className="w-44 rounded-xl border border-plum/20 bg-white px-4 py-2.5 font-mono tracking-widest text-plum outline-hidden focus:border-berry"
                       disabled={entregandoId !== null}
                       required
                     />

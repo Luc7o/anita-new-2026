@@ -83,8 +83,8 @@ export default function ProductCard({ producto, indice = 0, compacto = false }) 
       className="panel group flex animate-fade-in-up flex-col overflow-hidden transition-all duration-300 ease-out hover:z-10 hover:scale-[1.03] hover:border-berry hover:shadow-pop"
       style={{ animationDelay: `${Math.min(indice, 12) * 60}ms` }}
     >
-      <Link to={`/producto/${producto.id}`} className="flex flex-1 flex-col focus:outline-none focus-visible:ring-2 focus-visible:ring-berry">
-        <div className="relative aspect-[4/5] w-full overflow-hidden bg-lilac">
+      <Link to={`/producto/${producto.id}`} className="flex flex-1 flex-col focus:outline-hidden focus-visible:ring-2 focus-visible:ring-berry">
+        <div className="relative aspect-4/5 w-full overflow-hidden bg-lilac">
           {producto.imagen_url ? (
             <ImagenOptimizada
               src={producto.imagen_url}
@@ -109,7 +109,7 @@ export default function ProductCard({ producto, indice = 0, compacto = false }) 
           ) : null}
 
           {producto.sin_stock && (
-            <span className="absolute inset-0 flex items-center justify-center bg-white/70 text-sm font-semibold text-plum-soft backdrop-blur-sm">
+            <span className="absolute inset-0 flex items-center justify-center bg-white/70 text-sm font-semibold text-plum-soft backdrop-blur-xs">
               Agotado
             </span>
           )}

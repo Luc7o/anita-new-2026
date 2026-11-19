@@ -66,7 +66,7 @@ export default function CartDrawer() {
       <button
         aria-label="Cerrar carrito"
         onClick={cerrar}
-        className={`absolute inset-0 bg-plum/30 backdrop-blur-sm ${
+        className={`absolute inset-0 bg-plum/30 backdrop-blur-xs ${
           cerrando ? "animate-fade-out" : "animate-fade-in"
         }`}
       />
@@ -101,7 +101,7 @@ export default function CartDrawer() {
             </span>
             <p className="font-semibold text-plum">Tu carrito está vacío</p>
             <p className="max-w-[16rem] text-sm">Mira lo nuevo y agrega lo que te guste.</p>
-            <Link to="/tienda" onClick={cerrar} className="btn-primary btn mt-1 !px-6">
+            <Link to="/tienda" onClick={cerrar} className="btn-primary btn mt-1 px-6!">
               Ver lo nuevo
             </Link>
           </div>
@@ -118,7 +118,7 @@ export default function CartDrawer() {
                     to={`/producto/${item.producto.id}`}
                     onClick={cerrar}
                     aria-label={`Ver ${item.producto.nombre}`}
-                    className="h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-gradient-to-br from-lilac to-white"
+                    className="h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-linear-to-br from-lilac to-white"
                   >
                     {item.producto.imagen_url && (
                       <ImagenOptimizada

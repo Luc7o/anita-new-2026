@@ -105,7 +105,7 @@ export default function Carrito() {
                   <Link
                     to={`/producto/${producto.id}`}
                     aria-label={`Ver ${producto.nombre}`}
-                    className="h-28 w-24 shrink-0 overflow-hidden rounded-2xl bg-gradient-to-br from-lilac to-white sm:h-32 sm:w-28"
+                    className="h-28 w-24 shrink-0 overflow-hidden rounded-2xl bg-linear-to-br from-lilac to-white sm:h-32 sm:w-28"
                   >
                     {producto.imagen_url && (
                       <ImagenOptimizada

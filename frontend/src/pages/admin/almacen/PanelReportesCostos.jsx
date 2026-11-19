@@ -5,7 +5,7 @@ import { hoyISO } from "../../../formato.js";
 import Spinner from "../../../components/Spinner.jsx";
 
 const campoFecha =
-  "rounded-[10px] bg-white px-3 py-1.5 text-sm text-plum ring-1 ring-plum/20 focus:outline-none focus:ring-2 focus:ring-berry";
+  "rounded-[10px] bg-white px-3 py-1.5 text-sm text-plum ring-1 ring-plum/20 focus:outline-hidden focus:ring-2 focus:ring-berry";
 
 function haceUnMesISO() {
   const d = new Date();

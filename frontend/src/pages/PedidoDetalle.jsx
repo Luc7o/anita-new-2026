@@ -176,7 +176,7 @@ export default function PedidoDetalle() {
     <div className="mx-auto max-w-2xl px-4 pb-16">
       <div className="glass rounded-3xl p-8 shadow-glass-lg">
         <div className="flex items-center gap-3">
-          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-berry/15 to-plum/10 text-berry">
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-berry/15 to-plum/10 text-berry">
             <IconCheckCircle size={26} />
           </span>
           <div>
@@ -244,7 +244,7 @@ export default function PedidoDetalle() {
                     required
                     value={passwordCuenta}
                     onChange={(e) => setPasswordCuenta(e.target.value)}
-                    className="w-full flex-1 rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-none"
+                    className="w-full flex-1 rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-hidden"
                   />
                   <button
                     type="submit"

@@ -289,13 +289,13 @@ export default function ProductoDetalle() {
             </div>
           )}
 
-          <div className="glass aspect-[4/5] flex-1 overflow-hidden rounded-3xl shadow-glass">
+          <div className="glass aspect-4/5 flex-1 overflow-hidden rounded-3xl shadow-glass">
             {imagenActiva ? (
               <button
                 type="button"
                 onClick={() => setVisorAbierto(true)}
                 aria-label="Ampliar imagen"
-                className="relative block h-full w-full cursor-zoom-in focus:outline-none focus-visible:ring-2 focus-visible:ring-berry"
+                className="relative block h-full w-full cursor-zoom-in focus:outline-hidden focus-visible:ring-2 focus-visible:ring-berry"
               >
                 <ImagenOptimizada
                   src={imagenActiva}
@@ -312,7 +312,7 @@ export default function ProductoDetalle() {
                 </span>
               </button>
             ) : (
-              <div className="flex h-full items-center justify-center bg-gradient-to-br from-lilac to-white font-display text-5xl text-berry-light/60">
+              <div className="flex h-full items-center justify-center bg-linear-to-br from-lilac to-white font-display text-5xl text-berry-light/60">
                 {producto.nombre.slice(0, 1)}
               </div>
             )}
@@ -535,7 +535,7 @@ export default function ProductoDetalle() {
                 maxLength={1000}
                 value={miComentario}
                 onChange={(e) => setMiComentario(e.target.value)}
-                className="w-full rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-none"
+                className="w-full rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-hidden"
               />
               {errorResena && <p className="text-sm text-berry-dark">{errorResena}</p>}
               <button

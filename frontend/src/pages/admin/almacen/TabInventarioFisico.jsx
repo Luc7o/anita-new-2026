@@ -143,7 +143,7 @@ export default function TabInventarioFisico() {
               value={valor}
               onChange={(e) => contar(linea, e.target.value)}
               aria-label={`Cantidad contada de ${linea.nombre}`}
-              className="w-20 rounded-md bg-white px-2 py-1 text-sm text-plum ring-1 ring-plum/20 focus:outline-none focus:ring-2 focus:ring-berry"
+              className="w-20 rounded-md bg-white px-2 py-1 text-sm text-plum ring-1 ring-plum/20 focus:outline-hidden focus:ring-2 focus:ring-berry"
             />
           </label>
           <span
@@ -198,7 +198,7 @@ export default function TabInventarioFisico() {
         <p className="glass rounded-2xl p-6 text-center text-plum-soft">No hay productos con esa búsqueda.</p>
       )}
 
-      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-plum/10 bg-white/95 px-4 py-3 backdrop-blur lg:left-60">
+      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-plum/10 bg-white/95 px-4 py-3 backdrop-blur-sm lg:left-60">
         <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-3">
           <p className="text-sm text-plum-soft" aria-live="polite">
             <span className="font-semibold text-plum">{lineas.length}</span> contadas ·{" "}
@@ -212,7 +212,7 @@ export default function TabInventarioFisico() {
               onChange={(e) => setNota(e.target.value)}
               aria-label="Nota del conteo (opcional)"
               placeholder="Nota (opcional)"
-              className="w-40 rounded-[10px] bg-white px-3 py-2 text-sm text-plum ring-1 ring-plum/20 focus:outline-none focus:ring-2 focus:ring-berry sm:w-56"
+              className="w-40 rounded-[10px] bg-white px-3 py-2 text-sm text-plum ring-1 ring-plum/20 focus:outline-hidden focus:ring-2 focus:ring-berry sm:w-56"
             />
             {lineas.length > 0 && (
               <button type="button" onClick={() => setConteo({})} className="text-sm text-plum-soft hover:text-berry">

@@ -198,7 +198,7 @@ export default function AdminCategorias() {
             {paginados.map((cat) => (
               <tr key={cat.id} className="border-t border-white/40">
                 <td className="px-4 py-2">
-                  <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-lilac to-white text-berry">
+                  <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-linear-to-br from-lilac to-white text-berry">
                     {cat.imagen_url ? (
                       <ImagenOptimizada src={cat.imagen_url} variante="thumb" alt="" className="h-full w-full object-cover" />
                     ) : (
@@ -250,7 +250,7 @@ export default function AdminCategorias() {
       <div className="space-y-3 md:hidden">
         {paginados.map((cat) => (
           <div key={cat.id} className="glass flex gap-3 rounded-2xl p-4">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-lilac to-white text-berry">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full bg-linear-to-br from-lilac to-white text-berry">
               {cat.imagen_url ? (
                 <ImagenOptimizada src={cat.imagen_url} variante="thumb" alt="" className="h-full w-full object-cover" />
               ) : (
@@ -295,7 +295,7 @@ export default function AdminCategorias() {
       {mostrarForm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <button
-            className="absolute inset-0 animate-fade-in bg-plum/30 backdrop-blur-sm"
+            className="absolute inset-0 animate-fade-in bg-plum/30 backdrop-blur-xs"
             onClick={() => setMostrarForm(false)}
             aria-label="Cerrar"
           />
@@ -360,7 +360,7 @@ export default function AdminCategorias() {
                   maxLength={80}
                   value={form.nombre}
                   onChange={actualizarCampo("nombre")}
-                  className="w-full rounded-2xl bg-white px-4 py-2.5 text-plum focus:outline-none"
+                  className="w-full rounded-2xl bg-white px-4 py-2.5 text-plum focus:outline-hidden"
                 />
               </div>
               <div>
@@ -374,7 +374,7 @@ export default function AdminCategorias() {
                   rows={3}
                   value={form.descripcion}
                   onChange={actualizarCampo("descripcion")}
-                  className="w-full rounded-2xl bg-white px-4 py-2.5 text-plum focus:outline-none"
+                  className="w-full rounded-2xl bg-white px-4 py-2.5 text-plum focus:outline-hidden"
                 />
               </div>
             </div>

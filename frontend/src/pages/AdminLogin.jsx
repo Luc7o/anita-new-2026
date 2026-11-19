@@ -84,7 +84,7 @@ export default function AdminLogin() {
             required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full rounded-md border border-plum/20 bg-white px-4 py-3 text-plum focus:outline-none"
+            className="w-full rounded-md border border-plum/20 bg-white px-4 py-3 text-plum focus:outline-hidden"
           />
         </div>
 
@@ -100,7 +100,7 @@ export default function AdminLogin() {
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full rounded-md border border-plum/20 bg-white px-4 py-3 pr-12 text-plum focus:outline-none"
+              className="w-full rounded-md border border-plum/20 bg-white px-4 py-3 pr-12 text-plum focus:outline-hidden"
             />
             <button
               type="button"

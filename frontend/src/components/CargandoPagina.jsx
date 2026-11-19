@@ -45,7 +45,7 @@ export default function CargandoPagina() {
       role="status"
       aria-busy="true"
       aria-live="polite"
-      className="fixed inset-0 z-[60] flex flex-col items-center justify-center gap-8 bg-[#f7f5f5]"
+      className="fixed inset-0 z-60 flex flex-col items-center justify-center gap-8 bg-[#f7f5f5]"
     >
       <img
         src={logo || "/logo-anita-new-style.png"}

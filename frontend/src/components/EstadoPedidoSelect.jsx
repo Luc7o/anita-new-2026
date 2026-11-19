@@ -62,7 +62,7 @@ export default function EstadoPedidoSelect({ value, opciones, onChange, disabled
         aria-haspopup="listbox"
         aria-expanded={abierto}
         onClick={() => (abierto ? setAbierto(false) : abrir())}
-        className="flex min-w-[10rem] items-center justify-between gap-3 rounded-full bg-white/70 px-4 py-2 text-sm font-semibold text-plum shadow-glass ring-1 ring-berry/20 backdrop-blur transition hover:bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-berry disabled:opacity-60"
+        className="flex min-w-40 items-center justify-between gap-3 rounded-full bg-white/70 px-4 py-2 text-sm font-semibold text-plum shadow-glass ring-1 ring-berry/20 backdrop-blur-sm transition hover:bg-white focus:outline-hidden focus-visible:ring-2 focus-visible:ring-berry disabled:opacity-60"
       >
         <span className="flex items-center gap-2">
           <span className={`h-2.5 w-2.5 rounded-full ${colorPunto(value)}`} />
@@ -81,7 +81,7 @@ export default function EstadoPedidoSelect({ value, opciones, onChange, disabled
       {abierto && (
         <ul
           role="listbox"
-          className="absolute right-0 z-30 mt-2 w-full min-w-[10rem] overflow-hidden rounded-2xl bg-white/95 p-1 shadow-xl ring-1 ring-black/5 backdrop-blur"
+          className="absolute right-0 z-30 mt-2 w-full min-w-40 overflow-hidden rounded-2xl bg-white/95 p-1 shadow-xl ring-1 ring-black/5 backdrop-blur-sm"
         >
           {lista.map(([v, label], i) => (
             <li

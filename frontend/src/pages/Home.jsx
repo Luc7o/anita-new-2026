@@ -70,11 +70,11 @@ function Hero({ promociones }) {
 
   const promoActual = hayPromos ? slides[indice] : null;
   const esLinkExterno = promoActual?.boton_link?.startsWith("http");
-  const claseBoton = "btn mt-7 !rounded-[10px] bg-white/90 !px-6 !py-3 text-base text-plum hover:bg-white";
+  const claseBoton = "btn mt-7 rounded-[10px]! bg-white/90 px-6! py-3! text-base text-plum hover:bg-white";
 
   return (
     <section
-      className="bg-gradient-to-br from-plum via-berry-dark to-berry text-white"
+      className="bg-linear-to-br from-plum via-berry-dark to-berry text-white"
       onMouseEnter={() => setPausado(true)}
       onMouseLeave={() => setPausado(false)}
       onFocusCapture={() => setPausado(true)}
@@ -115,7 +115,7 @@ function Hero({ promociones }) {
         </div>
 
         <div className="mx-auto w-full max-w-sm md:max-w-none">
-          <div className="relative aspect-[4/5] overflow-hidden rounded-2xl bg-plum shadow-pop ring-1 ring-white/15 sm:aspect-[5/4] md:aspect-[4/5]">
+          <div className="relative aspect-4/5 overflow-hidden rounded-2xl bg-plum shadow-pop ring-1 ring-white/15 sm:aspect-5/4 md:aspect-4/5">
             {imagenes.map((url, i) => (
               <SlideHero key={url + i} url={url} visible={i === indice} />
             ))}
@@ -168,7 +168,7 @@ function Hero({ promociones }) {
 function Categorias({ categorias, cargando, fotos }) {
   if (!cargando && categorias.length === 0) return null;
   return (
-    <section className="wood relative -mt-12 rounded-t-[50%_/_70px] pb-14 pt-16 md:-mt-16 md:rounded-t-[50%_/_110px] md:pt-24">
+    <section className="wood relative -mt-12 rounded-t-[50%/70px] pb-14 pt-16 md:-mt-16 md:rounded-t-[50%/110px] md:pt-24">
       {cargando ? (
         <div className="mx-auto max-w-6xl px-4">
           <SkeletonPills />
@@ -201,7 +201,7 @@ function Categorias({ categorias, cargando, fotos }) {
         </div>
       )}
       <div className="mt-10 flex justify-center">
-        <Link to="/tienda" className="btn !rounded-full bg-berry !px-8 !py-3.5 text-base text-white hover:bg-berry-dark">
+        <Link to="/tienda" className="btn rounded-full! bg-berry px-8! py-3.5! text-base text-white hover:bg-berry-dark">
           Ver toda la tienda
         </Link>
       </div>
@@ -259,7 +259,7 @@ export default function Home() {
         <section className="mx-auto mt-12 max-w-6xl px-4">
           <div className="mb-5 flex items-center justify-between">
             <h2 className="text-2xl text-plum sm:text-3xl">Ofertas</h2>
-            <Link to="/tienda?oferta=true" className="btn-secondary btn !py-2 text-xs">
+            <Link to="/tienda?oferta=true" className="btn-secondary btn py-2! text-xs">
               Ver todas
               <IconArrowRight size={14} />
             </Link>
@@ -278,7 +278,7 @@ export default function Home() {
       <section className="mx-auto mt-14 max-w-6xl px-4">
         <div className="mb-5 flex items-center justify-between">
           <h2 className="text-2xl text-plum sm:text-3xl">Productos destacados</h2>
-          <Link to="/tienda" className="btn-secondary btn !py-2 text-xs">
+          <Link to="/tienda" className="btn-secondary btn py-2! text-xs">
             Ver más
             <IconArrowRight size={14} />
           </Link>

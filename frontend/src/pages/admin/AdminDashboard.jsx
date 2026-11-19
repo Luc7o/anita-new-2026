@@ -236,7 +236,7 @@ function PanelAtencion({ items }) {
     );
   }
   return (
-    <section aria-labelledby="atencion-titulo" className="rounded-2xl bg-gradient-to-br from-[#5a0a20] to-[#2c0107] p-6 text-white shadow-lg">
+    <section aria-labelledby="atencion-titulo" className="rounded-2xl bg-linear-to-br from-[#5a0a20] to-[#2c0107] p-6 text-white shadow-lg">
       <h2 id="atencion-titulo" className="text-lg font-semibold">Necesita tu atención</h2>
       <ul className="mt-3 grid gap-2 sm:grid-cols-2">
         {items.map((it, i) => (
@@ -478,8 +478,8 @@ function PanelVentasPeriodo({ stats, kpis, errorKpis, tieneKpis }) {
 
   const chip = (sel) =>
     `rounded-full px-4 py-1.5 text-sm font-medium transition ${sel ? "bg-berry text-white" : "bg-white text-plum ring-1 ring-plum/15 hover:bg-berry/10"}`;
-  const entrada = "rounded-xl bg-white px-3 py-2 text-sm text-plum ring-1 ring-plum/30 hover:ring-plum/50 focus:outline-none focus:ring-2 focus:ring-berry/60";
-  const entradaActiva = "!ring-2 !ring-berry";
+  const entrada = "rounded-xl bg-white px-3 py-2 text-sm text-plum ring-1 ring-plum/30 hover:ring-plum/50 focus:outline-hidden focus:ring-2 focus:ring-berry/60";
+  const entradaActiva = "ring-2! ring-berry!";
   const hoyD = new Date();
   const anioActual = hoyD.getFullYear();
   const aniosDisponibles = Array.from({ length: 6 }, (_, i) => anioActual - i);
@@ -514,7 +514,7 @@ function PanelVentasPeriodo({ stats, kpis, errorKpis, tieneKpis }) {
               aria-label="Mes"
               value={mesSel}
               onChange={(e) => elegirMes(e.target.value, anioSel)}
-              className={`${entrada} ${activo === "mes_elegido" ? entradaActiva : ""} min-w-[8.5rem] cursor-pointer`}
+              className={`${entrada} ${activo === "mes_elegido" ? entradaActiva : ""} min-w-34 cursor-pointer`}
             >
               <option value="">Mes…</option>
               {mesesDisponibles.map(({ n, i }) => (

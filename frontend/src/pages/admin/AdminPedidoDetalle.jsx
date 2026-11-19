@@ -164,13 +164,13 @@ export default function AdminPedidoDetalle() {
             <InsigniaEstadoPedido
               estado="cancelado"
               label="Cancelado — no se puede modificar"
-              className="!rounded-[10px] !px-4 !py-2 !text-sm"
+              className="rounded-[10px]! px-4! py-2! text-sm!"
             />
           ) : !puedeGestionar || (esAlmacen && !siguienteEstadoAlmacen) ? (
             <InsigniaEstadoPedido
               estado={pedido.estado}
               label={pedido.estado_label || pedido.estado}
-              className="!rounded-[10px] !px-4 !py-2 !text-sm"
+              className="rounded-[10px]! px-4! py-2! text-sm!"
             />
           ) : (
             <EstadoPedidoSelect
@@ -351,7 +351,7 @@ export default function AdminPedidoDetalle() {
                   setCodigoRecojo(e.target.value.replace(/\D/g, "").slice(0, 6));
                   setErrorCodigo("");
                 }}
-                className="w-40 rounded-2xl bg-plum/5 px-4 py-2 text-center font-mono text-lg tracking-[0.3em] text-plum focus:outline-none focus-visible:ring-2 focus-visible:ring-berry"
+                className="w-40 rounded-2xl bg-plum/5 px-4 py-2 text-center font-mono text-lg tracking-[0.3em] text-plum focus:outline-hidden focus-visible:ring-2 focus-visible:ring-berry"
               />
               <button
                 type="submit"

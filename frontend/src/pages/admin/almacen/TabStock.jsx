@@ -71,7 +71,7 @@ function MinimoEditable({ producto, puedeAjustar, onGuardado }) {
       onKeyDown={(e) => {
         if (e.key === "Enter") e.currentTarget.blur();
       }}
-      className="w-20 rounded-md bg-white px-2 py-1 text-sm text-plum ring-1 ring-plum/20 focus:outline-none focus:ring-2 focus:ring-berry disabled:opacity-60"
+      className="w-20 rounded-md bg-white px-2 py-1 text-sm text-plum ring-1 ring-plum/20 focus:outline-hidden focus:ring-2 focus:ring-berry disabled:opacity-60"
     />
   );
 }

@@ -334,7 +334,7 @@ export default function AdminProductos() {
                   {p.imagen_url ? (
                     <ImagenOptimizada src={p.imagen_url} variante="thumb" alt={p.nombre} className="h-10 w-10 rounded-xl object-cover" />
                   ) : (
-                    <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-lilac to-white" />
+                    <div className="h-10 w-10 rounded-xl bg-linear-to-br from-lilac to-white" />
                   )}
                 </td>
                 <td className="px-4 py-3 font-medium text-plum">{p.nombre}</td>
@@ -409,7 +409,7 @@ export default function AdminProductos() {
             {p.imagen_url ? (
               <ImagenOptimizada src={p.imagen_url} variante="thumb" alt={p.nombre} className="h-14 w-14 shrink-0 rounded-xl object-cover" />
             ) : (
-              <div className="h-14 w-14 shrink-0 rounded-xl bg-gradient-to-br from-lilac to-white" />
+              <div className="h-14 w-14 shrink-0 rounded-xl bg-linear-to-br from-lilac to-white" />
             )}
             <div className="min-w-0 flex-1">
               <div className="flex items-start justify-between gap-2">
@@ -455,7 +455,7 @@ export default function AdminProductos() {
       {mostrarForm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <button
-            className="absolute inset-0 animate-fade-in bg-plum/30 backdrop-blur-sm"
+            className="absolute inset-0 animate-fade-in bg-plum/30 backdrop-blur-xs"
             onClick={() => setMostrarForm(false)}
             aria-label="Cerrar"
           />
@@ -490,7 +490,7 @@ export default function AdminProductos() {
                   maxLength={150}
                   value={form.nombre}
                   onChange={actualizarCampo("nombre")}
-                  className="w-full rounded-2xl bg-white px-4 py-2.5 text-plum focus:outline-none"
+                  className="w-full rounded-2xl bg-white px-4 py-2.5 text-plum focus:outline-hidden"
                 />
               </div>
               <div>
@@ -503,7 +503,7 @@ export default function AdminProductos() {
                   maxLength={1000}
                   value={form.descripcion}
                   onChange={actualizarCampo("descripcion")}
-                  className="w-full rounded-2xl bg-white px-4 py-2.5 text-plum focus:outline-none"
+                  className="w-full rounded-2xl bg-white px-4 py-2.5 text-plum focus:outline-hidden"
                 />
               </div>
 
@@ -519,7 +519,7 @@ export default function AdminProductos() {
                     required
                     value={form.precio}
                     onChange={actualizarCampo("precio")}
-                    className="w-full rounded-2xl bg-white px-4 py-2.5 text-plum focus:outline-none"
+                    className="w-full rounded-2xl bg-white px-4 py-2.5 text-plum focus:outline-hidden"
                   />
                 </div>
                 <div>
@@ -532,7 +532,7 @@ export default function AdminProductos() {
                     step="0.01"
                     value={form.precio_oferta}
                     onChange={actualizarCampo("precio_oferta")}
-                    className="w-full rounded-2xl bg-white px-4 py-2.5 text-plum focus:outline-none"
+                    className="w-full rounded-2xl bg-white px-4 py-2.5 text-plum focus:outline-hidden"
                   />
                 </div>
               </div>
@@ -551,7 +551,7 @@ export default function AdminProductos() {
                       required
                       value={form.stock}
                       onChange={actualizarCampo("stock")}
-                      className="w-full rounded-2xl bg-white px-4 py-2.5 text-plum focus:outline-none"
+                      className="w-full rounded-2xl bg-white px-4 py-2.5 text-plum focus:outline-hidden"
                     />
                   </div>
                 )}
@@ -573,7 +573,7 @@ export default function AdminProductos() {
                   required
                   value={form.categoria_id}
                   onChange={actualizarCampo("categoria_id")}
-                  className="w-full rounded-2xl bg-white px-4 py-2.5 text-plum focus:outline-none"
+                  className="w-full rounded-2xl bg-white px-4 py-2.5 text-plum focus:outline-hidden"
                 >
                   <option value="">Selecciona categoría</option>
                   {categorias.map((c) => (
@@ -592,7 +592,7 @@ export default function AdminProductos() {
                   id="prod-genero"
                   value={form.genero}
                   onChange={actualizarCampo("genero")}
-                  className="w-full rounded-2xl bg-white px-4 py-2.5 text-plum focus:outline-none"
+                  className="w-full rounded-2xl bg-white px-4 py-2.5 text-plum focus:outline-hidden"
                 >
                   <option value="">Sin definir</option>
                   {GENEROS.map((g) => (
@@ -612,7 +612,7 @@ export default function AdminProductos() {
                   maxLength={300}
                   value={form.colores}
                   onChange={actualizarCampo("colores")}
-                  className="w-full rounded-2xl bg-white px-4 py-2.5 text-plum focus:outline-none"
+                  className="w-full rounded-2xl bg-white px-4 py-2.5 text-plum focus:outline-hidden"
                 />
               </div>
               <div>
@@ -624,7 +624,7 @@ export default function AdminProductos() {
                   maxLength={200}
                   value={form.tallas}
                   onChange={actualizarCampo("tallas")}
-                  className="w-full rounded-2xl bg-white px-4 py-2.5 text-plum focus:outline-none"
+                  className="w-full rounded-2xl bg-white px-4 py-2.5 text-plum focus:outline-hidden"
                 />
               </div>
 
@@ -645,7 +645,7 @@ export default function AdminProductos() {
                             min={0}
                             value={stockVariantes[clave] ?? 0}
                             onChange={(e) => actualizarStockVariante(combo.talla, combo.color, e.target.value)}
-                            className="w-14 rounded-lg bg-white px-1.5 py-1 text-right text-xs focus:outline-none"
+                            className="w-14 rounded-lg bg-white px-1.5 py-1 text-right text-xs focus:outline-hidden"
                           />
                         </label>
                       );
@@ -682,7 +682,7 @@ export default function AdminProductos() {
                         value={img.color}
                         onChange={(e) => asignarColorImagen(i, e.target.value)}
                         aria-label={`Color asociado a la imagen ${i + 1}`}
-                        className="w-full rounded-lg bg-white px-1.5 py-1 text-xs text-plum focus:outline-none"
+                        className="w-full rounded-lg bg-white px-1.5 py-1 text-xs text-plum focus:outline-hidden"
                       >
                         <option value="">Sin color específico</option>
                         {coloresDisponibles.map((c) => (

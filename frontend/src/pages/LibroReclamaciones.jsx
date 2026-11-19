@@ -10,7 +10,7 @@ import { claseLabel } from "../estilos.js";
 import { useToast } from "../context/ToastContext.jsx";
 
 const claseInput =
-  "w-full rounded-md border border-plum/20 bg-white px-3 py-2.5 text-plum placeholder:text-plum-soft/50 focus:outline-none focus:border-berry";
+  "w-full rounded-md border border-plum/20 bg-white px-3 py-2.5 text-plum placeholder:text-plum-soft/50 focus:outline-hidden focus:border-berry";
 
 const FORM_INICIAL = {
   consumidor_nombre: "",

@@ -177,7 +177,7 @@ export default function AdminCompraDetalle() {
 
       {anulando && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <button className="absolute inset-0 animate-fade-in bg-plum/30 backdrop-blur-sm" onClick={cerrar} aria-label="Cerrar" />
+          <button className="absolute inset-0 animate-fade-in bg-plum/30 backdrop-blur-xs" onClick={cerrar} aria-label="Cerrar" />
           <form
             ref={refDialogo}
             role="dialog"
@@ -201,7 +201,7 @@ export default function AdminCompraDetalle() {
               autoFocus
               value={motivo}
               onChange={(e) => setMotivo(e.target.value)}
-              className="w-full rounded-[10px] bg-white px-3 py-2 text-sm text-plum ring-1 ring-plum/20 focus:outline-none focus:ring-2 focus:ring-berry"
+              className="w-full rounded-[10px] bg-white px-3 py-2 text-sm text-plum ring-1 ring-plum/20 focus:outline-hidden focus:ring-2 focus:ring-berry"
             />
             {errorAnular && (
               <p role="alert" className="mt-3 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700">{errorAnular}</p>

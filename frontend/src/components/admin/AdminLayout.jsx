@@ -164,11 +164,11 @@ export default function AdminLayout() {
           <Link to={rutaAdmin()} aria-label="Panel de administración">
             <Logo tone="light" />
           </Link>
-          <span className="rounded bg-white/10 px-2 py-0.5 text-xs font-bold uppercase tracking-wider text-white/80">
+          <span className="rounded-sm bg-white/10 px-2 py-0.5 text-xs font-bold uppercase tracking-wider text-white/80">
             {usuario?.rol === CAJERO ? "Cajero" : "Admin"}
           </span>
           <div className="ml-auto flex items-center gap-1">
-            <span className="hidden max-w-[12rem] truncate text-sm font-semibold text-white sm:inline">
+            <span className="hidden max-w-48 truncate text-sm font-semibold text-white sm:inline">
               {usuario?.rol_label}
             </span>
             {/* En el subdominio del admin no hay tienda propia: el botón solo

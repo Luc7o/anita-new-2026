@@ -588,7 +588,7 @@ export default function Checkout() {
             autoComplete="off"
             value={form.envio_numero_documento}
             onChange={actualizarNumeroDocumento}
-            className="w-full rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-none"
+            className="w-full rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-hidden"
           />
           {avisoDocumento && (
             <p
@@ -612,7 +612,7 @@ export default function Checkout() {
               value={form.razon_social}
               onChange={actualizar("razon_social")}
               readOnly={nombreBloqueado && !!form.razon_social}
-              className={`w-full rounded-2xl px-4 py-2.5 shadow-glass focus:outline-none ${
+              className={`w-full rounded-2xl px-4 py-2.5 shadow-glass focus:outline-hidden ${
                 nombreBloqueado && form.razon_social ? claseBloqueado : "bg-white/70 text-plum"
               }`}
             />
@@ -629,7 +629,7 @@ export default function Checkout() {
                 value={form.nombres}
                 onChange={actualizarTexto("nombres")}
                 readOnly={nombreBloqueado && !!form.nombres}
-                className={`w-full rounded-2xl px-4 py-2.5 shadow-glass focus:outline-none ${
+                className={`w-full rounded-2xl px-4 py-2.5 shadow-glass focus:outline-hidden ${
                   nombreBloqueado && form.nombres ? claseBloqueado : "bg-white/70 text-plum"
                 }`}
               />
@@ -644,7 +644,7 @@ export default function Checkout() {
                 value={form.apellidos}
                 onChange={actualizarTexto("apellidos")}
                 readOnly={nombreBloqueado && !!form.apellidos}
-                className={`w-full rounded-2xl px-4 py-2.5 shadow-glass focus:outline-none ${
+                className={`w-full rounded-2xl px-4 py-2.5 shadow-glass focus:outline-hidden ${
                   nombreBloqueado && form.apellidos ? claseBloqueado : "bg-white/70 text-plum"
                 }`}
               />
@@ -664,7 +664,7 @@ export default function Checkout() {
             title="El teléfono debe tener 9 dígitos y empezar con 9"
             value={form.envio_telefono}
             onChange={actualizarTelefonoEnvio}
-            className="w-full rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-none"
+            className="w-full rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-hidden"
           />
         </div>
 
@@ -683,7 +683,7 @@ export default function Checkout() {
               setForm({ ...form, envio_email: e.target.value });
               setCuentaExistente(false);
             }}
-            className="w-full rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-none"
+            className="w-full rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-hidden"
           />
         </div>
 
@@ -699,7 +699,7 @@ export default function Checkout() {
                 title="Solo letras, números y los símbolos . * ° #"
                 value={form.envio_direccion}
                 onChange={actualizarDireccion}
-                className="w-full rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-none"
+                className="w-full rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-hidden"
               />
             </div>
             <UbicacionEntrega
@@ -714,7 +714,7 @@ export default function Checkout() {
                 maxLength={200}
                 value={form.envio_referencia}
                 onChange={actualizar("envio_referencia")}
-                className="w-full rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-none"
+                className="w-full rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-hidden"
               />
             </div>
           </>
@@ -764,7 +764,7 @@ export default function Checkout() {
             value={form.nota}
             onChange={actualizar("nota")}
             rows={2}
-            className="w-full rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-none"
+            className="w-full rounded-2xl bg-white/70 px-4 py-2.5 text-plum shadow-glass focus:outline-hidden"
           />
         </div>
 

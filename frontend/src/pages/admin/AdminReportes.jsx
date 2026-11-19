@@ -9,7 +9,7 @@ function haceUnMesISO() {
   return d.toISOString().slice(0, 10);
 }
 
-const entrada = "mt-1 block w-full rounded-xl bg-white px-3 py-2 text-sm text-plum ring-1 ring-plum/30 hover:ring-plum/50 focus:outline-none focus:ring-2 focus:ring-berry";
+const entrada = "mt-1 block w-full rounded-xl bg-white px-3 py-2 text-sm text-plum ring-1 ring-plum/30 hover:ring-plum/50 focus:outline-hidden focus:ring-2 focus:ring-berry";
 
 // Tarjeta de un reporte: título, qué incluye, filtros y botón de descarga.
 function TarjetaReporte({ titulo, descripcion, onGenerar, boton, children }) {

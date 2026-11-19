@@ -57,7 +57,7 @@ export default function ModalAjusteStock({ producto, variante, onCerrar, onHecho
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <button className="absolute inset-0 animate-fade-in bg-plum/30 backdrop-blur-sm" onClick={cerrar} aria-label="Cerrar" />
+      <button className="absolute inset-0 animate-fade-in bg-plum/30 backdrop-blur-xs" onClick={cerrar} aria-label="Cerrar" />
       <form
         ref={refDialogo}
         role="dialog"
@@ -95,7 +95,7 @@ export default function ModalAjusteStock({ producto, variante, onCerrar, onHecho
             autoFocus
             value={cantidad}
             onChange={(e) => setCantidad(e.target.value)}
-            className="w-full rounded-[10px] bg-white px-3 py-2 text-sm text-plum ring-1 ring-plum/20 focus:outline-none focus:ring-2 focus:ring-berry"
+            className="w-full rounded-[10px] bg-white px-3 py-2 text-sm text-plum ring-1 ring-plum/20 focus:outline-hidden focus:ring-2 focus:ring-berry"
           />
           {resultado !== null && (
             <p className="mt-1 text-xs text-plum-soft" aria-live="polite">
@@ -115,7 +115,7 @@ export default function ModalAjusteStock({ producto, variante, onCerrar, onHecho
             value={motivo}
             onChange={(e) => setMotivo(e.target.value)}
             placeholder="Ej.: polos manchados en bodega"
-            className="w-full rounded-[10px] bg-white px-3 py-2 text-sm text-plum ring-1 ring-plum/20 focus:outline-none focus:ring-2 focus:ring-berry"
+            className="w-full rounded-[10px] bg-white px-3 py-2 text-sm text-plum ring-1 ring-plum/20 focus:outline-hidden focus:ring-2 focus:ring-berry"
           />
         </div>
 

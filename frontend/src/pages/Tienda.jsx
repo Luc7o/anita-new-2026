@@ -51,7 +51,7 @@ function OpcionFiltro({ marcado, onChange, etiqueta, tipo = "checkbox", nombre, 
           {marcado && <span className="h-2 w-2 rounded-full bg-berry" />}
         </span>
       ) : (
-        <span className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border-2 transition ${marcado ? "border-berry bg-berry text-white" : "border-plum/30 bg-white"}`}>
+        <span className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-sm border-2 transition ${marcado ? "border-berry bg-berry text-white" : "border-plum/30 bg-white"}`}>
           {marcado && <IconCheck size={10} />}
         </span>
       )}
@@ -193,7 +193,7 @@ export default function Tienda() {
         subtitulo={categoriaDestacada?.descripcion || "Filtra por categoría, talla o color y arma tu pedido."}
       />
 
-      <div className="mx-auto max-w-[88rem] px-4 pb-16 pt-6">
+      <div className="mx-auto max-w-352 px-4 pb-16 pt-6">
       {/* Contador */}
       <div className="mb-4 flex items-center justify-between gap-3 text-sm text-plum-soft">
         <div aria-live="polite">

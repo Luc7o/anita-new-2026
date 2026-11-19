@@ -28,7 +28,7 @@ function SkeletonProductCard() {
       aria-hidden="true"
       className="flex flex-col overflow-hidden rounded-2xl border border-plum/10 bg-white"
     >
-      <div className="skeleton aspect-[4/5] w-full rounded-none" />
+      <div className="skeleton aspect-4/5 w-full rounded-none" />
       <div className="flex flex-col gap-2 p-5 pb-0">
         <Skeleton className="h-3 w-24" />
         <Skeleton className="h-4 w-4/5" />
@@ -123,7 +123,7 @@ export function SkeletonDetalleProducto() {
             <Skeleton key={i} className="h-16 w-16 shrink-0 rounded-xl" />
           ))}
         </div>
-        <div className="skeleton aspect-[4/5] flex-1 rounded-3xl" />
+        <div className="skeleton aspect-4/5 flex-1 rounded-3xl" />
       </div>
       <div className="glass space-y-4 rounded-3xl p-6 shadow-glass sm:p-8" aria-hidden="true">
         <Skeleton className="h-3 w-28" />

@@ -143,7 +143,7 @@ function PanelPreferencias() {
                 className="peer sr-only"
               />
               <span className="h-6 w-11 rounded-full bg-plum/25 transition peer-checked:bg-berry peer-focus-visible:ring-2 peer-focus-visible:ring-berry/50" />
-              <span className="absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow transition peer-checked:translate-x-5" />
+              <span className="absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow-sm transition peer-checked:translate-x-5" />
             </label>
           </div>
           {estado === "aceptado" && fecha && (

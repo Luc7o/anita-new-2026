@@ -72,13 +72,13 @@ export default function Navbar() {
         placeholder="Buscar vestidos, carteras, calzados..."
         maxLength={80}
         aria-label="Buscar en la tienda"
-        className="w-full bg-transparent text-sm text-white placeholder:text-white/50 focus:outline-none"
+        className="w-full bg-transparent text-sm text-white placeholder:text-white/50 focus:outline-hidden"
       />
     </form>
   );
 
   return (
-    <header className="sticky top-0 z-30 bg-plum/95 backdrop-blur">
+    <header className="sticky top-0 z-30 bg-plum/95 backdrop-blur-sm">
       <nav className="mx-auto flex max-w-6xl items-center gap-2 px-4 py-3">
         <Link to="/" onClick={cerrar} className="mr-3 shrink-0" aria-label="Anita New Style, ir al inicio">
           <Logo tone="light" />
@@ -102,7 +102,7 @@ export default function Navbar() {
           ) : (
             <Link
               to="/ingresar"
-              className="btn !hidden border border-white/25 text-white hover:bg-white/10 sm:!inline-flex"
+              className="btn hidden! border border-white/25 text-white hover:bg-white/10 sm:inline-flex!"
             >
               <IconUser size={16} /> Ingresar
             </Link>

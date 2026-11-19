@@ -29,7 +29,7 @@ const TIPOS_ENLACE = [
 ];
 
 const campo =
-  "mt-1 block w-full rounded-xl bg-white px-4 py-2.5 text-sm text-plum ring-1 ring-plum/15 placeholder:text-plum-soft/70 focus:outline-none focus:ring-2 focus:ring-berry/40";
+  "mt-1 block w-full rounded-xl bg-white px-4 py-2.5 text-sm text-plum ring-1 ring-plum/15 placeholder:text-plum-soft/70 focus:outline-hidden focus:ring-2 focus:ring-berry/40";
 const etiquetaCampo = "block text-xs font-semibold text-plum-soft";
 
 // A dónde lleva el botón de una promoción ya guardada (para editarla).
@@ -44,13 +44,13 @@ function tipoDeEnlace(link, productoId) {
 // Cómo se verá en el carrusel del inicio (misma estructura que el Hero de la tienda).
 function VistaPrevia({ form }) {
   return (
-    <div className="overflow-hidden rounded-2xl bg-gradient-to-br from-chrome via-berry-dark to-berry p-5 text-white">
+    <div className="overflow-hidden rounded-2xl bg-linear-to-br from-chrome via-berry-dark to-berry p-5 text-white">
       <div className="grid grid-cols-[1.2fr_0.8fr] items-center gap-4">
         <div className="min-w-0">
           <p className="truncate text-[10px] font-bold uppercase tracking-[0.2em] text-berry-light">
             {form.etiqueta || "Anita New Style"}
           </p>
-          <p className="mt-1 break-words font-sans text-lg font-extrabold uppercase leading-tight">
+          <p className="mt-1 wrap-break-word font-sans text-lg font-extrabold uppercase leading-tight">
             {form.titulo || "Título de la promoción"}
           </p>
           {form.descripcion && <p className="mt-1 line-clamp-3 text-xs text-white/75">{form.descripcion}</p>}
@@ -58,7 +58,7 @@ function VistaPrevia({ form }) {
             {form.boton_texto || "Ver Todo"}
           </span>
         </div>
-        <div className="aspect-[4/5] overflow-hidden rounded-xl bg-chrome ring-1 ring-white/15">
+        <div className="aspect-4/5 overflow-hidden rounded-xl bg-chrome ring-1 ring-white/15">
           {form.imagen_url ? (
             <ImagenOptimizada src={form.imagen_url} variante="med" alt="" className="h-full w-full object-cover" />
           ) : (

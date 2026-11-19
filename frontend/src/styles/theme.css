@@ -1,6 +1,130 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
+
+@theme {
+  --color-ivory: rgb(var(--c-ivory));
+  --color-lilac: rgb(var(--c-lilac));
+  --color-chrome: rgb(var(--c-chrome));
+  --color-acento: rgb(var(--c-acento));
+
+  --color-plum: rgb(var(--c-plum));
+  --color-plum-soft: rgb(var(--c-plum-soft));
+
+  --color-berry: #c42759;
+  --color-berry-dark: #550416;
+  --color-berry-light: #e58aa6;
+
+  --color-gold: #ababab;
+
+  --font-sans: 'DM Sans', ui-sans-serif, system-ui, sans-serif;
+  --font-display: 'DM Serif Display', Georgia, serif;
+
+  --shadow-glass: 0 8px 32px 0 rgba(85, 4, 22, 0.14);
+  --shadow-glass-lg: 0 12px 48px 0 rgba(85, 4, 22, 0.22);
+  --shadow-pop: 0 12px 32px -8px rgba(44, 1, 7, 0.35);
+
+  --radius-3xl: 1.75rem;
+
+  --animate-fade-in: fade-in 0.3s ease-out backwards;
+  --animate-fade-out: fade-out 0.22s ease-in forwards;
+  --animate-fade-in-up: fade-in-up 0.5s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+  --animate-scale-in: scale-in 0.22s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+  --animate-slide-in-right: slide-in-right 0.32s cubic-bezier(0.22, 1, 0.36, 1)
+    backwards;
+  --animate-slide-out-right: slide-out-right 0.22s ease-in forwards;
+  --animate-slide-in-up: slide-in-up 0.32s cubic-bezier(0.22, 1, 0.36, 1)
+    backwards;
+  --animate-pop: pop 0.4s ease-out;
+
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  @keyframes fade-out {
+    from {
+      opacity: 1;
+    }
+    to {
+      opacity: 0;
+    }
+  }
+  @keyframes fade-in-up {
+    from {
+      opacity: 0;
+      transform: translateY(14px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  @keyframes scale-in {
+    from {
+      opacity: 0;
+      transform: scale(0.94);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+  @keyframes slide-in-right {
+    from {
+      transform: translateX(100%);
+    }
+    to {
+      transform: translateX(0);
+    }
+  }
+  @keyframes slide-out-right {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(100%);
+    }
+  }
+  @keyframes slide-in-up {
+    from {
+      transform: translateY(100%);
+    }
+    to {
+      transform: translateY(0);
+    }
+  }
+  @keyframes pop {
+    0% {
+      transform: scale(1);
+    }
+    40% {
+      transform: scale(1.35);
+    }
+    100% {
+      transform: scale(1);
+    }
+  }
+}
+
+/*
+  The default border color has changed to `currentcolor` in Tailwind CSS v4,
+  so we've added these compatibility styles to make sure everything still
+  looks the same as it did with Tailwind CSS v3.
+
+  If we ever want to remove these styles, we need to add an explicit border
+  color utility to any element that depends on these defaults.
+*/
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentcolor);
+  }
+}
 
 /* Colores base como variables (canales RGB para que Tailwind pueda aplicar
    opacidad: text-plum/60, bg-plum/10...). Valores de siempre = tienda y admin claro. */

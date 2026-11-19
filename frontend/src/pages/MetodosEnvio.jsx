@@ -13,11 +13,11 @@ export default function MetodosEnvio() {
           </p>
 
           <div className="space-y-4">
-            <div className="rounded-xl border border-plum/10 bg-white/50 p-5 shadow-sm">
+            <div className="rounded-xl border border-plum/10 bg-white/50 p-5 shadow-xs">
               <h3 className="font-semibold text-plum">Delivery</h3>
               <p className="mt-1 text-sm text-plum-soft">Solo en Huancayo, en 3 a 5 días hábiles. Seguimiento en línea. Costo: S/ 10.00.</p>
             </div>
-            <div className="rounded-xl border border-plum/10 bg-white/50 p-5 shadow-sm">
+            <div className="rounded-xl border border-plum/10 bg-white/50 p-5 shadow-xs">
               <h3 className="font-semibold text-plum">Recojo en tienda</h3>
               <p className="mt-1 text-sm text-plum-soft">Sin costo. Puedes recoger tu pedido en nuestra tienda física en Huancayo.</p>
             </div>

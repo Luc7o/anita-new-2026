@@ -10,7 +10,7 @@ import { useConsentimiento } from "../hooks/useConsentimiento.js";
 
 const tarjeta = "glass rounded-2xl p-5 shadow-glass sm:p-6";
 const campoTexto =
-  "w-full rounded-xl bg-white px-4 py-2.5 text-sm text-plum ring-1 ring-plum/15 placeholder:text-plum-soft/60 focus:outline-none focus:ring-2 focus:ring-berry/40";
+  "w-full rounded-xl bg-white px-4 py-2.5 text-sm text-plum ring-1 ring-plum/15 placeholder:text-plum-soft/60 focus:outline-hidden focus:ring-2 focus:ring-berry/40";
 const botonPrimario =
   "rounded-full bg-berry px-5 py-2.5 text-sm font-semibold text-white shadow-glass transition hover:bg-berry-dark disabled:opacity-60";
 const botonSecundario =
@@ -141,7 +141,7 @@ function Notificaciones({ estado, setEstado }) {
           disabled={guardando}
           className={`relative h-6 w-11 shrink-0 rounded-full transition ${estado.acepta_promociones ? "bg-berry" : "bg-plum/20"} disabled:opacity-70`}
         >
-          <span className={`absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${estado.acepta_promociones ? "translate-x-5" : ""}`} />
+          <span className={`absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow-sm transition-transform ${estado.acepta_promociones ? "translate-x-5" : ""}`} />
         </button>
       </div>
       <p className="mt-4 border-t border-plum/10 pt-3 text-xs text-plum-soft">
@@ -256,7 +256,7 @@ function DosPasos({ estado, setEstado }) {
         value={codigo}
         onChange={(e) => setCodigo(e.target.value.toLowerCase().replace(/[^a-z0-9 -]/g, ""))}
         placeholder="000000"
-        className={`${campoTexto} max-w-[14rem] text-center text-lg tracking-[0.25em] placeholder:tracking-normal`}
+        className={`${campoTexto} max-w-56 text-center text-lg tracking-[0.25em] placeholder:tracking-normal`}
       />
       {ayuda && <p className="mt-1 text-xs text-plum-soft">{ayuda}</p>}
     </div>
@@ -497,12 +497,12 @@ function EliminarCuenta({ estado }) {
           {estado.totp_activo && (
             <div>
               <label htmlFor="cfg-del-2fa" className="mb-1 block text-xs font-semibold text-plum-soft">Código de tu app de autenticación</label>
-              <input id="cfg-del-2fa" autoComplete="one-time-code" maxLength={12} value={codigo2fa} onChange={(e) => setCodigo2fa(e.target.value.toLowerCase().replace(/[^a-z0-9 -]/g, ""))} className={`${campoTexto} max-w-[14rem]`} />
+              <input id="cfg-del-2fa" autoComplete="one-time-code" maxLength={12} value={codigo2fa} onChange={(e) => setCodigo2fa(e.target.value.toLowerCase().replace(/[^a-z0-9 -]/g, ""))} className={`${campoTexto} max-w-56`} />
             </div>
           )}
           <div>
             <label htmlFor="cfg-del-confirmar" className="mb-1 block text-xs font-semibold text-plum-soft">Escribe ELIMINAR para confirmar</label>
-            <input id="cfg-del-confirmar" autoComplete="off" value={confirmacion} onChange={(e) => setConfirmacion(e.target.value)} className={`${campoTexto} max-w-[14rem]`} />
+            <input id="cfg-del-confirmar" autoComplete="off" value={confirmacion} onChange={(e) => setConfirmacion(e.target.value)} className={`${campoTexto} max-w-56`} />
           </div>
 
           {error && <p role="alert" className="text-sm text-berry-dark">{error}</p>}
