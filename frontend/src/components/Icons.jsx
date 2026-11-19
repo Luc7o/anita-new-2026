@@ -1,3 +1,22 @@
+// Íconos animados de Animate UI (Lucide). Se ven quietos como siempre y se mueven solo
+// dentro de un <AnimateIcon> (por ejemplo al pasar el mouse por el botón que los contiene)
+// o con props como animateOnHover. Para agregar más: npm run iconos -- <nombre-lucide>
+import { Heart } from "@/components/animate-ui/icons/heart.jsx";
+import { Star } from "@/components/animate-ui/icons/star.jsx";
+import { ShoppingCart } from "@/components/animate-ui/icons/shopping-cart.jsx";
+import { Search } from "@/components/animate-ui/icons/search.jsx";
+import { X } from "@/components/animate-ui/icons/x.jsx";
+import { Menu } from "@/components/animate-ui/icons/menu.jsx";
+import { User } from "@/components/animate-ui/icons/user.jsx";
+import { ChevronLeft } from "@/components/animate-ui/icons/chevron-left.jsx";
+import { ChevronRight } from "@/components/animate-ui/icons/chevron-right.jsx";
+import { ArrowRight } from "@/components/animate-ui/icons/arrow-right.jsx";
+import { Tag } from "@/components/animate-ui/icons/tag.jsx";
+import { Gift } from "@/components/animate-ui/icons/gift.jsx";
+import { Trash2 } from "@/components/animate-ui/icons/trash-2.jsx";
+import { Check } from "@/components/animate-ui/icons/check.jsx";
+import { MapPin } from "@/components/animate-ui/icons/map-pin.jsx";
+
 import React from "react";
 
 const base = {
@@ -8,20 +27,12 @@ const base = {
   strokeLinejoin: "round",
 };
 
-export function IconClose({ size = 16, className = "" }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" {...base} className={className}>
-      <path d="M18 6 6 18M6 6l12 12" />
-    </svg>
-  );
+export function IconClose({ size = 16, className = "", ...resto }) {
+  return <X size={size} className={className} {...resto} />;
 }
 
-export function IconMenu({ size = 18, className = "" }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" {...base} className={className}>
-      <path d="M3 6h18M3 12h18M3 18h18" />
-    </svg>
-  );
+export function IconMenu({ size = 18, className = "", ...resto }) {
+  return <Menu size={size} className={className} {...resto} />;
 }
 
 export function IconEye({ size = 18, className = "" }) {
@@ -43,13 +54,8 @@ export function IconEyeOff({ size = 18, className = "" }) {
   );
 }
 
-export function IconUser({ size = 18, className = "" }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" {...base} className={className}>
-      <circle cx="12" cy="8" r="4" />
-      <path d="M4 20c0-4 3.6-6 8-6s8 2 8 6" />
-    </svg>
-  );
+export function IconUser({ size = 18, className = "", ...resto }) {
+  return <User size={size} className={className} {...resto} />;
 }
 
 export function IconChevronDown({ size = 14, className = "" }) {
@@ -80,13 +86,8 @@ export function IconBag({ size = 18, className = "" }) {
   );
 }
 
-export function IconTag({ size = 18, className = "" }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" {...base} className={className}>
-      <path d="M20.6 12.3 12.3 20.6a2 2 0 0 1-2.8 0l-6.1-6.1a2 2 0 0 1 0-2.8L11.7 3.4a2 2 0 0 1 1.4-.6H19a2 2 0 0 1 2 2v5.9a2 2 0 0 1-.6 1.4Z" />
-      <circle cx="15.5" cy="7.5" r="1.2" fill="currentColor" stroke="none" />
-    </svg>
-  );
+export function IconTag({ size = 18, className = "", ...resto }) {
+  return <Tag size={size} className={className} {...resto} />;
 }
 
 export function IconPackage({ size = 18, className = "" }) {
@@ -119,23 +120,12 @@ export function IconStore({ size = 18, className = "" }) {
   );
 }
 
-export function IconCart({ size = 18, className = "" }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" {...base} className={className}>
-      <path d="M3 4h2l2.4 12.4a2 2 0 0 0 2 1.6h7.2a2 2 0 0 0 2-1.6L20 8H6" />
-      <circle cx="9" cy="20" r="1.4" fill="currentColor" stroke="none" />
-      <circle cx="17" cy="20" r="1.4" fill="currentColor" stroke="none" />
-    </svg>
-  );
+export function IconCart({ size = 18, className = "", ...resto }) {
+  return <ShoppingCart size={size} className={className} {...resto} />;
 }
 
-export function IconSearch({ size = 16, className = "" }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" {...base} className={className}>
-      <circle cx="11" cy="11" r="7" />
-      <path d="m20 20-3-3" />
-    </svg>
-  );
+export function IconSearch({ size = 16, className = "", ...resto }) {
+  return <Search size={size} className={className} {...resto} />;
 }
 
 export function IconTruck({ size = 18, className = "" }) {
@@ -213,12 +203,8 @@ export function IconTikTok({ size = 18, className = "" }) {
   );
 }
 
-export function IconCheck({ size = 14, className = "" }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" {...base} strokeWidth={3} className={className}>
-      <path d="m5 13 4 4L19 7" />
-    </svg>
-  );
+export function IconCheck({ size = 14, className = "", ...resto }) {
+  return <Check size={size} className={className} {...resto} />;
 }
 
 export function IconMail({ size = 18, className = "" }) {
@@ -248,47 +234,20 @@ export function IconCheckCircle({ size = 40, className = "" }) {
   );
 }
 
-export function IconHeart({ size = 18, className = "", relleno = false }) {
-  return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 24 24"
-      fill={relleno ? "currentColor" : "none"}
-      stroke="currentColor"
-      strokeWidth={2}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-    >
-      <path d="M12 20.5s-7.5-4.6-10-9.3C.5 7.8 2.3 4.5 5.8 4c2-.3 3.9.6 5 2.3a1 1 0 0 0 1.4 0c1.1-1.7 3-2.6 5-2.3 3.5.5 5.3 3.8 3.8 7.2-2.5 4.7-10 9.3-10 9.3Z" />
-    </svg>
-  );
+export function IconHeart({ size = 18, className = "", relleno = false, ...resto }) {
+  return <Heart size={size} className={className} fill={relleno ? "currentColor" : "none"} {...resto} />;
 }
 
-export function IconChevronLeft({ size = 18, className = "" }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" {...base} className={className}>
-      <path d="m15 6-6 6 6 6" />
-    </svg>
-  );
+export function IconChevronLeft({ size = 18, className = "", ...resto }) {
+  return <ChevronLeft size={size} className={className} {...resto} />;
 }
 
-export function IconChevronRight({ size = 18, className = "" }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" {...base} className={className}>
-      <path d="m9 6 6 6-6 6" />
-    </svg>
-  );
+export function IconChevronRight({ size = 18, className = "", ...resto }) {
+  return <ChevronRight size={size} className={className} {...resto} />;
 }
 
-export function IconArrowRight({ size = 16, className = "" }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" {...base} className={className}>
-      <path d="M5 12h14" />
-      <path d="m13 6 6 6-6 6" />
-    </svg>
-  );
+export function IconArrowRight({ size = 16, className = "", ...resto }) {
+  return <ArrowRight size={size} className={className} {...resto} />;
 }
 
 export function IconHome({ size = 18, className = "" }) {
@@ -319,25 +278,12 @@ export function IconEdit({ size = 18, className = "" }) {
   );
 }
 
-export function IconTrash({ size = 18, className = "" }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" {...base} className={className}>
-      <path d="M3 6h18" />
-      <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-      <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
-      <path d="M10 11v6M14 11v6" />
-    </svg>
-  );
+export function IconTrash({ size = 18, className = "", ...resto }) {
+  return <Trash2 size={size} className={className} {...resto} />;
 }
 
-export function IconGift({ size = 18, className = "" }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" {...base} className={className}>
-      <rect x="3" y="9" width="18" height="11" rx="1.5" />
-      <path d="M3 9h18M12 9v11" />
-      <path d="M7.5 9a2.5 2.5 0 0 1 0-5C10 4 12 7 12 9c0-2 2-5 4.5-5a2.5 2.5 0 0 1 0 5" />
-    </svg>
-  );
+export function IconGift({ size = 18, className = "", ...resto }) {
+  return <Gift size={size} className={className} {...resto} />;
 }
 
 export function IconCopy({ size = 16, className = "" }) {
@@ -358,21 +304,8 @@ export function IconClock({ size = 18, className = "" }) {
   );
 }
 
-export function IconStar({ size = 18, className = "", relleno = false }) {
-  return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 24 24"
-      fill={relleno ? "currentColor" : "none"}
-      stroke="currentColor"
-      strokeWidth={1.5}
-      strokeLinejoin="round"
-      className={className}
-    >
-      <path d="m12 2.5 2.9 6.06 6.6.82-4.85 4.6 1.27 6.6L12 17.5l-5.92 3.08 1.27-6.6-4.85-4.6 6.6-.82L12 2.5Z" />
-    </svg>
-  );
+export function IconStar({ size = 18, className = "", relleno = false, ...resto }) {
+  return <Star size={size} className={className} fill={relleno ? "currentColor" : "none"} {...resto} />;
 }
 
 export function IconBook({ size = 18, className = "" }) {
@@ -426,4 +359,8 @@ export function IconReceipt({ size = 18, className = "" }) {
       <path d="M9 8h6M9 12h6" />
     </svg>
   );
+}
+
+export function IconMapPin({ size = 18, className = "", ...resto }) {
+  return <MapPin size={size} className={className} {...resto} />;
 }

@@ -18,7 +18,7 @@ import {
   IconChevronRight,
   IconArrowRight,
   IconTruck,
-  IconStore,
+  IconMapPin,
   IconTag,
 } from "../components/Icons.jsx";
 import ImagenOptimizada from "../components/ImagenOptimizada.jsx";
@@ -27,6 +27,7 @@ import { COSTO_ENVIO_DELIVERY } from "../tienda.js";
 import { MARCAS_TARJETA } from "../metodosPago.js";
 import heroDefecto1 from "../assets/auth/login-hero.webp";
 import heroDefecto2 from "../assets/auth/registro-hero.webp";
+import { AnimateIcon } from "@animate-ui/react/icons";
 
 const IMAGENES_POR_DEFECTO = [heroDefecto1, heroDefecto2];
 const FRASES_PORTADA = ["se nota.", "te define.", "te acompaña."];
@@ -190,20 +191,24 @@ function Hero({ promociones, oferta }) {
         )}
         {imagenes.length > 1 && (
           <div className="absolute bottom-3 right-3 z-10 flex gap-2">
-            <button
-              onClick={anterior}
-              aria-label="Imagen anterior"
-              className="icono-avance flex h-11 w-11 items-center justify-center rounded-full bg-white text-plum shadow-pop transition hover:text-berry"
-            >
-              <IconChevronLeft size={18} />
-            </button>
-            <button
-              onClick={siguiente}
-              aria-label="Siguiente imagen"
-              className="icono-avance flex h-11 w-11 items-center justify-center rounded-full bg-white text-plum shadow-pop transition hover:text-berry"
-            >
-              <IconChevronRight size={18} />
-            </button>
+            <AnimateIcon animateOnHover animateOnTap asChild>
+              <button
+                onClick={anterior}
+                aria-label="Imagen anterior"
+                className="flex h-11 w-11 items-center justify-center rounded-full bg-white text-plum shadow-pop transition hover:text-berry"
+              >
+                <IconChevronLeft size={18} />
+              </button>
+            </AnimateIcon>
+            <AnimateIcon animateOnHover animateOnTap asChild>
+              <button
+                onClick={siguiente}
+                aria-label="Siguiente imagen"
+                className="flex h-11 w-11 items-center justify-center rounded-full bg-white text-plum shadow-pop transition hover:text-berry"
+              >
+                <IconChevronRight size={18} />
+              </button>
+            </AnimateIcon>
           </div>
         )}
       </div>
@@ -336,10 +341,12 @@ function Ofertas({ ofertas }) {
           <h2 className="text-4xl sm:text-5xl">
             <ShimmeringText text="Ofertas de la semana" color="#f6f3ee" shimmeringColor="#e9a6dd" duration={2.5} />
           </h2>
-          <Link to="/tienda?oferta=true" className="btn-relleno btn-relleno--claro">
-            Ver todas
-            <IconArrowRight size={16} />
-          </Link>
+          <AnimateIcon animateOnHover animateOnTap asChild>
+            <Link to="/tienda?oferta=true" className="btn-relleno btn-relleno--claro">
+              Ver todas
+              <IconArrowRight size={16} />
+            </Link>
+          </AnimateIcon>
         </Revelar>
         <div className="-mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-2 sm:mx-0 sm:px-0">
           {ofertas.map((producto, i) => (
@@ -356,7 +363,7 @@ function Ofertas({ ofertas }) {
 function Beneficios() {
   const items = [
     { Icono: IconTruck, titulo: "Delivery en Huancayo", texto: `S/ ${COSTO_ENVIO_DELIVERY.toFixed(2)} a cualquier distrito de la provincia.` },
-    { Icono: IconStore, titulo: "Recojo en tienda gratis", texto: "Te avisamos con un código cuando tu pedido esté listo." },
+    { Icono: IconMapPin, titulo: "Recojo en tienda gratis", texto: "Te avisamos con un código cuando tu pedido esté listo." },
     { Icono: IconTag, titulo: "Pago seguro", texto: `Yape o tarjeta ${MARCAS_TARJETA.join(" y ")}, procesado por Culqi.` },
   ];
   return (
@@ -364,7 +371,8 @@ function Beneficios() {
       {items.map(({ Icono, titulo, texto }, i) => (
         <Revelar key={titulo} retraso={i * 0.08} className="flex items-start gap-4 rounded-[20px] bg-white p-7">
           <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-lilac text-berry">
-            <Icono size={22} />
+            {/* El ícono se anima una vez cuando la tarjeta entra en pantalla. */}
+            <Icono size={22} animateOnView />
           </span>
           <div>
             <h3 className="font-sans text-lg font-bold tracking-normal text-plum">{titulo}</h3>

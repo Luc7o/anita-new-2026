@@ -9,6 +9,7 @@ import ImagenOptimizada from "./ImagenOptimizada.jsx";
 import SelectorRapido from "./SelectorRapido.jsx";
 import { nombreColorAHex } from "../utils/colores.js";
 import { useToast } from "../context/ToastContext.jsx";
+import { AnimateIcon } from "@animate-ui/react/icons";
 
 // Tarjeta de producto «Galería Carbón»: tarjeta blanca de 20 px que sube un poco al pasar el
 // mouse, foto que hace zoom, favorito sobre la foto y «Agregar» que entra desde abajo (en el
@@ -119,19 +120,21 @@ export default function ProductCard({ producto, indice = 0, compacto = false }) 
           </span>
         ) : null}
 
-        <button
-          onClick={handleFavorito}
-          aria-label={esFavorito ? `Quitar ${producto.nombre} de favoritos` : `Agregar ${producto.nombre} a favoritos`}
-          aria-pressed={esFavorito}
-          className={`icono-latido absolute right-2.5 top-2.5 flex h-11 w-11 items-center justify-center rounded-full border bg-white transition-colors ${
-            esFavorito ? "border-berry text-berry" : "border-plum/10 text-plum hover:border-berry hover:text-berry"
-          }`}
-        >
-          {/* key: al cambiar de estado el ícono se vuelve a montar y repite el "pop" */}
-          <span key={esFavorito ? "si" : "no"} className={`flex ${esFavorito ? "animate-pop" : ""}`}>
-            <IconHeart size={18} relleno={esFavorito} />
-          </span>
-        </button>
+        <AnimateIcon animateOnHover animateOnTap asChild>
+          <button
+            onClick={handleFavorito}
+            aria-label={esFavorito ? `Quitar ${producto.nombre} de favoritos` : `Agregar ${producto.nombre} a favoritos`}
+            aria-pressed={esFavorito}
+            className={`absolute right-2.5 top-2.5 flex h-11 w-11 items-center justify-center rounded-full border bg-white transition-colors ${
+              esFavorito ? "border-berry text-berry" : "border-plum/10 text-plum hover:border-berry hover:text-berry"
+            }`}
+          >
+            {/* key: al cambiar de estado el ícono se vuelve a montar y repite el "pop" */}
+            <span key={esFavorito ? "si" : "no"} className={`flex ${esFavorito ? "animate-pop" : ""}`}>
+              <IconHeart size={18} relleno={esFavorito} />
+            </span>
+          </button>
+        </AnimateIcon>
 
         {producto.sin_stock ? (
           <span className="absolute inset-x-3 bottom-3 rounded-xl bg-white/90 py-2.5 text-center text-sm font-bold text-plum-soft">
@@ -139,25 +142,27 @@ export default function ProductCard({ producto, indice = 0, compacto = false }) 
           </span>
         ) : (
           <div className="tarjeta-rapido absolute inset-x-3 bottom-3">
-            <RippleButton
-              onClick={handleAgregar}
-              disabled={agregando}
-              aria-label={`Agregar ${producto.nombre} al carrito`}
-              aria-haspopup={necesitaOpciones ? "dialog" : undefined}
-              className={`flex min-h-11 w-full items-center justify-center gap-2 overflow-hidden rounded-xl text-sm font-bold transition-colors disabled:opacity-60 [--ripple-button-ripple-color:rgba(255,255,255,0.35)] ${
-                agregado ? "bg-berry text-white" : "bg-plum text-ivory hover:bg-black"
-              }`}
-            >
-              {agregado ? (
-                <span className="flex animate-pop">
-                  <IconCheck size={15} />
-                </span>
-              ) : (
-                <IconCart size={15} />
-              )}
-              {agregando ? "Agregando..." : agregado ? "¡Agregado!" : necesitaOpciones ? "Elegir talla" : "Agregar"}
-              <RippleButtonRipples />
-            </RippleButton>
+            <AnimateIcon animateOnHover animateOnTap asChild>
+              <RippleButton
+                onClick={handleAgregar}
+                disabled={agregando}
+                aria-label={`Agregar ${producto.nombre} al carrito`}
+                aria-haspopup={necesitaOpciones ? "dialog" : undefined}
+                className={`flex min-h-11 w-full items-center justify-center gap-2 overflow-hidden rounded-xl text-sm font-bold transition-colors disabled:opacity-60 [--ripple-button-ripple-color:rgba(255,255,255,0.35)] ${
+                  agregado ? "bg-berry text-white" : "bg-plum text-ivory hover:bg-black"
+                }`}
+              >
+                {agregado ? (
+                  <span className="flex animate-pop">
+                    <IconCheck size={15} animate />
+                  </span>
+                ) : (
+                  <IconCart size={15} />
+                )}
+                {agregando ? "Agregando..." : agregado ? "¡Agregado!" : necesitaOpciones ? "Elegir talla" : "Agregar"}
+                <RippleButtonRipples />
+              </RippleButton>
+            </AnimateIcon>
           </div>
         )}
       </div>

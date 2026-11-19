@@ -4,12 +4,13 @@ import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { SlidingNumber } from "@animate-ui/react/primitives/texts/sliding-number";
 import { useAuth } from "../context/AuthContext.jsx";
 import { useCarrito } from "../context/CarritoContext.jsx";
-import { IconSearch, IconCart, IconClose, IconUser, IconMenu, IconTruck, IconStore, IconTag, IconGift } from "./Icons.jsx";
+import { IconSearch, IconCart, IconClose, IconUser, IconMenu, IconTruck, IconMapPin, IconTag, IconGift } from "./Icons.jsx";
 import UserMenu from "./UserMenu.jsx";
 import Logo from "./Logo.jsx";
 import { useToast } from "../context/ToastContext.jsx";
 import { COSTO_ENVIO_DELIVERY } from "../tienda.js";
 import { api } from "../api/client.js";
+import { AnimateIcon } from "@animate-ui/react/icons";
 
 // El menú es para comprar: la tienda, sus categorías y las ofertas. Las páginas informativas
 // (Nosotros, Tiendas, Contacto, FAQ...) viven en el pie de página.
@@ -55,7 +56,7 @@ function enlacesDeCompra(categorias, location) {
 
 const ANUNCIOS = [
   { Icono: IconTruck, texto: `Delivery en Huancayo por S/ ${COSTO_ENVIO_DELIVERY.toFixed(2)}` },
-  { Icono: IconStore, texto: "Recojo en tienda gratis" },
+  { Icono: IconMapPin, texto: "Recojo en tienda gratis" },
   { Icono: IconTag, texto: "Paga con Yape o tarjeta" },
   { Icono: IconGift, texto: "Nuevos ingresos cada semana" },
 ];
@@ -93,7 +94,8 @@ function BarraAnuncios() {
           exit={{ y: -14, opacity: 0 }}
           transition={{ duration: 0.35, ease: [0.2, 0.8, 0.2, 1] }}
         >
-          <Icono size={15} className="text-berry-light" />
+          {/* Cada mensaje nuevo se monta de nuevo: su ícono se anima una vez al aparecer. */}
+          <Icono size={15} className="text-berry-light" animate />
           {texto}
         </motion.p>
       </AnimatePresence>
@@ -193,49 +195,57 @@ export default function Navbar() {
 
           <div className="ml-auto flex items-center gap-2 md:ml-2">
             {/* En el celular la búsqueda es un ícono visible, no algo escondido en el menú. */}
-            <button
-              onClick={() => setBuscadorAbierto((v) => !v)}
-              className="flex h-11 w-11 items-center justify-center rounded-full border border-plum/15 bg-white text-plum transition-colors hover:border-berry hover:text-berry md:hidden"
-              aria-label={buscadorAbierto ? "Cerrar búsqueda" : "Buscar"}
-              aria-expanded={buscadorAbierto}
-            >
-              {buscadorAbierto ? <IconClose size={18} /> : <IconSearch size={18} />}
-            </button>
+            <AnimateIcon animateOnHover animateOnTap asChild>
+              <button
+                onClick={() => setBuscadorAbierto((v) => !v)}
+                className="flex h-11 w-11 items-center justify-center rounded-full border border-plum/15 bg-white text-plum transition-colors hover:border-berry hover:text-berry md:hidden"
+                aria-label={buscadorAbierto ? "Cerrar búsqueda" : "Buscar"}
+                aria-expanded={buscadorAbierto}
+              >
+                {buscadorAbierto ? <IconClose size={18} /> : <IconSearch size={18} />}
+              </button>
+            </AnimateIcon>
 
             {usuario ? (
               <UserMenu usuario={usuario} onLogout={cerrarSesion} />
             ) : (
-              <Link
-                to="/ingresar"
-                className="hidden min-h-11 items-center gap-2 rounded-full border border-plum/15 bg-white px-4 text-sm font-bold text-plum transition-colors hover:border-berry hover:text-berry sm:inline-flex"
-              >
-                <IconUser size={16} /> Ingresar
-              </Link>
+              <AnimateIcon animateOnHover animateOnTap asChild>
+                <Link
+                  to="/ingresar"
+                  className="hidden min-h-11 items-center gap-2 rounded-full border border-plum/15 bg-white px-4 text-sm font-bold text-plum transition-colors hover:border-berry hover:text-berry sm:inline-flex"
+                >
+                  <IconUser size={16} /> Ingresar
+                </Link>
+              </AnimateIcon>
             )}
 
-            <button
-              onClick={() => setDrawerAbierto(true)}
-              className="icono-rebote relative flex min-h-11 items-center gap-2 rounded-full bg-plum px-4 text-sm font-bold text-ivory transition-colors hover:bg-black"
-              aria-label={`Abrir carrito${totalItems > 0 ? `, ${totalItems} productos` : ""}`}
-            >
-              <IconCart size={17} />
-              <span className="hidden sm:inline">Carrito</span>
-              {totalItems > 0 && (
-                <span className="flex h-6 min-w-6 items-center justify-center rounded-full bg-berry px-1.5 text-xs font-bold text-white" aria-hidden="true">
-                  {/* El número se desliza al cambiar: se nota que algo se agregó. */}
-                  <SlidingNumber number={totalItems} />
-                </span>
-              )}
-            </button>
+            <AnimateIcon animateOnHover animateOnTap asChild>
+              <button
+                onClick={() => setDrawerAbierto(true)}
+                className="relative flex min-h-11 items-center gap-2 rounded-full bg-plum px-4 text-sm font-bold text-ivory transition-colors hover:bg-black"
+                aria-label={`Abrir carrito${totalItems > 0 ? `, ${totalItems} productos` : ""}`}
+              >
+                <IconCart size={17} />
+                <span className="hidden sm:inline">Carrito</span>
+                {totalItems > 0 && (
+                  <span className="flex h-6 min-w-6 items-center justify-center rounded-full bg-berry px-1.5 text-xs font-bold text-white" aria-hidden="true">
+                    {/* El número se desliza al cambiar: se nota que algo se agregó. */}
+                    <SlidingNumber number={totalItems} />
+                  </span>
+                )}
+              </button>
+            </AnimateIcon>
 
-            <button
-              onClick={() => setMenuAbierto((v) => !v)}
-              className="flex h-11 w-11 items-center justify-center rounded-full border border-plum/15 bg-white text-plum lg:hidden"
-              aria-label={menuAbierto ? "Cerrar menú" : "Abrir menú"}
-              aria-expanded={menuAbierto}
-            >
-              {menuAbierto ? <IconClose size={18} /> : <IconMenu size={18} />}
-            </button>
+            <AnimateIcon animateOnHover animateOnTap asChild>
+              <button
+                onClick={() => setMenuAbierto((v) => !v)}
+                className="flex h-11 w-11 items-center justify-center rounded-full border border-plum/15 bg-white text-plum lg:hidden"
+                aria-label={menuAbierto ? "Cerrar menú" : "Abrir menú"}
+                aria-expanded={menuAbierto}
+              >
+                {menuAbierto ? <IconClose size={18} /> : <IconMenu size={18} />}
+              </button>
+            </AnimateIcon>
           </div>
         </nav>
 

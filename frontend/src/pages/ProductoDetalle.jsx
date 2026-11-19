@@ -21,6 +21,7 @@ import {
 } from "../components/Skeleton.jsx";
 import { nombreColorAHex } from "../utils/colores.js";
 import { METODOS_PAGO_TIENDA } from "../metodosPago.js";
+import { AnimateIcon } from "@animate-ui/react/icons";
 
 export default function ProductoDetalle() {
   const toast = useToast();
@@ -522,36 +523,42 @@ export default function ProductoDetalle() {
           )}
 
           <div className="flex flex-col gap-3 sm:flex-row">
-            <RippleButton
-              onClick={handleAgregar}
-              disabled={producto.sin_stock || sinStockEnCombo || seleccionIncompleta || agregando}
-              className="btn-dark min-h-13! flex-1 text-base! [--ripple-button-ripple-color:rgba(255,255,255,0.35)] disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              <IconCart size={18} />
-              {producto.sin_stock || sinStockEnCombo ? "Sin stock" : agregando ? "Agregando..." : "Agregar al carrito"}
-              <RippleButtonRipples />
-            </RippleButton>
-            <RippleButton
-              onClick={handleComprar}
-              disabled={producto.sin_stock || sinStockEnCombo || seleccionIncompleta || agregando}
-              className="btn-primary icono-avance min-h-13! flex-1 text-base! [--ripple-button-ripple-color:rgba(255,255,255,0.35)] disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              Comprar ahora
-              <IconArrowRight size={18} />
-              <RippleButtonRipples />
-            </RippleButton>
-            <button
-              onClick={handleFavorito}
-              aria-label={esFavorito ? "Quitar de favoritos" : "Agregar a favoritos"}
-              aria-pressed={esFavorito}
-              className={`icono-latido flex h-13 w-full shrink-0 items-center justify-center rounded-xl border-[1.5px] bg-white transition-colors sm:w-13 ${
-                esFavorito ? "border-berry text-berry" : "border-plum/18 text-plum hover:border-berry hover:text-berry"
-              }`}
-            >
-              <span key={esFavorito ? "si" : "no"} className={`flex ${esFavorito ? "animate-pop" : ""}`}>
-                <IconHeart size={20} relleno={esFavorito} />
-              </span>
-            </button>
+            <AnimateIcon animateOnHover animateOnTap asChild>
+              <RippleButton
+                onClick={handleAgregar}
+                disabled={producto.sin_stock || sinStockEnCombo || seleccionIncompleta || agregando}
+                className="btn-dark min-h-13! flex-1 text-base! [--ripple-button-ripple-color:rgba(255,255,255,0.35)] disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <IconCart size={18} />
+                {producto.sin_stock || sinStockEnCombo ? "Sin stock" : agregando ? "Agregando..." : "Agregar al carrito"}
+                <RippleButtonRipples />
+              </RippleButton>
+            </AnimateIcon>
+            <AnimateIcon animateOnHover animateOnTap asChild>
+              <RippleButton
+                onClick={handleComprar}
+                disabled={producto.sin_stock || sinStockEnCombo || seleccionIncompleta || agregando}
+                className="btn-primary min-h-13! flex-1 text-base! [--ripple-button-ripple-color:rgba(255,255,255,0.35)] disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Comprar ahora
+                <IconArrowRight size={18} />
+                <RippleButtonRipples />
+              </RippleButton>
+            </AnimateIcon>
+            <AnimateIcon animateOnHover animateOnTap asChild>
+              <button
+                onClick={handleFavorito}
+                aria-label={esFavorito ? "Quitar de favoritos" : "Agregar a favoritos"}
+                aria-pressed={esFavorito}
+                className={`flex h-13 w-full shrink-0 items-center justify-center rounded-xl border-[1.5px] bg-white transition-colors sm:w-13 ${
+                  esFavorito ? "border-berry text-berry" : "border-plum/18 text-plum hover:border-berry hover:text-berry"
+                }`}
+              >
+                <span key={esFavorito ? "si" : "no"} className={`flex ${esFavorito ? "animate-pop" : ""}`}>
+                  <IconHeart size={20} relleno={esFavorito} />
+                </span>
+              </button>
+            </AnimateIcon>
           </div>
 
           {mensaje && <p className="text-sm font-semibold text-berry-dark">{mensaje}</p>}
