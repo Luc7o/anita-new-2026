@@ -178,14 +178,14 @@ function Hero({ promociones, oferta }) {
         {oferta && (
           <Link
             to={`/producto/${oferta.id}`}
-            className="flotar absolute left-[4%] top-[8%] z-10 flex max-w-[60%] flex-col gap-1 rounded-2xl bg-plum px-4 py-3.5 text-ivory shadow-pop transition-transform hover:scale-[1.03]"
+            className="flotar absolute left-[4%] top-[8%] z-10 flex max-w-[60%] flex-col gap-1 rounded-2xl bg-carbon px-4 py-3.5 text-hueso shadow-pop transition-transform hover:scale-[1.03]"
             style={{ animationDelay: "-1.5s" }}
           >
             <span className="text-[11px] font-bold tracking-[0.1em] text-berry-light">EN OFERTA</span>
             <span className="text-sm font-bold leading-snug">{oferta.nombre}</span>
             <span className="text-sm">
               S/ {oferta.precio_final.toFixed(2)}{" "}
-              <s className="text-ivory/60">S/ {oferta.precio.toFixed(2)}</s>
+              <s className="text-hueso/60">S/ {oferta.precio.toFixed(2)}</s>
             </span>
           </Link>
         )}
@@ -241,7 +241,7 @@ function Categorias({ categorias, cargando, fotos }) {
               <Revelar key={cat.id} retraso={i * 0.06}>
                 <Link
                   to={`/tienda?categoria=${cat.slug}`}
-                  className="bloque-cat relative flex h-56 items-end overflow-hidden rounded-[20px] p-5 text-ivory sm:h-72"
+                  className="bloque-cat relative flex h-56 items-end overflow-hidden rounded-[20px] p-5 text-hueso sm:h-72"
                 >
                   <div className="bloque-fondo absolute inset-0" style={{ background: FONDOS_CATEGORIA[i % FONDOS_CATEGORIA.length] }}>
                     {foto && <ImagenOptimizada src={foto} variante="thumb" alt="" className="h-full w-full object-cover" />}
@@ -335,7 +335,7 @@ function LoNuevo({ categorias }) {
 function Ofertas({ ofertas }) {
   if (ofertas.length === 0) return null;
   return (
-    <section className="bg-plum py-20 text-ivory">
+    <section className="seccion-carbon bg-carbon py-20 text-hueso">
       <div className="mx-auto max-w-7xl px-4 sm:px-8">
         <Revelar className="mb-8 flex flex-wrap items-end justify-between gap-4">
           <h2 className="text-4xl sm:text-5xl">
