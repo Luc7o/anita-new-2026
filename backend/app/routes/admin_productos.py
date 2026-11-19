@@ -18,7 +18,7 @@ MINIMO_IMAGENES = 4
 # Campos que Almacén SÍ puede tocar en el PUT de un producto (todo lo demás
 # — precio, nombre, categoría, imágenes, etc. — es exclusivo de quien
 # gestiona el producto completo, no solo su stock).
-CAMPOS_PERMITIDOS_SOLO_STOCK = {"stock", "tallas", "colores", "variantes", "motivo_stock"}
+CAMPOS_PERMITIDOS_SOLO_STOCK = {"stock", "stock_original", "tallas", "colores", "variantes", "motivo_stock"}
 
 MOTIVO_STOCK_POR_DEFECTO = "Edición de stock desde Productos"
 
@@ -115,6 +115,53 @@ def _stock_simple(data):
     (None si no lo mandó)."""
     valor = data.get("stock")
     return None if valor in (None, "") else int(valor)
+
+
+MENSAJE_STOCK_CAMBIO = (
+    "Mientras editabas se vendieron unidades de este producto y el stock que pusiste ya no "
+    "alcanza. Cierra el formulario, vuelve a abrirlo y revisa el stock."
+)
+
+
+def _entero_o_none(valor):
+    try:
+        return int(valor) if valor not in (None, "") else None
+    except (TypeError, ValueError):
+        return None
+
+
+def _aplicar_ventas_concurrentes(data, stock_actual):
+    """
+    El formulario del panel manda, junto con el stock nuevo, el stock que mostraba al abrirse
+    (`stock_original`, por producto simple o por variante). Si mientras tanto hubo ventas, el
+    stock de la base ya es menor: escribir el valor del formulario tal cual crearía unidades
+    fantasma. Por eso se aplica solo la DIFERENCIA que pidió el admin sobre el stock actual:
+
+        stock_nuevo = stock_actual + (stock_del_formulario - stock_original)
+
+    `stock_actual` es foto_stock() con las variantes ya bloqueadas. Modifica `data` en el
+    lugar. Devuelve un mensaje de error si el resultado quedaría negativo, o None.
+    Un cliente que no manda stock_original (versión vieja del panel) sigue funcionando igual.
+    """
+    original = _entero_o_none(data.get("stock_original"))
+    if original is not None and data.get("stock") not in (None, ""):
+        actual = stock_actual.get(("", ""))
+        if actual is not None:
+            nuevo = actual + (int(data["stock"]) - original)
+            if nuevo < 0:
+                return MENSAJE_STOCK_CAMBIO
+            data["stock"] = nuevo
+
+    for v in data.get("variantes") or []:
+        original = _entero_o_none(v.get("stock_original"))
+        clave = (v.get("talla") or "", v.get("color") or "")
+        if original is None or clave not in stock_actual or not isinstance(v.get("stock"), int):
+            continue
+        nuevo = stock_actual[clave] + (v["stock"] - original)
+        if nuevo < 0:
+            return MENSAJE_STOCK_CAMBIO
+        v["stock"] = nuevo
+    return None
 
 
 def _guardar_variantes(producto, tallas, colores, variantes, stock_simple=None):
@@ -327,9 +374,23 @@ def actualizar(producto_id):
     if "genero" in data and (data["genero"] or None) not in (None, *GENEROS):
         return jsonify({"error": "Género no válido"}), 400
 
+    # Bloquea las variantes del producto hasta el commit: una compra que llegue ahora espera a
+    # que termine esta edición (y viceversa), así el stock leído abajo es el real.
+    # of=VarianteProducto: la talla y el color se cargan con LEFT JOIN y PostgreSQL no deja
+    # bloquear esas tablas; se bloquean solo las filas de variantes.
+    db.session.query(VarianteProducto).filter_by(producto_id=producto.id).with_for_update(
+        of=VarianteProducto
+    ).populate_existing().all()
+    db.session.expire(producto, ["variantes"])
+
     # Foto del stock ANTES de aplicar cualquier cambio, para registrar en el
     # kardex solo lo que realmente cambió.
     stock_antes = foto_stock(producto)
+
+    error_concurrencia = _aplicar_ventas_concurrentes(data, stock_antes)
+    if error_concurrencia:
+        db.session.rollback()
+        return jsonify({"error": error_concurrencia, "code": "stock_cambio"}), 409
 
     campos_directos = [
         "nombre", "descripcion", "precio", "precio_oferta",

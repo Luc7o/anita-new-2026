@@ -16,6 +16,7 @@ import {
   SkeletonCarruselRelacionados,
 } from "../components/Skeleton.jsx";
 import { nombreColorAHex } from "../utils/colores.js";
+import { METODOS_PAGO_TIENDA } from "../metodosPago.js";
 
 export default function ProductoDetalle() {
   const toast = useToast();
@@ -654,17 +655,10 @@ export default function ProductoDetalle() {
         </section>
       )}
 
-      {/* Cuidados, Envíos y Métodos de Pago - AL FINAL DE TODO */}
-      <section className="mt-16 grid gap-6 sm:grid-cols-3 border-t border-plum/10 pt-10">
-        {/* Cuidados */}
-        <div className="rounded-xl border border-plum/10 bg-plum/5 p-5">
-          <h4 className="font-display text-lg font-semibold text-plum">Cuidados:</h4>
-          <ul className="mt-3 space-y-1.5 text-sm text-plum-soft">
-            <li>• Limpiar con paño suave y seco</li>
-            <li>• No exponer a humedad excesiva</li>
-            <li>• Aplicar crema protectora para cuero ecológico</li>
-          </ul>
-        </div>
+      {/* Envíos y Métodos de Pago - AL FINAL DE TODO. El bloque "Cuidados" se quitó: era el
+          mismo texto para todos los productos ("crema para cuero ecológico" incluso en vestidos).
+          Si se quiere volver a mostrar, debe venir de los datos de cada producto o categoría. */}
+      <section className="mt-16 grid gap-6 sm:grid-cols-2 border-t border-plum/10 pt-10">
 
         {/* Envíos y Devoluciones */}
         <div className="rounded-xl border border-plum/10 bg-plum/5 p-5">
@@ -685,9 +679,9 @@ export default function ProductoDetalle() {
         <div className="rounded-xl border border-plum/10 bg-plum/5 p-5">
           <h4 className="font-display text-lg font-semibold text-plum">Métodos de pago</h4>
           <ul className="mt-3 space-y-1.5 text-sm text-plum-soft">
-            <li>• Tarjetas de crédito/débito (Visa, Mastercard, American Express).</li>
-            <li>• Yape y Plin.</li>
-            <li>• Pago contraentrega en Huancayo (consulta disponibilidad).</li>
+            {METODOS_PAGO_TIENDA.map((m) => (
+              <li key={m.id}>• {m.resumen}.</li>
+            ))}
           </ul>
         </div>
       </section>

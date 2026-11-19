@@ -54,6 +54,8 @@ def purgar_metricas_antiguas(ahora=None):
         "tokens_recuperacion": _borrar_en_lotes(
             "tokens_recuperacion", "expira_en", ahora - timedelta(days=DIAS_TOKENS_RECUPERACION), inicio,
         ),
+        # Un refresh vencido ya no sirve para nada: se borra apenas expira.
+        "refresh_tokens": _borrar_en_lotes("refresh_tokens", "expira_en", ahora, inicio),
         "consentimientos_vencidos": _borrar_en_lotes(
             "consentimientos_privacidad", "decidido_en",
             ahora - timedelta(days=DIAS_CONSENTIMIENTO_ACEPTADO), inicio,

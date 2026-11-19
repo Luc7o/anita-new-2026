@@ -15,9 +15,12 @@ import UbicacionEntrega from "../components/UbicacionEntrega.jsx";
 import Spinner from "../components/Spinner.jsx";
 import CasillaTerminos from "../components/CasillaTerminos.jsx";
 import { COSTO_ENVIO_DELIVERY } from "../tienda.js";
-import { abrirCulqiCheckout } from "../culqi.js";
+import { abrirCulqiCheckout, CULQI_CERRADO } from "../culqi.js";
+import { MARCAS_TARJETA } from "../metodosPago.js";
 import { obtenerPagoIdempotencyKey, limpiarPagoIdempotencyKey } from "../pagoIdempotencia.js";
 import { useToast } from "../context/ToastContext.jsx";
+import EstadoVacio from "../components/EstadoVacio.jsx";
+import { IconCart } from "../components/Icons.jsx";
 
 const METODOS = [
   { id: "yape", label: "Yape" },
@@ -353,6 +356,7 @@ export default function Checkout() {
       //    token, se lo mandamos al backend para cobrar de verdad.
       let pagado = pedido.estado_pago !== "pendiente";
       let enRevision = false;
+      let motivoRechazo = "";
       if (pedido.estado_pago === "pendiente") {
         try {
           const { tokenId, email } = await abrirCulqiCheckout({
@@ -371,15 +375,18 @@ export default function Checkout() {
           enRevision = resultado?.estado_pago === "en_revision";
           if (!enRevision) limpiarPagoIdempotencyKey(pedido.id);
           pagado = !enRevision;
-        } catch {
+        } catch (errPago) {
           // El cliente cerró el widget, Culqi rechazó el pago, o el cobro
           // automático no está disponible todavía. El pedido ya quedó
           // creado — lo mandamos al detalle, donde puede reintentar el pago
           // (sin limpiar la clave: si el cobro sí llegó a hacerse en Culqi
           // pero la respuesta no llegó al navegador, el backend la
           // reconoce y no vuelve a cobrar).
+          // Si fue un rechazo (tarjeta sin fondos, etc.), se le dice el motivo en vez de callarlo.
+          if (errPago?.code !== CULQI_CERRADO && errPago?.message) motivoRechazo = errPago.message;
         }
       }
+      if (motivoRechazo) toast.error(motivoRechazo);
 
       toast.success(
         enRevision
@@ -406,9 +413,15 @@ export default function Checkout() {
 
   if (items.length === 0) {
     return (
-      <p className="mx-auto max-w-2xl px-4 py-16 text-center text-plum-soft">
-        Tu carrito está vacío. Agrega productos antes de continuar con el pago.
-      </p>
+      <div className="mx-auto max-w-2xl px-4 py-16">
+        <EstadoVacio
+          icono={IconCart}
+          titulo="Tu carrito está vacío"
+          texto="Agrega productos antes de continuar con el pago."
+          enlace="/tienda"
+          etiqueta="Ir a la tienda"
+        />
+      </div>
     );
   }
 
@@ -563,7 +576,7 @@ export default function Checkout() {
               </button>
             ))}
           </div>
-          <label htmlFor="chk-documento" className="sr-only">Número de {documentoActual.label}</label>
+          <label htmlFor="chk-documento" className="mb-1 block text-xs font-semibold text-plum">Número de {documentoActual.label}</label>
           <input
             id="chk-documento"
             placeholder={documentoActual.placeholder}
@@ -590,7 +603,7 @@ export default function Checkout() {
 
         {form.envio_tipo_documento === "ruc" ? (
           <div>
-            <label htmlFor="chk-razon-social" className="sr-only">Razón social</label>
+            <label htmlFor="chk-razon-social" className="mb-1 block text-xs font-semibold text-plum">Razón social</label>
             <input
               id="chk-razon-social"
               placeholder="Razón social (nombre de la empresa)"
@@ -607,7 +620,7 @@ export default function Checkout() {
         ) : (
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label htmlFor="chk-nombres" className="sr-only">Nombres</label>
+              <label htmlFor="chk-nombres" className="mb-1 block text-xs font-semibold text-plum">Nombres</label>
               <input
                 id="chk-nombres"
                 placeholder="Nombres"
@@ -622,7 +635,7 @@ export default function Checkout() {
               />
             </div>
             <div>
-              <label htmlFor="chk-apellidos" className="sr-only">Apellidos</label>
+              <label htmlFor="chk-apellidos" className="mb-1 block text-xs font-semibold text-plum">Apellidos</label>
               <input
                 id="chk-apellidos"
                 placeholder="Apellidos"
@@ -640,7 +653,7 @@ export default function Checkout() {
         )}
 
         <div>
-          <label htmlFor="chk-telefono" className="sr-only">Teléfono</label>
+          <label htmlFor="chk-telefono" className="mb-1 block text-xs font-semibold text-plum">Teléfono</label>
           <input
             id="chk-telefono"
             placeholder="Teléfono (9 dígitos)"
@@ -656,7 +669,7 @@ export default function Checkout() {
         </div>
 
         <div>
-          <label htmlFor="chk-email" className="sr-only">Correo electrónico</label>
+          <label htmlFor="chk-email" className="mb-1 block text-xs font-semibold text-plum">Correo electrónico</label>
           <input
             id="chk-email"
             type="email"
@@ -677,7 +690,7 @@ export default function Checkout() {
         {form.tipo_entrega === "delivery" && (
           <>
             <div>
-              <label htmlFor="chk-direccion" className="sr-only">Dirección</label>
+              <label htmlFor="chk-direccion" className="mb-1 block text-xs font-semibold text-plum">Dirección</label>
               <input
                 id="chk-direccion"
                 placeholder="Dirección"
@@ -693,7 +706,7 @@ export default function Checkout() {
               onChange={(ubic) => setForm((f) => ({ ...f, ...ubic }))}
             />
             <div>
-              <label htmlFor="chk-referencia" className="sr-only">Referencia</label>
+              <label htmlFor="chk-referencia" className="mb-1 block text-xs font-semibold text-plum">Referencia</label>
               <input
                 id="chk-referencia"
                 placeholder="Referencia (ej. frente al parque, casa azul)"
@@ -736,14 +749,14 @@ export default function Checkout() {
             ) : (
               <p>
                 Al confirmar tu pedido se abrirá un formulario seguro para pagar con tarjeta
-                Visa o Mastercard. Nunca guardamos tu número de tarjeta ni el CVV.
+                {" "}{MARCAS_TARJETA.join(" o ")}. Nunca guardamos tu número de tarjeta ni el CVV.
               </p>
             )}
           </div>
         </div>
 
         <div>
-          <label htmlFor="chk-nota" className="sr-only">Nota para tu pedido (opcional)</label>
+          <label htmlFor="chk-nota" className="mb-1 block text-xs font-semibold text-plum">Nota para tu pedido (opcional)</label>
           <textarea
             id="chk-nota"
             placeholder="Nota para tu pedido (opcional)"

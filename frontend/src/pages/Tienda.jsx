@@ -87,6 +87,9 @@ export default function Tienda() {
   const [categorias, setCategorias] = useState([]);
   const [productos, setProductos] = useState([]);
   const [meta, setMeta] = useState({ total: 0, paginas: 1, pagina_actual: 1 });
+  // Error al cargar (sin conexión, servidor caído): distinto de "no hay productos con esos filtros".
+  const [errorCarga, setErrorCarga] = useState(false);
+  const [reintentos, setReintentos] = useState(0);
   const [orden, setOrden] = useState("");
   const [cargando, setCargando] = useState(true);
   const [opciones, setOpciones] = useState(null); // rango de precios, colores y géneros que existen
@@ -99,6 +102,7 @@ export default function Tienda() {
 
   useEffect(() => {
     setCargando(true);
+    setErrorCarga(false);
     const params = { por_pagina: porPagina, pagina };
     ["categoria", "tallas", "colores", "genero", "precio_min", "precio_max", "calificacion", "q"].forEach((clave) => {
       const valor = searchParams.get(clave);
@@ -113,9 +117,10 @@ export default function Tienda() {
         setProductos(data.productos);
         setMeta({ total: data.total, paginas: data.paginas, pagina_actual: data.pagina_actual });
       })
+      .catch(() => setErrorCarga(true))
       .finally(() => setCargando(false));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParams.toString(), orden]);
+  }, [searchParams.toString(), orden, reintentos]);
 
   const actualizarParams = (cambios) => {
     const nuevos = new URLSearchParams(searchParams);
@@ -432,6 +437,17 @@ export default function Tienda() {
         <div className="min-w-0 flex-1">
           {cargando ? (
             <SkeletonProductGrid cantidad={porPagina} className={COLUMNAS_PRODUCTOS} />
+          ) : errorCarga ? (
+            <div className="text-plum-soft" role="alert">
+              <p>No pudimos cargar los productos. Revisa tu conexión e inténtalo de nuevo.</p>
+              <button
+                type="button"
+                onClick={() => setReintentos((n) => n + 1)}
+                className="mt-3 text-sm font-semibold text-berry hover:underline"
+              >
+                Reintentar
+              </button>
+            </div>
           ) : productos.length === 0 ? (
             <div className="text-plum-soft">
               <p>

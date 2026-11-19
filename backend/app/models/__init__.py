@@ -12,6 +12,7 @@ from app.models.pedido import Pedido, DetallePedido
 from app.models.proveedor import Proveedor, ProveedorProducto
 from app.models.compra import Compra, DetalleCompra
 from app.models.token_recuperacion import TokenRecuperacion
+from app.models.refresh_token import RefreshToken
 from app.models.favorito import Favorito
 from app.models.promocion import Promocion
 from app.models.reclamacion import Reclamacion
@@ -48,6 +49,7 @@ __all__ = [
     "Compra",
     "DetalleCompra",
     "TokenRecuperacion",
+    "RefreshToken",
     "Favorito",
     "Promocion",
     "Reclamacion",

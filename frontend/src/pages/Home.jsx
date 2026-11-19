@@ -42,14 +42,28 @@ function Hero({ promociones }) {
   const hayPromos = slides.length > 0;
   const imagenes = hayPromos ? slides.map((p) => p.imagen_url) : IMAGENES_POR_DEFECTO;
   const [indice, setIndice] = useState(0);
+  // El carrusel cambia el título y el botón principal: se detiene mientras la persona lo
+  // mira (mouse o foco de teclado) o si pidió "reducir movimiento" en su sistema (WCAG 2.2.2).
+  const [pausado, setPausado] = useState(false);
+  const [reducirMovimiento, setReducirMovimiento] = useState(
+    () => typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches
+  );
 
   useEffect(() => setIndice(0), [imagenes.length]);
 
   useEffect(() => {
-    if (imagenes.length <= 1) return;
+    const consulta = window.matchMedia?.("(prefers-reduced-motion: reduce)");
+    if (!consulta) return undefined;
+    const alCambiar = (e) => setReducirMovimiento(e.matches);
+    consulta.addEventListener?.("change", alCambiar);
+    return () => consulta.removeEventListener?.("change", alCambiar);
+  }, []);
+
+  useEffect(() => {
+    if (imagenes.length <= 1 || pausado || reducirMovimiento) return undefined;
     const id = setInterval(() => setIndice((i) => (i + 1) % imagenes.length), 4500);
     return () => clearInterval(id);
-  }, [imagenes.length]);
+  }, [imagenes.length, pausado, reducirMovimiento]);
 
   const anterior = () => setIndice((i) => (i - 1 + imagenes.length) % imagenes.length);
   const siguiente = () => setIndice((i) => (i + 1) % imagenes.length);
@@ -59,9 +73,17 @@ function Hero({ promociones }) {
   const claseBoton = "btn mt-7 !rounded-[10px] bg-white/90 !px-6 !py-3 text-base text-plum hover:bg-white";
 
   return (
-    <section className="bg-gradient-to-br from-plum via-berry-dark to-berry text-white">
+    <section
+      className="bg-gradient-to-br from-plum via-berry-dark to-berry text-white"
+      onMouseEnter={() => setPausado(true)}
+      onMouseLeave={() => setPausado(false)}
+      onFocusCapture={() => setPausado(true)}
+      onBlurCapture={(e) => {
+        if (!e.currentTarget.contains(e.relatedTarget)) setPausado(false);
+      }}
+    >
       <div className="mx-auto grid max-w-6xl items-center gap-10 px-4 pb-24 pt-12 md:grid-cols-[1.1fr_0.9fr] md:pb-32 md:pt-20">
-        <div>
+        <div aria-live={pausado || reducirMovimiento ? "polite" : "off"}>
           <p className="text-xs font-bold uppercase tracking-[0.2em] text-berry-light">
             {promoActual ? promoActual.etiqueta || "Anita New Style" : "Nueva colección"}
           </p>
@@ -123,10 +145,16 @@ function Hero({ promociones }) {
                   key={url + i}
                   onClick={() => setIndice(i)}
                   aria-label={`Ir a la imagen ${i + 1}`}
-                  className={`h-1.5 rounded-full transition-all ${
-                    i === indice ? "w-6 bg-white" : "w-1.5 bg-white/40 hover:bg-white/70"
-                  }`}
-                />
+                  aria-current={i === indice ? "true" : undefined}
+                  className="group flex h-6 min-w-6 items-center justify-center px-0.5"
+                >
+                  {/* El punto se ve chico, pero el área que se toca mide 24 px. */}
+                  <span
+                    className={`block h-1.5 rounded-full transition-all ${
+                      i === indice ? "w-6 bg-white" : "w-1.5 bg-white/40 group-hover:bg-white/70"
+                    }`}
+                  />
+                </button>
               ))}
             </div>
           )}
@@ -244,7 +272,9 @@ export default function Home() {
         </section>
       )}
 
-      {/* Destacados */}
+      {/* Destacados. Si no hay ninguno (o la carga falló) la sección no se muestra, en vez de
+          quedar con el título y vacía. */}
+      {(cargandoDestacados || destacados.length > 0) && (
       <section className="mx-auto mt-14 max-w-6xl px-4">
         <div className="mb-5 flex items-center justify-between">
           <h2 className="text-2xl text-plum sm:text-3xl">Productos destacados</h2>
@@ -267,6 +297,7 @@ export default function Home() {
           </div>
         )}
       </section>
+      )}
 
     </div>
   );

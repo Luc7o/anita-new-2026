@@ -58,6 +58,8 @@ class Pedido(db.Model):
         "rechazado": "Pago rechazado",
         "no_aplica": "No aplica",
         "reembolso_pendiente": "Reembolso pendiente",
+        # Se le pidió el reembolso a Culqi y no se confirmó todavía (ver migración 007).
+        "reembolsando": "Reembolso en proceso",
         "reembolsado": "Reembolsado",
     }
     # De dónde vino el pedido: compra normal del checkout público, o venta

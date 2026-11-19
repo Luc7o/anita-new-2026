@@ -117,10 +117,38 @@ class Usuario(db.Model):
     def registrar_intento_fallido(self):
         """Se llama tras un password incorrecto. Al llegar al umbral,
         bloquea la cuenta por un rato — este contador vive en la base de datos, así
-        que funciona igual sin importar si el rate limiter tiene Redis."""
-        self.intentos_fallidos_login += 1
-        if self.intentos_fallidos_login >= self.UMBRAL_INTENTOS_FALLIDOS:
-            self.bloqueado_hasta = datetime.utcnow() + self.DURACION_BLOQUEO
+        que funciona igual sin importar si el rate limiter tiene Redis.
+
+        Es UN solo UPDATE atómico: antes se leía el contador y se escribía +1 desde Python,
+        así que varios intentos en paralelo (rotando IP) se pisaban y nunca llegaban al
+        umbral. Además, si el bloqueo anterior ya venció, el conteo vuelve a empezar desde 1:
+        antes seguía en 5 y un solo fallo volvía a bloquear la cuenta (cualquiera podía
+        mantener bloqueada la cuenta de otra persona). No hace commit."""
+        from sqlalchemy import and_, case, update
+        from sqlalchemy.orm.attributes import set_committed_value
+
+        ahora = datetime.utcnow()
+        cls = type(self)
+        bloqueo_vencido = and_(cls.bloqueado_hasta.isnot(None), cls.bloqueado_hasta <= ahora)
+        intentos = case((bloqueo_vencido, 1), else_=cls.intentos_fallidos_login + 1)
+        fila = db.session.execute(
+            update(cls)
+            .where(cls.id == self.id)
+            .values(
+                intentos_fallidos_login=intentos,
+                bloqueado_hasta=case(
+                    (intentos >= self.UMBRAL_INTENTOS_FALLIDOS, ahora + self.DURACION_BLOQUEO),
+                    (bloqueo_vencido, None),
+                    else_=cls.bloqueado_hasta,
+                ),
+            )
+            .returning(cls.intentos_fallidos_login, cls.bloqueado_hasta)
+            .execution_options(synchronize_session=False)
+        ).one()
+        # Deja el objeto con los valores reales de la base, sin marcarlo como modificado
+        # (si no, el siguiente commit volvería a escribir encima el valor viejo).
+        set_committed_value(self, "intentos_fallidos_login", fila.intentos_fallidos_login)
+        set_committed_value(self, "bloqueado_hasta", fila.bloqueado_hasta)
 
     def resetear_intentos_fallidos(self):
         self.intentos_fallidos_login = 0

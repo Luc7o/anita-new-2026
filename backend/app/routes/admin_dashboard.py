@@ -72,7 +72,7 @@ def atencion():
         pedidos_query = Pedido.query
         if rol == "ventas":
             pedidos_query = pedidos_query.filter(Pedido.origen == "online", Pedido.tipo_entrega == "delivery")
-        reembolsos = pedidos_query.filter_by(estado_pago="reembolso_pendiente").count()
+        reembolsos = pedidos_query.filter(Pedido.estado_pago.in_(("reembolso_pendiente", "reembolsando"))).count()
         revisar = pedidos_query.filter_by(estado_pago="en_revision").count()
         pendientes = pedidos_query.filter_by(estado="pendiente").count()
         if reembolsos:

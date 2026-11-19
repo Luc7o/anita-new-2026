@@ -1,5 +1,6 @@
 import React from "react";
 import PaginaInfo from "./PaginaInfo.jsx";
+import { METODOS_PAGO_TIENDA } from "../metodosPago.js";
 
 export default function FormasPago() {
   return (
@@ -9,22 +10,16 @@ export default function FormasPago() {
       contenido={
         <div className="space-y-6">
           <p className="text-lg text-plum-soft">
-            En <strong className="text-plum">Anita New Style</strong> ofrecemos múltiples opciones de pago para que elijas la que mejor se adapte a ti.
+            En <strong className="text-plum">Anita New Style</strong> puedes pagar tu compra en línea con:
           </p>
           
           <div className="grid gap-4 sm:grid-cols-2">
-            <div className="rounded-xl border border-plum/10 bg-white/50 p-5 shadow-sm">
-              <h3 className="font-semibold text-plum">Tarjetas de crédito/débito</h3>
-              <p className="mt-1 text-sm text-plum-soft">Visa, Mastercard, American Express. Pagos seguros con verificación.</p>
-            </div>
-            <div className="rounded-xl border border-plum/10 bg-white/50 p-5 shadow-sm">
-              <h3 className="font-semibold text-plum">Yape / Plin</h3>
-              <p className="mt-1 text-sm text-plum-soft">Pago inmediato desde tu celular. Sin comisiones adicionales.</p>
-            </div>
-            <div className="rounded-xl border border-plum/10 bg-white/50 p-5 shadow-sm">
-              <h3 className="font-semibold text-plum">Pago contraentrega</h3>
-              <p className="mt-1 text-sm text-plum-soft">Disponible solo en Huancayo. Consulta disponibilidad antes de comprar.</p>
-            </div>
+            {METODOS_PAGO_TIENDA.map((m) => (
+              <div key={m.id} className="rounded-xl border border-plum/10 bg-white/50 p-5 shadow-sm">
+                <h3 className="font-semibold text-plum">{m.titulo}</h3>
+                <p className="mt-1 text-sm text-plum-soft">{m.detalle}</p>
+              </div>
+            ))}
           </div>
 
           <div className="mt-4 rounded-xl bg-plum/5 p-5 border border-plum/10">

@@ -14,6 +14,7 @@ const ESTADOS_PAGO = {
   pendiente: "Pendiente",
   rechazado: "Pago rechazado",
   reembolso_pendiente: "Reembolso pendiente",
+  reembolsando: "Reembolso en proceso",
   reembolsado: "Reembolsado",
   no_aplica: "No aplica",
 };
@@ -146,7 +147,7 @@ export default function AdminPedidos() {
                       {p.estado_pago !== "no_aplica" && (
                         <span
                           className={`rounded-md px-2.5 py-1 text-xs font-semibold ${
-                            p.estado_pago === "en_revision" || p.estado_pago === "reembolso_pendiente"
+                            p.estado_pago === "en_revision" || p.estado_pago === "reembolso_pendiente" || p.estado_pago === "reembolsando"
                               ? "bg-gold/30 text-plum"
                               : p.estado_pago === "verificado"
                               ? "bg-berry/10 text-berry-dark"
@@ -199,7 +200,7 @@ export default function AdminPedidos() {
                   {p.estado_pago !== "no_aplica" && (
                     <span
                       className={`rounded-md px-2.5 py-1 text-xs font-semibold ${
-                        p.estado_pago === "en_revision" || p.estado_pago === "reembolso_pendiente"
+                        p.estado_pago === "en_revision" || p.estado_pago === "reembolso_pendiente" || p.estado_pago === "reembolsando"
                           ? "bg-gold/30 text-plum"
                           : p.estado_pago === "verificado"
                           ? "bg-berry/10 text-berry-dark"

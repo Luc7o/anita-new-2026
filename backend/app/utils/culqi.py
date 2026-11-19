@@ -145,9 +145,13 @@ def reembolsar_en_culqi(pedido, motivo="solicitud_comprador"):
             headers={"Authorization": f"Bearer {secret_key}"},
             timeout=20,
         )
-    except requests.RequestException as e:
-        current_app.logger.error(f"Error de red reembolsando pedido {pedido.id} en Culqi: {e}")
+    except requests.ConnectTimeout as e:
+        current_app.logger.error(f"No se pudo conectar con Culqi para reembolsar el pedido {pedido.id}: {e}")
         return False, None, "No se pudo contactar la pasarela de pago para el reembolso, intenta de nuevo"
+    except requests.RequestException as e:
+        # Igual que al cobrar: el pedido de reembolso pudo llegar a Culqi.
+        current_app.logger.error(f"Culqi no respondió bien al reembolsar el pedido {pedido.id}: {e}")
+        return INCIERTO, None, None
 
     data = _json_o_vacio(resp)
 
@@ -160,4 +164,4 @@ def reembolsar_en_culqi(pedido, motivo="solicitud_comprador"):
         return False, None, mensaje
 
     current_app.logger.error(f"Respuesta inesperada de Culqi (reembolso) para pedido {pedido.id}: {resp.status_code} {data}")
-    return False, None, "La pasarela de pago no respondió como esperábamos al reembolsar"
+    return INCIERTO, None, None

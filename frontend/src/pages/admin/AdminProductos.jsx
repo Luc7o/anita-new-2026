@@ -63,6 +63,8 @@ export default function AdminProductos() {
   const [form, setForm] = useState(VACIO);
   const [imagenes, setImagenes] = useState([]); // [{ url, color }]
   const [stockVariantes, setStockVariantes] = useState({}); // { "talla||color": stock }
+  // Stock al abrir el formulario de edición: { simple, combos: { "talla||color": stock } }
+  const [stockOriginal, setStockOriginal] = useState(null);
   const [editandoId, setEditandoId] = useState(null);
   const [mostrarForm, setMostrarForm] = useState(false);
   const [error, setError] = useState("");
@@ -119,6 +121,7 @@ export default function AdminProductos() {
     setForm({ ...VACIO, categoria_id: categorias[0]?.id || "" });
     setImagenes([]);
     setStockVariantes({});
+    setStockOriginal(null);
     setMostrarForm(true);
   };
 
@@ -148,6 +151,11 @@ export default function AdminProductos() {
       mapaStock[claveCombo(v.talla, v.color)] = v.stock;
     });
     setStockVariantes(mapaStock);
+    // El stock que vio el admin al abrir el formulario. Al guardar se manda junto al nuevo:
+    // el servidor aplica solo la DIFERENCIA, así no se pierden las ventas hechas mientras
+    // el formulario estaba abierto.
+    setStockOriginal({ simple: detalle.stock, combos: { ...mapaStock } });
+    setForm((f) => ({ ...f, stock: detalle.stock }));
     setMostrarForm(true);
   };
 
@@ -198,17 +206,26 @@ export default function AdminProductos() {
       colores: coloresActuales,
       imagenes: imagenes.map((img) => ({ url: img.url, color: img.color || null })),
       variantes: usaVariantes
-        ? combosActuales.map((combo) => ({
-            talla: combo.talla,
-            color: combo.color,
-            stock: stockVariantes[claveCombo(combo.talla, combo.color)] || 0,
-          }))
+        ? combosActuales.map((combo) => {
+            const clave = claveCombo(combo.talla, combo.color);
+            const original = stockOriginal?.combos?.[clave];
+            return {
+              talla: combo.talla,
+              color: combo.color,
+              stock: stockVariantes[clave] || 0,
+              ...(original !== undefined ? { stock_original: original } : {}),
+            };
+          })
         : [],
+      ...(editandoId && !usaVariantes && stockOriginal?.simple !== undefined
+        ? { stock_original: stockOriginal.simple }
+        : {}),
     };
     // Almacén solo puede enviar los campos de stock: el servidor rechaza cualquier otro.
     const payload = soloStock
       ? {
           stock: payloadCompleto.stock,
+          ...(payloadCompleto.stock_original !== undefined ? { stock_original: payloadCompleto.stock_original } : {}),
           tallas: payloadCompleto.tallas,
           colores: payloadCompleto.colores,
           variantes: payloadCompleto.variantes,

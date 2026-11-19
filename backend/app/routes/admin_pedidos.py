@@ -25,7 +25,7 @@ from app.roles import (
 )
 from app.utils.stock import restaurar_stock_de_pedido, agrupar_por_variante, variante_de, validar_stock_disponible, descontar_stock
 from app.utils.boleta import responder_boleta
-from app.utils.culqi import reembolsar_en_culqi
+from app.utils.culqi import INCIERTO, reembolsar_en_culqi
 from app.utils.historial import cambiar_estado_pedido
 from app.utils.notificaciones import (
     notificar_estado_pedido, notificar_pago_confirmado, notificar_reembolso,
@@ -331,14 +331,38 @@ def revisar_pago(pedido_id):
     # Marcar "reembolsado" es la ÚNICA acción permitida en un pedido ya cancelado
     # (es justamente lo que hay que hacer después de cancelarlo si tenía pago verificado).
     if nuevo_estado_pago == "reembolsado":
+        # "reembolsando": ya se le pidió el reembolso a Culqi y no se supo el resultado. Marcarlo
+        # ahora NO vuelve a llamar a Culqi: es la confirmación de quien ya lo vio en su panel.
+        if pedido.estado_pago == "reembolsando":
+            pedido.estado_pago = "reembolsado"
+            db.session.add(IntentoPago(
+                pedido_id=pedido.id, monto=pedido.total, estado="reembolsado",
+                motivo_rechazo="confirmado a mano desde el panel",
+            ))
+            db.session.commit()
+            notificar_reembolso(pedido)
+            return jsonify(pedido.to_dict())
         if pedido.estado_pago != "reembolso_pendiente":
             return jsonify({"error": "Este pedido no tiene un reembolso pendiente"}), 400
         # Si se cobró por pasarela (Culqi), el dinero se devuelve de verdad
         # ahí ANTES de marcar el pedido como reembolsado — así este estado
         # no es solo una etiqueta en el panel, refleja un reembolso real.
         if pedido.metodo_pago in ("tarjeta", "yape") and pedido.culqi_cargo_id:
+            # Primero se deja constancia (y se guarda) de que el reembolso está en curso. Si
+            # Culqi devuelve el dinero pero después algo falla, el pedido queda "reembolsando"
+            # y nadie puede volver a pedir el reembolso por error (devolvería el dinero dos veces).
+            pedido.estado_pago = "reembolsando"
+            db.session.commit()
             ok, reembolso_id, error = reembolsar_en_culqi(pedido)
+            pedido = _pedido_bloqueado(pedido_id)
+            if ok is INCIERTO:
+                db.session.commit()
+                return jsonify({
+                    **pedido.to_dict(),
+                    "error": "Culqi no confirmó el reembolso a tiempo. Revísalo en el panel de Culqi y luego confírmalo aquí.",
+                }), 202
             if not ok:
+                pedido.estado_pago = "reembolso_pendiente"
                 db.session.add(IntentoPago(
                     pedido_id=pedido.id, monto=pedido.total, estado="rechazado",
                     motivo_rechazo=f"reembolso: {error}",
@@ -458,7 +482,7 @@ def estadisticas():
     total_pedidos = Pedido.query.count()
     pendientes = Pedido.query.filter_by(estado="pendiente").count()
     pagos_por_revisar = Pedido.query.filter_by(estado_pago="en_revision").count()
-    reembolsos_pendientes = Pedido.query.filter_by(estado_pago="reembolso_pendiente").count()
+    reembolsos_pendientes = Pedido.query.filter(Pedido.estado_pago.in_(("reembolso_pendiente", "reembolsando"))).count()
 
     ventas_confirmadas = db.session.query(db.func.coalesce(db.func.sum(Pedido.total), 0)).filter(
         db.or_(
@@ -477,7 +501,7 @@ def estadisticas():
         Pedido.estado_pago == "rechazado"
     ).scalar()
     monto_reembolsos = db.session.query(db.func.coalesce(db.func.sum(Pedido.total), 0)).filter(
-        Pedido.estado_pago.in_(("reembolso_pendiente", "reembolsado"))
+        Pedido.estado_pago.in_(("reembolso_pendiente", "reembolsando", "reembolsado"))
     ).scalar()
     monto_cancelado = db.session.query(db.func.coalesce(db.func.sum(Pedido.total), 0)).filter(
         Pedido.estado == "cancelado"
