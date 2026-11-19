@@ -12,7 +12,7 @@ export default function Logo({ tone = "light", className = "", conNombre = true 
   const { logo_url, nombre_comercial } = useConfigTienda();
   const claro = tone === "light";
   return (
-    <span className={`inline-flex items-center gap-3 ${className}`}>
+    <span className={`inline-flex items-center gap-2 min-[400px]:gap-3 ${className}`}>
       <img
         src={logo_url || "/logo-anita-new-style.png"}
         alt={conNombre ? "" : nombre_comercial || "Anita New Style"}
@@ -21,7 +21,7 @@ export default function Logo({ tone = "light", className = "", conNombre = true 
       />
       {conNombre && (
         <span
-          className={`font-display text-sm font-extrabold uppercase leading-none tracking-[0.06em] sm:text-base ${
+          className={`font-display text-xs font-extrabold uppercase leading-none tracking-[0.03em] min-[400px]:text-sm min-[400px]:tracking-[0.06em] sm:text-base ${
             claro ? "text-white" : "text-plum"
           }`}
         >

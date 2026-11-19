@@ -180,7 +180,7 @@ export default function Navbar() {
       <BarraAnuncios />
       <header className="sticky top-0 z-30 border-b border-plum/8 bg-ivory/85 backdrop-blur-md">
         <nav className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3 sm:px-8" aria-label="Principal">
-          <Link to="/" onClick={cerrar} className="mr-4 shrink-0" aria-label="Anita New Style, ir al inicio">
+          <Link to="/" onClick={cerrar} className="shrink-0 sm:mr-4" aria-label="Anita New Style, ir al inicio">
             <Logo tone="dark" />
           </Link>
 
@@ -194,7 +194,7 @@ export default function Navbar() {
 
           {formBusqueda("ml-auto hidden w-60 xl:w-72 md:flex")}
 
-          <div className="ml-auto flex items-center gap-2 md:ml-2">
+          <div className="ml-auto flex items-center gap-1.5 sm:gap-2 md:ml-2">
             {/* En el celular la búsqueda es un ícono visible, no algo escondido en el menú. */}
             <AnimateIcon animateOnHover animateOnTap asChild>
               <button
@@ -207,7 +207,10 @@ export default function Navbar() {
               </button>
             </AnimateIcon>
 
-            <BotonTema />
+            {/* En el celular no entra en la barra: va dentro del menú (abajo). */}
+            <div className="hidden sm:block">
+              <BotonTema />
+            </div>
 
             {usuario ? (
               <UserMenu usuario={usuario} onLogout={cerrarSesion} />
@@ -280,6 +283,10 @@ export default function Navbar() {
                     {e.etiqueta}
                   </Enlace>
                 ))}
+                <div className="mt-1 flex items-center justify-between rounded-xl px-3 py-1.5 sm:hidden">
+                  <span className="text-base font-bold text-plum">Modo de color</span>
+                  <BotonTema />
+                </div>
                 {!usuario && (
                   <Link to="/ingresar" onClick={cerrar} className="btn-dark mt-2">
                     Ingresar
