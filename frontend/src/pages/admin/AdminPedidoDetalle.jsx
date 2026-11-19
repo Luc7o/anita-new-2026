@@ -256,7 +256,7 @@ export default function AdminPedidoDetalle() {
               </h2>
               <span
                 className={`rounded-md px-2.5 py-1 text-xs font-semibold ${
-                  pedido.estado_pago === "reembolso_pendiente"
+                  (pedido.estado_pago === "reembolso_pendiente" || pedido.estado_pago === "reembolsando")
                     ? "bg-gold/30 text-plum"
                     : pedido.estado_pago === "reembolsado"
                     ? "bg-plum/10 text-plum-soft"
@@ -295,9 +295,9 @@ export default function AdminPedidoDetalle() {
             {puedeRevisarPago && pedido.estado_pago === "reembolso_pendiente" && (
               <div className="mt-3">
                 <p className="mb-2 text-sm text-plum-soft">
-                  Este pedido se canceló después de que el pago ya estaba verificado —
-                  hay que devolverle el dinero al cliente por fuera del sistema
-                  (Yape, transferencia, etc.) y luego marcarlo aquí.
+                  Este pedido se canceló después de que el pago ya estaba verificado. Si se
+                  cobró con Culqi, al marcarlo se reembolsa ahí automáticamente; si se pagó de
+                  otra forma, devuelve el dinero por fuera (Yape, transferencia) y luego márcalo.
                 </p>
                 <button
                   onClick={() => revisarPago("reembolsado")}
@@ -305,6 +305,22 @@ export default function AdminPedidoDetalle() {
                   className="rounded-[10px] bg-berry px-4 py-2 text-sm font-semibold text-white transition hover:bg-berry-dark disabled:opacity-60"
                 >
                   Marcar como reembolsado
+                </button>
+              </div>
+            )}
+
+            {puedeRevisarPago && pedido.estado_pago === "reembolsando" && (
+              <div className="mt-3">
+                <p className="mb-2 text-sm text-plum-soft">
+                  Se pidió el reembolso a Culqi pero no confirmó el resultado. Búscalo en el panel
+                  de Culqi: si el reembolso aparece, confírmalo aquí (no se vuelve a reembolsar).
+                </p>
+                <button
+                  onClick={() => revisarPago("reembolsado")}
+                  disabled={actualizando}
+                  className="rounded-[10px] bg-berry px-4 py-2 text-sm font-semibold text-white transition hover:bg-berry-dark disabled:opacity-60"
+                >
+                  Confirmar reembolso hecho en Culqi
                 </button>
               </div>
             )}

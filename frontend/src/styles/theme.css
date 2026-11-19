@@ -145,6 +145,18 @@ textarea:focus-visible {
   border-radius: 4px;
 }
 
+/* La clase de Tailwind focus:outline-none (usada en decenas de campos de la tienda) tiene más
+   especificidad que la regla de arriba y borraba el foco: quien usa teclado no veía en qué
+   campo estaba, por ejemplo en el checkout. Estas reglas van DESPUÉS de las utilidades de
+   Tailwind y con la misma especificidad, así que ganan solo para el foco por teclado
+   (focus-visible); con el mouse no se ve ningún contorno extra. */
+.focus\:outline-none:focus-visible,
+.outline-none:focus-visible,
+.focus-visible\:outline-none:focus-visible {
+  outline: 2px solid #c42759;
+  outline-offset: 2px;
+}
+
 @media (prefers-reduced-motion: reduce) {
   * {
     animation: none !important;

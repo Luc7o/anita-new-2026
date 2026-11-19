@@ -6,7 +6,7 @@ import { SkeletonPedidoDetalle } from "../components/Skeleton.jsx";
 import { useParams, Link } from "react-router-dom";
 import { api } from "../api/client.js";
 import { useAuth } from "../context/AuthContext.jsx";
-import { abrirCulqiCheckout } from "../culqi.js";
+import { abrirCulqiCheckout, CULQI_CERRADO } from "../culqi.js";
 import { obtenerPagoIdempotencyKey, limpiarPagoIdempotencyKey } from "../pagoIdempotencia.js";
 import { armarLinkWhatsApp } from "../whatsapp.js";
 import SeguimientoPedido from "../components/SeguimientoPedido.jsx";
@@ -20,6 +20,7 @@ const ESTADO_PAGO_ESTILOS = {
   rechazado: "bg-red-100 text-red-700",
   no_aplica: "bg-plum/10 text-plum-soft",
   reembolso_pendiente: "bg-gold/20 text-plum",
+  reembolsando: "bg-gold/20 text-plum",
   reembolsado: "bg-plum/10 text-plum-soft",
 };
 
@@ -79,7 +80,8 @@ export default function PedidoDetalle() {
         toast.success("¡Pago recibido! Gracias por tu compra");
       }
     } catch (err) {
-      setErrorPago(err.message);
+      // Cerrar la ventana de pago no es un error que haya que mostrar en rojo.
+      setErrorPago(err.code === CULQI_CERRADO ? "" : err.message);
     } finally {
       setPagando(false);
     }
@@ -314,7 +316,7 @@ export default function PedidoDetalle() {
               </p>
             )}
 
-            {pedido.estado_pago === "reembolso_pendiente" && (
+            {(pedido.estado_pago === "reembolso_pendiente" || pedido.estado_pago === "reembolsando") && (
               <p className="mt-3 text-sm text-plum-soft">
                 Como ya habías pagado, te vamos a devolver tu dinero. Nos pondremos en
                 contacto contigo para coordinarlo.

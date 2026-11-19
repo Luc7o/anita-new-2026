@@ -25,18 +25,32 @@ function cargarScriptCulqi() {
   return cargaScript;
 }
 
+// Error con el que se rechaza la promesa cuando el cliente cierra el widget sin pagar.
+export const CULQI_CERRADO = "culqi_cerrado";
+
+// Máximo que se espera al widget: lo mismo que dura el plazo de pago del pedido (20 min).
+const MS_MAXIMO_WIDGET = 20 * 60 * 1000;
+const MS_REVISION = 700;
+
+// La ventana del widget es un iframe de Culqi. Se considera abierta si existe y se ve.
+function widgetVisible() {
+  const marco = document.querySelector('iframe[src*="culqi"]');
+  if (!marco) return false;
+  const estilo = window.getComputedStyle(marco);
+  return estilo.display !== "none" && estilo.visibility !== "hidden" && marco.offsetParent !== null;
+}
+
 /**
  * Abre el widget de Culqi (tarjeta o Yape) por el monto indicado y se
  * resuelve con { tokenId, email } cuando el cliente completa el pago.
  * Se rechaza si Culqi devuelve un error (tarjeta inválida, Yape mal
  * ingresado, etc).
  *
- * OJO — limitación conocida: si el cliente cierra el popup con la "X" sin
- * llegar a pagar, Culqi Checkout no dispara ningún callback (no hay evento
- * de "cancelado" documentado), así que esta promesa se queda sin resolver.
- * El botón de "Pagar" se lo dejamos deshabilitado mientras tanto; si esto
- * resulta molesto en la práctica conviene agregar un timeout o revisarlo
- * con soporte de Culqi.
+ * Si el cliente cierra el widget con la "X" sin pagar, se rechaza con un error cuyo `code`
+ * es CULQI_CERRADO. Culqi Checkout no documenta un evento de "cancelado", así que se detecta
+ * de tres formas: el callback `closeCheckout` si esta versión de Culqi lo llama, que su
+ * ventana desaparezca sin haber entregado un token, o un tiempo máximo (el plazo de pago).
+ * Antes la promesa quedaba sin resolver y el checkout se quedaba con el spinner para siempre.
  */
 export async function abrirCulqiCheckout({ amountCentavos, email, metodoPago }) {
   if (!CULQI_PUBLIC_KEY) {
@@ -74,7 +88,26 @@ export async function abrirCulqiCheckout({ amountCentavos, email, metodoPago }) 
 
     const Culqi = new window.CulqiCheckout(CULQI_PUBLIC_KEY, config);
 
+    let terminado = false;
+    let seVioAbierto = false;
+    let revision = null;
+    let limite = null;
+    const terminar = () => {
+      terminado = true;
+      clearInterval(revision);
+      clearTimeout(limite);
+    };
+    const cerradoSinPagar = () => {
+      if (terminado) return;
+      terminar();
+      const error = new Error("Cerraste la ventana de pago sin completarla");
+      error.code = CULQI_CERRADO;
+      reject(error);
+    };
+
     Culqi.culqi = () => {
+      if (terminado) return;
+      terminar();
       if (Culqi.token) {
         const token = Culqi.token;
         Culqi.close();
@@ -86,6 +119,15 @@ export async function abrirCulqiCheckout({ amountCentavos, email, metodoPago }) 
         reject(new Error(mensaje));
       }
     };
+    // Algunas versiones de Culqi Checkout llaman a este callback al cerrar; si no, no pasa nada.
+    Culqi.closeCheckout = cerradoSinPagar;
+
+    revision = setInterval(() => {
+      const visible = widgetVisible();
+      if (visible) seVioAbierto = true;
+      else if (seVioAbierto) cerradoSinPagar();
+    }, MS_REVISION);
+    limite = setTimeout(cerradoSinPagar, MS_MAXIMO_WIDGET);
 
     Culqi.open();
   });

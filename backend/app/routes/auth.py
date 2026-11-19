@@ -10,10 +10,11 @@ from flask_jwt_extended import (
     create_refresh_token,
     decode_token,
     get_csrf_token,
+    get_jti,
     get_jwt_identity,
 )
 from app.extensions import db, limiter
-from app.models import Usuario, TokenRecuperacion, UbigeoDistrito, CodigoRespaldo
+from app.models import Usuario, TokenRecuperacion, UbigeoDistrito, CodigoRespaldo, RefreshToken
 from app.utils.decorators import requiere_activo
 from app.utils.correo import enviar_correo
 from app.utils.google_auth import verificar_token_google, TokenGoogleInvalido
@@ -58,6 +59,18 @@ def _borrar_cookies_refresh(respuesta):
     respuesta.delete_cookie(nombre_csrf, path="/", domain=dominio)
 
 
+def _datos_refresh():
+    """Claims del refresh token de la cookie del panel actual (None si no hay o no decodifica)."""
+    nombre, _, _ = _nombres_cookies()
+    token = request.cookies.get(nombre)
+    if not token:
+        return None
+    try:
+        return decode_token(token)
+    except Exception:
+        return None
+
+
 def _usuario_desde_refresh(obligatorio=True):
     """Lee el refresh token de la cookie del panel actual, valida CSRF,
     tipo y sesion_version. Devuelve el Usuario o None (si no es obligatorio)."""
@@ -88,6 +101,9 @@ def _crear_par_tokens(usuario):
     claims = {"sv": usuario.sesion_version}
     access_token = create_access_token(identity=str(usuario.id), additional_claims=claims)
     refresh_token = create_refresh_token(identity=str(usuario.id), additional_claims=claims)
+    # Cada refresh queda anotado para que sirva UNA sola vez (ver refrescar_token).
+    RefreshToken.registrar(get_jti(refresh_token), usuario.id, current_app.config["JWT_REFRESH_TOKEN_EXPIRES"])
+    db.session.commit()
     return access_token, refresh_token
 
 
@@ -676,16 +692,26 @@ def refrescar_token():
     el request también debe traer el header X-CSRF-Token con el valor de
     la cookie legible "csrf_refresh_token" (patrón CSRF de doble envío).
 
-    Rotación: cada vez que se usa el refresh token, se emite uno NUEVO (y
-    se reemplaza la cookie) en vez de reutilizar el mismo por sus 30 días
-    completos — así una cookie de refresh vieja/filtrada deja de ser útil
-    en cuanto el dueño legítimo vuelve a usar la suya.
+    Rotación real: cada refresh token sirve UNA sola vez (tabla refresh_tokens). Al usarlo se
+    emite uno nuevo y el anterior queda gastado. Si alguien presenta uno ya gastado (fuera del
+    margen de unos segundos para pestañas que refrescan a la vez), es señal de que la cookie se
+    copió: se cierran TODAS las sesiones de la cuenta y la dueña vuelve a iniciar sesión.
     """
     usuario = _usuario_desde_refresh()
     if not usuario:
         return jsonify({"error": "Sesión inválida, vuelve a iniciar sesión", "code": "token_invalido"}), 401
     if not usuario.activo:
         return jsonify({"error": "Cuenta no disponible"}), 403
+
+    resultado = RefreshToken.consumir(_datos_refresh()["jti"], usuario.id)
+    if resultado == "robo":
+        usuario.sesion_version += 1  # invalida todo access y refresh emitido hasta ahora
+        db.session.commit()
+        current_app.logger.warning(f"Refresh token reutilizado para el usuario {usuario.id}: sesiones cerradas.")
+        respuesta = jsonify({"error": "Tu sesión ya no es válida, vuelve a iniciar sesión", "code": "token_invalido"})
+        _borrar_cookies_refresh(respuesta)
+        return respuesta, 401
+    db.session.commit()
 
     respuesta, _ = _respuesta_con_sesion(usuario, con_usuario=False)
     return respuesta

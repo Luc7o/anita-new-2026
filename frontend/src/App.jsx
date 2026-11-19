@@ -159,8 +159,20 @@ export default function App() {
   return (
     <div className="min-h-screen">
       {bannerSesionExpirada}
+      {/* Enlace para saltar el menú con el teclado: invisible hasta que recibe el foco. */}
+      <a
+        href="#contenido"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-[10px] focus:bg-white focus:px-4 focus:py-2 focus:font-semibold focus:text-plum focus:shadow-pop"
+      >
+        Saltar al contenido
+      </a>
       <Navbar />
-      <main className={location.pathname === "/" || location.pathname === "/tienda" ? "" : "pt-8"}>
+      <main
+        id="contenido"
+        tabIndex={-1}
+        style={{ outline: "none" }}
+        className={location.pathname === "/" || location.pathname === "/tienda" ? "" : "pt-8"}
+      >
         {/* key: al cambiar de ruta el contenido se vuelve a montar y entra con
             una animación suave (fundido + leve subida) en vez de "saltar". */}
         <div key={location.pathname} className="animate-fade-in-up">

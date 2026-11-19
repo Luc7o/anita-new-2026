@@ -201,16 +201,25 @@ export default function CartDrawer() {
               >
                 Ver carrito
               </Link>
-              <Link
-                to="/checkout"
-                onClick={cerrar}
-                aria-disabled={hayProblemas}
-                className={`block w-full rounded-full bg-berry py-3 text-center font-semibold text-white shadow-glass transition hover:bg-berry-dark active:scale-[0.98] ${
-                  hayProblemas ? "pointer-events-none opacity-50" : ""
-                }`}
-              >
-                Ir a pagar
-              </Link>
+              {/* Con problemas de stock se muestra un botón deshabilitado de verdad: un enlace con
+                  aria-disabled seguía recibiendo el foco y se activaba con Enter. */}
+              {hayProblemas ? (
+                <button
+                  type="button"
+                  disabled
+                  className="block w-full cursor-not-allowed rounded-full bg-berry py-3 text-center font-semibold text-white opacity-50 shadow-glass"
+                >
+                  Ir a pagar
+                </button>
+              ) : (
+                <Link
+                  to="/checkout"
+                  onClick={cerrar}
+                  className="block w-full rounded-full bg-berry py-3 text-center font-semibold text-white shadow-glass transition hover:bg-berry-dark active:scale-[0.98]"
+                >
+                  Ir a pagar
+                </Link>
+              )}
             </div>
           </>
         )}
