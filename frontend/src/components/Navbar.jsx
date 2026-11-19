@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { SlidingNumber } from "@animate-ui/react/primitives/texts/sliding-number";
 import { useAuth } from "../context/AuthContext.jsx";
@@ -9,14 +9,49 @@ import UserMenu from "./UserMenu.jsx";
 import Logo from "./Logo.jsx";
 import { useToast } from "../context/ToastContext.jsx";
 import { COSTO_ENVIO_DELIVERY } from "../tienda.js";
+import { api } from "../api/client.js";
 
-const ENLACES = [
-  ["/tienda", "Tienda"],
-  ["/quienes-somos", "Nosotros"],
-  ["/tiendas", "Tiendas"],
-  ["/contacto", "Contáctanos"],
-  ["/faq", "FAQ"],
-];
+// El menú es para comprar: la tienda, sus categorías y las ofertas. Las páginas informativas
+// (Nosotros, Tiendas, Contacto, FAQ...) viven en el pie de página.
+const MAX_CATEGORIAS_MENU = 5;
+let categoriasEnMemoria = null; // se piden una sola vez por visita
+
+function useCategoriasMenu() {
+  const [categorias, setCategorias] = useState(categoriasEnMemoria || []);
+  useEffect(() => {
+    if (categoriasEnMemoria) return undefined;
+    let vigente = true;
+    api
+      .categorias()
+      .then((lista) => {
+        categoriasEnMemoria = lista;
+        if (vigente) setCategorias(lista);
+      })
+      .catch(() => {});
+    return () => {
+      vigente = false;
+    };
+  }, []);
+  return categorias.slice(0, MAX_CATEGORIAS_MENU);
+}
+
+// Enlaces del menú con su condición de "activo" (la tienda usa parámetros en la URL:
+// ?categoria=... y ?oferta=true, así que no basta con comparar la ruta).
+function enlacesDeCompra(categorias, location) {
+  const params = new URLSearchParams(location.search);
+  const enTienda = location.pathname === "/tienda";
+  const categoria = params.get("categoria");
+  const oferta = params.get("oferta") === "true";
+  return [
+    { to: "/tienda", etiqueta: "Tienda", activo: enTienda && !categoria && !oferta },
+    ...categorias.map((c) => ({
+      to: `/tienda?categoria=${c.slug}`,
+      etiqueta: c.nombre,
+      activo: enTienda && categoria === c.slug,
+    })),
+    { to: "/tienda?oferta=true", etiqueta: "Ofertas", activo: enTienda && oferta, destacado: true },
+  ];
+}
 
 const ANUNCIOS = [
   { Icono: IconTruck, texto: `Delivery en Huancayo por S/ ${COSTO_ENVIO_DELIVERY.toFixed(2)}` },
@@ -66,20 +101,23 @@ function BarraAnuncios() {
   );
 }
 
-function Enlace({ to, end, children, onClick, movil = false }) {
+function Enlace({ to, activo, destacado, children, onClick, movil = false }) {
+  const color = destacado ? "text-berry hover:text-berry-dark" : activo ? "text-plum" : "text-plum/75 hover:text-plum";
   return (
-    <NavLink
+    <Link
       to={to}
-      end={end}
       onClick={onClick}
-      className={({ isActive }) =>
+      aria-current={activo ? "page" : undefined}
+      className={
         movil
-          ? `rounded-xl px-3 py-3 text-base font-bold transition-colors ${isActive ? "bg-plum text-ivory" : "text-plum hover:bg-white"}`
-          : `subrayado py-2 text-[15px] font-semibold transition-colors ${isActive ? "text-plum" : "text-plum/75 hover:text-plum"}`
+          ? `rounded-xl px-3 py-3 text-base font-bold transition-colors ${
+              activo ? "bg-plum text-ivory" : destacado ? "text-berry hover:bg-white" : "text-plum hover:bg-white"
+            }`
+          : `subrayado whitespace-nowrap py-2 text-[15px] font-semibold transition-colors ${color}`
       }
     >
       {children}
-    </NavLink>
+    </Link>
   );
 }
 
@@ -96,6 +134,7 @@ export default function Navbar() {
   const [buscadorAbierto, setBuscadorAbierto] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+  const enlaces = enlacesDeCompra(useCategoriasMenu(), location);
   const cerrar = () => {
     setMenuAbierto(false);
     setBuscadorAbierto(false);
@@ -143,9 +182,10 @@ export default function Navbar() {
           </Link>
 
           <div className="hidden items-center gap-7 lg:flex">
-            <Enlace to="/" end>Inicio</Enlace>
-            {ENLACES.map(([to, etiqueta]) => (
-              <Enlace key={to} to={to}>{etiqueta}</Enlace>
+            {enlaces.map((e) => (
+              <Enlace key={e.to} to={e.to} activo={e.activo} destacado={e.destacado}>
+                {e.etiqueta}
+              </Enlace>
             ))}
           </div>
 
@@ -222,9 +262,10 @@ export default function Navbar() {
               className="overflow-hidden border-t border-plum/8 lg:hidden"
             >
               <div className="flex flex-col gap-1 px-4 py-3">
-                <Enlace to="/" end onClick={cerrar} movil>Inicio</Enlace>
-                {ENLACES.map(([to, etiqueta]) => (
-                  <Enlace key={to} to={to} onClick={cerrar} movil>{etiqueta}</Enlace>
+                {enlaces.map((e) => (
+                  <Enlace key={e.to} to={e.to} activo={e.activo} destacado={e.destacado} onClick={cerrar} movil>
+                    {e.etiqueta}
+                  </Enlace>
                 ))}
                 {!usuario && (
                   <Link to="/ingresar" onClick={cerrar} className="btn-dark mt-2">
