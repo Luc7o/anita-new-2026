@@ -8,17 +8,19 @@ import useConfigTienda from "../hooks/useConfigTienda.js";
  * (public/logo-anita-new-style.png). El nombre siempre va al lado.
  * tone="light" para fondos oscuros (cabecera, pie); "dark" para fondos claros.
  */
-export default function Logo({ tone = "light", className = "", conNombre = true }) {
+export default function Logo({ tone = "light", className = "", conNombre = true, conImagen = true }) {
   const { logo_url, nombre_comercial } = useConfigTienda();
   const claro = tone === "light";
   return (
     <span className={`inline-flex items-center gap-2 min-[400px]:gap-3 ${className}`}>
-      <img
-        src={logo_url || "/logo-anita-new-style.png"}
-        alt={conNombre ? "" : nombre_comercial || "Anita New Style"}
-        aria-hidden={conNombre ? "true" : undefined}
-        className="h-9 w-auto rounded-[6px]"
-      />
+      {conImagen && (
+        <img
+          src={logo_url || "/logo-anita-new-style.png"}
+          alt={conNombre ? "" : nombre_comercial || "Anita New Style"}
+          aria-hidden={conNombre ? "true" : undefined}
+          className="h-9 w-auto rounded-[6px]"
+        />
+      )}
       {conNombre && (
         <span
           className={`font-display text-xs font-extrabold uppercase leading-none tracking-[0.03em] min-[400px]:text-sm min-[400px]:tracking-[0.06em] sm:text-base ${

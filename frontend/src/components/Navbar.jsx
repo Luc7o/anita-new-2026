@@ -160,7 +160,7 @@ export default function Navbar() {
     <form
       onSubmit={buscar}
       role="search"
-      className={`items-center gap-2 rounded-full border border-plum/15 bg-white px-4 transition-colors focus-within:border-berry ${clase}`}
+      className={`items-center gap-2 rounded-full border border-plum/15 bg-white px-4 transition-[border-color,box-shadow] focus-within:border-berry focus-within:ring-4 focus-within:ring-berry/15 ${clase}`}
     >
       <IconSearch size={16} className="shrink-0 text-plum-soft" />
       <input
@@ -170,7 +170,7 @@ export default function Navbar() {
         placeholder="Buscar carteras, calzados..."
         maxLength={80}
         aria-label="Buscar en la tienda"
-        className="min-h-11 w-full bg-transparent text-sm text-plum placeholder:text-plum-soft focus:outline-hidden"
+        className="campo-busqueda min-h-11 w-full bg-transparent text-sm text-plum placeholder:text-plum-soft focus:outline-hidden"
       />
     </form>
   );
@@ -181,7 +181,8 @@ export default function Navbar() {
       <header className="sticky top-0 z-30 border-b border-plum/8 bg-ivory/85 backdrop-blur-md">
         <nav className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3 sm:px-8" aria-label="Principal">
           <Link to="/" onClick={cerrar} className="shrink-0 sm:mr-4" aria-label="Anita New Style, ir al inicio">
-            <Logo tone="dark" />
+            {/* En la barra va solo el nombre; la imagen del logo queda para la pestaña del navegador. */}
+            <Logo tone="dark" conImagen={false} />
           </Link>
 
           <div className="hidden items-center gap-7 lg:flex">

@@ -807,3 +807,8 @@ html.admin-dark .aviso {
   border-color: rgb(255 255 255 / 0.12);
   box-shadow: 0 18px 40px -16px rgb(0 0 0 / 0.8);
 }
+
+
+/* Buscador del menú: el foco se marca en el borde redondo de todo el buscador (focus-within),
+   no con un rectángulo dentro del campo. */
+.campo-busqueda:focus-visible { outline: none; }
