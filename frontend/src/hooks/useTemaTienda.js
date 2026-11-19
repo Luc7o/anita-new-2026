@@ -6,6 +6,7 @@ import { useCallback, useEffect, useState } from "react";
 // este hook y el ThemeToggler de Animate UI.
 export const CLAVE_TEMA = "anita-tema";
 const CONSULTA = "(prefers-color-scheme: dark)";
+const EVENTO = "anita-tema-cambio";
 
 function leerGuardado() {
   try {
@@ -34,6 +35,20 @@ export default function useTemaTienda() {
     return () => mq.removeEventListener?.("change", alCambiar);
   }, []);
 
+  // Varios botones (barra y menú del celular) y otras pestañas comparten el mismo tema.
+  useEffect(() => {
+    const sincronizar = () => setTemaEstado(leerGuardado());
+    const alGuardar = (e) => {
+      if (e.key === CLAVE_TEMA) sincronizar();
+    };
+    window.addEventListener(EVENTO, sincronizar);
+    window.addEventListener("storage", alGuardar);
+    return () => {
+      window.removeEventListener(EVENTO, sincronizar);
+      window.removeEventListener("storage", alGuardar);
+    };
+  }, []);
+
   const resuelto = tema === "system" ? (sistemaOscuro ? "dark" : "light") : tema;
 
   useEffect(() => {
@@ -47,6 +62,7 @@ export default function useTemaTienda() {
     } catch {
       /* ignorar: el tema igual cambia en esta visita */
     }
+    window.dispatchEvent(new Event(EVENTO));
   }, []);
 
   return { tema, resuelto, setTema };

@@ -754,3 +754,61 @@ html.dark:not(.admin-mode) .tarjeta:hover { box-shadow: 0 24px 48px -24px rgb(0 
 
 /* Fondos que oscurecen la página detrás de un diálogo o del carrito: en oscuro, negro. */
 html.dark:not(.admin-mode) :is(.bg-plum\/30, .bg-plum\/40) { background-color: rgb(0 0 0 / 0.6); }
+
+/* ===================== Avisos (toasts) abajo ===================== */
+/* Animate UI mueve cada aviso (subir, apilar, deslizar); aquí solo se ubican y se pintan.
+   Las variables --toast-* las pone Base UI. */
+.avisos {
+  position: fixed;
+  z-index: 100;
+  bottom: max(1rem, env(safe-area-inset-bottom));
+  left: 1rem;
+  right: 1rem;
+  margin: 0 auto;
+  width: auto;
+  max-width: 24rem;
+}
+/* Centrados también en computadora: a la derecha tapaban los botones del carrito lateral. */
+@media (min-width: 640px) {
+  .avisos { bottom: 1.5rem; }
+}
+.aviso {
+  --alto: var(--toast-frontmost-height, var(--toast-height));
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: calc(1000 - var(--toast-index));
+  height: var(--alto);
+  border-radius: 14px;
+  background: #ffffff;
+  border: 1px solid rgba(31, 30, 28, 0.1);
+  box-shadow: 0 18px 40px -16px rgba(31, 30, 28, 0.45);
+  user-select: none;
+  overflow: hidden;
+}
+.aviso[data-expanded] { --alto: var(--toast-height); }
+/* Rellena el espacio entre avisos desplegados para que no se cierren al pasar el mouse. */
+.aviso::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 100%;
+  height: calc(0.75rem + 1px);
+}
+.aviso [data-animate-ui-toast-progress-bar] { background: rgb(var(--c-plum) / 0.3); }
+.aviso[data-type="success"] [data-animate-ui-toast-progress-bar] { background: #a53694; }
+.aviso[data-type="error"] [data-animate-ui-toast-progress-bar] { background: #dc2626; }
+.aviso[data-type="warning"] [data-animate-ui-toast-progress-bar] { background: #f59e0b; }
+html.dark:not(.admin-mode) .aviso,
+html.admin-dark .aviso {
+  background: #1c1b19;
+  border-color: rgb(255 255 255 / 0.12);
+  box-shadow: 0 18px 40px -16px rgb(0 0 0 / 0.8);
+}
+
+
+/* Buscador del menú: el foco se marca en el borde redondo de todo el buscador (focus-within),
+   no con un rectángulo dentro del campo. */
+.campo-busqueda:focus-visible { outline: none; }
