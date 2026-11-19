@@ -23,7 +23,7 @@ export default function UserMenu({ usuario, onLogout }) {
     <div className="relative" ref={contenedorRef}>
       <button
         onClick={() => setAbierto((v) => !v)}
-        className="flex items-center gap-1.5 rounded-[10px] border border-white/25 px-3 py-2.5 text-white transition hover:bg-white/10"
+        className="flex min-h-11 items-center gap-1.5 rounded-full border border-plum/15 bg-white px-3.5 py-2 text-sm font-bold text-plum transition-colors hover:border-berry hover:text-berry"
         aria-label="Menú de usuario"
         aria-expanded={abierto}
       >

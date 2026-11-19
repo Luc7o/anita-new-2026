@@ -97,7 +97,7 @@ html.admin-mode main h1:not(.adm-titulo) {
   animation: adm-title 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
 }
 html.admin-mode h1.adm-titulo {
-  font-family: "DM Serif Display", Georgia, serif;
+  font-family: "Syne", "Manrope", sans-serif;
   font-weight: 400;
   line-height: 1.05;
   letter-spacing: -0.01em;
