@@ -1,4 +1,3 @@
-import PageHeader from "../components/PageHeader.jsx";
 import React, { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { api } from "../api/client.js";
@@ -179,42 +178,31 @@ export default function Tienda() {
 
   return (
     <div>
-      <PageHeader
-        ruta={[
-          { to: "/", label: "Inicio" },
-          categoriaDestacada || soloOfertas || busqueda
-            ? { to: "/tienda", label: "Tienda" }
-            : { label: "Tienda" },
-          ...(categoriaDestacada ? [{ label: categoriaDestacada.nombre }] : []),
-          ...(soloOfertas && !categoriaDestacada ? [{ label: "Ofertas" }] : []),
-          ...(busqueda && !categoriaDestacada && !soloOfertas ? [{ label: "Búsqueda" }] : []),
-        ]}
-        eyebrow={soloOfertas ? "Precios especiales" : categoriaDestacada ? "Categoría" : "Catálogo"}
-        titulo={
-          busqueda
-            ? `Resultados para "${busqueda}"`
-            : soloOfertas
-              ? "Ofertas"
-              : categoriaDestacada
-                ? categoriaDestacada.nombre
-                : "Nuestra tienda"
-        }
-        subtitulo={categoriaDestacada?.descripcion || "Filtra por categoría, talla o color y arma tu pedido."}
-      />
-
+      {/* Sin franja de cabecera: el título va en la misma línea que el contador, así los
+          productos aparecen apenas se entra a la tienda. */}
       <div className="mx-auto max-w-352 px-4 pb-16 pt-6">
-      {/* Contador */}
-      <div className="mb-4 flex items-center justify-between gap-3 text-sm text-plum-soft">
-        <div aria-live="polite">
-          {cargando ? (
-            <Skeleton className="h-4 w-44" />
-          ) : (
-            <span className="animate-fade-in">
-              {meta.total > 0
-                ? `Mostrando ${inicio}-${fin} de ${meta.total} resultados`
-                : "Sin resultados"}
-            </span>
-          )}
+      <div className="mb-5 flex flex-wrap items-end justify-between gap-3 text-sm text-plum-soft">
+        <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+          <h1 className="font-display text-2xl font-extrabold text-plum sm:text-3xl">
+            {busqueda
+              ? `Resultados para "${busqueda}"`
+              : soloOfertas
+                ? "Ofertas"
+                : categoriaDestacada
+                  ? categoriaDestacada.nombre
+                  : "Tienda"}
+          </h1>
+          <div aria-live="polite">
+            {cargando ? (
+              <Skeleton className="h-4 w-32" />
+            ) : (
+              <span className="animate-fade-in">
+                {meta.total > 0
+                  ? `${inicio}-${fin} de ${meta.total} productos`
+                  : "Sin resultados"}
+              </span>
+            )}
+          </div>
         </div>
         <div className="flex items-center gap-3">
           {hayFiltros && (
