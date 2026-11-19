@@ -19,7 +19,41 @@ import "@fontsource/syne/latin-700.css";
 import "@fontsource/syne/latin-800.css";
 import "./styles/theme.css";
 import "./styles/admin-motion.css";
-import { importarConReintento } from "./utils/lazyConReintento.js";
+import { importarConReintento, recargarUnaVez } from "./utils/lazyConReintento.js";
+
+// Vite avisa con este evento cuando no puede descargar un archivo que una página necesita
+// (pasa justo después de un despliegue). Se recarga una sola vez para traer la versión nueva.
+window.addEventListener("vite:preloadError", (evento) => {
+  if (recargarUnaVez()) evento.preventDefault();
+});
+
+// Si aun así la tienda no puede arrancar, en vez de dejar la página en blanco se muestra un
+// aviso con un botón para recargar (sin React: es justo lo que pudo fallar al cargar).
+function mostrarErrorDeCarga(error) {
+  console.error(error);
+  const raiz = document.getElementById("root");
+  if (!raiz) return;
+  raiz.innerHTML = "";
+  const caja = document.createElement("div");
+  caja.setAttribute("role", "alert");
+  caja.style.cssText =
+    "min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;" +
+    "padding:24px;text-align:center;font-family:Manrope,system-ui,sans-serif;background:#f6f3ee;color:#1f1e1c";
+  const titulo = document.createElement("p");
+  titulo.textContent = "Estamos actualizando la tienda";
+  titulo.style.cssText = "margin:0;font-size:22px;font-weight:800";
+  const texto = document.createElement("p");
+  texto.textContent = "Hubo una versión nueva mientras cargaba la página. Vuelve a cargarla para continuar.";
+  texto.style.cssText = "margin:0;max-width:360px;color:#6b6863";
+  const boton = document.createElement("button");
+  boton.type = "button";
+  boton.textContent = "Volver a cargar";
+  boton.style.cssText =
+    "min-height:48px;padding:0 24px;border:0;border-radius:12px;background:#a53694;color:#fff;font-weight:700;font-size:15px;cursor:pointer";
+  boton.addEventListener("click", () => window.location.reload());
+  caja.append(titulo, texto, boton);
+  raiz.append(caja);
+}
 
 // La comparación se hace directo con import.meta.env para que Vite la resuelva al
 // construir y descarte la rama que no se usa: el build del admin NO incluye la
@@ -69,4 +103,4 @@ async function arrancarTienda() {
   );
 }
 
-arrancar();
+arrancar().catch(mostrarErrorDeCarga);

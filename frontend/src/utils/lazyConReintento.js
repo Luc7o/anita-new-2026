@@ -9,19 +9,28 @@ import { lazy } from "react";
 const CLAVE = "recarga_por_version_nueva";
 const VENTANA_MS = 15000;
 
+/**
+ * Recarga la página una sola vez cada VENTANA_MS. Devuelve true si va a recargar,
+ * false si ya se recargó hace poco (o no hay sessionStorage para evitar un bucle).
+ */
+export function recargarUnaVez() {
+  let yaRecargo = true; // sin sessionStorage no se puede proteger del bucle: no recargamos
+  try {
+    const ultima = Number(sessionStorage.getItem(CLAVE) || 0);
+    yaRecargo = Date.now() - ultima < VENTANA_MS;
+    if (!yaRecargo) sessionStorage.setItem(CLAVE, String(Date.now()));
+  } catch {
+    yaRecargo = true;
+  }
+  if (yaRecargo) return false;
+  window.location.reload();
+  return true;
+}
+
 // Pide el módulo; si falla por versión vieja, recarga una sola vez.
 export function importarConReintento(importador) {
   return importador().catch((error) => {
-    let yaRecargo = true; // sin sessionStorage no se puede proteger del bucle: no recargamos
-    try {
-      const ultima = Number(sessionStorage.getItem(CLAVE) || 0);
-      yaRecargo = Date.now() - ultima < VENTANA_MS;
-      if (!yaRecargo) sessionStorage.setItem(CLAVE, String(Date.now()));
-    } catch {
-      yaRecargo = true;
-    }
-    if (!yaRecargo) {
-      window.location.reload();
+    if (recargarUnaVez()) {
       return new Promise(() => {}); // la página se está recargando
     }
     throw error;
