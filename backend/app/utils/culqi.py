@@ -26,13 +26,33 @@ def culqi_configurado():
     return bool(current_app.config.get("CULQI_SECRET_KEY"))
 
 
+def _json_o_vacio(resp):
+    """Cuerpo JSON de la respuesta, o {} si viene vacío o no es JSON (p. ej. una página de error)."""
+    if not resp.content:
+        return {}
+    try:
+        datos = resp.json()
+    except ValueError:
+        return {}
+    return datos if isinstance(datos, dict) else {}
+
+
+# Resultado incierto: no sabemos si Culqi cobró (se cortó la conexión después de enviar el
+# cargo, o respondió algo que no entendemos). NO se puede tratar como rechazo: el cliente
+# reintentaría con otro token y se le cobraría dos veces.
+INCIERTO = None
+
+
 def crear_cargo(pedido, usuario, token_id, email=None):
     """
     Crea un cargo en Culqi por el total del pedido, usando un token ya
     generado en el frontend (tarjeta o Yape).
-    Devuelve (ok, cargo_id, error) — si ok es True, cargo_id es el id del
-    cargo aprobado ("chr_..."). Si ok es False, error es un mensaje ya listo
-    para mostrarle al cliente.
+
+    Devuelve (ok, cargo_id, error):
+      - ok True:  cargo aprobado; cargo_id es su id ("chr_...").
+      - ok False: Culqi o el banco lo RECHAZARON con seguridad; error es un mensaje para el cliente.
+      - ok None (INCIERTO): no se sabe si se cobró. Hay que revisarlo en el panel de Culqi
+        antes de permitir otro intento de pago.
     """
     secret_key = current_app.config["CULQI_SECRET_KEY"]
     base_url = current_app.config["CULQI_BASE_URL"].rstrip("/")
@@ -67,13 +87,20 @@ def crear_cargo(pedido, usuario, token_id, email=None):
             headers={"Authorization": f"Bearer {secret_key}"},
             timeout=20,
         )
-    except requests.RequestException as e:
-        current_app.logger.error(f"Error de red creando cargo Culqi para pedido {pedido.id}: {e}")
+    except requests.ConnectTimeout as e:
+        # No se llegó a abrir la conexión: el cargo nunca salió de aquí, así que es seguro
+        # decirle al cliente que reintente.
+        current_app.logger.error(f"No se pudo conectar con Culqi para el pedido {pedido.id}: {e}")
         return False, None, "No se pudo contactar la pasarela de pago, intenta de nuevo"
+    except requests.RequestException as e:
+        # Cualquier otro corte (ReadTimeout, conexión cerrada a mitad de respuesta...) puede
+        # ocurrir DESPUÉS de que Culqi recibió el cargo: pudo cobrarse.
+        current_app.logger.error(f"Culqi no respondió bien para el pedido {pedido.id}: {e}")
+        return INCIERTO, None, None
 
-    data = resp.json() if resp.content else {}
+    data = _json_o_vacio(resp)
 
-    if resp.status_code in (200, 201) and data.get("object") == "charge":
+    if resp.status_code in (200, 201) and data.get("object") == "charge" and data.get("id"):
         return True, data["id"], None
 
     # Cargo rechazado por el banco/Culqi: el error trae un mensaje ya
@@ -86,8 +113,9 @@ def crear_cargo(pedido, usuario, token_id, email=None):
         )
         return False, None, mensaje
 
+    # Ni cargo ni error de Culqi (un 5xx, una página HTML, un JSON raro): no sabemos si cobró.
     current_app.logger.error(f"Respuesta inesperada de Culqi para pedido {pedido.id}: {resp.status_code} {data}")
-    return False, None, "La pasarela de pago no respondió como esperábamos, intenta de nuevo"
+    return INCIERTO, None, None
 
 
 def reembolsar_en_culqi(pedido, motivo="solicitud_comprador"):
@@ -121,7 +149,7 @@ def reembolsar_en_culqi(pedido, motivo="solicitud_comprador"):
         current_app.logger.error(f"Error de red reembolsando pedido {pedido.id} en Culqi: {e}")
         return False, None, "No se pudo contactar la pasarela de pago para el reembolso, intenta de nuevo"
 
-    data = resp.json() if resp.content else {}
+    data = _json_o_vacio(resp)
 
     if resp.status_code in (200, 201) and data.get("object") == "refund":
         return True, data["id"], None

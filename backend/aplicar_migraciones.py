@@ -11,8 +11,8 @@ Cómo funciona:
 - Lo que ya se aplicó queda anotado en la tabla migraciones_aplicadas, así que volver
   a correr el script solo aplica lo nuevo.
 - Los archivos se aplican en orden por nombre: 001_..., 002_..., 003_...
-- Este script usa SOLO la carpeta migraciones_postgres/. La carpeta migraciones/ tiene
-  las migraciones antiguas de MySQL: se conservan de referencia y ya no se aplican.
+- Las migraciones antiguas de MySQL (carpeta migraciones/) se eliminaron al pasar a
+  PostgreSQL en Neon; siguen disponibles en el historial de git si alguna vez hacen falta.
 """
 import os
 import sys
@@ -21,6 +21,12 @@ from app import create_app
 from app.extensions import db
 
 CARPETA = os.path.join(os.path.dirname(os.path.abspath(__file__)), "migraciones_postgres")
+
+# La consola de Windows usa cp1252 por defecto y no puede imprimir "→" ni los emojis
+# de los mensajes: sin esto el script se cae antes de aplicar la primera migración.
+for _flujo in (sys.stdout, sys.stderr):
+    if hasattr(_flujo, "reconfigure"):
+        _flujo.reconfigure(encoding="utf-8", errors="replace")
 
 
 def main():

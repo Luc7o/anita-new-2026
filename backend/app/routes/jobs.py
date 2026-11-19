@@ -3,6 +3,8 @@ Endpoints para jobs programados (cron), NO para el panel admin: no llevan
 sesión de usuario ni cookies — se protegen con un secret compartido
 (CRON_SECRET) que solo conoce el proceso que dispara el job.
 """
+import hmac
+
 from flask import Blueprint, jsonify, request, current_app
 from app.extensions import db
 from app.utils.mantenimiento import purgar_metricas_antiguas
@@ -18,11 +20,13 @@ def _autorizado():
     if not secret:
         return False
 
+    # Comparación en tiempo constante: con == se podría adivinar el secreto letra por letra
+    # midiendo cuánto tarda la respuesta.
     auth_header = request.headers.get("Authorization", "")
-    if auth_header == f"Bearer {secret}":
+    if hmac.compare_digest(auth_header.encode(), f"Bearer {secret}".encode()):
         return True
 
-    return request.headers.get("X-Cron-Secret") == secret
+    return hmac.compare_digest(request.headers.get("X-Cron-Secret", "").encode(), secret.encode())
 
 
 @bp.route("/cancelar-pedidos-vencidos", methods=["GET", "POST"])

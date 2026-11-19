@@ -1,13 +1,15 @@
 """
 Pruebas del consentimiento de estadísticas de uso (banner de privacidad).
 
-Necesitan una base PostgreSQL con las migraciones aplicadas (001 a 005). Usan la que indique
-DATABASE_URL y limpian lo que crean. Ejecutar desde la carpeta backend:
+Necesitan una base PostgreSQL local de prueba en TEST_DATABASE_URL (ver tests/conftest.py, que
+aplica las migraciones). Limpian lo que crean. Ejecutar desde la carpeta backend:
 
-    python -m unittest tests.test_consentimiento -v
+    python -m pytest tests/test_consentimiento.py -v
 """
 import os
 import unittest
+
+import pytest
 import uuid
 from datetime import datetime, timedelta
 from unittest import mock
@@ -19,7 +21,10 @@ from app.utils.legal import VERSION_CONSENTIMIENTO
 from app.utils.mantenimiento import purgar_metricas_antiguas
 
 
-@unittest.skipUnless(os.getenv("DATABASE_URL"), "Falta DATABASE_URL")
+pytestmark = pytest.mark.db
+
+
+@unittest.skipUnless(os.getenv("TEST_DATABASE_URL"), "Falta TEST_DATABASE_URL")
 class PruebasConsentimiento(unittest.TestCase):
     @classmethod
     def setUpClass(cls):

@@ -352,6 +352,7 @@ export default function Checkout() {
       //    Culqi ahí mismo (sin salir de la página) y, apenas nos da un
       //    token, se lo mandamos al backend para cobrar de verdad.
       let pagado = pedido.estado_pago !== "pendiente";
+      let enRevision = false;
       if (pedido.estado_pago === "pendiente") {
         try {
           const { tokenId, email } = await abrirCulqiCheckout({
@@ -360,13 +361,16 @@ export default function Checkout() {
             metodoPago: pedido.metodo_pago,
           });
           const idempotencyKeyPago = obtenerPagoIdempotencyKey(pedido.id);
-          await api.pagarPedido(pedido.id, {
+          const resultado = await api.pagarPedido(pedido.id, {
             token_id: tokenId,
             email,
             idempotency_key: idempotencyKeyPago,
           });
-          limpiarPagoIdempotencyKey(pedido.id);
-          pagado = true;
+          // "en_revision": Culqi no confirmó a tiempo si cobró. No es un pago aprobado ni
+          // rechazado: el equipo lo revisa y el cliente NO debe volver a pagar.
+          enRevision = resultado?.estado_pago === "en_revision";
+          if (!enRevision) limpiarPagoIdempotencyKey(pedido.id);
+          pagado = !enRevision;
         } catch {
           // El cliente cerró el widget, Culqi rechazó el pago, o el cobro
           // automático no está disponible todavía. El pedido ya quedó
@@ -378,9 +382,11 @@ export default function Checkout() {
       }
 
       toast.success(
-        pagado
-          ? "¡Compra realizada! Gracias por tu pedido"
-          : "¡Pedido registrado! Completa el pago para confirmarlo"
+        enRevision
+          ? "Estamos confirmando tu pago con el banco. Te avisaremos por correo; no vuelvas a pagar."
+          : pagado
+            ? "¡Compra realizada! Gracias por tu pedido"
+            : "¡Pedido registrado! Completa el pago para confirmarlo"
       );
       navigate(`/pedidos/${pedido.id}`);
     } catch (err) {

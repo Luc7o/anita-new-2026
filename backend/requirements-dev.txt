@@ -1,0 +1,3 @@
+# Dependencias solo para desarrollo y pruebas (no se instalan en Vercel).
+-r requirements.txt
+pytest==9.2.0

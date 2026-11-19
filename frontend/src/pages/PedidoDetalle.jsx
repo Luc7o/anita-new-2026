@@ -70,9 +70,14 @@ export default function PedidoDetalle() {
         email,
         idempotency_key: idempotencyKeyPago,
       });
-      limpiarPagoIdempotencyKey(id);
       setPedido(actualizado);
-      toast.success("¡Pago recibido! Gracias por tu compra");
+      if (actualizado?.estado_pago === "en_revision") {
+        // Culqi no confirmó a tiempo si cobró: el equipo lo revisa. No se debe volver a pagar.
+        toast.success("Estamos confirmando tu pago con el banco. No vuelvas a pagar.");
+      } else {
+        limpiarPagoIdempotencyKey(id);
+        toast.success("¡Pago recibido! Gracias por tu compra");
+      }
     } catch (err) {
       setErrorPago(err.message);
     } finally {
