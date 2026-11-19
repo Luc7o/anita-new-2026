@@ -7,6 +7,7 @@ import { useCarrito } from "../context/CarritoContext.jsx";
 import { IconSearch, IconCart, IconClose, IconUser, IconMenu, IconTruck, IconMapPin, IconTag, IconGift } from "./Icons.jsx";
 import UserMenu from "./UserMenu.jsx";
 import Logo from "./Logo.jsx";
+import BotonTema from "./BotonTema.jsx";
 import { useToast } from "../context/ToastContext.jsx";
 import { COSTO_ENVIO_DELIVERY } from "../tienda.js";
 import { api } from "../api/client.js";
@@ -79,7 +80,7 @@ function BarraAnuncios() {
   const { Icono, texto } = ANUNCIOS[indice];
   return (
     <div
-      className="relative flex h-9 items-center justify-center overflow-hidden bg-plum px-4 text-[13px] font-semibold text-ivory"
+      className="relative flex h-9 items-center justify-center overflow-hidden bg-carbon px-4 text-[13px] font-semibold text-hueso"
       onMouseEnter={() => setPausado(true)}
       onMouseLeave={() => setPausado(false)}
       role="region"
@@ -205,6 +206,8 @@ export default function Navbar() {
                 {buscadorAbierto ? <IconClose size={18} /> : <IconSearch size={18} />}
               </button>
             </AnimateIcon>
+
+            <BotonTema />
 
             {usuario ? (
               <UserMenu usuario={usuario} onLogout={cerrarSesion} />
