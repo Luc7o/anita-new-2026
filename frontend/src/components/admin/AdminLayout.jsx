@@ -188,11 +188,11 @@ export default function AdminLayout() {
 
       <div className="flex flex-1">
         {/* Barra lateral (pantallas grandes): ocupa todo el lado izquierdo, bajo la cabecera */}
-        <aside className="sticky top-(--admin-header-h) hidden h-[calc(100dvh-var(--admin-header-h))] w-60 shrink-0 flex-col overflow-y-auto border-r border-plum/10 bg-white lg:flex">
+        <aside className="sticky top-(--admin-header-h) hidden h-[calc(100dvh-var(--admin-header-h))] w-60 shrink-0 flex-col overflow-y-auto bg-carbon text-white lg:flex">
           <nav className="relative flex flex-1 flex-col gap-1 p-3" aria-label="Administración">
             <span
               aria-hidden="true"
-              className="pointer-events-none absolute left-3 right-3 top-0 rounded-[10px] bg-plum"
+              className="pointer-events-none absolute left-3 right-3 top-0 rounded-[10px] bg-white"
               style={{
                 height: marca?.h ?? 0,
                 transform: `translateY(${marca?.y ?? 0}px)`,
@@ -205,7 +205,7 @@ export default function AdminLayout() {
             {items.map((item, i) => (
               <React.Fragment key={item.to}>
                 {(i === 0 || items[i - 1].grupo !== item.grupo) && (
-                  <span className={`px-3.5 text-[11px] font-bold uppercase tracking-[0.12em] text-plum-soft ${i === 0 ? "pt-1" : "pt-4"} pb-1`}>
+                  <span className={`px-3.5 text-[11px] font-bold uppercase tracking-[0.12em] text-white/55 ${i === 0 ? "pt-1" : "pt-4"} pb-1`}>
                     {item.grupo}
                   </span>
                 )}
@@ -216,7 +216,7 @@ export default function AdminLayout() {
                   to={item.to}
                   end={item.exact}
                   className={`relative z-10 flex items-center gap-3 rounded-[10px] px-3.5 py-2.5 text-sm font-semibold transition-colors ${
-                    i === activo ? "text-ivory" : "text-plum-soft hover:bg-plum/5 hover:text-plum"
+                    i === activo ? "text-carbon" : "text-white/70 hover:bg-white/10 hover:text-white"
                   }`}
                 >
                   <item.Icon size={18} />
@@ -227,17 +227,17 @@ export default function AdminLayout() {
           </nav>
 
           {/* Cuenta: al final de la barra lateral */}
-          <div className="border-t border-plum/10 p-3">
+          <div className="border-t border-white/10 p-3">
             <div className="mb-2 px-3.5">
-              <p className="truncate text-sm font-semibold text-plum">
+              <p className="truncate text-sm font-semibold text-white">
                 {[usuario?.nombre, usuario?.apellido].filter(Boolean).join(" ") || usuario?.email}
               </p>
-              <p className="truncate text-xs text-plum-soft">{usuario?.rol_label}</p>
+              <p className="truncate text-xs text-white/60">{usuario?.rol_label}</p>
             </div>
             <button
               type="button"
               onClick={cambiarDeCuenta}
-              className="flex w-full items-center gap-3 rounded-[10px] px-3.5 py-2.5 text-sm font-semibold text-plum-soft transition-colors hover:bg-plum/5 hover:text-plum"
+              className="flex w-full items-center gap-3 rounded-[10px] px-3.5 py-2.5 text-sm font-semibold text-white/70 transition-colors hover:bg-white/10 hover:text-white"
             >
               <IconUser size={18} />
               Cambiar de cuenta
@@ -245,7 +245,7 @@ export default function AdminLayout() {
             <button
               type="button"
               onClick={logout}
-              className="flex w-full items-center gap-3 rounded-[10px] px-3.5 py-2.5 text-sm font-semibold text-berry-dark transition-colors hover:bg-berry/10"
+              className="flex w-full items-center gap-3 rounded-[10px] px-3.5 py-2.5 text-sm font-semibold text-[#e9a6dd] transition-colors hover:bg-white/10"
             >
               <IconLogout size={18} />
               Cerrar sesión
@@ -265,7 +265,7 @@ export default function AdminLayout() {
                   className={({ isActive }) =>
                     `flex shrink-0 items-center gap-2 whitespace-nowrap border-b-2 px-3.5 py-3 text-sm font-semibold transition-colors ${
                       isActive
-                        ? "border-berry text-plum"
+                        ? "border-plum text-plum"
                         : "border-transparent text-plum-soft hover:text-plum"
                     }`
                   }
@@ -282,7 +282,7 @@ export default function AdminLayout() {
             <div key={location.pathname} className="adm-page">
               <div className="mb-5 flex flex-wrap items-center gap-2 text-xs text-plum-soft">
                 <span className="glass rounded-full px-3 py-1.5">
-                  <span className="font-semibold text-berry">Anita</span> › {items[activo]?.label ?? "Panel"}
+                  <span className="font-semibold text-plum">Anita</span> › {items[activo]?.label ?? "Panel"}
                 </span>
                 <span className="glass flex items-center gap-1.5 rounded-full px-3 py-1.5">
                   <span className="first-letter:uppercase">{fecha}</span>

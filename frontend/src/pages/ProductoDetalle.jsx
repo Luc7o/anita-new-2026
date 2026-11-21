@@ -12,6 +12,7 @@ import { RippleButton, RippleButtonRipples } from "@animate-ui/react/primitives/
 import { SlidingNumber } from "@animate-ui/react/primitives/texts/sliding-number";
 import { COSTO_ENVIO_DELIVERY } from "../tienda.js";
 import Estrellas from "../components/Estrellas.jsx";
+import EtiquetaOferta from "../components/EtiquetaOferta.jsx";
 import ImagenOptimizada from "../components/ImagenOptimizada.jsx";
 import VisorImagen from "../components/VisorImagen.jsx";
 import {
@@ -202,7 +203,6 @@ export default function ProductoDetalle() {
   // el mensaje correcto es pedir que elija, no decir que no hay stock.
   const sinStockEnCombo = !seleccionIncompleta && producto.usa_variantes && stockSeleccion <= 0;
   const esFavorito = favoritos?.esFavorito(producto.id);
-  const descuento = producto.tiene_oferta ? Math.round((1 - producto.precio_final / producto.precio) * 100) : 0;
 
   const textoBotonPendiente = () => {
     if (faltaTalla && faltaColor) return "Elige talla y color";
@@ -341,14 +341,9 @@ export default function ProductoDetalle() {
                 </span>
               </button>
             ) : (
-              <div className="foto-vacia flex h-full items-center justify-center font-display text-7xl font-extrabold text-plum/15">
+              <div className="foto-vacia flex h-full items-center justify-center font-display text-7xl font-bold text-plum/15">
                 {producto.nombre.slice(0, 1)}
               </div>
-            )}
-            {descuento > 0 && (
-              <span className="pointer-events-none absolute left-4 top-4 rounded-full bg-berry px-3 py-1.5 text-sm font-bold text-white">
-                -{descuento}%
-              </span>
             )}
           </div>
         </div>
@@ -360,7 +355,7 @@ export default function ProductoDetalle() {
                 {producto.categoria_nombre}
               </span>
             )}
-            <h1 className="font-display text-4xl font-extrabold leading-[1.05] text-plum sm:text-5xl">
+            <h1 className="font-display text-4xl font-bold leading-[1.05] text-plum sm:text-5xl">
               {producto.nombre}
             </h1>
             {producto.total_resenas > 0 && (
@@ -372,19 +367,18 @@ export default function ProductoDetalle() {
                 </span>
               </div>
             )}
-            <p className="mt-1 flex flex-wrap items-baseline gap-3">
-              <span className={`text-3xl font-extrabold ${producto.tiene_oferta ? "text-berry" : "text-plum"}`}>
-                S/ {producto.precio_final.toFixed(2)}
-              </span>
-              {producto.tiene_oferta && (
-                <>
-                  <span className="text-lg text-plum-soft line-through">S/ {producto.precio.toFixed(2)}</span>
-                  <span className="rounded-full bg-lilac px-3 py-1 text-sm font-bold text-berry-dark">
-                    Ahorras S/ {(producto.precio - producto.precio_final).toFixed(2)}
-                  </span>
-                </>
-              )}
-            </p>
+            {producto.tiene_oferta ? (
+              <div className="mt-1 flex items-start gap-6">
+                <EtiquetaOferta precio={producto.precio_final} antes={producto.precio} />
+                <p className="pt-12 text-[15px] leading-relaxed text-plum-soft">
+                  Ahorras <b className="precio text-plum">S/ {(producto.precio - producto.precio_final).toFixed(2)}</b>
+                  <br />
+                  Recojo gratis en tienda
+                </p>
+              </div>
+            ) : (
+              <p className="precio mt-1 text-3xl text-plum">S/ {producto.precio_final.toFixed(2)}</p>
+            )}
             {producto.sku && (
               <p className="text-xs text-plum-soft">
                 SKU: <span className="font-mono tracking-wide text-plum">{producto.sku}</span>

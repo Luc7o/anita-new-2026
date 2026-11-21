@@ -16,31 +16,31 @@ export const ESTADOS_PEDIDO = {
 // Tailwind las detecte y no las elimine al compilar.
 export const ESTILO_ESTADO_PEDIDO = {
   pendiente: {
-    insignia: "bg-yellow-100 text-yellow-800 ring-1 ring-inset ring-yellow-300",
+    insignia: "bg-yellow-100 text-yellow-800",
     punto: "bg-yellow-400",
   },
   confirmado: {
-    insignia: "bg-lime-100 text-lime-800 ring-1 ring-inset ring-lime-300",
+    insignia: "bg-lime-100 text-lime-800",
     punto: "bg-lime-400",
   },
   preparando: {
-    insignia: "bg-lime-200 text-lime-900 ring-1 ring-inset ring-lime-400",
+    insignia: "bg-lime-200 text-lime-900",
     punto: "bg-lime-500",
   },
   listo_recojo: {
-    insignia: "bg-emerald-100 text-emerald-800 ring-1 ring-inset ring-emerald-300",
+    insignia: "bg-emerald-100 text-emerald-800",
     punto: "bg-emerald-400",
   },
   enviado: {
-    insignia: "bg-emerald-100 text-emerald-800 ring-1 ring-inset ring-emerald-300",
+    insignia: "bg-emerald-100 text-emerald-800",
     punto: "bg-emerald-400",
   },
   entregado: {
-    insignia: "bg-exito-fuerte text-white ring-1 ring-inset ring-exito-fuerte",
+    insignia: "bg-exito-fuerte text-white",
     punto: "bg-exito-fuerte",
   },
   cancelado: {
-    insignia: "bg-peligro/15 text-peligro ring-1 ring-inset ring-peligro/30",
+    insignia: "bg-peligro/15 text-peligro",
     punto: "bg-peligro-fuerte",
   },
 };

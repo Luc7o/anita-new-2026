@@ -439,7 +439,7 @@ export default function Checkout() {
               <span>
                 {item.cantidad}× {item.producto.nombre}
               </span>
-              <span>S/ {item.subtotal.toFixed(2)}</span>
+              <span className="cifra">S/ {item.subtotal.toFixed(2)}</span>
             </div>
             {problema && (
               <div
@@ -468,19 +468,19 @@ export default function Checkout() {
           </div>
         );
       })}
-      <div className="border-t border-white/50 pt-3 text-sm text-plum-soft">
+      <div className="border-t border-dashed border-plum/30 pt-3 text-sm text-plum-soft">
         <div className="flex justify-between">
           <span>Subtotal</span>
-          <span>S/ {total.toFixed(2)}</span>
+          <span className="cifra">S/ {total.toFixed(2)}</span>
         </div>
         <div className="flex justify-between">
           <span>Envío</span>
-          <span>S/ {costoEnvio.toFixed(2)}</span>
+          <span className="cifra">{costoEnvio > 0 ? `S/ ${costoEnvio.toFixed(2)}` : "Gratis"}</span>
         </div>
       </div>
-      <div className="flex justify-between border-t border-white/50 pt-3 text-lg font-semibold text-plum">
-        <span>Total</span>
-        <span>S/ {(total + costoEnvio).toFixed(2)}</span>
+      <div className="flex items-baseline justify-between border-t border-dashed border-plum/30 pt-3 text-plum">
+        <span className="text-lg font-extrabold uppercase">Total</span>
+        <span className="cifra text-2xl font-semibold">S/ {(total + costoEnvio).toFixed(2)}</span>
       </div>
     </>
   );
@@ -779,7 +779,7 @@ export default function Checkout() {
         </button>
       </form>
 
-      <aside className="hidden h-fit space-y-3 rounded-[20px] bg-white p-6 md:sticky md:top-28 md:block md:self-start">
+      <aside className="boleta hidden h-fit space-y-3 md:sticky md:top-28 md:block md:self-start">
         {resumenContenido}
       </aside>
 

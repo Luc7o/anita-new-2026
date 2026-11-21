@@ -194,7 +194,7 @@ export default function Carrito() {
           </ul>
 
           <aside
-            className="h-fit animate-fade-in space-y-4 rounded-[20px] bg-white p-6 md:sticky md:top-28"
+            className="boleta h-fit animate-fade-in space-y-4 md:sticky md:top-28"
             aria-labelledby="resumen-titulo"
           >
             <h2 id="resumen-titulo" className="text-2xl text-plum">Resumen</h2>
@@ -204,7 +204,7 @@ export default function Carrito() {
                 <dt className="text-plum-soft">
                   Subtotal ({totalItems} {totalItems === 1 ? "producto" : "productos"})
                 </dt>
-                <dd className="font-bold text-plum">S/ {total.toFixed(2)}</dd>
+                <dd className="cifra font-semibold text-plum">S/ {total.toFixed(2)}</dd>
               </div>
               <div className="flex justify-between">
                 <dt className="text-plum-soft">Envío</dt>
@@ -216,9 +216,9 @@ export default function Carrito() {
               </div>
             </dl>
 
-            <div className="flex items-center justify-between border-t border-plum/10 pt-4 text-plum">
-              <span className="font-bold">Total (sin envío)</span>
-              <span className="flex items-baseline text-2xl font-extrabold">
+            <div className="flex items-center justify-between border-t border-dashed border-plum/30 pt-4 text-plum">
+              <span className="font-extrabold uppercase">Total (sin envío)</span>
+              <span className="cifra flex items-baseline text-2xl font-semibold">
                 S/&nbsp;
                 <SlidingNumber number={total} decimalPlaces={2} />
               </span>

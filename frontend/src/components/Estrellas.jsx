@@ -6,7 +6,7 @@ export default function Estrellas({ valor, onChange, size = 16 }) {
   const estrellas = [1, 2, 3, 4, 5];
 
   return (
-    <div className="flex items-center gap-0.5 text-berry">
+    <div className="flex items-center gap-0.5 text-plum">
       {estrellas.map((n) => (
         <button
           key={n}

@@ -1,15 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { AnimatePresence, motion } from "motion/react";
 import { SlidingNumber } from "@animate-ui/react/primitives/texts/sliding-number";
 import { useAuth } from "../context/AuthContext.jsx";
 import { useCarrito } from "../context/CarritoContext.jsx";
-import { IconSearch, IconCart, IconClose, IconUser, IconMenu, IconTruck, IconMapPin, IconTag, IconGift } from "./Icons.jsx";
+import { IconSearch, IconCart, IconClose, IconUser, IconMenu } from "./Icons.jsx";
 import UserMenu from "./UserMenu.jsx";
 import Logo from "./Logo.jsx";
 import BotonTema from "./BotonTema.jsx";
 import { useToast } from "../context/ToastContext.jsx";
-import { COSTO_ENVIO_DELIVERY } from "../tienda.js";
 import { api } from "../api/client.js";
 import { AnimateIcon } from "@animate-ui/react/icons";
 
@@ -53,55 +52,6 @@ function enlacesDeCompra(categorias, location) {
     })),
     { to: "/tienda?oferta=true", etiqueta: "Ofertas", activo: enTienda && oferta, destacado: true },
   ];
-}
-
-const ANUNCIOS = [
-  { Icono: IconTruck, texto: `Delivery en Huancayo por S/ ${COSTO_ENVIO_DELIVERY.toFixed(2)}` },
-  { Icono: IconMapPin, texto: "Recojo en tienda gratis" },
-  { Icono: IconTag, texto: "Paga con Yape o tarjeta" },
-  { Icono: IconGift, texto: "Nuevos ingresos cada semana" },
-];
-const MS_POR_ANUNCIO = 4500;
-
-// Barra de anuncios: UN mensaje a la vez, centrado, que cambia con un deslizamiento corto.
-// (Antes era una cinta que corría sin parar: llamaba la atención todo el tiempo.)
-// Se detiene mientras el mouse o el foco están encima y queda quieta con «reducir movimiento».
-function BarraAnuncios() {
-  const [indice, setIndice] = useState(0);
-  const [pausado, setPausado] = useState(false);
-  const reducir = useReducedMotion();
-
-  useEffect(() => {
-    if (pausado || reducir) return undefined;
-    const id = setInterval(() => setIndice((i) => (i + 1) % ANUNCIOS.length), MS_POR_ANUNCIO);
-    return () => clearInterval(id);
-  }, [pausado, reducir]);
-
-  const { Icono, texto } = ANUNCIOS[indice];
-  return (
-    <div
-      className="relative flex h-9 items-center justify-center overflow-hidden bg-carbon px-4 text-[13px] font-semibold text-hueso"
-      onMouseEnter={() => setPausado(true)}
-      onMouseLeave={() => setPausado(false)}
-      role="region"
-      aria-label="Anuncios de la tienda"
-    >
-      <AnimatePresence mode="wait" initial={false}>
-        <motion.p
-          key={texto}
-          className="flex items-center gap-2 whitespace-nowrap"
-          initial={{ y: 14, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          exit={{ y: -14, opacity: 0 }}
-          transition={{ duration: 0.35, ease: [0.2, 0.8, 0.2, 1] }}
-        >
-          {/* Cada mensaje nuevo se monta de nuevo: su ícono se anima una vez al aparecer. */}
-          <Icono size={15} className="text-berry-light" animate />
-          {texto}
-        </motion.p>
-      </AnimatePresence>
-    </div>
-  );
 }
 
 function Enlace({ to, activo, destacado, children, onClick, movil = false }) {
@@ -160,7 +110,7 @@ export default function Navbar() {
     <form
       onSubmit={buscar}
       role="search"
-      className={`items-center gap-2 rounded-full border border-plum/15 bg-white px-4 transition-[border-color,box-shadow] focus-within:border-berry focus-within:ring-4 focus-within:ring-berry/15 ${clase}`}
+      className={`items-center gap-2 rounded-full border border-plum/15 bg-white px-4 transition-[border-color,box-shadow] focus-within:border-plum ${clase}`}
     >
       <IconSearch size={16} className="shrink-0 text-plum-soft" />
       <input
@@ -177,12 +127,11 @@ export default function Navbar() {
 
   return (
     <>
-      <BarraAnuncios />
-      <header className="sticky top-0 z-30 border-b border-plum/8 bg-ivory/85 backdrop-blur-md">
-        <nav className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3 sm:px-8" aria-label="Principal">
+      <header className="sticky top-0 z-30 border-b-2 border-plum bg-ivory">
+        <nav className="mx-auto flex min-h-[72px] max-w-7xl items-center gap-3 px-4 py-3 sm:px-8" aria-label="Principal">
           <Link to="/" onClick={cerrar} className="shrink-0 sm:mr-4" aria-label="Anita New Style, ir al inicio">
             {/* En la barra va solo el nombre; la imagen del logo queda para la pestaña del navegador. */}
-            <Logo tone="dark" conImagen={false} />
+            <Logo tone="dark" />
           </Link>
 
           <div className="hidden items-center gap-7 lg:flex">
