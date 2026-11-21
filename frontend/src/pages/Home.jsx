@@ -195,7 +195,7 @@ function Hero({ promociones, oferta }) {
         {oferta && (
           <div className="mt-3.5 grid gap-2 bg-white p-[18px] shadow-[inset_0_0_0_2px_rgb(var(--c-plum))] md:absolute md:-right-4 md:bottom-6 md:mt-0 md:w-[340px]">
             <div className="grid grid-cols-[64px_minmax(0,1fr)] items-center gap-3">
-              <div className="h-20 w-16 overflow-hidden rounded bg-[#ecebee]">
+              <div className="foto-vacia h-20 w-16 overflow-hidden rounded">
                 {oferta.imagen_url && (
                   <ImagenOptimizada src={oferta.imagen_url} variante="thumb" alt="" className="h-full w-full object-cover" />
                 )}
@@ -421,7 +421,7 @@ function ComoComprar() {
 function Campana({ categorias }) {
   const lista = categorias.slice(0, 4);
   return (
-    <section className="grid bg-[#f3f1f4] md:grid-cols-2">
+    <section className="grid bg-plum/5 md:grid-cols-2">
       <div className="aspect-4/3 overflow-hidden md:aspect-auto md:min-h-[560px]">
         <img src={heroDefecto2} alt="" loading="lazy" className="h-full w-full object-cover" />
       </div>

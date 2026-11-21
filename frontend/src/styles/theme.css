@@ -728,7 +728,7 @@ html.dark:not(.admin-mode) .to-white { --tw-gradient-to: var(--admin-surface) va
 html.dark:not(.admin-mode) :is(.border-white\/40, .border-white\/50) { border-color: rgb(255 255 255 / 0.1); }
 
 /* Fondo de las fotos de producto y tallas agotadas */
-html.dark:not(.admin-mode) .bg-\[\#ece7e0\] { background-color: var(--superficie-foto); }
+html.dark:not(.admin-mode) :is(.bg-\[\#ece7e0\], .bg-\[\#ecebee\]) { background-color: var(--superficie-foto); }
 html.dark:not(.admin-mode) .bg-\[\#f1eee9\] { background-color: #1c1b19; }
 html.dark:not(.admin-mode) .bg-\[\#f7f5f5\] { background-color: #121110; }
 html.dark:not(.admin-mode) .foto-vacia {
@@ -759,10 +759,10 @@ html.dark:not(.admin-mode) [class*="text-plum-soft/"] { color: #b0aba4; }
 html.dark:not(.admin-mode) [class*="placeholder:text-plum-soft/"]::placeholder { color: #b0aba4; }
 
 /* Botones */
-html.dark:not(.admin-mode) .btn-dark { background: #f0ece6; color: #121110; }
-html.dark:not(.admin-mode) .btn-dark:hover { background: #ffffff; }
-html.dark:not(.admin-mode) .btn-secondary { background: #1c1b19; color: #f0ece6; border-color: rgb(255 255 255 / 0.18); }
-html.dark:not(.admin-mode) .btn-secondary:hover { border-color: #f0ece6; }
+html.dark:not(.admin-mode) :is(.btn-dark, .btn-primary) { background: #f0ece6; color: #121110; }
+html.dark:not(.admin-mode) :is(.btn-dark, .btn-primary):hover { background: #ffffff; }
+html.dark:not(.admin-mode) .btn-secondary { background: transparent; color: #f0ece6; box-shadow: inset 0 0 0 2px #f0ece6; }
+html.dark:not(.admin-mode) .btn-secondary:hover { background: #f0ece6; color: #121110; }
 html.dark:not(.admin-mode) .btn-relleno:not(.btn-relleno--claro) { color: #f0ece6; box-shadow: inset 0 0 0 1.5px #f0ece6; }
 html.dark:not(.admin-mode) .btn-relleno:not(.btn-relleno--claro)::before { background: #f0ece6; }
 html.dark:not(.admin-mode) .btn-relleno:not(.btn-relleno--claro):hover { color: #121110; }
@@ -888,7 +888,7 @@ html.dark:not(.admin-mode) .aviso-fino.aviso-m { color: #e9a6dd; }
 .etiqueta-kraft.chica .p { font-size: 19px; }
 .etiqueta-kraft.chica s { font-size: 11px; }
 .etiqueta-kraft.chica::before { top: 7px; width: 9px; height: 9px; margin-left: -4.5px; }
-.colgante { display: flex; flex-direction: column; align-items: center; transform-origin: 50% 0; }
+.colgante { display: flex; flex-direction: column; align-items: center; transform-origin: 50% 0; color: rgb(var(--c-plum)); }
 .colgante svg { width: 30px; height: 26px; overflow: visible; }
 .colgante.chico svg { width: 22px; height: 16px; }
 .colgante .etiqueta-kraft { margin-top: -4px; }

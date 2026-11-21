@@ -7,7 +7,7 @@ export default function EtiquetaOferta({ precio, antes, chica = false, className
   return (
     <div className={`colgante ${chica ? "chico" : ""} ${className}`}>
       <svg viewBox="0 0 30 30" aria-hidden="true">
-        <path d="M15 0 C 15 10, 15 20, 15 30" stroke="#1c1a1d" strokeWidth="1.5" fill="none" />
+        <path d="M15 0 C 15 10, 15 20, 15 30" stroke="currentColor" strokeWidth="1.5" fill="none" />
       </svg>
       <div className={`etiqueta-kraft ${chica ? "chica" : ""}`}>
         <span className="que">Oferta</span>
