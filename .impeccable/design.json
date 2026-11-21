@@ -1,0 +1,706 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-21T12:00:00Z",
+  "title": "Design System: Anita New Style",
+  "extensions": {
+    "colorMeta": {
+      "bolsa": {
+        "role": "neutral",
+        "displayName": "Bolsa",
+        "canonical": "oklch(19.4% 0.015 305)",
+        "tonalRamp": [
+          "#0c0b0d",
+          "#262428",
+          "#434147",
+          "#635f68",
+          "#848089",
+          "#a6a3ab",
+          "#cac8cd",
+          "#efeef1"
+        ]
+      },
+      "bolsa-2": {
+        "role": "neutral",
+        "displayName": "Bolsa 2",
+        "canonical": "oklch(25.2% 0.019 303)",
+        "tonalRamp": [
+          "#0c0a0e",
+          "#262429",
+          "#434048",
+          "#635f6a",
+          "#84808b",
+          "#a7a3ad",
+          "#cac7cf",
+          "#efedf3"
+        ]
+      },
+      "seda": {
+        "role": "primary",
+        "displayName": "Papel seda",
+        "canonical": "oklch(52.7% 0.180 335)",
+        "tonalRamp": [
+          "#1a0016",
+          "#400a38",
+          "#691e5e",
+          "#953386",
+          "#bb56a9",
+          "#d784c6",
+          "#f2b1e4",
+          "#ffdeff"
+        ]
+      },
+      "seda-claro": {
+        "role": "primary",
+        "displayName": "Seda clara",
+        "canonical": "oklch(61.0% 0.184 335)",
+        "tonalRamp": [
+          "#1b0016",
+          "#400938",
+          "#6a1c5e",
+          "#973186",
+          "#bc55aa",
+          "#d883c6",
+          "#f3b0e4",
+          "#ffdeff"
+        ]
+      },
+      "seda-hondo": {
+        "role": "primary",
+        "displayName": "Seda honda",
+        "canonical": "oklch(42.9% 0.152 335)",
+        "tonalRamp": [
+          "#180214",
+          "#3c1135",
+          "#642659",
+          "#8e3d80",
+          "#b35fa3",
+          "#d08ac1",
+          "#ecb5df",
+          "#ffe1fe"
+        ]
+      },
+      "seda-niebla": {
+        "role": "primary",
+        "displayName": "Niebla de seda",
+        "canonical": "oklch(93.5% 0.023 334)",
+        "tonalRamp": [
+          "#0e0a0d",
+          "#292328",
+          "#483f46",
+          "#695d66",
+          "#8b7e88",
+          "#aca1a9",
+          "#cfc6cd",
+          "#f2ecf1"
+        ]
+      },
+      "boleta": {
+        "role": "neutral",
+        "displayName": "Boleta",
+        "canonical": "oklch(98.5% 0.003 85)",
+        "tonalRamp": [
+          "#0b0b0b",
+          "#252524",
+          "#424241",
+          "#62615f",
+          "#838280",
+          "#a5a5a3",
+          "#c9c9c8",
+          "#efeeee"
+        ]
+      },
+      "papel": {
+        "role": "neutral",
+        "displayName": "Papel",
+        "canonical": "oklch(94.8% 0.005 315)",
+        "tonalRamp": [
+          "#0b0b0c",
+          "#252526",
+          "#434143",
+          "#626063",
+          "#838284",
+          "#a6a4a6",
+          "#cac9ca",
+          "#efeeef"
+        ]
+      },
+      "blanco": {
+        "role": "neutral",
+        "displayName": "Blanco de campo",
+        "canonical": "oklch(100.0% 0.000 90)",
+        "tonalRamp": [
+          "#0b0b0b",
+          "#252525",
+          "#424242",
+          "#616161",
+          "#828282",
+          "#a5a5a5",
+          "#c9c9c9",
+          "#eeeeee"
+        ]
+      },
+      "kraft": {
+        "role": "secondary",
+        "displayName": "Etiqueta kraft",
+        "canonical": "oklch(67.1% 0.083 65)",
+        "tonalRamp": [
+          "#140801",
+          "#34200a",
+          "#583b1d",
+          "#7f5830",
+          "#a27951",
+          "#c09e7d",
+          "#dfc4ab",
+          "#feebd9"
+        ]
+      },
+      "kraft-claro": {
+        "role": "secondary",
+        "displayName": "Kraft claro",
+        "canonical": "oklch(79.3% 0.069 69)",
+        "tonalRamp": [
+          "#120902",
+          "#31210f",
+          "#543d23",
+          "#795b39",
+          "#9b7c59",
+          "#baa084",
+          "#dac5af",
+          "#faecdc"
+        ]
+      },
+      "tinta": {
+        "role": "neutral",
+        "displayName": "Tinta",
+        "canonical": "oklch(22.1% 0.006 315)",
+        "tonalRamp": [
+          "#0b0b0c",
+          "#262426",
+          "#434144",
+          "#626064",
+          "#848185",
+          "#a6a4a7",
+          "#cac8cb",
+          "#efeeef"
+        ]
+      },
+      "tinta-suave": {
+        "role": "neutral",
+        "displayName": "Tinta suave",
+        "canonical": "oklch(46.2% 0.018 312)",
+        "tonalRamp": [
+          "#0c0a0d",
+          "#272429",
+          "#444047",
+          "#645f68",
+          "#868089",
+          "#a8a3ab",
+          "#cbc7ce",
+          "#f0edf2"
+        ]
+      },
+      "sobre-oscuro": {
+        "role": "neutral",
+        "displayName": "Sobre oscuro",
+        "canonical": "oklch(96.5% 0.006 334)",
+        "tonalRamp": [
+          "#0c0b0b",
+          "#262426",
+          "#434143",
+          "#636062",
+          "#848184",
+          "#a7a4a6",
+          "#cac8ca",
+          "#efeeef"
+        ]
+      },
+      "sobre-oscuro-suave": {
+        "role": "neutral",
+        "displayName": "Sobre oscuro suave",
+        "canonical": "oklch(81.7% 0.015 329)",
+        "tonalRamp": [
+          "#0d0a0c",
+          "#272427",
+          "#454045",
+          "#665f65",
+          "#878086",
+          "#a9a3a8",
+          "#ccc7cc",
+          "#f1edf0"
+        ]
+      },
+      "exito": {
+        "role": "state",
+        "displayName": "Éxito",
+        "canonical": "oklch(52.7% 0.137 150)",
+        "tonalRamp": [
+          "#001102",
+          "#002f0f",
+          "#065023",
+          "#177438",
+          "#429759",
+          "#75b783",
+          "#a6d8af",
+          "#d7f9dd"
+        ]
+      },
+      "exito-fondo": {
+        "role": "state",
+        "displayName": "Fondo de éxito",
+        "canonical": "oklch(95.4% 0.020 155)",
+        "tonalRamp": [
+          "#090c0a",
+          "#212723",
+          "#3c443f",
+          "#5a645d",
+          "#7a867e",
+          "#9ea8a1",
+          "#c4cbc6",
+          "#ebf0ec"
+        ]
+      },
+      "aviso": {
+        "role": "state",
+        "displayName": "Aviso",
+        "canonical": "oklch(47.3% 0.125 46)",
+        "tonalRamp": [
+          "#1a0400",
+          "#3f1803",
+          "#683010",
+          "#944921",
+          "#b96b44",
+          "#d59374",
+          "#f0bca4",
+          "#ffe6d4"
+        ]
+      },
+      "aviso-fondo": {
+        "role": "state",
+        "displayName": "Fondo de aviso",
+        "canonical": "oklch(96.2% 0.031 82)",
+        "tonalRamp": [
+          "#0e0b06",
+          "#29241c",
+          "#484135",
+          "#696050",
+          "#8b8170",
+          "#aca496",
+          "#cfc8bd",
+          "#f2eee6"
+        ]
+      },
+      "peligro": {
+        "role": "state",
+        "displayName": "Peligro",
+        "canonical": "oklch(50.5% 0.190 28)",
+        "tonalRamp": [
+          "#220000",
+          "#4c0103",
+          "#7c1211",
+          "#ae2622",
+          "#d64e44",
+          "#f08074",
+          "#ffafa3",
+          "#ffddd4"
+        ]
+      },
+      "peligro-fondo": {
+        "role": "state",
+        "displayName": "Fondo de peligro",
+        "canonical": "oklch(95.2% 0.021 18)",
+        "tonalRamp": [
+          "#0e0a0a",
+          "#2a2323",
+          "#4a3f3f",
+          "#6c5d5d",
+          "#8d7e7e",
+          "#aea1a1",
+          "#d1c6c6",
+          "#f4ecec"
+        ]
+      },
+      "oscuro-fondo": {
+        "role": "neutral",
+        "displayName": "Fondo oscuro",
+        "canonical": "oklch(18.4% 0.013 308)",
+        "tonalRamp": [
+          "#0c0b0d",
+          "#262428",
+          "#434146",
+          "#636067",
+          "#848188",
+          "#a6a3aa",
+          "#cac8cd",
+          "#efeef1"
+        ]
+      },
+      "oscuro-superficie": {
+        "role": "neutral",
+        "displayName": "Superficie oscura",
+        "canonical": "oklch(23.0% 0.016 308)",
+        "tonalRamp": [
+          "#0c0a0d",
+          "#262429",
+          "#444047",
+          "#635f68",
+          "#858089",
+          "#a7a3ab",
+          "#cbc8ce",
+          "#efedf2"
+        ]
+      },
+      "oscuro-texto": {
+        "role": "neutral",
+        "displayName": "Texto en oscuro",
+        "canonical": "oklch(93.7% 0.010 326)",
+        "tonalRamp": [
+          "#0c0b0c",
+          "#272427",
+          "#444144",
+          "#645f64",
+          "#858085",
+          "#a8a3a8",
+          "#cbc8cb",
+          "#f0edf0"
+        ]
+      },
+      "oscuro-linea": {
+        "role": "neutral",
+        "displayName": "Línea en oscuro",
+        "canonical": "oklch(28.2% 0.018 310)",
+        "tonalRamp": [
+          "#0c0a0d",
+          "#262429",
+          "#444047",
+          "#645f68",
+          "#85808a",
+          "#a7a3ab",
+          "#cbc7ce",
+          "#f0edf2"
+        ]
+      },
+      "exito-oscuro": {
+        "role": "state",
+        "displayName": "Éxito en oscuro",
+        "canonical": "oklch(87.1% 0.136 154)",
+        "tonalRamp": [
+          "#001103",
+          "#002f13",
+          "#005128",
+          "#00753f",
+          "#379860",
+          "#70b889",
+          "#a3d8b3",
+          "#d5f9df"
+        ]
+      },
+      "aviso-oscuro": {
+        "role": "state",
+        "displayName": "Aviso en oscuro",
+        "canonical": "oklch(87.9% 0.153 92)",
+        "tonalRamp": [
+          "#140900",
+          "#342200",
+          "#583e00",
+          "#7e5c00",
+          "#a17e00",
+          "#bfa24a",
+          "#ddc888",
+          "#fdeec3"
+        ]
+      },
+      "peligro-oscuro": {
+        "role": "state",
+        "displayName": "Peligro en oscuro",
+        "canonical": "oklch(80.8% 0.103 20)",
+        "tonalRamp": [
+          "#190405",
+          "#3d1819",
+          "#643031",
+          "#8f494b",
+          "#b46a6b",
+          "#d19292",
+          "#edbbba",
+          "#ffe5e4"
+        ]
+      },
+      "bolsa-linea": {
+        "role": "neutral",
+        "displayName": "Línea de bolsa",
+        "canonical": "rgb(255 255 255 / 0.14)"
+      },
+      "linea": {
+        "role": "neutral",
+        "displayName": "Línea",
+        "canonical": "rgb(28 26 29 / 0.14)"
+      },
+      "linea-fuerte": {
+        "role": "neutral",
+        "displayName": "Línea fuerte",
+        "canonical": "rgb(28 26 29 / 0.32)"
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Solo el titular del hero de la tienda."
+      },
+      "headline": {
+        "displayName": "Titular de sección",
+        "purpose": "Títulos de sección de la tienda y la hoja del sistema."
+      },
+      "title": {
+        "displayName": "Nombre de pieza",
+        "purpose": "Nombre de la pieza en la boleta y cabeceras de boleta."
+      },
+      "title-panel": {
+        "displayName": "Título de caja",
+        "purpose": "Encabezados de caja en el panel."
+      },
+      "body": {
+        "displayName": "Cuerpo",
+        "purpose": "Texto corriente en Manrope."
+      },
+      "label": {
+        "displayName": "Rótulo",
+        "purpose": "Grupos de formulario, riel y encabezados de tabla, en mayúsculas; nunca sobre un titular."
+      },
+      "precio-etiqueta": {
+        "displayName": "Precio en etiqueta",
+        "purpose": "Precio colgado en la etiqueta kraft."
+      },
+      "importe": {
+        "displayName": "Importe",
+        "purpose": "Totales, precios de ficha, KPI, cantidades y códigos en mono tabular."
+      }
+    },
+    "shadows": [
+      {
+        "name": "sombra",
+        "value": "0 18px 40px -22px rgb(22 19 26 / 0.55)",
+        "purpose": "Boletas levantadas (hero, ficha, día)."
+      },
+      {
+        "name": "sombra-baja",
+        "value": "0 6px 16px -10px rgb(22 19 26 / 0.45)",
+        "purpose": "Etiqueta kraft y segmento elegido."
+      },
+      {
+        "name": "brillo-cinta",
+        "value": "0 10px 22px -12px #7e2470",
+        "purpose": "Bajo la cinta."
+      },
+      {
+        "name": "tira-inferior",
+        "value": "0 -10px 30px -12px rgb(22 19 26 / .45)",
+        "purpose": "Barra de compra fija en celular."
+      }
+    ],
+    "motion": [
+      {
+        "name": "salida",
+        "value": "cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "Curva por defecto para entradas y respuestas."
+      },
+      {
+        "name": "pulsar",
+        "value": "transform 150ms salida, scale(0.98)",
+        "purpose": "Respuesta al pulsar botones (0.97 en productos del mostrador)."
+      },
+      {
+        "name": "desenvuelve",
+        "value": "1.1s salida, clip-path inset(30% 22% 0 22%) a 0",
+        "purpose": "La foto del hero se desenvuelve una vez al entrar."
+      },
+      {
+        "name": "cuelga",
+        "value": "1.4s salida, retraso 0.5s, rotate -14deg a 5deg a 0",
+        "purpose": "La etiqueta del hero se balancea una vez."
+      },
+      {
+        "name": "vuela",
+        "value": "700ms cubic-bezier(.5,-0.2,.6,1)",
+        "purpose": "La etiqueta viaja a Mi bolsa al agregar."
+      },
+      {
+        "name": "llego",
+        "value": "600ms salida, scale 1.35",
+        "purpose": "El contador de la bolsa late al recibir."
+      },
+      {
+        "name": "imprime",
+        "value": "450ms salida, clip-path de arriba abajo",
+        "purpose": "Cada línea nueva del ticket del mostrador."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "movil",
+        "value": "560px"
+      },
+      {
+        "name": "movil-ancho",
+        "value": "760px"
+      },
+      {
+        "name": "tablet",
+        "value": "900px"
+      },
+      {
+        "name": "apilado",
+        "value": "980px"
+      },
+      {
+        "name": "laptop",
+        "value": "1180px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Cinta",
+      "kind": "button",
+      "refersTo": "cinta",
+      "description": "La única acción principal: Agregar a mi bolsa, Pagar, Cobrar.",
+      "html": "<button class=\"ds-cinta\">Agregar a mi bolsa</button>",
+      "css": ":host{--bolsa:#16131a;--bolsa-2:#24202a;--seda:#a53694;--seda-claro:#c24fae;--seda-hondo:#7e2470;--seda-niebla:#f4e4f0;--boleta:#fbfaf8;--papel:#efedf0;--kraft:#b98b5e;--kraft-claro:#d9b48c;--tinta:#1c1a1d;--tinta-suave:#5c5660;--linea:rgb(28 26 29 / .14);--linea-fuerte:rgb(28 26 29 / .32);--sobre-oscuro-suave:#c9c0c8;--exito:#15803d;--exito-fondo:#e6f4ea;--aviso:#92400e;--aviso-fondo:#fdf1dc;--peligro:#b91c1c;--peligro-fondo:#fdeaea;--salida:cubic-bezier(0.16,1,0.3,1);font-family:Manrope,ui-sans-serif,system-ui,sans-serif;color:var(--tinta)} .ds-cinta{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:48px;padding:0 22px;border-radius:10px;border:0;cursor:pointer;font:700 16px Manrope,ui-sans-serif,sans-serif;transition:background-color .2s,transform .15s var(--salida),box-shadow .2s;background:var(--seda);color:#fff;box-shadow:0 10px 22px -12px var(--seda-hondo)} .ds-cinta:hover{background:var(--seda-hondo)} .ds-cinta:active{transform:scale(.98)} .ds-cinta:focus-visible{outline:2.5px solid var(--seda);outline-offset:3px;}"
+    },
+    {
+      "name": "Botón bolsa",
+      "kind": "button",
+      "refersTo": "boton-bolsa",
+      "description": "Acción secundaria de trabajo.",
+      "html": "<button class=\"ds-btn\">Buscar</button>",
+      "css": ":host{--bolsa:#16131a;--bolsa-2:#24202a;--seda:#a53694;--seda-claro:#c24fae;--seda-hondo:#7e2470;--seda-niebla:#f4e4f0;--boleta:#fbfaf8;--papel:#efedf0;--kraft:#b98b5e;--kraft-claro:#d9b48c;--tinta:#1c1a1d;--tinta-suave:#5c5660;--linea:rgb(28 26 29 / .14);--linea-fuerte:rgb(28 26 29 / .32);--sobre-oscuro-suave:#c9c0c8;--exito:#15803d;--exito-fondo:#e6f4ea;--aviso:#92400e;--aviso-fondo:#fdf1dc;--peligro:#b91c1c;--peligro-fondo:#fdeaea;--salida:cubic-bezier(0.16,1,0.3,1);font-family:Manrope,ui-sans-serif,system-ui,sans-serif;color:var(--tinta)} .ds-btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:48px;padding:0 22px;border-radius:10px;border:0;cursor:pointer;font:700 16px Manrope,ui-sans-serif,sans-serif;transition:background-color .2s,transform .15s var(--salida),box-shadow .2s;background:var(--bolsa);color:#fff} .ds-btn:hover{background:#000} .ds-btn:active{transform:scale(.98)} .ds-btn:focus-visible{outline:2.5px solid var(--seda);outline-offset:3px;}"
+    },
+    {
+      "name": "Botón borde",
+      "kind": "button",
+      "refersTo": "boton-borde",
+      "description": "Acción terciaria, como Ver todos.",
+      "html": "<button class=\"ds-btn-borde\">Ver todos</button>",
+      "css": ":host{--bolsa:#16131a;--bolsa-2:#24202a;--seda:#a53694;--seda-claro:#c24fae;--seda-hondo:#7e2470;--seda-niebla:#f4e4f0;--boleta:#fbfaf8;--papel:#efedf0;--kraft:#b98b5e;--kraft-claro:#d9b48c;--tinta:#1c1a1d;--tinta-suave:#5c5660;--linea:rgb(28 26 29 / .14);--linea-fuerte:rgb(28 26 29 / .32);--sobre-oscuro-suave:#c9c0c8;--exito:#15803d;--exito-fondo:#e6f4ea;--aviso:#92400e;--aviso-fondo:#fdf1dc;--peligro:#b91c1c;--peligro-fondo:#fdeaea;--salida:cubic-bezier(0.16,1,0.3,1);font-family:Manrope,ui-sans-serif,system-ui,sans-serif;color:var(--tinta)} .ds-btn-borde{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:48px;padding:0 22px;border-radius:10px;border:0;cursor:pointer;font:700 16px Manrope,ui-sans-serif,sans-serif;transition:background-color .2s,transform .15s var(--salida),box-shadow .2s;background:transparent;color:var(--tinta);box-shadow:inset 0 0 0 1.5px var(--linea-fuerte)} .ds-btn-borde:hover{box-shadow:inset 0 0 0 1.5px var(--tinta)} .ds-btn-borde:active{transform:scale(.98)} .ds-btn-borde:focus-visible{outline:2.5px solid var(--seda);outline-offset:3px;}"
+    },
+    {
+      "name": "Campo",
+      "kind": "input",
+      "refersTo": "campo",
+      "description": "Campo con etiqueta visible y ayuda; estado de error con mensaje concreto.",
+      "html": "<div class=\"ds-campo\"><label for=\"ds-n\">Nombre completo</label><input id=\"ds-n\" value=\"María Quispe\"></div><div class=\"ds-campo ds-error\"><label for=\"ds-d\">DNI</label><input id=\"ds-d\" value=\"4512\"><span>El DNI tiene 8 dígitos. Te faltan 4.</span></div>",
+      "css": ":host{--bolsa:#16131a;--bolsa-2:#24202a;--seda:#a53694;--seda-claro:#c24fae;--seda-hondo:#7e2470;--seda-niebla:#f4e4f0;--boleta:#fbfaf8;--papel:#efedf0;--kraft:#b98b5e;--kraft-claro:#d9b48c;--tinta:#1c1a1d;--tinta-suave:#5c5660;--linea:rgb(28 26 29 / .14);--linea-fuerte:rgb(28 26 29 / .32);--sobre-oscuro-suave:#c9c0c8;--exito:#15803d;--exito-fondo:#e6f4ea;--aviso:#92400e;--aviso-fondo:#fdf1dc;--peligro:#b91c1c;--peligro-fondo:#fdeaea;--salida:cubic-bezier(0.16,1,0.3,1);font-family:Manrope,ui-sans-serif,system-ui,sans-serif;color:var(--tinta)} .ds-campo{display:grid;gap:6px;margin-bottom:14px;max-width:320px} .ds-campo label{font-size:13px;font-weight:700} .ds-campo input{min-height:48px;border-radius:10px;border:1.5px solid var(--linea-fuerte);background:#fff;padding:0 14px;font:400 16px Manrope,sans-serif;color:var(--tinta)} .ds-campo input:focus{outline:none;border-color:var(--seda);box-shadow:0 0 0 3px rgb(165 54 148 / .18)} .ds-campo span{font-size:13px;color:var(--tinta-suave)} .ds-error input{border-color:var(--peligro)} .ds-error span{color:var(--peligro);font-weight:600}"
+    },
+    {
+      "name": "Opción de entrega",
+      "kind": "custom",
+      "refersTo": "opcion-elegida",
+      "description": "Radio en fila con importe a la derecha; elegida en niebla de seda.",
+      "html": "<div class=\"ds-opciones\"><label class=\"ds-opcion\"><input type=\"radio\" name=\"ds-e\" checked><span><b>Recojo en tienda</b><small>Te damos un código de 6 dígitos</small></span><span class=\"ds-num\">Gratis</span></label><label class=\"ds-opcion\"><input type=\"radio\" name=\"ds-e\"><span><b>Delivery en Huancayo</b><small>A tu casa</small></span><span class=\"ds-num\">S/ 10.00</span></label></div>",
+      "css": ":host{--bolsa:#16131a;--bolsa-2:#24202a;--seda:#a53694;--seda-claro:#c24fae;--seda-hondo:#7e2470;--seda-niebla:#f4e4f0;--boleta:#fbfaf8;--papel:#efedf0;--kraft:#b98b5e;--kraft-claro:#d9b48c;--tinta:#1c1a1d;--tinta-suave:#5c5660;--linea:rgb(28 26 29 / .14);--linea-fuerte:rgb(28 26 29 / .32);--sobre-oscuro-suave:#c9c0c8;--exito:#15803d;--exito-fondo:#e6f4ea;--aviso:#92400e;--aviso-fondo:#fdf1dc;--peligro:#b91c1c;--peligro-fondo:#fdeaea;--salida:cubic-bezier(0.16,1,0.3,1);font-family:Manrope,ui-sans-serif,system-ui,sans-serif;color:var(--tinta)} .ds-opciones{display:grid;gap:8px;max-width:360px} .ds-opcion{position:relative;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;min-height:52px;border-radius:10px;box-shadow:inset 0 0 0 1.5px var(--linea);cursor:pointer;transition:box-shadow .2s,background-color .2s} .ds-opcion input{position:absolute;opacity:0} .ds-opcion:hover{box-shadow:inset 0 0 0 1.5px var(--linea-fuerte)} .ds-opcion:has(input:checked){box-shadow:inset 0 0 0 2px var(--seda);background:var(--seda-niebla)} .ds-opcion:has(input:focus-visible){outline:2.5px solid var(--seda);outline-offset:2px} .ds-opcion small{display:block;color:var(--tinta-suave);font-size:13px} .ds-num{font:600 15px 'Spline Sans Mono',ui-monospace,monospace;font-variant-numeric:tabular-nums}"
+    },
+    {
+      "name": "Insignias de estado",
+      "kind": "chip",
+      "refersTo": "chip-exito",
+      "description": "Estados de significado fijo y descuento en rosa.",
+      "html": "<span class=\"ds-chip ds-exito\">Pago verificado</span> <span class=\"ds-chip ds-aviso\">En revisión</span> <span class=\"ds-chip ds-peligro\">Rechazado</span> <span class=\"ds-chip ds-neutro\">Reembolsado</span> <span class=\"ds-chip ds-rosa\">-17%</span>",
+      "css": ":host{--bolsa:#16131a;--bolsa-2:#24202a;--seda:#a53694;--seda-claro:#c24fae;--seda-hondo:#7e2470;--seda-niebla:#f4e4f0;--boleta:#fbfaf8;--papel:#efedf0;--kraft:#b98b5e;--kraft-claro:#d9b48c;--tinta:#1c1a1d;--tinta-suave:#5c5660;--linea:rgb(28 26 29 / .14);--linea-fuerte:rgb(28 26 29 / .32);--sobre-oscuro-suave:#c9c0c8;--exito:#15803d;--exito-fondo:#e6f4ea;--aviso:#92400e;--aviso-fondo:#fdf1dc;--peligro:#b91c1c;--peligro-fondo:#fdeaea;--salida:cubic-bezier(0.16,1,0.3,1);font-family:Manrope,ui-sans-serif,system-ui,sans-serif;color:var(--tinta)} .ds-chip{display:inline-flex;align-items:center;padding:4px 10px;border-radius:6px;font-size:13px;font-weight:700;white-space:nowrap} .ds-exito{background:var(--exito-fondo);color:var(--exito)} .ds-aviso{background:var(--aviso-fondo);color:var(--aviso)} .ds-peligro{background:var(--peligro-fondo);color:var(--peligro)} .ds-neutro{background:rgb(28 26 29 / .07);color:var(--tinta-suave)} .ds-rosa{background:var(--seda-niebla);color:var(--seda-hondo)}"
+    },
+    {
+      "name": "Etiqueta colgante",
+      "kind": "custom",
+      "refersTo": "etiqueta",
+      "description": "Etiqueta kraft con ojal y esquinas cortadas; lleva el precio o el código de recojo.",
+      "html": "<div class=\"ds-etiqueta\"><span class=\"ds-que\">Precio</span><span class=\"ds-precio\">S/ 49.90</span><s>S/ 59.90</s></div>",
+      "css": ":host{--bolsa:#16131a;--bolsa-2:#24202a;--seda:#a53694;--seda-claro:#c24fae;--seda-hondo:#7e2470;--seda-niebla:#f4e4f0;--boleta:#fbfaf8;--papel:#efedf0;--kraft:#b98b5e;--kraft-claro:#d9b48c;--tinta:#1c1a1d;--tinta-suave:#5c5660;--linea:rgb(28 26 29 / .14);--linea-fuerte:rgb(28 26 29 / .32);--sobre-oscuro-suave:#c9c0c8;--exito:#15803d;--exito-fondo:#e6f4ea;--aviso:#92400e;--aviso-fondo:#fdf1dc;--peligro:#b91c1c;--peligro-fondo:#fdeaea;--salida:cubic-bezier(0.16,1,0.3,1);font-family:Manrope,ui-sans-serif,system-ui,sans-serif;color:var(--tinta)} .ds-etiqueta{position:relative;display:inline-flex;flex-direction:column;gap:2px;background:var(--kraft);color:var(--tinta);padding:26px 16px 14px;min-width:128px;clip-path:polygon(14px 0,calc(100% - 14px) 0,100% 14px,100% 100%,0 100%,0 14px);transform:rotate(-6deg);transform-origin:50% 0;box-shadow:0 6px 16px -10px rgb(22 19 26 / .45);margin:12px 20px} .ds-etiqueta::before{content:'';position:absolute;top:9px;left:50%;width:11px;height:11px;margin-left:-5.5px;border-radius:50%;background:var(--bolsa);box-shadow:inset 0 0 0 2px var(--kraft-claro)} .ds-que{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase} .ds-precio{font:800 30px/1 'Bricolage Grotesque',Manrope,sans-serif;letter-spacing:-.02em} .ds-etiqueta s{font:400 13px 'Spline Sans Mono',ui-monospace,monospace;color:#231b15}"
+    },
+    {
+      "name": "Boleta perforada",
+      "kind": "card",
+      "refersTo": "boleta",
+      "description": "Superficie de decisión: líneas con importe en mono y total; borde inferior dentado.",
+      "html": "<div class=\"ds-boleta\"><div class=\"ds-linea\"><span>Bolso Tote Lona Natural</span><span>S/ 49.90</span></div><div class=\"ds-linea\"><span>Entrega</span><span>S/ 0.00</span></div><div class=\"ds-total\"><span>Total</span><span>S/ 49.90</span></div></div>",
+      "css": ":host{--bolsa:#16131a;--bolsa-2:#24202a;--seda:#a53694;--seda-claro:#c24fae;--seda-hondo:#7e2470;--seda-niebla:#f4e4f0;--boleta:#fbfaf8;--papel:#efedf0;--kraft:#b98b5e;--kraft-claro:#d9b48c;--tinta:#1c1a1d;--tinta-suave:#5c5660;--linea:rgb(28 26 29 / .14);--linea-fuerte:rgb(28 26 29 / .32);--sobre-oscuro-suave:#c9c0c8;--exito:#15803d;--exito-fondo:#e6f4ea;--aviso:#92400e;--aviso-fondo:#fdf1dc;--peligro:#b91c1c;--peligro-fondo:#fdeaea;--salida:cubic-bezier(0.16,1,0.3,1);font-family:Manrope,ui-sans-serif,system-ui,sans-serif;color:var(--tinta)} .ds-boleta{--d:9px;background:var(--boleta);color:var(--tinta);max-width:340px;padding:24px 22px calc(var(--d) + 20px);box-shadow:0 18px 40px -22px rgb(22 19 26 / .55);-webkit-mask:radial-gradient(var(--d) at 50% 100%,#0000 97%,#000) 0 0/calc(var(--d)*2) 100% repeat-x;mask:radial-gradient(var(--d) at 50% 100%,#0000 97%,#000) 0 0/calc(var(--d)*2) 100% repeat-x} .ds-linea{display:flex;justify-content:space-between;gap:16px;padding:10px 0;border-bottom:1px dashed var(--linea-fuerte)} .ds-linea span:last-child{font-family:'Spline Sans Mono',ui-monospace,monospace;font-variant-numeric:tabular-nums} .ds-total{display:flex;justify-content:space-between;align-items:baseline;padding-top:14px;font:800 30px/1.1 'Bricolage Grotesque',sans-serif} .ds-total span:last-child{font:600 28px 'Spline Sans Mono',ui-monospace,monospace;letter-spacing:-.03em}"
+    },
+    {
+      "name": "Riel del panel",
+      "kind": "nav",
+      "refersTo": "riel-item",
+      "description": "Navegación del panel sobre la bolsa; el ítem actual en seda.",
+      "html": "<nav class=\"ds-riel\"><span>Ventas</span><a href=\"#\" aria-current=\"page\">Inicio</a><a href=\"#\">Pedidos <i>12</i></a><a href=\"#\">Mostrador</a></nav>",
+      "css": ":host{--bolsa:#16131a;--bolsa-2:#24202a;--seda:#a53694;--seda-claro:#c24fae;--seda-hondo:#7e2470;--seda-niebla:#f4e4f0;--boleta:#fbfaf8;--papel:#efedf0;--kraft:#b98b5e;--kraft-claro:#d9b48c;--tinta:#1c1a1d;--tinta-suave:#5c5660;--linea:rgb(28 26 29 / .14);--linea-fuerte:rgb(28 26 29 / .32);--sobre-oscuro-suave:#c9c0c8;--exito:#15803d;--exito-fondo:#e6f4ea;--aviso:#92400e;--aviso-fondo:#fdf1dc;--peligro:#b91c1c;--peligro-fondo:#fdeaea;--salida:cubic-bezier(0.16,1,0.3,1);font-family:Manrope,ui-sans-serif,system-ui,sans-serif;color:var(--tinta)} .ds-riel{background:var(--bolsa);color:var(--sobre-oscuro-suave);padding:14px 12px;display:grid;gap:2px;width:248px;border-radius:12px} .ds-riel>span{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#8f8692;padding:6px 10px} .ds-riel a{display:flex;align-items:center;gap:10px;min-height:40px;padding:0 10px;border-radius:8px;text-decoration:none;color:inherit;font-weight:600;font-size:14px} .ds-riel a:hover{background:var(--bolsa-2);color:#fff} .ds-riel a[aria-current=page]{background:var(--seda);color:#fff} .ds-riel a:focus-visible{outline:2.5px solid var(--seda-claro);outline-offset:3px} .ds-riel i{margin-left:auto;font:600 12px 'Spline Sans Mono',ui-monospace,monospace;font-style:normal;background:rgb(255 255 255 / .12);color:#fff;padding:2px 7px;border-radius:99px}"
+    },
+    {
+      "name": "Par oscuro",
+      "kind": "card",
+      "refersTo": "cinta-oscuro",
+      "description": "Muestra del modo oscuro de la vista Sistema: fondo bolsa, cinta en seda con texto blanco, estados claros al 14 %.",
+      "html": "<div class=\"ds-oscuro\"><button class=\"ds-cinta-o\">Agregar</button> <span class=\"ds-co ds-co-e\">Verificado</span> <span class=\"ds-co ds-co-a\">En revisión</span> <span class=\"ds-co ds-co-p\">Rechazado</span></div>",
+      "css": ":host{--bolsa:#16131a;--bolsa-2:#24202a;--seda:#a53694;--seda-claro:#c24fae;--seda-hondo:#7e2470;--seda-niebla:#f4e4f0;--boleta:#fbfaf8;--papel:#efedf0;--kraft:#b98b5e;--kraft-claro:#d9b48c;--tinta:#1c1a1d;--tinta-suave:#5c5660;--linea:rgb(28 26 29 / .14);--linea-fuerte:rgb(28 26 29 / .32);--sobre-oscuro-suave:#c9c0c8;--exito:#15803d;--exito-fondo:#e6f4ea;--aviso:#92400e;--aviso-fondo:#fdf1dc;--peligro:#b91c1c;--peligro-fondo:#fdeaea;--salida:cubic-bezier(0.16,1,0.3,1);font-family:Manrope,ui-sans-serif,system-ui,sans-serif;color:var(--tinta)} .ds-oscuro{background:#141117;color:#eee8ee;box-shadow:inset 0 0 0 1px #2c2730;border-radius:12px;padding:22px;display:flex;gap:10px;flex-wrap:wrap;align-items:center} .ds-cinta-o{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:48px;padding:0 22px;border-radius:10px;border:0;cursor:pointer;font:700 16px Manrope,ui-sans-serif,sans-serif;transition:background-color .2s,transform .15s var(--salida),box-shadow .2s;background:var(--seda);color:#fff;box-shadow:0 10px 22px -12px #000} .ds-cinta-o:hover{background:var(--seda-hondo)} .ds-cinta-o:focus-visible{outline:2.5px solid var(--seda-claro);outline-offset:3px} .ds-co{padding:4px 10px;border-radius:6px;font-size:13px;font-weight:700} .ds-co-e{background:rgb(134 239 172 / .14);color:#86efac} .ds-co-a{background:rgb(252 211 77 / .14);color:#fcd34d} .ds-co-p{background:rgb(252 165 165 / .14);color:#fca5a5}"
+    }
+  ],
+  "narrative": {
+    "northStar": "La bolsa de Anita, en calma",
+    "overview": "La tienda online es una tienda clásica y clara, con fondo blanco, navegación blanca y una grilla pareja de productos con el precio como texto. El mundo de la compra en el local de Anita aparece solo donde tiene un trabajo. El papel seda magenta envuelve la pieza de la semana en la portada y marca la acción y lo elegido. La etiqueta kraft cuelga de esa pieza y lleva el código de recojo. La boleta con borde perforado aparece donde hay precio y entrega, pago, recojo o caja: portada, ficha, bolsa, «Cómo compras» y mostrador. La bolsa negra mate queda en el botón «Mi bolsa», el pie y el riel del panel. El panel cuenta la misma compra desde el mostrador, y cada venta es una boleta que se imprime mientras se arma.\n\nLa densidad cambia según la escena. La tienda es tranquila: blanco, titulares grandes y una sola zona de color fuerte (la seda del hero), con la boleta al lado de la pieza para que la entrega y el total estén a la vista. El panel es denso y táctil: cajas de papel boleta sobre fondo papel, cifras en mono tabular y controles de 44 a 60 px para usar con el dedo.\n\n**Modo oscuro obligatorio.** La propuesta se dibuja en claro, pero la app (tienda y panel) tiene que salir también en oscuro. La vista Sistema fija el par oscuro: la bolsa pasa a ser el fondo (`oscuro-fondo`, `oscuro-superficie`), el texto se aclara (`oscuro-texto`, `sobre-oscuro-suave`), la cinta conserva `seda` con texto blanco (5.9:1; `seda-claro` con blanco daba unos 4.2:1 y no llegaba a AA) y los estados cambian a sus tonos claros sobre fondos translúcidos. Lo que la vista no muestra (la boleta, la etiqueta y las tablas en oscuro) queda **[por resolver en la implementación]**, siguiendo ese par.",
+    "keyCharacteristics": [
+      "Tienda en blanco y panel en papel. Papel seda magenta solo en la portada, la acción y lo elegido. Boleta donde hay precio y entrega. Kraft para la etiqueta de la portada y los códigos de recojo. Bolsa negra en «Mi bolsa», el pie y el riel.",
+      "Tres voces tipográficas: Bricolage Grotesque para titulares, Manrope para trabajar y Spline Sans Mono para importes.",
+      "Objetos con forma propia: etiqueta con esquinas cortadas y ojal, y boleta con dientes perforados.",
+      "Una sola acción principal por vista: la cinta magenta.",
+      "Estados (éxito, aviso, peligro) con significado fijo en los dos temas."
+    ],
+    "rules": [
+      {
+        "name": "The Seda Envuelve Rule",
+        "body": "El magenta solo envuelve lo activo y la acción: la cinta, el ítem actual, lo elegido, el foco y la pieza de la semana. Nunca es fondo de sección fuera del hero, ni texto de cuerpo, ni color de estado.",
+        "section": "colors"
+      },
+      {
+        "name": "The Estados Fijos Rule",
+        "body": "Verde es éxito, ámbar es aviso y rojo es peligro, en la tienda, en el panel y en los dos temas. El magenta nunca comunica un estado, y un estado nunca se pinta de magenta.",
+        "section": "colors"
+      },
+      {
+        "name": "The Tienda Blanca, Panel Papel Rule",
+        "body": "La tienda va sobre `blanco`. El panel va sobre `papel`, con cajas de `boleta`. Toda boleta de la tienda descansa sobre una cama de `papel` (columna del hero, área de la ficha, banda «Cómo compras»): la máscara del borde perforado recorta su propia sombra, así que sobre blanco la boleta no se lee como objeto.",
+        "section": "colors"
+      },
+      {
+        "name": "The Mundo Con Trabajo Rule",
+        "body": "La seda, la etiqueta kraft y la boleta solo aparecen donde hacen algo. La seda envuelve la pieza de la semana y marca la acción. La etiqueta lleva un precio destacado o un código. La boleta muestra precio con entrega, pago, recojo o caja. En el resto, la tienda queda en blanco y tinta.",
+        "section": "colors"
+      },
+      {
+        "name": "The Importe Impreso Rule",
+        "body": "Todo importe, cantidad, código o contador va en Spline Sans Mono con cifras tabulares. La única excepción es el precio grande dentro de la etiqueta kraft de la portada, que va en Bricolage 800.",
+        "section": "typography"
+      },
+      {
+        "name": "The Una Display Rule",
+        "body": "Bricolage es para titulares de la tienda, nombres de pieza en boleta y precios en etiqueta. En el panel, los títulos de caja van en Manrope 700.",
+        "section": "typography"
+      },
+      {
+        "name": "The Papel Levanta Rule",
+        "body": "Solo levanta lo que es papel (boleta, etiqueta) o la acción (cinta). Las cajas, tablas y tarjetas del panel quedan planas con borde de 1px, y las piezas de la grilla de la tienda no llevan sombra.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do usar la cinta seda como única acción principal de cada vista, y el botón bolsa o el de borde para todo lo demás.",
+      "Do poner la boleta al lado de la pieza en la portada y en la ficha, con la entrega (recojo gratis o delivery a S/ 10.00) y el total antes de «Agregar a mi bolsa».",
+      "Do escribir todo importe en Spline Sans Mono con cifras tabulares y el formato `S/ 0.00`.",
+      "Do separar las cajas del panel con un borde interior de 1px en `linea` sobre `boleta`, y dejar la sombra solo a la boleta, la etiqueta y la cinta.",
+      "Do mantener áreas táctiles de 44px como mínimo (48px en controles de compra, 60px en «Cobrar»).",
+      "Do implementar el modo oscuro con el par de la vista Sistema: `oscuro-fondo` y `oscuro-superficie`, cinta en `seda` con texto blanco y estados en sus tonos claros al 14 %.",
+      "Do llevar estos tokens a `frontend/src/styles/theme.css` como propiedades del `@theme` de Tailwind v4, reemplazando los de «Galería Carbón»."
+    ],
+    "donts": [
+      "Don't usar el magenta como color de estado, de sección ni de texto de cuerpo, ni un color de estado como acento de marca.",
+      "Don't colgar etiquetas kraft de cada tarjeta de producto ni poner boletas donde no hay precio con entrega, pago, recojo o caja.",
+      "Don't extender el campo de papel seda fuera del hero, ni volver a pintar de bolsa negra la navegación o las bandas de la tienda. Tampoco va una franja de avisos sobre la navegación: el recojo, el delivery y los pagos se dicen en la portada y en la boleta.",
+      "Don't poner etiquetas en mayúsculas encima de los titulares. Las mayúsculas pequeñas solo rotulan controles, columnas y grupos.",
+      "Don't poner el panel sobre blanco. Su fondo es `papel` y sus cajas, `boleta`.",
+      "Don't repetir la entrada del papel seda. Se despliega una vez al entrar y no en cada scroll ni en cada vista."
+    ]
+  }
+}

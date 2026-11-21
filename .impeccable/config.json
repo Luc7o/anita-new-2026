@@ -1,0 +1,17 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "cramped-padding",
+        "value": "*",
+        "files": [
+          "propuesta-rediseno/index.html"
+        ],
+        "createdAt": "2026-11-21T11:59:42.378Z",
+        "reason": "finish reviewer judged all cramped-padding flags false positives on the captures: inner .gutter children carry the padding"
+      }
+    ]
+  }
+}

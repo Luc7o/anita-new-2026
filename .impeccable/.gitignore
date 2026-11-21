@@ -1,0 +1,6 @@
+# Carpetas de trabajo de impeccable (capturas, bocetos, preguntas): no se suben
+review/
+mocks/
+questions/
+hook.cache.json
+config.local.json
