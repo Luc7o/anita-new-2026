@@ -8,15 +8,17 @@ import { AnimateUIProvider } from "@animate-ui/react/provider";
 // Fuentes alojadas en nuestro propio sitio (paquetes @fontsource, licencia OFL):
 // así no se le envía la IP de cada visitante a Google Fonts. Solo el subconjunto
 // latino, que cubre español (tildes, ñ, ¿ ¡).
-// «Galería Carbón»: Manrope para textos y Syne (geométrica, como el logo) para títulos.
+// «Anita, elegida»: Bodoni Moda (serifa de revista de moda) en títulos, Manrope para leer,
+// botones y todos los precios, y Spline Sans Mono solo dentro de la boleta.
 import "@fontsource/manrope/latin-400.css";
 import "@fontsource/manrope/latin-500.css";
 import "@fontsource/manrope/latin-600.css";
 import "@fontsource/manrope/latin-700.css";
 import "@fontsource/manrope/latin-800.css";
-import "@fontsource/syne/latin-600.css";
-import "@fontsource/syne/latin-700.css";
-import "@fontsource/syne/latin-800.css";
+import "@fontsource/bodoni-moda/latin-500-italic.css";
+import "@fontsource/bodoni-moda/latin-700.css";
+import "@fontsource/spline-sans-mono/latin-500.css";
+import "@fontsource/spline-sans-mono/latin-600.css";
 import "./styles/theme.css";
 import "./styles/admin-motion.css";
 import { importarConReintento, recargarUnaVez } from "./utils/lazyConReintento.js";

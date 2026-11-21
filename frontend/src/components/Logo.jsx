@@ -23,12 +23,12 @@ export default function Logo({ tone = "light", className = "", conNombre = true,
       )}
       {conNombre && (
         <span
-          className={`font-display text-xs font-extrabold uppercase leading-none tracking-[0.03em] min-[400px]:text-sm min-[400px]:tracking-[0.06em] sm:text-base ${
+          className={`font-sans text-xs font-extrabold uppercase leading-none tracking-[0.08em] min-[400px]:text-sm min-[400px]:tracking-[0.14em] ${
             claro ? "text-white" : "text-plum"
           }`}
         >
           {/* Como en el logo: solo «NEW» va en magenta. */}
-          ANITA <span className={claro ? "text-berry-light" : "text-berry"}>NEW</span>STYLE
+          ANITA <span className={claro ? "text-berry-light" : "text-berry"}>NEW</span> STYLE
         </span>
       )}
     </span>

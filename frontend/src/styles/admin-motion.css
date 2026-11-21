@@ -1,5 +1,5 @@
 /* ====================================================================
-   Animaciones del panel de administración («Galería Carbón»).
+   Animaciones del panel de administración («Anita, elegida»).
    El panel es una herramienta de trabajo: el movimiento es corto y solo
    acompaña (entrar a una sección, aparecer un gráfico). Sin cascadas en
    cada fila de tabla, sin rebotes ni desenfoques.
@@ -67,13 +67,13 @@ html.admin-mode main h1:not(.adm-titulo) {
   animation: adm-fade 0.3s ease-out backwards;
 }
 html.admin-mode h1.adm-titulo {
-  font-family: "Syne", "Manrope", sans-serif;
+  font-family: "Bodoni Moda", "Didot", Georgia, serif;
   font-weight: 700;
   line-height: 1.05;
   letter-spacing: -0.02em;
 }
-html.admin-mode h1.adm-titulo em { font-style: normal; color: rgb(var(--c-berry)); }
-html.admin-dark h1.adm-titulo em { color: #e9a6dd; }
+html.admin-mode h1.adm-titulo em { font-style: italic; font-weight: 500; color: inherit; }
+html.admin-dark h1.adm-titulo em { color: inherit; }
 .adm-w {
   display: inline-block;
   animation: adm-fade 0.4s ease-out backwards;
