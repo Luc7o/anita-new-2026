@@ -146,9 +146,10 @@ export default function AdminLayout() {
 
   return (
     <div className="admin-ui admin-pagina flex min-h-screen flex-col">
-      {/* Cabecera oscura fija (estructura de Malhu) */}
+      {/* Cabecera oscura fija (estructura de Malhu). Su alto total (contenido + borde) es
+          --admin-header-h, que usan la barra lateral y las pestañas para pegarse justo debajo. */}
       <header className="sticky top-0 z-40 border-b border-white/10 bg-chrome">
-        <div className="flex items-center gap-3 px-4 py-3">
+        <div className="flex h-[calc(var(--admin-header-h)-1px)] items-center gap-3 px-4">
           <Link to={rutaAdmin()} aria-label="Panel de administración">
             <Logo tone="light" />
           </Link>
@@ -187,7 +188,7 @@ export default function AdminLayout() {
 
       <div className="flex flex-1">
         {/* Barra lateral (pantallas grandes): ocupa todo el lado izquierdo, bajo la cabecera */}
-        <aside className="sticky top-[57px] hidden h-[calc(100vh-57px)] w-60 shrink-0 flex-col overflow-y-auto border-r border-plum/10 bg-white lg:flex">
+        <aside className="sticky top-(--admin-header-h) hidden h-[calc(100dvh-var(--admin-header-h))] w-60 shrink-0 flex-col overflow-y-auto border-r border-plum/10 bg-white lg:flex">
           <nav className="relative flex flex-1 flex-col gap-1 p-3" aria-label="Administración">
             <span
               aria-hidden="true"
@@ -254,7 +255,7 @@ export default function AdminLayout() {
 
         <div className="flex min-w-0 flex-1 flex-col">
           {/* Pestañas horizontales (celular y tablet), donde no cabe la barra lateral */}
-          <div className="sticky top-[57px] z-30 border-b border-plum/10 bg-white lg:hidden">
+          <div className="sticky top-(--admin-header-h) z-30 border-b border-plum/10 bg-white lg:hidden">
             <nav className="mx-auto flex max-w-7xl gap-1 overflow-x-auto px-4" aria-label="Administración">
               {items.map((item) => (
                 <NavLink
