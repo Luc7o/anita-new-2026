@@ -1,4 +1,6 @@
 import { useToast } from "../../context/ToastContext.jsx";
+import { useConfirm } from "../../components/ConfirmDialog.jsx";
+import ErrorCarga from "../../components/ErrorCarga.jsx";
 import Spinner from "../../components/Spinner.jsx";
 import { SkeletonFilasAdmin } from "../../components/admin/EsqueletosAdmin.jsx";
 import React, { useEffect, useState } from "react";
@@ -13,6 +15,7 @@ const VACIO = { nombre: "", apellido: "", email: "", password: "", rol: "adminis
 
 export default function AdminUsuarios() {
   const toast = useToast();
+  const confirmar = useConfirm();
 
   const [usuarios, setUsuarios] = useState([]);
   const [cargandoLista, setCargandoLista] = useState(true);
@@ -28,11 +31,18 @@ export default function AdminUsuarios() {
   const [avisoRol, setAvisoRol] = useState("");
   const [guardando, setGuardando] = useState(false);
 
-  const cargarUsuarios = (rol = "") =>
-    api.adminUsuarios(rol ? { rol } : {}).then(setUsuarios);
+  const [errorCarga, setErrorCarga] = useState("");
+
+  const cargarUsuarios = (rol = "") => {
+    setErrorCarga("");
+    return api
+      .adminUsuarios(rol ? { rol } : {})
+      .then(setUsuarios)
+      .catch((err) => setErrorCarga(err.message || "No se pudo cargar la lista de usuarios."));
+  };
 
   useEffect(() => {
-    api.adminRolesDisponibles().then(setRoles);
+    api.adminRolesDisponibles().then(setRoles).catch(() => {});
     cargarUsuarios().finally(() => setCargandoLista(false));
   }, []);
 
@@ -57,7 +67,16 @@ export default function AdminUsuarios() {
   };
 
   const cambiarRol = async (usuario, nuevoRol) => {
+    if (nuevoRol === usuario.rol) return;
     setAvisoRol("");
+    // El select es controlado por `usuario.rol`: si se cancela, vuelve solo al rol actual.
+    const confirmado = await confirmar({
+      title: `¿Cambiar el rol de ${usuario.nombre_completo}?`,
+      message: `Pasará de ${roles[usuario.rol] || usuario.rol} a ${roles[nuevoRol] || nuevoRol}. Sus permisos en el panel cambiarán de inmediato.`,
+      confirmText: "Sí, cambiar rol",
+      cancelText: "No, volver",
+    });
+    if (!confirmado) return;
     try {
       await api.adminCambiarRol(usuario.id, nuevoRol);
       toast.success("Rol actualizado");
@@ -68,8 +87,24 @@ export default function AdminUsuarios() {
   };
 
   const cambiarEstado = async (usuario) => {
-    await api.adminCambiarEstadoUsuario(usuario.id, !usuario.activo);
-    cargarUsuarios(filtroRol);
+    const activo = usuario.activo !== false;
+    if (activo) {
+      const confirmado = await confirmar({
+        title: `¿Desactivar a ${usuario.nombre_completo}?`,
+        message: "No podrá entrar al panel hasta que lo reactives.",
+        tone: "danger",
+        confirmText: "Sí, desactivar",
+        cancelText: "No, volver",
+      });
+      if (!confirmado) return;
+    }
+    try {
+      await api.adminCambiarEstadoUsuario(usuario.id, !activo);
+      toast.success(activo ? "Usuario desactivado" : "Usuario reactivado");
+      cargarUsuarios(filtroRol);
+    } catch (err) {
+      toast.error(err.message || "No se pudo cambiar el estado del usuario.");
+    }
   };
 
   const refDialogo = useFocusTrap(mostrarForm, () => setMostrarForm(false));
@@ -119,6 +154,15 @@ export default function AdminUsuarios() {
           ))}
         </SelectFiltro>
       </BarraFiltros>
+
+      {errorCarga && (
+        <ErrorCarga
+          className="mb-4"
+          titulo="No se pudo cargar la lista de usuarios"
+          mensaje={errorCarga}
+          onReintentar={() => cargarUsuarios(filtroRol)}
+        />
+      )}
 
       <Paginador pagina={pag.pagina} porPagina={pag.porPagina} total={pag.total} onCambiar={pag.setPagina} className="mb-2" />
       <div className="glass hidden overflow-hidden rounded-2xl md:block">
@@ -170,7 +214,7 @@ export default function AdminUsuarios() {
           </tbody>
         </table>
         {cargandoLista && <SkeletonFilasAdmin etiqueta="Cargando lista" />}
-        {!cargandoLista && pag.total === 0 && (
+        {!cargandoLista && !errorCarga && pag.total === 0 && (
           <p className="p-6 text-center text-plum-soft">No hay usuarios con ese filtro.</p>
         )}
       </div>
@@ -213,7 +257,7 @@ export default function AdminUsuarios() {
           </div>
         ))}
         {cargandoLista && <SkeletonFilasAdmin etiqueta="Cargando lista" />}
-        {!cargandoLista && pag.total === 0 && (
+        {!cargandoLista && !errorCarga && pag.total === 0 && (
           <p className="glass rounded-2xl p-6 text-center text-plum-soft">
             No hay usuarios con ese filtro.
           </p>

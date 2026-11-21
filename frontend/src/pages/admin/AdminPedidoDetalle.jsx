@@ -2,6 +2,8 @@ import { rutaAdmin } from "../../lib/appMode.js";
 import { useConfirm } from "../../components/ConfirmDialog.jsx";
 import { useToast } from "../../context/ToastContext.jsx";
 import Spinner from "../../components/Spinner.jsx";
+import ErrorCarga from "../../components/ErrorCarga.jsx";
+import { soles } from "../../formato.js";
 import { SkeletonDetalleAdmin } from "../../components/admin/EsqueletosAdmin.jsx";
 import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
@@ -37,10 +39,19 @@ export default function AdminPedidoDetalle() {
   const [codigoRecojo, setCodigoRecojo] = useState("");
   const [errorCodigo, setErrorCodigo] = useState("");
 
-  const cargar = () =>
-    api.adminPedido(id).then((data) => {
-      setPedido(data);
-    });
+  const [errorCarga, setErrorCarga] = useState("");
+
+  const cargar = () => {
+    setErrorCarga("");
+    return api
+      .adminPedido(id)
+      .then((data) => {
+        setPedido(data);
+      })
+      .catch((err) => {
+        setErrorCarga(err.message || "No se pudo cargar el pedido.");
+      });
+  };
 
   useEffect(() => {
     cargar();
@@ -56,12 +67,24 @@ export default function AdminPedidoDetalle() {
         cancelText: "No, volver",
       });
       if (!confirmado) return;
+    } else if (nuevoEstado === "entregado") {
+      const confirmado = await confirmar({
+        title: "¿Marcar como entregado?",
+        message: `Confirma que ${pedido?.envio_nombre || "el cliente"} ya recibió el pedido ${pedido?.numero_pedido || ""}. No se podrá volver a un estado anterior.`,
+        confirmText: "Sí, entregado",
+        cancelText: "No, volver",
+      });
+      if (!confirmado) return;
     }
 
     setActualizando(true);
     try {
       await api.adminCambiarEstadoPedido(id, nuevoEstado);
       toast.success("Estado del pedido actualizado");
+      cargar();
+    } catch (err) {
+      // Sin esto el selector quedaba mostrando un estado que no se guardó.
+      toast.error(err.message || "No se pudo cambiar el estado del pedido.");
       cargar();
     } finally {
       setActualizando(false);
@@ -110,7 +133,37 @@ export default function AdminPedidoDetalle() {
     })
   );
 
+  // Rechazar un pago y reembolsar mueven dinero real (Culqi reembolsa
+  // automáticamente), así que siempre piden confirmación con el monto.
+  const CONFIRMACION_PAGO = {
+    rechazado: () => ({
+      title: `¿Rechazar el pago de ${soles(pedido?.total)}?`,
+      message: `El pedido ${pedido?.numero_pedido || ""} quedará con el pago rechazado. Hazlo solo si confirmaste en Culqi que el cargo no existe.`,
+      tone: "danger",
+      confirmText: "Sí, rechazar pago",
+      cancelText: "No, volver",
+    }),
+    reembolsado: () =>
+      pedido?.estado_pago === "reembolsando"
+        ? {
+            title: "¿Confirmar el reembolso?",
+            message: `Marca el reembolso de ${soles(pedido?.total)} como hecho solo si ya aparece en el panel de Culqi. No se vuelve a reembolsar.`,
+            confirmText: "Sí, ya aparece en Culqi",
+            cancelText: "No, volver",
+          }
+        : {
+            title: `¿Reembolsar ${soles(pedido?.total)} a ${pedido?.envio_nombre || pedido?.cliente || "el cliente"}?`,
+            message:
+              "Si el pago fue con Culqi, el dinero se devolverá automáticamente. Esta acción no se puede deshacer.",
+            tone: "danger",
+            confirmText: "Sí, reembolsar",
+            cancelText: "No, volver",
+          },
+  };
+
   const revisarPago = async (estadoPago) => {
+    const opciones = CONFIRMACION_PAGO[estadoPago]?.();
+    if (opciones && !(await confirmar(opciones))) return;
     setActualizando(true);
     try {
       await api.adminRevisarPago(id, estadoPago);
@@ -135,6 +188,22 @@ export default function AdminPedidoDetalle() {
       setDescargandoBoleta(false);
     }
   };
+
+  if (!pedido && errorCarga) {
+    return (
+      <div>
+        <Link to={rutaAdmin("/pedidos")} className="text-sm text-berry hover:underline">
+          ← Volver a pedidos
+        </Link>
+        <ErrorCarga
+          className="mt-4"
+          titulo="No se pudo cargar el pedido"
+          mensaje={errorCarga}
+          onReintentar={cargar}
+        />
+      </div>
+    );
+  }
 
   if (!pedido) {
     return <SkeletonDetalleAdmin etiqueta="Cargando pedido" />;

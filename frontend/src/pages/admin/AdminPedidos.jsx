@@ -1,5 +1,6 @@
 import { rutaAdmin } from "../../lib/appMode.js";
 import { SkeletonFilasAdmin } from "../../components/admin/EsqueletosAdmin.jsx";
+import ErrorCarga from "../../components/ErrorCarga.jsx";
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../../api/client.js";
@@ -47,8 +48,14 @@ export default function AdminPedidos() {
   };
   const cambiar = (setter) => (valor) => { setter(valor); setPagina(1); };
 
+  const [errorCarga, setErrorCarga] = useState("");
+  const [reintento, setReintento] = useState(0);
+
   useEffect(() => {
+    // Descarta respuestas viejas si los filtros cambian antes de que lleguen.
+    let vigente = true;
     setCargando(true);
+    setErrorCarga("");
     const params = { pagina, por_pagina: POR_PAGINA };
     if (q) params.q = q;
     if (estado) params.estado = estado;
@@ -60,11 +67,19 @@ export default function AdminPedidos() {
     api
       .adminPedidos(params)
       .then((data) => {
+        if (!vigente) return;
         setPedidos(data.pedidos);
         setTotal(data.total);
       })
-      .finally(() => setCargando(false));
-  }, [q, estado, entrega, estadoPago, orden, desde, hasta, pagina]);
+      .catch((err) => {
+        // Antes un fallo mostraba "No hay pedidos con esos filtros", que era falso.
+        if (vigente) setErrorCarga(err.message || "No se pudo cargar la lista de pedidos.");
+      })
+      .finally(() => {
+        if (vigente) setCargando(false);
+      });
+    return () => { vigente = false; };
+  }, [q, estado, entrega, estadoPago, orden, desde, hasta, pagina, reintento]);
 
   return (
     <div>
@@ -110,6 +125,12 @@ export default function AdminPedidos() {
 
       {cargando ? (
         <SkeletonFilasAdmin cantidad={6} etiqueta="Cargando pedidos" />
+      ) : errorCarga ? (
+        <ErrorCarga
+          titulo="No se pudo cargar la lista de pedidos"
+          mensaje={errorCarga}
+          onReintentar={() => setReintento((n) => n + 1)}
+        />
       ) : (
         <>
           <Paginador pagina={pagina} porPagina={POR_PAGINA} total={total} onCambiar={setPagina} className="mb-2" />

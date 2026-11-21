@@ -1,4 +1,5 @@
 import EstadoVacio from "../components/EstadoVacio.jsx";
+import ErrorCarga from "../components/ErrorCarga.jsx";
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../api/client.js";
@@ -14,17 +15,23 @@ export default function Favoritos() {
   const favoritos = useFavoritos();
   const [productos, setProductos] = useState([]);
   const [cargando, setCargando] = useState(true);
+  const [errorCarga, setErrorCarga] = useState("");
+  const [reintento, setReintento] = useState(0);
 
   useEffect(() => {
     if (!usuario) {
       setCargando(false);
       return;
     }
+    setCargando(true);
+    setErrorCarga("");
     api
       .favoritos()
       .then(setProductos)
+      // Sin esto un fallo de red mostraba "Aún no tienes favoritos".
+      .catch((err) => setErrorCarga(err.message || "No se pudieron cargar tus favoritos."))
       .finally(() => setCargando(false));
-  }, [usuario]);
+  }, [usuario, reintento]);
 
   // Si el usuario quita un favorito desde la misma tarjeta, lo sacamos de
   // la lista al instante en vez de esperar a que recargue la página.
@@ -49,6 +56,12 @@ export default function Favoritos() {
 
       {cargando ? (
         <SkeletonProductGrid cantidad={6} etiqueta="Cargando favoritos" />
+      ) : errorCarga ? (
+        <ErrorCarga
+          titulo="No pudimos cargar tus favoritos"
+          mensaje={errorCarga}
+          onReintentar={() => setReintento((n) => n + 1)}
+        />
       ) : productosVisibles.length === 0 ? (
         <EstadoVacio
           icono={IconHeart}

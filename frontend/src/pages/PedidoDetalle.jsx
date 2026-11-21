@@ -1,6 +1,7 @@
 import { useConfirm } from "../components/ConfirmDialog.jsx";
 import { useToast } from "../context/ToastContext.jsx";
 import Spinner from "../components/Spinner.jsx";
+import ErrorCarga from "../components/ErrorCarga.jsx";
 import React, { useEffect, useState } from "react";
 import { SkeletonPedidoDetalle } from "../components/Skeleton.jsx";
 import { useParams, Link } from "react-router-dom";
@@ -50,7 +51,17 @@ export default function PedidoDetalle() {
   const [errorCuenta, setErrorCuenta] = useState("");
   const [cuentaCreada, setCuentaCreada] = useState(false);
 
-  const cargar = () => api.pedido(id).then(setPedido);
+  const [errorCarga, setErrorCarga] = useState("");
+
+  // Es la página a la que se llega justo después de pagar: si la carga falla
+  // hay que decirlo (antes quedaba un esqueleto cargando para siempre).
+  const cargar = () => {
+    setErrorCarga("");
+    return api
+      .pedido(id)
+      .then(setPedido)
+      .catch((err) => setErrorCarga(err.message || "No se pudo cargar tu pedido."));
+  };
 
   useEffect(() => {
     cargar();
@@ -148,6 +159,26 @@ export default function PedidoDetalle() {
       // para copiarlo a mano.
     }
   };
+
+  if (!pedido && errorCarga) {
+    const linkAyuda = armarLinkWhatsApp(
+      `Hola, no puedo ver el detalle de mi pedido (referencia ${id}). ¿Me pueden ayudar?`
+    );
+    return (
+      <div className="mx-auto max-w-2xl px-4 py-10">
+        <ErrorCarga titulo="No pudimos cargar tu pedido" mensaje={errorCarga} onReintentar={cargar}>
+          {linkAyuda && (
+            <a href={linkAyuda} target="_blank" rel="noopener noreferrer" className="btn btn-secondary px-6!">
+              Escríbenos por WhatsApp
+            </a>
+          )}
+          <Link to="/perfil/pedidos" className="btn btn-secondary px-6!">
+            Ver mis pedidos
+          </Link>
+        </ErrorCarga>
+      </div>
+    );
+  }
 
   if (!pedido) {
     return (
