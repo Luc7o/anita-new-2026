@@ -170,7 +170,7 @@ export default function Navbar() {
         placeholder="Buscar carteras, calzados..."
         maxLength={80}
         aria-label="Buscar en la tienda"
-        className="campo-busqueda min-h-11 w-full bg-transparent text-sm text-plum placeholder:text-plum-soft focus:outline-hidden"
+        className="campo-busqueda min-h-11 w-full bg-transparent text-base text-plum sm:text-sm placeholder:text-plum-soft focus:outline-hidden"
       />
     </form>
   );

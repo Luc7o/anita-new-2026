@@ -1,5 +1,9 @@
 @import 'tailwindcss';
 
+/* `dark:` sigue al tema elegido con el botón (clases en <html>), no al sistema operativo.
+   La tienda usa .dark (salvo dentro del panel) y el panel usa .admin-dark. */
+@custom-variant dark (&:where(html.dark:not(.admin-mode), html.dark:not(.admin-mode) *, html.admin-dark, html.admin-dark *));
+
 @theme {
   --color-ivory: rgb(var(--c-ivory));
   --color-lilac: rgb(var(--c-lilac));
@@ -144,9 +148,11 @@
   --c-chrome: 31 30 28;
   --c-berry: 165 54 148;     /* magenta del logo */
   --c-acento: 126 36 112;
+  --c-focus: 165 54 148;     /* contorno de foco: magenta en claro */
   --admin-pg: #ffffff;
   --admin-surface: #ffffff;
   --admin-surface-2: #f6f3ee;
+  --admin-header-h: 69px;    /* cabecera del panel: botón de 44px + 12px arriba y abajo + 1px de borde */
 }
 
 /* Admin en modo oscuro: carbón neutro, con el magenta del logo como acento.
@@ -160,6 +166,7 @@ html.admin-dark {
   --c-lilac: 46 31 43;
   --c-chrome: 14 13 12;
   --c-acento: 233 166 221;
+  --c-focus: 233 166 221;    /* magenta claro: el #a53694 da 2,9:1 sobre carbón */
   --admin-pg: #0e0d0c;
   --admin-surface: #191816;
   --admin-surface-2: #23211f;
@@ -191,8 +198,10 @@ html {
 
 body {
   font-family: "Manrope", ui-sans-serif, system-ui, sans-serif;
-  color: #1f1e1c;
-  background: #f6f3ee;
+  /* Ligados al tema: antes el color era fijo y en el panel oscuro el texto sin
+     clase quedaba carbón sobre carbón (≈1,1:1). */
+  color: rgb(var(--c-plum));
+  background: rgb(var(--c-ivory));
   -webkit-font-smoothing: antialiased;
 }
 
@@ -271,7 +280,7 @@ button:focus-visible,
 input:focus-visible,
 select:focus-visible,
 textarea:focus-visible {
-  outline: 2px solid #a53694;
+  outline: 2px solid rgb(var(--c-focus));
   outline-offset: 2px;
   border-radius: 4px;
 }
@@ -286,14 +295,21 @@ textarea:focus-visible {
 .outline-none:focus-visible,
 .outline-hidden:focus-visible,
 .focus-visible\:outline-none:focus-visible {
-  outline: 2px solid #a53694;
+  outline: 2px solid rgb(var(--c-focus));
   outline-offset: 2px;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  * {
+  /* ::before/::after incluidos: el brillo de .btn-primary, .subrayado y .btn-relleno
+     viven en pseudo-elementos y antes seguían animándose. */
+  *,
+  *::before,
+  *::after {
     animation: none !important;
     transition: none !important;
+  }
+  html {
+    scroll-behavior: auto;
   }
 }
 
@@ -548,6 +564,7 @@ html.admin-mode body { background: var(--admin-pg); }
 
 /* Sin vidrio ni desenfoque en el panel (ni en los fondos de los diálogos). */
 html.admin-mode .backdrop-blur,
+html.admin-mode .backdrop-blur-xs,
 html.admin-mode .backdrop-blur-sm {
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
@@ -558,7 +575,8 @@ html.admin-mode .bg-plum\/40 {
 }
 
 html.admin-dark .glass,
-html.admin-dark .glass-strong {
+html.admin-dark .glass-strong,
+html.admin-dark .panel {
   background: var(--admin-surface);
   border-color: rgb(255 255 255 / 0.12);
 }
@@ -668,12 +686,12 @@ html.dark:not(.admin-mode) {
   --c-lilac: 56 34 52;
   --c-chrome: 18 17 16;
   --c-acento: 233 166 221;
+  --c-focus: 233 166 221;
   --admin-surface: #1c1b19;
   --admin-surface-2: #262422;
   --superficie-foto: #24221f;
 }
 
-html.dark:not(.admin-mode) body { color: #f0ece6; background: #121110; }
 html.dark:not(.admin-mode) ::selection { background: rgba(233, 166, 221, 0.3); }
 
 /* Superficies blancas y paneles */
@@ -812,3 +830,8 @@ html.admin-dark .aviso {
 /* Buscador del menú: el foco se marca en el borde redondo de todo el buscador (focus-within),
    no con un rectángulo dentro del campo. */
 .campo-busqueda:focus-visible { outline: none; }
+
+/* La barra superior (bg-chrome) es oscura en ambos temas: el foco usa el magenta claro. */
+.bg-chrome {
+  --c-focus: 233 166 221;
+}

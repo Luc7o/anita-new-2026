@@ -234,7 +234,7 @@ export default function TabMovimientos() {
 
       <Paginador pagina={pagina} porPagina={POR_PAGINA} total={datos.total} onCambiar={setPagina} className="mb-2" />
 
-      <div className="glass hidden overflow-hidden rounded-2xl md:block">
+      <div className="glass hidden overflow-x-auto rounded-2xl md:block">
         <table className="w-full text-left text-sm">
           <thead className="bg-white text-xs uppercase tracking-wide text-plum-soft">
             <tr>
