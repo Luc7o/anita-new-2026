@@ -113,7 +113,7 @@ export default function AdminRecojosCajero() {
       />
 
       {errorCarga && (
-        <p role="alert" className="mb-4 rounded-xl bg-red-50 p-4 text-sm text-red-700">
+        <p role="alert" className="mb-4 rounded-xl bg-peligro/10 p-4 text-sm text-peligro">
           No se pudo cargar la lista: {errorCarga}
         </p>
       )}
@@ -174,7 +174,7 @@ export default function AdminRecojosCajero() {
                   </button>
                 </form>
                 {errores[pedido.id] && (
-                  <p role="alert" className="mt-2 text-sm text-red-700">{errores[pedido.id]}</p>
+                  <p role="alert" className="mt-2 text-sm text-peligro">{errores[pedido.id]}</p>
                 )}
               </div>
             ))}

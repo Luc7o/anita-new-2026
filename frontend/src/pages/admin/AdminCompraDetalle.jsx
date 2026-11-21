@@ -204,7 +204,7 @@ export default function AdminCompraDetalle() {
               className="w-full rounded-[10px] bg-white px-3 py-2 text-sm text-plum ring-1 ring-plum/20 focus:outline-hidden focus:ring-2 focus:ring-berry"
             />
             {errorAnular && (
-              <p role="alert" className="mt-3 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700">{errorAnular}</p>
+              <p role="alert" className="mt-3 rounded-lg bg-peligro/10 px-4 py-3 text-sm text-peligro">{errorAnular}</p>
             )}
             <div className="mt-5 flex justify-end gap-3">
               <button type="button" onClick={cerrar} className="px-4 py-2 text-sm text-plum-soft hover:text-berry">Volver</button>

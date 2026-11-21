@@ -228,7 +228,7 @@ export default function Checkout() {
         const detalle = tipoDoc === "ruc"
           ? [d.nombre_o_razon_social, [d.estado, d.condicion].filter(Boolean).join(" · ")].filter(Boolean).join(" — ")
           : [d.nombres, d.apellido_paterno, d.apellido_materno].filter(Boolean).join(" ");
-        return { texto: `✓ ${label} válido${detalle ? `: ${detalle}` : ""}`, clase: "text-emerald-700" };
+        return { texto: `✓ ${label} válido${detalle ? `: ${detalle}` : ""}`, clase: "text-exito" };
       }
       case "invalido":
         return { texto: `✗ ${label} no válido: no encontramos ese número. Revísalo.`, clase: "text-berry-dark" };

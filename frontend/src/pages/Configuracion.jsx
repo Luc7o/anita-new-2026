@@ -266,7 +266,7 @@ function DosPasos({ estado, setEstado }) {
     <section className={tarjeta} aria-labelledby="cfg-2fa">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h2 id="cfg-2fa" className="text-lg font-semibold text-plum">Verificación en dos pasos</h2>
-        <span className={`rounded-full px-3 py-1 text-[11px] font-semibold ${estado.totp_activo ? "bg-green-100 text-green-700" : "bg-plum/10 text-plum-soft"}`}>
+        <span className={`rounded-full px-3 py-1 text-[11px] font-semibold ${estado.totp_activo ? "bg-exito/15 text-exito" : "bg-plum/10 text-plum-soft"}`}>
           {estado.totp_activo ? "Activada" : "Desactivada"}
         </span>
       </div>

@@ -79,7 +79,7 @@ export default function FormularioContrasena() {
         />
         {form.password_confirmar && (
           <p
-            className={`mt-1.5 text-xs ${form.password_confirmar === form.password_nueva ? "font-medium text-green-700" : "text-berry-dark"}`}
+            className={`mt-1.5 text-xs ${form.password_confirmar === form.password_nueva ? "font-medium text-exito" : "text-berry-dark"}`}
             aria-live="polite"
           >
             {form.password_confirmar === form.password_nueva ? "✓ Las contraseñas coinciden." : "Las contraseñas aún no coinciden."}

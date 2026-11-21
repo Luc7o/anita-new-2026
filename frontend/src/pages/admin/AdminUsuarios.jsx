@@ -198,7 +198,7 @@ export default function AdminUsuarios() {
                 <td className="px-4 py-3">
                   <span
                     className={`rounded-md px-2.5 py-1 text-xs font-semibold ${
-                      u.activo !== false ? "bg-berry/10 text-berry-dark" : "bg-plum/10 text-plum-soft"
+                      u.activo !== false ? "bg-exito/15 text-exito" : "bg-plum/10 text-plum-soft"
                     }`}
                   >
                     {u.activo !== false ? "Activo" : "Inactivo"}
@@ -230,7 +230,7 @@ export default function AdminUsuarios() {
               </div>
               <span
                 className={`shrink-0 rounded-md px-2.5 py-1 text-xs font-semibold ${
-                  u.activo !== false ? "bg-berry/10 text-berry-dark" : "bg-plum/10 text-plum-soft"
+                  u.activo !== false ? "bg-exito/15 text-exito" : "bg-plum/10 text-plum-soft"
                 }`}
               >
                 {u.activo !== false ? "Activo" : "Inactivo"}

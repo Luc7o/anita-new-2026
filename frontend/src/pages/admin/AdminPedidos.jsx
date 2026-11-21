@@ -5,7 +5,7 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../../api/client.js";
 import { ESTADOS_PEDIDO, ENTREGAS_PEDIDO } from "./estadosPedido.js";
-import { InsigniaEstadoPedido, InsigniaEntregaPedido } from "../../components/admin/InsigniasPedido.jsx";
+import { InsigniaEstadoPedido, InsigniaEntregaPedido, InsigniaEstadoPago } from "../../components/admin/InsigniasPedido.jsx";
 import Paginador from "../../components/Paginador.jsx";
 import BarraFiltros, { SelectFiltro, CampoFecha } from "../../components/admin/BarraFiltros.jsx";
 
@@ -166,19 +166,7 @@ export default function AdminPedidos() {
                     </td>
                     <td className="px-4 py-3">
                       {p.estado_pago !== "no_aplica" && (
-                        <span
-                          className={`rounded-md px-2.5 py-1 text-xs font-semibold ${
-                            p.estado_pago === "en_revision" || p.estado_pago === "reembolso_pendiente" || p.estado_pago === "reembolsando"
-                              ? "bg-gold/30 text-plum"
-                              : p.estado_pago === "verificado"
-                              ? "bg-berry/10 text-berry-dark"
-                              : p.estado_pago === "rechazado"
-                              ? "bg-red-100 text-red-700"
-                              : "bg-plum/10 text-plum-soft"
-                          }`}
-                        >
-                          {p.estado_pago_label}
-                        </span>
+                        <InsigniaEstadoPago estado={p.estado_pago} label={p.estado_pago_label} />
                       )}
                     </td>
                     <td className="px-4 py-3 text-right">
@@ -219,19 +207,7 @@ export default function AdminPedidos() {
                   <InsigniaEntregaPedido pedido={p} />
                   <InsigniaEstadoPedido estado={p.estado} label={p.estado_label} />
                   {p.estado_pago !== "no_aplica" && (
-                    <span
-                      className={`rounded-md px-2.5 py-1 text-xs font-semibold ${
-                        p.estado_pago === "en_revision" || p.estado_pago === "reembolso_pendiente" || p.estado_pago === "reembolsando"
-                          ? "bg-gold/30 text-plum"
-                          : p.estado_pago === "verificado"
-                          ? "bg-berry/10 text-berry-dark"
-                          : p.estado_pago === "rechazado"
-                          ? "bg-red-100 text-red-700"
-                          : "bg-plum/10 text-plum-soft"
-                      }`}
-                    >
-                      {p.estado_pago_label}
-                    </span>
+                    <InsigniaEstadoPago estado={p.estado_pago} label={p.estado_pago_label} />
                   )}
                 </div>
               </Link>

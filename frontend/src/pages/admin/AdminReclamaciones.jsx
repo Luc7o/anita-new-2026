@@ -35,10 +35,10 @@ function InsigniaPlazo({ reclamo }) {
   }
   const dias = diasParaLimite(reclamo.fecha_limite);
   if (dias < 0) {
-    return <span className="rounded-md bg-red-100 px-2.5 py-1 text-xs font-semibold text-red-700">Vencido hace {-dias} d</span>;
+    return <span className="rounded-md bg-peligro/15 px-2.5 py-1 text-xs font-semibold text-peligro">Vencido hace {-dias} d</span>;
   }
   if (dias <= 3) {
-    return <span className="rounded-md bg-gold/30 px-2.5 py-1 text-xs font-semibold text-plum">{dias === 0 ? "Vence hoy" : `Vence en ${dias} d`}</span>;
+    return <span className="rounded-md bg-aviso/15  text-aviso">{dias === 0 ? "Vence hoy" : `Vence en ${dias} d`}</span>;
   }
   return <span className="rounded-md bg-plum/10 px-2.5 py-1 text-xs font-semibold text-plum-soft">{dias} días</span>;
 }
@@ -135,7 +135,7 @@ function DetalleReclamo({ reclamo, puedeResponder, onCerrar, onRespondido }) {
           <textarea id="reclamo-respuesta" required rows={5} minLength={10} maxLength={3000}
             value={respuesta} onChange={(e) => setRespuesta(e.target.value)}
             className="w-full rounded-md border border-plum/20 bg-white px-3 py-2.5 text-plum focus:border-berry focus:outline-hidden" />
-          {error && <p role="alert" className="text-sm text-red-700">{error}</p>}
+          {error && <p role="alert" className="text-sm text-peligro">{error}</p>}
           <button type="submit" disabled={enviando}
             className="rounded-[10px] bg-berry px-6 py-2.5 text-sm font-semibold text-white transition hover:opacity-90 disabled:opacity-60">
             {enviando ? <><Spinner />Enviando...</> : "Registrar y enviar respuesta"}

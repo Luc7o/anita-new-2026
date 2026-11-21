@@ -11,7 +11,7 @@ import { api } from "../../api/client.js";
 import { ESTADOS_PEDIDO } from "./estadosPedido.js";
 import EstadoPedidoSelect from "../../components/EstadoPedidoSelect.jsx";
 import LineaAvancePedido from "../../components/admin/LineaAvancePedido.jsx";
-import { InsigniaEstadoPedido, InsigniaEntregaPedido } from "../../components/admin/InsigniasPedido.jsx";
+import { InsigniaEstadoPedido, InsigniaEntregaPedido, InsigniaEstadoPago } from "../../components/admin/InsigniasPedido.jsx";
 import { LineasPedido, TotalesPedido } from "../../components/ResumenPedido.jsx";
 import { useAuth } from "../../context/AuthContext.jsx";
 import { ALMACEN, VENTAS, PUEDE_GESTIONAR_PEDIDOS, PUEDE_GESTIONAR_REEMBOLSOS } from "../../roles.js";
@@ -323,17 +323,7 @@ export default function AdminPedidoDetalle() {
               <h2 className="text-sm font-bold text-plum">
                 {pedido.metodo_pago === "yape" ? "Comprobante de pago" : "Seguimiento de pago"}
               </h2>
-              <span
-                className={`rounded-md px-2.5 py-1 text-xs font-semibold ${
-                  (pedido.estado_pago === "reembolso_pendiente" || pedido.estado_pago === "reembolsando")
-                    ? "bg-gold/30 text-plum"
-                    : pedido.estado_pago === "reembolsado"
-                    ? "bg-plum/10 text-plum-soft"
-                    : "bg-berry/10 text-berry-dark"
-                }`}
-              >
-                {pedido.estado_pago_label}
-              </span>
+              <InsigniaEstadoPago estado={pedido.estado_pago} label={pedido.estado_pago_label} />
             </div>
 
             {puedeRevisarPago && pedido.estado !== "cancelado" && pedido.estado_pago === "en_revision" && (

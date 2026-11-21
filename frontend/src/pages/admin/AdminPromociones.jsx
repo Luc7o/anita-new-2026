@@ -292,10 +292,10 @@ export default function AdminPromociones() {
   const hoy = hoyISO();
   const estadoDe = (p) => {
     if (!p.activo) return { texto: "Inactiva", clase: "bg-plum/10 text-plum-soft" };
-    if (p.fecha_inicio && hoy < p.fecha_inicio) return { texto: `Programada desde ${p.fecha_inicio}`, clase: "bg-gold/30 text-plum" };
+    if (p.fecha_inicio && hoy < p.fecha_inicio) return { texto: `Programada desde ${p.fecha_inicio}`, clase: "bg-info/15 text-info" };
     if (p.fecha_fin && hoy > p.fecha_fin) return { texto: "Vencida", clase: "bg-plum/10 text-plum-soft" };
-    if (!p.imagen_url) return { texto: "Sin imagen: no se muestra", clase: "bg-red-100 text-red-700" };
-    return { texto: "En el inicio", clase: "bg-green-100 text-green-700" };
+    if (!p.imagen_url) return { texto: "Sin imagen: no se muestra", clase: "bg-peligro/15 text-peligro" };
+    return { texto: "En el inicio", clase: "bg-exito/15 text-exito" };
   };
   const enInicio = promociones.filter((p) => p.vigente && p.imagen_url);
   const urlInicio = TIENDA_URL || "/";

@@ -37,7 +37,7 @@ export default function MedidorPassword({ password, minimo = 6 }) {
               ))}
             </ul>
           ) : (
-            <p className="mt-1 flex items-center gap-1.5 text-xs font-medium text-green-700">
+            <p className="mt-1 flex items-center gap-1.5 text-xs font-medium text-exito">
               <IconCheck size={12} /> ¡Excelente! Tu contraseña es segura.
             </p>
           )}

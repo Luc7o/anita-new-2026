@@ -177,7 +177,7 @@ function Pestanas({ vistas, activa, onCambiar }) {
 
 function Cargando({ error, textoError = "No se pudieron cargar las métricas. Recarga la página para intentarlo de nuevo." }) {
   return error ? (
-    <p role="alert" className="glass rounded-2xl p-6 text-sm text-red-700">{textoError}</p>
+    <p role="alert" className="glass rounded-2xl p-6 text-sm text-peligro">{textoError}</p>
   ) : (
     <SkeletonPanelAdmin etiqueta="Cargando métricas" />
   );
@@ -215,7 +215,7 @@ function PanelAtencion({ items }) {
       <div className="glass rounded-2xl p-6">
         <div className="flex items-center gap-4">
           <svg width="44" height="44" viewBox="0 0 46 46" aria-hidden="true" className="shrink-0">
-            <circle cx="23" cy="23" r="21" fill="none" pathLength="1" strokeWidth="2.5" className="adm-draw stroke-emerald-600" />
+            <circle cx="23" cy="23" r="21" fill="none" pathLength="1" strokeWidth="2.5" className="adm-draw stroke-exito-fuerte" />
             <path
               d="M14 24 L21 31 L33 16"
               fill="none"
@@ -223,7 +223,7 @@ function PanelAtencion({ items }) {
               strokeWidth="3"
               strokeLinecap="round"
               strokeLinejoin="round"
-              className="adm-draw stroke-emerald-600"
+              className="adm-draw stroke-exito-fuerte"
               style={{ animationDelay: "0.7s" }}
             />
           </svg>
@@ -552,7 +552,7 @@ function PanelVentasPeriodo({ stats, kpis, errorKpis, tieneKpis }) {
       </div>
 
       {error ? (
-        <p role="alert" className="text-sm text-red-700">{error}</p>
+        <p role="alert" className="text-sm text-peligro">{error}</p>
       ) : !datos ? (
         <p className="text-sm text-plum-soft">Cargando ventas…</p>
       ) : (
@@ -774,7 +774,7 @@ function GrupoKpis({ titulo, nota, columnas = "grid-cols-2 sm:grid-cols-3", chil
 
 function Tarjeta({ label, valor, destacar = false, small = false, detalle }) {
   return (
-    <div className={`adm-kpi glass rounded-2xl ${small ? "p-5" : "p-6"} ${destacar ? "ring-2 ring-inset ring-gold" : ""}`}>
+    <div className={`adm-kpi glass rounded-2xl ${small ? "p-5" : "p-6"} ${destacar ? "ring-2 ring-inset ring-aviso-fuerte" : ""}`}>
       <p className="text-xs uppercase tracking-wide text-plum-soft">{label}</p>
       <p className={`mt-1 font-semibold text-plum ${small ? "text-lg" : "text-2xl"}`}><NumeroAnimado valor={valor} /></p>
       {detalle && <p className="mt-1 text-xs text-plum-soft">{detalle}</p>}

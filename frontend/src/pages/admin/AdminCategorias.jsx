@@ -218,7 +218,7 @@ export default function AdminCategorias() {
                   <button
                     onClick={() => cambiarEstado(cat)}
                     className={`rounded-md px-2.5 py-1 text-xs font-semibold transition ${
-                      cat.activo ? "bg-green-100 text-green-700 hover:bg-green-200" : "bg-plum/10 text-plum-soft hover:bg-plum/20"
+                      cat.activo ? "bg-exito/15 text-exito hover:bg-exito/25" : "bg-plum/10 text-plum-soft hover:bg-plum/20"
                     }`}
                   >
                     {cat.activo ? "Activo" : "Inactivo"}
@@ -263,7 +263,7 @@ export default function AdminCategorias() {
                 <button
                   onClick={() => cambiarEstado(cat)}
                   className={`shrink-0 rounded-md px-2.5 py-1 text-xs font-semibold ${
-                    cat.activo ? "bg-green-100 text-green-700" : "bg-plum/10 text-plum-soft"
+                    cat.activo ? "bg-exito/15 text-exito" : "bg-plum/10 text-plum-soft"
                   }`}
                 >
                   {cat.activo ? "Activo" : "Inactivo"}
