@@ -42,7 +42,7 @@ export function ConfirmProvider({ children }) {
           <div className="flex gap-3">
             <span
               className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${
-                peligro ? "bg-red-50 text-red-700" : "bg-lilac text-berry"
+                peligro ? "bg-peligro/10 text-peligro" : "bg-lilac text-berry"
               }`}
             >
               {peligro ? (
@@ -56,10 +56,10 @@ export function ConfirmProvider({ children }) {
               )}
             </span>
             <div className="min-w-0">
-              <h2 id="confirmar-titulo" className="font-sans text-lg font-bold text-plum">
+              <h2 id="confirmar-titulo" className="font-sans text-lg font-bold text-plum wrap-anywhere">
                 {dialogo.title}
               </h2>
-              {dialogo.message && <p className="mt-1 text-sm text-plum-soft">{dialogo.message}</p>}
+              {dialogo.message && <p className="mt-1 text-sm text-plum-soft wrap-anywhere">{dialogo.message}</p>}
             </div>
           </div>
           <div className="mt-6 flex justify-end gap-2">
@@ -69,7 +69,7 @@ export function ConfirmProvider({ children }) {
             <button
               type="button"
               onClick={() => cerrar(true)}
-              className={peligro ? "btn border border-red-700 bg-red-700 text-white hover:bg-red-800" : "btn-primary btn"}
+              className={peligro ? "btn border border-peligro-fuerte bg-peligro-fuerte text-white hover:bg-peligro-fuerte/90" : "btn-primary btn"}
             >
               {dialogo.confirmText || "Confirmar"}
             </button>

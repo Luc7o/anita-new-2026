@@ -360,7 +360,7 @@ export default function AdminProductos() {
                 <td className="px-4 py-3">
                   <span
                     className={`rounded-md px-2.5 py-1 text-xs font-semibold ${
-                      p.activo ? "bg-green-100 text-green-700" : "bg-plum/10 text-plum-soft"
+                      p.activo ? "bg-exito/15 text-exito" : "bg-plum/10 text-plum-soft"
                     }`}
                   >
                     {p.activo ? "Activo" : "Inactivo"}
@@ -416,7 +416,7 @@ export default function AdminProductos() {
                 <p className="truncate font-medium text-plum">{p.nombre}</p>
                 <span
                   className={`shrink-0 rounded-md px-2.5 py-1 text-xs font-semibold ${
-                    p.activo ? "bg-green-100 text-green-700" : "bg-plum/10 text-plum-soft"
+                    p.activo ? "bg-exito/15 text-exito" : "bg-plum/10 text-plum-soft"
                   }`}
                 >
                   {p.activo ? "Activo" : "Inactivo"}

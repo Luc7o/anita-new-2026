@@ -171,7 +171,7 @@ export default function RestablecerPassword() {
               </div>
               {confirmar && (
                 <p
-                  className={`mt-1.5 text-xs ${confirmar === password ? "font-medium text-green-700" : "text-berry-dark"}`}
+                  className={`mt-1.5 text-xs ${confirmar === password ? "font-medium text-exito" : "text-berry-dark"}`}
                   aria-live="polite"
                 >
                   {confirmar === password ? "✓ Las contraseñas coinciden." : "Las contraseñas aún no coinciden."}

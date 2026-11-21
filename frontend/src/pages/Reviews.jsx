@@ -37,7 +37,7 @@ function Resumen({ total, promedio, distribucion }) {
             <div key={n} className="flex items-center gap-2 text-xs text-plum-soft">
               <span className="w-3 text-right">{n}</span>
               <div className="h-2 flex-1 overflow-hidden rounded-full bg-plum/10">
-                <div className="h-full rounded-full bg-gold" style={{ width: `${pct}%` }} />
+                <div className="h-full rounded-full bg-berry" style={{ width: `${pct}%` }} />
               </div>
               <span className="w-6 text-right">{cantidad}</span>
             </div>

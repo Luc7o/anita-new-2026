@@ -1,11 +1,12 @@
 import { rutaAdmin } from "../../lib/appMode.js";
 import { SkeletonFilasAdmin } from "../../components/admin/EsqueletosAdmin.jsx";
 import ErrorCarga from "../../components/ErrorCarga.jsx";
+import { soles } from "../../formato.js";
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../../api/client.js";
 import { ESTADOS_PEDIDO, ENTREGAS_PEDIDO } from "./estadosPedido.js";
-import { InsigniaEstadoPedido, InsigniaEntregaPedido } from "../../components/admin/InsigniasPedido.jsx";
+import { InsigniaEstadoPedido, InsigniaEntregaPedido, InsigniaEstadoPago } from "../../components/admin/InsigniasPedido.jsx";
 import Paginador from "../../components/Paginador.jsx";
 import BarraFiltros, { SelectFiltro, CampoFecha } from "../../components/admin/BarraFiltros.jsx";
 
@@ -142,7 +143,7 @@ export default function AdminPedidos() {
                   <th className="px-4 py-3">N° Pedido</th>
                   <th className="px-4 py-3">Cliente</th>
                   <th className="px-4 py-3">Fecha</th>
-                  <th className="px-4 py-3">Total</th>
+                  <th className="px-4 py-3 text-right">Total</th>
                   <th className="px-4 py-3">Entrega</th>
                   <th className="px-4 py-3">Estado</th>
                   <th className="px-4 py-3">Pago</th>
@@ -152,12 +153,14 @@ export default function AdminPedidos() {
               <tbody>
                 {pedidos.map((p) => (
                   <tr key={p.id} className="border-t border-white/40">
-                    <td className="px-4 py-3 font-medium text-plum">{p.numero_pedido}</td>
-                    <td className="px-4 py-3 text-plum-soft">{p.cliente}</td>
+                    <td className="whitespace-nowrap px-4 py-3 font-medium text-plum">{p.numero_pedido}</td>
                     <td className="px-4 py-3 text-plum-soft">
+                      <span className="block max-w-56 truncate" title={p.cliente}>{p.cliente}</span>
+                    </td>
+                    <td className="whitespace-nowrap px-4 py-3 text-plum-soft">
                       {new Date(p.fecha_creacion).toLocaleDateString("es-PE")}
                     </td>
-                    <td className="px-4 py-3 text-plum-soft">S/ {p.total.toFixed(2)}</td>
+                    <td className="whitespace-nowrap px-4 py-3 text-right tabular-nums text-plum-soft">{soles(p.total)}</td>
                     <td className="px-4 py-3">
                       <InsigniaEntregaPedido pedido={p} />
                     </td>
@@ -166,19 +169,7 @@ export default function AdminPedidos() {
                     </td>
                     <td className="px-4 py-3">
                       {p.estado_pago !== "no_aplica" && (
-                        <span
-                          className={`rounded-md px-2.5 py-1 text-xs font-semibold ${
-                            p.estado_pago === "en_revision" || p.estado_pago === "reembolso_pendiente" || p.estado_pago === "reembolsando"
-                              ? "bg-gold/30 text-plum"
-                              : p.estado_pago === "verificado"
-                              ? "bg-berry/10 text-berry-dark"
-                              : p.estado_pago === "rechazado"
-                              ? "bg-red-100 text-red-700"
-                              : "bg-plum/10 text-plum-soft"
-                          }`}
-                        >
-                          {p.estado_pago_label}
-                        </span>
+                        <InsigniaEstadoPago estado={p.estado_pago} label={p.estado_pago_label} />
                       )}
                     </td>
                     <td className="px-4 py-3 text-right">
@@ -204,9 +195,10 @@ export default function AdminPedidos() {
                 className="glass block rounded-2xl p-4"
               >
                 <div className="flex items-start justify-between gap-2">
-                  <div>
+                  <div className="min-w-0">
                     <p className="font-medium text-plum">{p.numero_pedido}</p>
-                    <p className="text-sm text-plum-soft">{p.cliente}</p>
+                    {/* Nombres largos sin espacios desbordaban la tarjeta y la página */}
+                    <p className="line-clamp-2 text-sm text-plum-soft wrap-anywhere" title={p.cliente}>{p.cliente}</p>
                   </div>
                   <span className="shrink-0 text-sm font-semibold text-berry-dark">
                     S/ {p.total.toFixed(2)}
@@ -219,19 +211,7 @@ export default function AdminPedidos() {
                   <InsigniaEntregaPedido pedido={p} />
                   <InsigniaEstadoPedido estado={p.estado} label={p.estado_label} />
                   {p.estado_pago !== "no_aplica" && (
-                    <span
-                      className={`rounded-md px-2.5 py-1 text-xs font-semibold ${
-                        p.estado_pago === "en_revision" || p.estado_pago === "reembolso_pendiente" || p.estado_pago === "reembolsando"
-                          ? "bg-gold/30 text-plum"
-                          : p.estado_pago === "verificado"
-                          ? "bg-berry/10 text-berry-dark"
-                          : p.estado_pago === "rechazado"
-                          ? "bg-red-100 text-red-700"
-                          : "bg-plum/10 text-plum-soft"
-                      }`}
-                    >
-                      {p.estado_pago_label}
-                    </span>
+                    <InsigniaEstadoPago estado={p.estado_pago} label={p.estado_pago_label} />
                   )}
                 </div>
               </Link>

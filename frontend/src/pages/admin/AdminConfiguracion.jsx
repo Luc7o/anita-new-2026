@@ -112,7 +112,7 @@ export default function AdminConfiguracion() {
     return (
       <div className="space-y-2">
         <h1 className="text-2xl font-semibold text-plum">Configuración</h1>
-        <p className="text-sm text-red-600" role="alert">{errorCarga}</p>
+        <p className="text-sm text-peligro" role="alert">{errorCarga}</p>
         <p className="text-sm text-plum-soft">Recarga la página; si sigue igual, avisa a quien administra el sistema.</p>
       </div>
     );
@@ -143,7 +143,7 @@ export default function AdminConfiguracion() {
       </div>
       <div aria-live="polite">
         {aviso && (
-          <p className={`text-sm ${aviso.ok ? "text-berry-dark" : "text-red-600"}`} role={aviso.ok ? undefined : "alert"}>
+          <p className={`text-sm ${aviso.ok ? "text-berry-dark" : "text-peligro"}`} role={aviso.ok ? undefined : "alert"}>
             {aviso.texto}
           </p>
         )}
@@ -186,7 +186,7 @@ export default function AdminConfiguracion() {
               <p className="mt-1 text-xs text-plum-soft/70">
                 PNG, JPG o WEBP de hasta 5 MB (mejor con fondo transparente). Si no hay logo, el encabezado muestra el nombre en texto.
               </p>
-              {errorLogo && <p className="mt-1 text-sm text-red-600" role="alert">{errorLogo}</p>}
+              {errorLogo && <p className="mt-1 text-sm text-peligro" role="alert">{errorLogo}</p>}
             </div>
           </section>
 

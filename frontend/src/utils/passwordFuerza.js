@@ -3,10 +3,10 @@
 
 export const NIVELES = {
   0: { etiqueta: "", barras: 0 },
-  1: { etiqueta: "Muy débil", barras: 1, barra: "bg-red-500", texto: "text-red-600" },
+  1: { etiqueta: "Muy débil", barras: 1, barra: "bg-peligro-fuerte", texto: "text-peligro" },
   2: { etiqueta: "Débil", barras: 2, barra: "bg-orange-500", texto: "text-orange-600" },
   3: { etiqueta: "Buena", barras: 3, barra: "bg-yellow-500", texto: "text-yellow-700" },
-  4: { etiqueta: "Fuerte", barras: 4, barra: "bg-green-600", texto: "text-green-700" },
+  4: { etiqueta: "Fuerte", barras: 4, barra: "bg-exito-fuerte", texto: "text-exito" },
 };
 
 const COMUNES = [

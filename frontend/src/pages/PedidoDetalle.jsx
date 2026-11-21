@@ -15,13 +15,13 @@ import { IconCheckCircle, IconCopy, IconCheck, IconClock, IconWhatsApp } from ".
 import { LineasPedido, TotalesPedido } from "../components/ResumenPedido.jsx";
 
 const ESTADO_PAGO_ESTILOS = {
-  pendiente: "bg-gold/20 text-plum",
-  en_revision: "bg-gold/20 text-plum",
-  verificado: "bg-berry/10 text-berry-dark",
-  rechazado: "bg-red-100 text-red-700",
+  pendiente: "bg-aviso/15 text-aviso",
+  en_revision: "bg-aviso/15 text-aviso",
+  verificado: "bg-exito/15 text-exito",
+  rechazado: "bg-peligro/15 text-peligro",
   no_aplica: "bg-plum/10 text-plum-soft",
-  reembolso_pendiente: "bg-gold/20 text-plum",
-  reembolsando: "bg-gold/20 text-plum",
+  reembolso_pendiente: "bg-aviso/15 text-aviso",
+  reembolsando: "bg-aviso/15 text-aviso",
   reembolsado: "bg-plum/10 text-plum-soft",
 };
 

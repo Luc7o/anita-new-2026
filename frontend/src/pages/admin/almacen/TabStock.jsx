@@ -14,8 +14,8 @@ import PanelReportesCostos from "./PanelReportesCostos.jsx";
 const POR_PAGINA = 15;
 
 export const ESTADOS_STOCK = {
-  agotado: { etiqueta: "Agotado", clase: "bg-red-100 text-red-700" },
-  bajo: { etiqueta: "Stock bajo", clase: "bg-amber-100 text-amber-800" },
+  agotado: { etiqueta: "Agotado", clase: "bg-peligro/15 text-peligro" },
+  bajo: { etiqueta: "Stock bajo", clase: "bg-aviso/15 text-aviso" },
   ok: { etiqueta: "Disponible", clase: "bg-berry/10 text-berry-dark" },
 };
 
@@ -197,7 +197,7 @@ export default function TabStock() {
                 {p.variantes.map((v) => (
                   <li key={v.variante_id} className="flex items-center gap-2 rounded-lg bg-white px-3 py-1.5 text-xs ring-1 ring-plum/10">
                     <span className="text-plum-soft">{textoVariante(v) || "Única"}</span>
-                    <span className={`font-semibold ${v.stock <= 0 ? "text-red-700" : "text-plum"}`}>{v.stock}</span>
+                    <span className={`font-semibold ${v.stock <= 0 ? "text-peligro" : "text-plum"}`}>{v.stock}</span>
                     {puedeAjustar && (
                       <button
                         type="button"

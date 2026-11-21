@@ -147,7 +147,7 @@ export default function TabInventarioFisico() {
             />
           </label>
           <span
-            className={`w-14 text-right font-semibold ${diferencia === null || diferencia === 0 ? "text-plum-soft" : diferencia < 0 ? "text-red-700" : "text-berry-dark"}`}
+            className={`w-14 text-right font-semibold ${diferencia === null || diferencia === 0 ? "text-plum-soft" : diferencia < 0 ? "text-peligro" : "text-berry-dark"}`}
             aria-live="polite"
           >
             {diferencia === null ? "" : diferencia > 0 ? `+${diferencia}` : diferencia}
@@ -203,7 +203,7 @@ export default function TabInventarioFisico() {
           <p className="text-sm text-plum-soft" aria-live="polite">
             <span className="font-semibold text-plum">{lineas.length}</span> contadas ·{" "}
             <span className="font-semibold text-plum">{conDiferencia.length}</span> con diferencia
-            {invalidas.length > 0 && <span className="text-red-700"> · {invalidas.length} no válidas</span>}
+            {invalidas.length > 0 && <span className="text-peligro"> · {invalidas.length} no válidas</span>}
           </p>
           <div className="flex items-center gap-3">
             <input

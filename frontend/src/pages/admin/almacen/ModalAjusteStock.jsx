@@ -119,7 +119,7 @@ export default function ModalAjusteStock({ producto, variante, onCerrar, onHecho
           />
         </div>
 
-        {error && <p role="alert" className="mt-3 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>}
+        {error && <p role="alert" className="mt-3 rounded-lg bg-peligro/10 px-4 py-3 text-sm text-peligro">{error}</p>}
 
         <div className="mt-5 flex justify-end gap-3">
           <button type="button" onClick={cerrar} className="px-4 py-2 text-sm text-plum-soft hover:text-berry">Cancelar</button>

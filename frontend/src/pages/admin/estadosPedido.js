@@ -36,12 +36,12 @@ export const ESTILO_ESTADO_PEDIDO = {
     punto: "bg-emerald-400",
   },
   entregado: {
-    insignia: "bg-green-600 text-white ring-1 ring-inset ring-green-700",
-    punto: "bg-green-600",
+    insignia: "bg-exito-fuerte text-white ring-1 ring-inset ring-exito-fuerte",
+    punto: "bg-exito-fuerte",
   },
   cancelado: {
-    insignia: "bg-red-100 text-red-700 ring-1 ring-inset ring-red-300",
-    punto: "bg-red-500",
+    insignia: "bg-peligro/15 text-peligro ring-1 ring-inset ring-peligro/30",
+    punto: "bg-peligro-fuerte",
   },
 };
 
@@ -63,4 +63,17 @@ export const ENTREGAS_PEDIDO = {
   delivery: "Delivery",
   recojo: "Recojo en tienda",
   mostrador: "Venta en tienda",
+};
+
+// Colores del estado de pago, iguales en la lista y en el detalle del pedido.
+// Lo que pide atención (por revisar, reembolso por hacer) va en ámbar de aviso.
+export const ESTILO_ESTADO_PAGO = {
+  pendiente: "bg-aviso/15 text-aviso",
+  en_revision: "bg-aviso/15 text-aviso",
+  verificado: "bg-exito/15 text-exito",
+  rechazado: "bg-peligro/15 text-peligro",
+  reembolso_pendiente: "bg-aviso/15 text-aviso",
+  reembolsando: "bg-aviso/15 text-aviso",
+  reembolsado: "bg-plum/10 text-plum-soft",
+  no_aplica: "bg-plum/10 text-plum-soft",
 };

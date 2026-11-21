@@ -265,7 +265,7 @@ export default function TabMovimientos() {
                 )}
                 <td className="px-4 py-3 text-plum">{m.tipo_label}</td>
                 <td className="px-4 py-3 text-right font-medium text-plum">{m.cantidad > 0 ? `+${m.cantidad}` : ""}</td>
-                <td className="px-4 py-3 text-right font-medium text-red-700">{m.cantidad < 0 ? m.cantidad : ""}</td>
+                <td className="px-4 py-3 text-right font-medium text-peligro">{m.cantidad < 0 ? m.cantidad : ""}</td>
                 <td className="px-4 py-3 text-right text-plum">{m.stock_despues ?? "—"}</td>
                 <td className="px-4 py-3 text-right text-plum-soft">{m.costo_unitario != null ? soles(m.costo_unitario) : "—"}</td>
                 <td className="px-4 py-3 text-plum-soft">{m.usuario_nombre || "—"}</td>
@@ -289,7 +289,7 @@ export default function TabMovimientos() {
                 <p className="font-medium text-plum">{m.producto_nombre || "—"}</p>
                 <p className="text-xs text-plum-soft">{[m.talla, m.color].filter(Boolean).join(" · ")}</p>
               </div>
-              <span className={`text-lg font-semibold ${m.cantidad < 0 ? "text-red-700" : "text-plum"}`}>
+              <span className={`text-lg font-semibold ${m.cantidad < 0 ? "text-peligro" : "text-plum"}`}>
                 {m.cantidad > 0 ? `+${m.cantidad}` : m.cantidad}
               </span>
             </div>

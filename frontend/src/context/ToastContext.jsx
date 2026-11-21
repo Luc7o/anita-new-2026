@@ -50,8 +50,8 @@ const ICONOS = {
 // Color del círculo del ícono según el tipo; la tarjeta es la misma para todos.
 const COLOR_ICONO = {
   success: "bg-berry text-white",
-  error: "bg-red-600 text-white",
-  warning: "bg-amber-500 text-carbon",
+  error: "bg-peligro-fuerte text-white",
+  warning: "bg-aviso-fuerte text-carbon",
   info: "bg-plum text-ivory",
 };
 

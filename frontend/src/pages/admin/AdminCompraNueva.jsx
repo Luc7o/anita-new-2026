@@ -310,7 +310,7 @@ export default function AdminCompraNueva() {
         </div>
       </div>
       {error && (
-        <p role="alert" className="mt-3 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700">
+        <p role="alert" className="mt-3 rounded-lg bg-peligro/10 px-4 py-3 text-sm text-peligro">
           {error}
         </p>
       )}

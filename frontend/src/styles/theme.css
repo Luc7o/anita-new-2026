@@ -22,7 +22,16 @@
   --color-hueso: #f6f3ee;
   --color-piedra: #6b6863;
 
-  --color-gold: #ababab;
+  /* Colores de estado (semánticos). Cambian solos con el tema: no hace falta parchear
+     clases en modo oscuro. Fondos suaves con opacidad: bg-peligro/10, bg-aviso/15...
+     "-fuerte" es el tono sólido para puntos, barras y botones con texto blanco. */
+  --color-exito: rgb(var(--c-exito));
+  --color-aviso: rgb(var(--c-aviso));
+  --color-peligro: rgb(var(--c-peligro));
+  --color-info: rgb(var(--c-info));
+  --color-exito-fuerte: rgb(var(--c-exito-fuerte));
+  --color-aviso-fuerte: rgb(var(--c-aviso-fuerte));
+  --color-peligro-fuerte: rgb(var(--c-peligro-fuerte));
 
   --font-sans: 'Manrope', ui-sans-serif, system-ui, sans-serif;
   --font-display: 'Syne', 'Manrope', ui-sans-serif, sans-serif;
@@ -149,6 +158,13 @@
   --c-berry: 165 54 148;     /* magenta del logo */
   --c-acento: 126 36 112;
   --c-focus: 165 54 148;     /* contorno de foco: magenta en claro */
+  --c-exito: 21 128 61;          /* green-700: 5,0:1 sobre blanco */
+  --c-aviso: 146 64 14;          /* amber-800: 7,1:1 sobre blanco */
+  --c-peligro: 185 28 28;        /* red-700: 6,5:1 sobre blanco */
+  --c-info: 29 78 216;           /* blue-700 */
+  --c-exito-fuerte: 21 128 61;
+  --c-aviso-fuerte: 217 119 6;   /* amber-600 */
+  --c-peligro-fuerte: 185 28 28;
   --admin-pg: #ffffff;
   --admin-surface: #ffffff;
   --admin-surface-2: #f6f3ee;
@@ -167,6 +183,13 @@ html.admin-dark {
   --c-chrome: 14 13 12;
   --c-acento: 233 166 221;
   --c-focus: 233 166 221;    /* magenta claro: el #a53694 da 2,9:1 sobre carbón */
+  --c-exito: 134 239 172;        /* green-300 */
+  --c-aviso: 252 211 77;         /* amber-300 */
+  --c-peligro: 252 165 165;      /* red-300 */
+  --c-info: 147 197 253;         /* blue-300 */
+  --c-exito-fuerte: 21 128 61;   /* green-700: texto blanco a 5:1 */
+  --c-aviso-fuerte: 245 158 11;
+  --c-peligro-fuerte: 220 38 38;
   --admin-pg: #0e0d0c;
   --admin-surface: #191816;
   --admin-surface-2: #23211f;
@@ -607,13 +630,6 @@ html.admin-dark .text-berry { color: #e9a6dd; }
 html.admin-dark .text-berry-dark { color: #f0bfe7; }
 html.admin-dark .hover\:text-berry:hover { color: #e9a6dd; }
 html.admin-dark .hover\:text-berry-dark:hover { color: #f6d3ef; }
-html.admin-dark .text-red-600,
-html.admin-dark .text-red-700 { color: #fca5a5; }
-html.admin-dark .text-green-700 { color: #86efac; }
-html.admin-dark .bg-red-50 { background-color: rgb(248 113 113 / 0.1); }
-html.admin-dark .bg-red-100 { background-color: rgb(248 113 113 / 0.16); }
-html.admin-dark .bg-green-100 { background-color: rgb(74 222 128 / 0.16); }
-html.admin-dark .hover\:bg-green-200:hover { background-color: rgb(74 222 128 / 0.26); }
 
 /* Etiquetas de estado de pedido y de entrega (escala amarillo -> verde) */
 html.admin-dark .bg-yellow-100 { background-color: rgb(250 204 21 / 0.16); }
@@ -628,7 +644,6 @@ html.admin-dark .ring-lime-400 { --tw-ring-color: rgb(163 230 53 / 0.5); }
 html.admin-dark .bg-emerald-100 { background-color: rgb(52 211 153 / 0.16); }
 html.admin-dark .text-emerald-800 { color: #a7f3d0; }
 html.admin-dark .ring-emerald-300 { --tw-ring-color: rgb(52 211 153 / 0.35); }
-html.admin-dark .ring-red-300 { --tw-ring-color: rgb(248 113 113 / 0.35); }
 html.admin-dark .bg-sky-100 { background-color: rgb(56 189 248 / 0.16); }
 html.admin-dark .text-sky-800 { color: #bae6fd; }
 html.admin-dark .ring-sky-300 { --tw-ring-color: rgb(56 189 248 / 0.35); }
@@ -687,6 +702,13 @@ html.dark:not(.admin-mode) {
   --c-chrome: 18 17 16;
   --c-acento: 233 166 221;
   --c-focus: 233 166 221;
+  --c-exito: 134 239 172;        /* green-300 */
+  --c-aviso: 252 211 77;         /* amber-300 */
+  --c-peligro: 252 165 165;      /* red-300 */
+  --c-info: 147 197 253;         /* blue-300 */
+  --c-exito-fuerte: 21 128 61;   /* green-700: texto blanco a 5:1 */
+  --c-aviso-fuerte: 245 158 11;
+  --c-peligro-fuerte: 220 38 38;
   --admin-surface: #1c1b19;
   --admin-surface-2: #262422;
   --superficie-foto: #24221f;
@@ -735,10 +757,6 @@ html.dark:not(.admin-mode) .text-berry,
 html.dark:not(.admin-mode) .hover\:text-berry:hover { color: #e9a6dd; }
 html.dark:not(.admin-mode) .text-berry-dark,
 html.dark:not(.admin-mode) .hover\:text-berry-dark:hover { color: #f0bfe7; }
-html.dark:not(.admin-mode) :is(.text-red-600, .text-red-700) { color: #fca5a5; }
-html.dark:not(.admin-mode) .text-green-700 { color: #86efac; }
-html.dark:not(.admin-mode) .bg-red-50 { background-color: rgb(248 113 113 / 0.1); }
-html.dark:not(.admin-mode) .bg-green-100 { background-color: rgb(74 222 128 / 0.16); }
 html.dark:not(.admin-mode) [class*="text-plum-soft/"] { color: #b0aba4; }
 html.dark:not(.admin-mode) [class*="placeholder:text-plum-soft/"]::placeholder { color: #b0aba4; }
 

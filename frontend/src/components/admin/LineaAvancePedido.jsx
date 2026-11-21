@@ -23,7 +23,7 @@ export default function LineaAvancePedido({ pedido }) {
               <span className={`absolute left-[-50%] top-[9px] h-0.5 w-full ${i <= actual ? "bg-berry" : "bg-plum/15"}`} aria-hidden="true" />
             )}
             <span
-              className={`absolute left-1/2 top-[3px] z-10 h-3.5 w-3.5 -translate-x-1/2 rounded-full ring-4 ring-white ${hecho ? "bg-berry" : "bg-plum/20"}`}
+              className={`absolute left-1/2 top-[3px] z-10 h-3.5 w-3.5 -translate-x-1/2 rounded-full ring-4 ring-(--admin-surface) ${hecho ? "bg-berry" : "bg-plum/20"}`}
               aria-hidden="true"
             />
             <span className={hecho ? "font-medium text-plum" : "text-plum-soft"}>{etiqueta}</span>

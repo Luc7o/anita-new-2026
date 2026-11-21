@@ -3,6 +3,7 @@ import { IconTruck, IconStore, IconBag } from "../Icons.jsx";
 import {
   ESTILO_ESTADO_PEDIDO,
   ESTILO_ESTADO_DESCONOCIDO,
+  ESTILO_ESTADO_PAGO,
   ENTREGAS_PEDIDO,
   tipoEntregaPedido,
 } from "../../pages/admin/estadosPedido.js";
@@ -13,6 +14,18 @@ export function InsigniaEstadoPedido({ estado, label, className = "" }) {
   return (
     <span
       className={`inline-block whitespace-nowrap rounded-md px-2.5 py-1 text-xs font-semibold ${estilo.insignia} ${className}`}
+    >
+      {label || estado}
+    </span>
+  );
+}
+
+// Etiqueta del estado del pago (verificado, en revisión, reembolso...).
+export function InsigniaEstadoPago({ estado, label, className = "" }) {
+  const estilo = ESTILO_ESTADO_PAGO[estado] || "bg-plum/10 text-plum-soft";
+  return (
+    <span
+      className={`inline-block whitespace-nowrap rounded-md px-2.5 py-1 text-xs font-semibold ${estilo} ${className}`}
     >
       {label || estado}
     </span>
