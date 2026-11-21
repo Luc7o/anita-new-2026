@@ -1,0 +1,186 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-21T00:00:00Z",
+  "title": "Design System: Anita New Style",
+  "extensions": {
+    "colorMeta": {
+      "papel": { "role": "neutral", "displayName": "Papel", "tonalRamp": ["#2a282b", "#454247", "#626065", "#817e84", "#a3a0a5", "#c6c4c8", "#e6e4e7", "#ffffff"] },
+      "gris": { "role": "neutral", "displayName": "Gris Probador" },
+      "foto": { "role": "neutral", "displayName": "Gris Foto" },
+      "tinta": { "role": "primary", "displayName": "Tinta Carbón", "tonalRamp": ["#1c1a1d", "#2e2b30", "#454147", "#5c5660", "#7a747e", "#9c97a0", "#c5c1c8", "#ecebee"] },
+      "tinta-suave": { "role": "neutral", "displayName": "Tinta Suave" },
+      "linea": { "role": "neutral", "displayName": "Línea" },
+      "linea-boleta": { "role": "neutral", "displayName": "Punteado de Boleta" },
+      "magenta": { "role": "secondary", "displayName": "Magenta del Logo", "tonalRamp": ["#3d0f36", "#5e1a54", "#7e2470", "#a53694", "#c24fae", "#e08ad1", "#f0c4e8", "#fbecf8"] },
+      "magenta-hondo": { "role": "secondary", "displayName": "Magenta Hondo" },
+      "kraft": { "role": "tertiary", "displayName": "Kraft", "tonalRamp": ["#3a2d22", "#5a4330", "#7d5d40", "#9d7450", "#b98b5e", "#d9b48c", "#ecd5ba", "#f8eee2"] },
+      "kraft-claro": { "role": "tertiary", "displayName": "Kraft Claro" },
+      "boleta": { "role": "tertiary", "displayName": "Papel de Boleta" },
+      "carbon": { "role": "neutral", "displayName": "Carbón", "tonalRamp": ["#0b0a0d", "#16131a", "#24202a", "#3a3540", "#5a5460", "#9a919d", "#c9c0c8", "#f4eff4"] },
+      "carbon-2": { "role": "neutral", "displayName": "Carbón 2" },
+      "sobre-carbon": { "role": "neutral", "displayName": "Sobre Carbón" },
+      "sobre-carbon-suave": { "role": "neutral", "displayName": "Sobre Carbón Suave" },
+      "exito": { "role": "status", "displayName": "Éxito" },
+      "exito-fondo": { "role": "status", "displayName": "Fondo de Éxito" },
+      "aviso": { "role": "status", "displayName": "Aviso" },
+      "aviso-fondo": { "role": "status", "displayName": "Fondo de Aviso" },
+      "peligro": { "role": "status", "displayName": "Peligro" },
+      "peligro-fondo": { "role": "status", "displayName": "Fondo de Peligro" },
+      "oscuro-fondo": { "role": "neutral", "displayName": "Fondo Oscuro" },
+      "oscuro-texto": { "role": "neutral", "displayName": "Texto Oscuro" },
+      "magenta-oscuro": { "role": "secondary", "displayName": "Magenta Oscuro" },
+      "foco-oscuro": { "role": "secondary", "displayName": "Foco Oscuro" },
+      "exito-oscuro": { "role": "status", "displayName": "Éxito Oscuro" },
+      "aviso-oscuro": { "role": "status", "displayName": "Aviso Oscuro" },
+      "peligro-oscuro": { "role": "status", "displayName": "Peligro Oscuro" }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "Titular de portada en Bodoni Moda 700; una palabra en itálica 500 magenta." },
+      "headline": { "displayName": "Titular", "purpose": "Titulares de sección, ficha, campaña, panel y mostrador." },
+      "title": { "displayName": "Título", "purpose": "Nombre en la ficha de portada, encabezados de boleta, barra de la bolsa." },
+      "body": { "displayName": "Lectura", "purpose": "Todo el texto de lectura en Manrope." },
+      "precio": { "displayName": "Precio", "purpose": "Todo precio y toda cifra; nunca en Bodoni." },
+      "boton": { "displayName": "Botón", "purpose": "Botones en mayúsculas espaciadas." },
+      "aviso": { "displayName": "Aviso", "purpose": "Avisos finos con contorno y estados del panel (700, 0.08em)." },
+      "rotulo": { "displayName": "Rótulo", "purpose": "Cabeceras de tabla, grupos de opciones, grupos del riel." },
+      "boleta": { "displayName": "Boleta", "purpose": "Importes y códigos dentro de la boleta perforada." }
+    },
+    "shadows": [
+      { "name": "caida-etiqueta", "value": "drop-shadow(0 8px 10px rgb(22 19 26 / .3))", "purpose": "Solo la etiqueta kraft colgante (filter)." },
+      { "name": "dispositivo", "value": "0 40px 70px -40px rgb(22 19 26 / .7)", "purpose": "Solo los marcos de teléfono y tablet de las maquetas." },
+      { "name": "anillo-campo", "value": "0 0 0 3px rgb(28 26 29 / .12)", "purpose": "Foco de los campos de texto." },
+      { "name": "foco", "value": "outline: 2.5px solid #a53694; outline-offset: 3px", "purpose": "Anillo de foco global; #e9a6dd en oscuro." }
+    ],
+    "motion": [
+      { "name": "salida", "value": "cubic-bezier(0.16, 1, 0.3, 1)", "purpose": "Curva única para entradas, presión y estampas." },
+      { "name": "color", "value": "0.2s", "purpose": "Transiciones de fondo, color y contorno." },
+      { "name": "presion", "value": "transform 0.15s; scale(0.98)", "purpose": "Botones al presionar (0.97 en teclas del mostrador)." },
+      { "name": "aparece", "value": "0.6s, delay 0.25s, translateY(6px) a 0", "purpose": "Avisos de portada, una sola vez." },
+      { "name": "cuelga", "value": "1.4s, rotate(-14deg) → 5deg → 0", "purpose": "Balanceo de la etiqueta kraft al colgarse." },
+      { "name": "estampa", "value": "0.9s", "purpose": "Aviso oscuro «Agregado a tu bolsa» sobre la foto." },
+      { "name": "llego", "value": "0.6s, scale(1.35) al 35%", "purpose": "Contador de la bolsa al sumar." },
+      { "name": "imprime", "value": "0.45s, clip-path inset de arriba abajo", "purpose": "Línea nueva en la boleta del mostrador." }
+    ],
+    "breakpoints": [
+      { "name": "celular", "value": "560px" },
+      { "name": "tablet", "value": "900px" },
+      { "name": "portada", "value": "980px" },
+      { "name": "navegacion", "value": "1060px" },
+      { "name": "panel-ancho", "value": "1180px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Botón primario",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "La acción: tinta negra, esquina de 12px, mayúsculas espaciadas.",
+      "html": "<button class=\"ds-btn\">Agregar a mi bolsa</button>",
+      "css": ".ds-btn { display: inline-flex; align-items: center; justify-content: center; min-height: 48px; padding: 0 22px; border: 0; border-radius: 12px; background: #1c1a1d; color: #fff; font: 800 15px 'Manrope', sans-serif; text-transform: uppercase; letter-spacing: .1em; cursor: pointer; transition: background-color .2s, transform .15s cubic-bezier(0.16, 1, 0.3, 1); } .ds-btn:hover { background: #000; } .ds-btn:active { transform: scale(0.98); } .ds-btn:focus-visible { outline: 2.5px solid #a53694; outline-offset: 3px; }"
+    },
+    {
+      "name": "Botón de borde",
+      "kind": "button",
+      "refersTo": "button-borde",
+      "description": "Acción secundaria con contorno interno de 2px que se rellena al pasar.",
+      "html": "<button class=\"ds-btn-borde\">Ver todos</button>",
+      "css": ".ds-btn-borde { display: inline-flex; align-items: center; justify-content: center; min-height: 48px; padding: 0 22px; border: 0; border-radius: 12px; background: transparent; color: #1c1a1d; box-shadow: inset 0 0 0 2px #1c1a1d; font: 800 15px 'Manrope', sans-serif; text-transform: uppercase; letter-spacing: .1em; cursor: pointer; transition: background-color .2s, color .2s; } .ds-btn-borde:hover { background: #1c1a1d; color: #fff; } .ds-btn-borde:focus-visible { outline: 2.5px solid #a53694; outline-offset: 3px; }"
+    },
+    {
+      "name": "Avisos",
+      "kind": "chip",
+      "refersTo": "aviso",
+      "description": "Rectos, finos, con contorno; magenta solo para pocas unidades.",
+      "html": "<span class=\"ds-aviso\">Nuevo</span> <span class=\"ds-aviso ds-aviso-m\">Quedan 2</span> <span class=\"ds-aviso\">Recojo gratis</span>",
+      "css": ".ds-aviso { display: inline-flex; align-items: center; color: #1c1a1d; background: #fff; border: 1px solid currentColor; border-radius: 0; padding: 4px 9px 3px; font: 600 11px/1.2 'Manrope', sans-serif; letter-spacing: .12em; text-transform: uppercase; white-space: nowrap; } .ds-aviso-m { color: #a53694; }"
+    },
+    {
+      "name": "Estados del pedido",
+      "kind": "chip",
+      "refersTo": "estado-exito",
+      "description": "La forma del aviso con color semántico fijo.",
+      "html": "<span class=\"ds-estado ds-exito\">Pagado</span> <span class=\"ds-estado ds-aviso-e\">En revisión</span> <span class=\"ds-estado ds-peligro\">Rechazado</span> <span class=\"ds-estado ds-neutro\">Reembolsado</span>",
+      "css": ".ds-estado { display: inline-flex; align-items: center; padding: 3px 8px 2px; border: 1px solid currentColor; border-radius: 0; font: 700 11px/1.2 'Manrope', sans-serif; text-transform: uppercase; letter-spacing: .08em; white-space: nowrap; } .ds-exito { color: #15803d; background: #e7f4eb; } .ds-aviso-e { color: #92400e; background: #fdf1dc; } .ds-peligro { color: #b91c1c; background: #fdeaea; } .ds-neutro { color: #5c5660; }"
+    },
+    {
+      "name": "Etiqueta de oferta",
+      "kind": "custom",
+      "refersTo": "etiqueta-oferta",
+      "description": "Etiqueta kraft colgante con ojal: toda pieza en oferta.",
+      "html": "<div class=\"ds-etiqueta\"><span class=\"ds-que\">Oferta</span><span class=\"ds-p\">S/ 49.90</span><s>S/ 59.90</s></div>",
+      "css": ".ds-etiqueta { position: relative; display: inline-flex; flex-direction: column; gap: 2px; background: #b98b5e; color: #1c1a1d; padding: 26px 16px 13px; min-width: 120px; clip-path: polygon(14px 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 0 100%, 0 14px); transform: rotate(-6deg); transform-origin: 50% 0; filter: drop-shadow(0 8px 10px rgb(22 19 26 / .3)); font-family: 'Manrope', sans-serif; } .ds-etiqueta::before { content: ''; position: absolute; top: 9px; left: 50%; width: 11px; height: 11px; margin-left: -5.5px; border-radius: 50%; background: #16131a; box-shadow: inset 0 0 0 2px #d9b48c; } .ds-que { font-weight: 700; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; } .ds-p { font-weight: 800; font-size: 30px; line-height: 1; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; } .ds-etiqueta s { font-weight: 500; font-size: 13px; color: #231b15; }"
+    },
+    {
+      "name": "Boleta perforada",
+      "kind": "card",
+      "refersTo": "boleta",
+      "description": "Solo en bolsa, pago, pedido, caja y cierre del día.",
+      "html": "<div class=\"ds-lecho\"><div class=\"ds-boleta\"><div class=\"ds-linea\"><span>Subtotal</span><span>S/ 49.90</span></div><div class=\"ds-linea\"><span>Recojo en tienda</span><span>S/ 0.00</span></div><div class=\"ds-total\"><span>Total</span><span>S/ 49.90</span></div></div></div>",
+      "css": ".ds-lecho { background: #f3f1f4; padding: 16px; border-radius: 12px; } .ds-boleta { background: #fbfaf8; color: #1c1a1d; padding: 20px 18px 25px; -webkit-mask: radial-gradient(9px at 50% 100%, #0000 97%, #000) 0 0 / 18px 100% repeat-x; mask: radial-gradient(9px at 50% 100%, #0000 97%, #000) 0 0 / 18px 100% repeat-x; font: 400 14px 'Manrope', sans-serif; } .ds-linea { display: flex; justify-content: space-between; gap: 16px; padding: 10px 0; border-bottom: 1px dashed rgb(28 26 29 / .32); } .ds-linea > :last-child { font-family: 'Spline Sans Mono', monospace; font-variant-numeric: tabular-nums; } .ds-total { display: flex; justify-content: space-between; align-items: baseline; padding-top: 12px; font: 700 20px/1.1 'Bodoni Moda', serif; } .ds-total > :last-child { font: 600 20px 'Spline Sans Mono', monospace; letter-spacing: -0.03em; }"
+    },
+    {
+      "name": "Campo de texto",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Etiqueta visible, 48px, esquina de 12px, error que dice qué falta.",
+      "html": "<div class=\"ds-campo\"><label for=\"ds-dni\">DNI</label><input id=\"ds-dni\" value=\"4512\"><span class=\"ds-ayuda\">El DNI tiene 8 dígitos. Te faltan 4.</span></div>",
+      "css": ".ds-campo { display: grid; gap: 6px; font-family: 'Manrope', sans-serif; color: #1c1a1d; } .ds-campo label { font-size: 13px; font-weight: 700; } .ds-campo input { min-height: 48px; border-radius: 12px; border: 1.5px solid #b91c1c; background: #fff; padding: 0 14px; font: 16px 'Manrope', sans-serif; color: #1c1a1d; } .ds-campo input:focus { outline: none; border-color: #1c1a1d; box-shadow: 0 0 0 3px rgb(28 26 29 / .12); } .ds-ayuda { font-size: 13px; color: #b91c1c; font-weight: 600; }"
+    },
+    {
+      "name": "Filtros de categoría",
+      "kind": "chip",
+      "refersTo": "pastilla-filtro",
+      "description": "Pastillas con contorno fino; la activa en tinta.",
+      "html": "<div class=\"ds-pastillas\"><button aria-pressed=\"true\">Todo</button><button aria-pressed=\"false\">Carteras</button><button aria-pressed=\"false\">Calzado</button></div>",
+      "css": ".ds-pastillas { display: flex; gap: 8px; } .ds-pastillas button { min-height: 40px; padding: 0 16px; border-radius: 999px; border: 0; background: transparent; box-shadow: inset 0 0 0 1.5px rgb(28 26 29 / .14); font: 700 15px 'Manrope', sans-serif; color: #1c1a1d; cursor: pointer; } .ds-pastillas button:hover { box-shadow: inset 0 0 0 1.5px rgb(28 26 29 / .4); } .ds-pastillas button[aria-pressed=\"true\"] { background: #1c1a1d; color: #fff; box-shadow: none; } .ds-pastillas button:focus-visible { outline: 2.5px solid #a53694; outline-offset: 3px; }"
+    },
+    {
+      "name": "Navegación de tienda",
+      "kind": "nav",
+      "refersTo": "riel-enlace",
+      "description": "Barra blanca cerrada por regla de 2px, «Ofertas» en magenta, bolsa en pastilla.",
+      "html": "<nav class=\"ds-tnav\"><a class=\"ds-marca\" href=\"#\">ANITA <em>NEW</em> STYLE</a><a href=\"#\">Carteras</a><a href=\"#\">Calzado</a><a class=\"ds-of\" href=\"#\">Ofertas</a><button class=\"ds-bolsa\">Mi bolsa <span>2</span></button></nav>",
+      "css": ".ds-tnav { display: flex; align-items: center; gap: 22px; min-height: 72px; padding: 0 16px; background: #fff; border-bottom: 2px solid #1c1a1d; font-family: 'Manrope', sans-serif; } .ds-tnav a { text-decoration: none; font-weight: 600; font-size: 15px; color: #5c5660; } .ds-tnav a:hover { color: #1c1a1d; } .ds-tnav .ds-of { color: #a53694; } .ds-tnav .ds-marca { font-weight: 800; font-size: 17px; letter-spacing: .14em; color: #1c1a1d; } .ds-marca em { font-style: normal; color: #a53694; } .ds-bolsa { margin-left: auto; display: inline-flex; align-items: center; gap: 10px; min-height: 44px; padding: 0 14px; border: 0; border-radius: 999px; background: transparent; box-shadow: inset 0 0 0 2px #1c1a1d; font: 800 14px 'Manrope', sans-serif; text-transform: uppercase; cursor: pointer; } .ds-bolsa span { min-width: 24px; height: 24px; border-radius: 999px; background: #1c1a1d; color: #fff; display: grid; place-items: center; font-size: 12px; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "Anita, elegida",
+    "overview": "Una boutique en papel blanco. La página se ordena con tinta carbón y reglas negras de 2px, no con tarjetas ni sombras: una regla bajo la navegación, una encima de cada sección y un marco negro alrededor de la ficha que flota sobre la foto de portada. Los títulos hablan en Bodoni Moda, una serifa de revista de moda, y una sola palabra por titular se inclina en itálica magenta («Moda elegida en *Huancayo*»). Todo lo que se lee, se pulsa o se cobra va en Manrope.\n\nLo que importa de cada pieza se dice con avisos finos: rectángulos rectos con contorno de 1px y mayúsculas espaciadas («Nuevo», «Quedan 2», «Recojo gratis»). El panel usa exactamente esa forma para los estados del pedido, con color semántico. Dos objetos materiales tienen trabajo fijo y no se mueven de él: la etiqueta kraft colgante marca toda oferta, y la boleta perforada aparece solo donde se paga o se cobra (bolsa, pago, pedido, caja del mostrador, cierre del día).\n\nLa densidad es de tienda curada: pocas piezas, aire generoso (secciones de 56px arriba y 72px abajo), fotos grandes en proporción 4:5. El panel comparte el papel, las reglas y los avisos, y suma un riel carbón a la izquierda. Este sistema reemplaza por completo a «La bolsa de Anita, en calma» (papel seda, fondo lila, Bricolage Grotesque), que el usuario rechazó; también rechazó los sellos girados y la tipografía ancha en mayúsculas.",
+    "keyCharacteristics": [
+      "Papel blanco, tinta carbón y reglas negras de 2px como estructura.",
+      "Bodoni Moda 700 en títulos con una palabra en itálica 500 magenta.",
+      "Manrope para texto, botones, avisos y todas las cifras y precios.",
+      "Avisos rectos, finos, con contorno; los estados del panel son la misma pieza en verde, ámbar o rojo.",
+      "Etiqueta kraft colgante en toda oferta; boleta perforada solo al pagar o cobrar.",
+      "Botones negros de tinta; el magenta nunca es una acción."
+    ],
+    "rules": [
+      { "name": "La Regla del Magenta Escaso", "body": "El magenta marca una palabra, una escasez, un descuento o un foco. Nunca es fondo de botón ni de sección.", "section": "colors" },
+      { "name": "La Regla de los Estados Fijos", "body": "Verde, ámbar y rojo significan siempre lo mismo en tienda y panel, en claro y en oscuro. Ningún adorno los usa.", "section": "colors" },
+      { "name": "La Regla del Material con Oficio", "body": "El kraft es oferta (o código de recojo); la boleta es pago o cobro. Si no hay oferta, no hay kraft; si no se paga ni se cobra, no hay boleta.", "section": "colors" },
+      { "name": "La Regla del Cuatro", "body": "Ningún número va en Bodoni. En Bodoni chico el «4» se confunde con «1»; precios, cifras, notas de reseña y pasos numerados van en Manrope (o en la mono, dentro de la boleta).", "section": "typography" },
+      { "name": "La Regla de la Palabra Elegida", "body": "Un titular lleva como máximo una palabra en itálica magenta. Los demás titulares van rectos y en tinta.", "section": "typography" },
+      { "name": "La Regla de la Regla", "body": "El orden lo hace una línea negra de 2px, no una tarjeta con sombra.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do ordenar cada sección con una regla de 2px en tinta (#1c1a1d) y un titular en Bodoni Moda 700.",
+      "Do poner una sola palabra por titular en Bodoni itálica 500 magenta.",
+      "Do escribir todo precio y toda cifra en Manrope 800 con cifras tabulares; la mono solo dentro de la boleta.",
+      "Do colgar la etiqueta kraft en toda pieza en oferta, con el precio anterior tachado.",
+      "Do usar la boleta perforada en bolsa, pago, pedido, caja y cierre del día.",
+      "Do decir el estado de un pedido con el aviso recto y el color semántico fijo, también en modo oscuro.",
+      "Do invertir los botones en modo oscuro (primario blanco) y aclarar el magenta a #e08ad1.",
+      "Do mantener áreas táctiles de 44px y campos de 48px con etiqueta visible."
+    ],
+    "donts": [
+      "Don't poner números en Bodoni: ni precios, ni notas de reseña, ni pasos numerados.",
+      "Don't usar el magenta como fondo de botón o de sección.",
+      "Don't usar la boleta perforada en la portada ni en la vitrina.",
+      "Don't usar kraft para algo que no sea oferta o el código de recojo.",
+      "Don't girar los avisos ni darles textura de sello; tampoco volver a la tipografía ancha en mayúsculas para títulos.",
+      "Don't traer de vuelta el papel seda, el fondo lila ni Bricolage Grotesque del mundo rechazado.",
+      "Don't poner más de dos avisos sobre una misma pieza.",
+      "Don't usar verde, ámbar o rojo como decoración."
+    ]
+  }
+}

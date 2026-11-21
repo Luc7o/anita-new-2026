@@ -4,20 +4,56 @@
     {
       "name": "backend",
       "runtimeExecutable": "backend/venv/Scripts/python.exe",
-      "runtimeArgs": ["backend/run.py"],
+      "runtimeArgs": [
+        "backend/run.py"
+      ],
       "port": 5000
     },
     {
       "name": "tienda",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["--prefix", "frontend", "run", "dev"],
+      "runtimeArgs": [
+        "--prefix",
+        "frontend",
+        "run",
+        "dev"
+      ],
       "port": 5173
     },
     {
       "name": "admin",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["--prefix", "frontend", "run", "dev:admin"],
+      "runtimeArgs": [
+        "--prefix",
+        "frontend",
+        "run",
+        "dev:admin"
+      ],
       "port": 5174
+    },
+    {
+      "name": "propuesta",
+      "runtimeExecutable": "python",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "5190",
+        "--directory",
+        "propuesta-rediseno"
+      ],
+      "port": 5190
+    },
+    {
+      "name": "bocetos",
+      "runtimeExecutable": "python",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "5191",
+        "--directory",
+        ".impeccable/mocks/decision"
+      ],
+      "port": 5191
     }
   ]
 }
