@@ -56,10 +56,10 @@ export function ConfirmProvider({ children }) {
               )}
             </span>
             <div className="min-w-0">
-              <h2 id="confirmar-titulo" className="font-sans text-lg font-bold text-plum">
+              <h2 id="confirmar-titulo" className="font-sans text-lg font-bold text-plum wrap-anywhere">
                 {dialogo.title}
               </h2>
-              {dialogo.message && <p className="mt-1 text-sm text-plum-soft">{dialogo.message}</p>}
+              {dialogo.message && <p className="mt-1 text-sm text-plum-soft wrap-anywhere">{dialogo.message}</p>}
             </div>
           </div>
           <div className="mt-6 flex justify-end gap-2">

@@ -91,7 +91,7 @@ export default function AdminUsuarios() {
     if (activo) {
       const confirmado = await confirmar({
         title: `¿Desactivar a ${usuario.nombre_completo}?`,
-        message: "No podrá entrar al panel hasta que lo reactives.",
+        message: "No podrá iniciar sesión hasta que lo reactives.",
         tone: "danger",
         confirmText: "Sí, desactivar",
         cancelText: "No, volver",

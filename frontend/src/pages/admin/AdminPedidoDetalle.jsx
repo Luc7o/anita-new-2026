@@ -135,9 +135,11 @@ export default function AdminPedidoDetalle() {
 
   // Rechazar un pago y reembolsar mueven dinero real (Culqi reembolsa
   // automáticamente), así que siempre piden confirmación con el monto.
+  // Espacio no separable: que "S/" y el monto no queden en líneas distintas del título.
+  const montoTitulo = (n) => soles(n).replace(" ", " ");
   const CONFIRMACION_PAGO = {
     rechazado: () => ({
-      title: `¿Rechazar el pago de ${soles(pedido?.total)}?`,
+      title: `¿Rechazar el pago de ${montoTitulo(pedido?.total)}?`,
       message: `El pedido ${pedido?.numero_pedido || ""} quedará con el pago rechazado. Hazlo solo si confirmaste en Culqi que el cargo no existe.`,
       tone: "danger",
       confirmText: "Sí, rechazar pago",
@@ -147,12 +149,12 @@ export default function AdminPedidoDetalle() {
       pedido?.estado_pago === "reembolsando"
         ? {
             title: "¿Confirmar el reembolso?",
-            message: `Marca el reembolso de ${soles(pedido?.total)} como hecho solo si ya aparece en el panel de Culqi. No se vuelve a reembolsar.`,
+            message: `Marca el reembolso de ${montoTitulo(pedido?.total)} como hecho solo si ya aparece en el panel de Culqi. No se vuelve a reembolsar.`,
             confirmText: "Sí, ya aparece en Culqi",
             cancelText: "No, volver",
           }
         : {
-            title: `¿Reembolsar ${soles(pedido?.total)} a ${pedido?.envio_nombre || pedido?.cliente || "el cliente"}?`,
+            title: `¿Reembolsar ${montoTitulo(pedido?.total)} a ${pedido?.envio_nombre || pedido?.cliente || "el cliente"}?`,
             message:
               "Si el pago fue con Culqi, el dinero se devolverá automáticamente. Esta acción no se puede deshacer.",
             tone: "danger",
