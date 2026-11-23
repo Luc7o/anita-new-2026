@@ -2,8 +2,10 @@ import React from "react";
 import { Link } from "react-router-dom";
 import PaginaInfo from "./PaginaInfo.jsx";
 import useConfigTienda from "../hooks/useConfigTienda.js";
+import { useMetadatos } from "../hooks/useMetadatos";
 
 export default function QuienesSomos() {
+  useMetadatos({ titulo: "Quiénes somos" });
   const c = useConfigTienda();
   const ciudad = c.ciudad || "Huancayo";
   return (

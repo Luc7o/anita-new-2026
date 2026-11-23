@@ -292,6 +292,32 @@ def test_el_cron_cancela_solo_los_vencidos(fabrica, cliente):
     assert (stock_de(p1), stock_de(p2)) == (5, 4)
 
 
+def test_el_trafico_libera_el_stock_de_un_pedido_ajeno_vencido(fabrica, cliente, monkeypatch):
+    """Sin esperar al cron diario: si el pedido de A venció, B puede llevarse la última unidad."""
+    from app.utils import pedidos_vencidos
+    monkeypatch.setattr(pedidos_vencidos, "_ultimo_barrido_local", 0.0)
+    a, b = fabrica.usuario(), fabrica.usuario()
+    pedido_id, p = _pedido_pendiente(fabrica, cliente, a, stock=1)
+    assert stock_de(p) == 0
+    pedido = db.session.get(Pedido, pedido_id)
+    pedido.fecha_limite_pago = datetime.utcnow() - timedelta(minutes=1)
+    db.session.commit()
+    monkeypatch.setattr(pedidos_vencidos, "_ultimo_barrido_local", 0.0)
+    r = cliente.post("/api/carrito/agregar", json={"producto_id": p.id, "cantidad": 1}, headers=fabrica.cabeceras(b))
+    assert r.status_code in (200, 201), r.get_json()
+    db.session.expire_all()
+    assert db.session.get(Pedido, pedido_id).estado == "cancelado"
+    assert stock_de(p) == 1
+
+
+def test_el_barrido_en_caliente_respeta_su_intervalo(ctx, monkeypatch):
+    from app.utils import pedidos_vencidos
+    monkeypatch.setattr(pedidos_vencidos, "_cliente_redis", lambda: None)
+    monkeypatch.setattr(pedidos_vencidos, "_ultimo_barrido_local", 0.0)
+    assert pedidos_vencidos._toca_barrer() is True
+    assert pedidos_vencidos._toca_barrer() is False
+
+
 def test_el_cron_no_toca_pedidos_que_ya_salieron(fabrica, cliente):
     u = fabrica.usuario()
     pedido_id, p = _pedido_pendiente(fabrica, cliente, u)

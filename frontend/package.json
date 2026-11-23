@@ -10,7 +10,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "test": "node --test tests/*.test.mjs",
-    "iconos": "node scripts/agregar-iconos.mjs ."
+    "iconos": "node scripts/agregar-iconos.mjs .",
+    "e2e": "playwright test"
   },
   "dependencies": {
     "@animate-ui/react": "^2.4.6",
@@ -26,6 +27,7 @@
     "react-router-dom": "^6.30.6"
   },
   "devDependencies": {
+    "@playwright/test": "^1.56.1",
     "@tailwindcss/postcss": "^4.3.5",
     "@vitejs/plugin-react": "^4.3.1",
     "postcss": "^8.4.41",

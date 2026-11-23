@@ -4,6 +4,7 @@ from sqlalchemy.exc import IntegrityError
 from app.extensions import db, limiter
 from app.models import ItemCarrito, Producto
 from app.utils.decorators import requiere_activo
+from app.utils.pedidos_vencidos import liberar_vencidos_si_toca
 
 bp = Blueprint("carrito", __name__, url_prefix="/api/carrito")
 
@@ -112,6 +113,7 @@ def ver_carrito():
 @requiere_activo
 def agregar_item():
     usuario_id = int(get_jwt_identity())
+    liberar_vencidos_si_toca()
     data = request.get_json(force=True) or {}
     producto_id = data.get("producto_id")
     cantidad = int(data.get("cantidad", 1))
@@ -245,6 +247,7 @@ def validar_carrito_invitado():
     pedido no se puede cumplir, o null). El stock se reparte en orden entre
     las líneas que compiten por él, igual que en el carrito real.
     """
+    liberar_vencidos_si_toca()
     data = request.get_json(silent=True) or {}
     lineas, descartadas = _leer_lineas(data)
     if lineas is None:

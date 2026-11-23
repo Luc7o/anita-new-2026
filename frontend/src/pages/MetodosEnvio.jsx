@@ -1,7 +1,9 @@
 import React from "react";
 import PaginaInfo from "./PaginaInfo.jsx";
+import { useMetadatos } from "../hooks/useMetadatos";
 
 export default function MetodosEnvio() {
+  useMetadatos({ titulo: "Métodos de envío", descripcion: "Recojo gratis en tienda o envío a domicilio en Huancayo. Plazos y costos de entrega." });
   return (
     <PaginaInfo
       titulo="Métodos de Envío"

@@ -3,8 +3,10 @@ import PaginaInfo from "./PaginaInfo.jsx";
 import useConfigTienda from "../hooks/useConfigTienda.js";
 import MapaTienda from "../components/MapaTienda.jsx";
 import { urlMapaEnlace } from "../utils/mapa.js";
+import { useMetadatos } from "../hooks/useMetadatos";
 
 export default function NuestrasTiendas() {
+  useMetadatos({ titulo: "Nuestras tiendas", descripcion: "Dirección, horarios y cómo llegar a nuestra tienda en Huancayo." });
   const c = useConfigTienda();
   const hayContacto = c.correo_contacto || c.telefono;
 

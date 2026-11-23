@@ -5,6 +5,7 @@ import DatosProveedor from "../components/DatosProveedor.jsx";
 import useConfigTienda from "../hooks/useConfigTienda.js";
 import SeccionLegal from "../components/SeccionLegal.jsx";
 import { FECHA_ACTUALIZACION_LEGAL, VERSION_TERMINOS } from "../legal.js";
+import { useMetadatos } from "../hooks/useMetadatos";
 
 // El correo sale de la configuración de la tienda (panel admin). Si todavía no
 // hay correo cargado, se manda a la página de Contacto en vez de publicar uno inventado.
@@ -18,6 +19,7 @@ function Contactar() {
 }
 
 export default function PoliticaPrivacidad() {
+  useMetadatos({ titulo: "Política de privacidad" });
   return (
     <PaginaInfo
       titulo="Política de privacidad"

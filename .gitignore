@@ -33,3 +33,7 @@ frontend/env
 # ---------- Sistema ----------
 .DS_Store
 Thumbs.db
+# ---------- Pruebas E2E (Playwright) ----------
+frontend/test-results/
+frontend/playwright-report/
+frontend/e2e/servidor/__pycache__/

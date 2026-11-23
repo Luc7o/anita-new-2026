@@ -13,7 +13,11 @@ from app.utils.stock import (
 from app.utils.decorators import requiere_activo
 from app.utils.culqi import INCIERTO, culqi_configurado, crear_cargo
 from app.utils.boleta import responder_boleta
-from app.utils.pedidos_vencidos import METODOS_PAGO_PASARELA, cancelar_pedidos_vencidos_del_usuario
+from app.utils.pedidos_vencidos import (
+    METODOS_PAGO_PASARELA,
+    cancelar_pedidos_vencidos_del_usuario,
+    liberar_vencidos_si_toca,
+)
 from app.utils.historial import cambiar_estado_pedido
 from app.utils.notificaciones import notificar_estado_pedido, notificar_pago_confirmado
 from app.models import IntentoPago
@@ -49,6 +53,10 @@ DIRECCION_RE = re.compile(r"^[A-Za-zÀ-ÿñÑ0-9\s.*°#]+$")
 def checkout():
     usuario_id = int(get_jwt_identity())
     data = request.get_json(force=True) or {}
+
+    # Antes de cualquier lock: devuelve el stock de pedidos ajenos que vencieron
+    # sin pagarse, para no rechazar esta compra por stock que ya está libre.
+    liberar_vencidos_si_toca()
 
     # Lock a nivel de usuario: si el mismo usuario dispara dos checkouts casi
     # al mismo tiempo (dos pestañas, doble clic antes de que el botón se

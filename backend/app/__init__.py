@@ -211,6 +211,14 @@ def create_app(config_class=Config):
 
     @app.errorhandler(500)
     def error_servidor(e):
+        from app.utils.alertas import alertar_equipo
+
+        original = getattr(e, "original_exception", None) or e
+        alertar_equipo(
+            f"error500:{request.endpoint or request.path}",
+            f"Error 500 en {request.method} {request.path}",
+            f"{type(original).__name__}: {original}",
+        )
         return jsonify({"error": "Error interno del servidor"}), 500
 
     return app

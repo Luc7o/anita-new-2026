@@ -9,8 +9,10 @@ import CuentaLayout from "../components/CuentaLayout.jsx";
 import ProductCard from "../components/ProductCard.jsx";
 import { SkeletonProductGrid } from "../components/Skeleton.jsx";
 import { IconHeart } from "../components/Icons.jsx";
+import { useMetadatos } from "../hooks/useMetadatos";
 
 export default function Favoritos() {
+  useMetadatos({ titulo: "Favoritos", noIndexar: true });
   const { usuario } = useAuth();
   const favoritos = useFavoritos();
   const [productos, setProductos] = useState([]);

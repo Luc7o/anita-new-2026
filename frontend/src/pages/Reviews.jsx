@@ -6,6 +6,7 @@ import Estrellas from "../components/Estrellas.jsx";
 import ImagenOptimizada from "../components/ImagenOptimizada.jsx";
 import { api } from "../api/client.js";
 import useConfigTienda from "../hooks/useConfigTienda.js";
+import { useMetadatos } from "../hooks/useMetadatos";
 
 const POR_PAGINA = 12;
 
@@ -88,6 +89,7 @@ function TarjetaResena({ r }) {
 // Reseñas reales leídas de la base de datos. No hay ningún texto de ejemplo:
 // si todavía nadie reseñó un producto, se muestra un mensaje de "aún no hay".
 export default function Reviews() {
+  useMetadatos({ titulo: "Opiniones de clientes", descripcion: "Lo que dicen nuestros clientes de sus compras en Anita New Style." });
   const config = useConfigTienda();
   const [resenas, setResenas] = useState([]);
   const [resumen, setResumen] = useState(null);

@@ -5,10 +5,12 @@ import DatosProveedor from "../components/DatosProveedor.jsx";
 import useConfigTienda from "../hooks/useConfigTienda.js";
 import SeccionLegal from "../components/SeccionLegal.jsx";
 import { FECHA_ACTUALIZACION_LEGAL, VERSION_TERMINOS } from "../legal.js";
+import { useMetadatos } from "../hooks/useMetadatos";
 
 const enlace = "font-semibold text-berry hover:underline";
 
 export default function TerminosCondiciones() {
+  useMetadatos({ titulo: "Términos y condiciones" });
   const config = useConfigTienda();
   return (
     <PaginaInfo

@@ -10,10 +10,12 @@ import GoogleButton from "../components/GoogleButton.jsx";
 import PasoDosFactores from "../components/PasoDosFactores.jsx";
 import loginHero from "../assets/auth/login-hero.webp";
 import { useToast } from "../context/ToastContext.jsx";
+import { useMetadatos } from "../hooks/useMetadatos";
 
 const CLAVE_RECORDAR = "ans_recordar_email";
 
 export default function Login() {
+  useMetadatos({ titulo: "Ingresar", noIndexar: true });
   const { login, segundoPaso, verificarSegundoPaso, cancelarSegundoPaso } = useAuth();
   const navigate = useNavigate();
   const toast = useToast();

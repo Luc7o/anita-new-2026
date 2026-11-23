@@ -8,6 +8,7 @@ import { IconBook } from "../components/Icons.jsx";
 import { soloTexto, soloNumeros, soloDni } from "../validacion.js";
 import { claseLabel } from "../estilos.js";
 import { useToast } from "../context/ToastContext.jsx";
+import { useMetadatos } from "../hooks/useMetadatos";
 
 const claseInput =
   "w-full rounded-md border border-plum/20 bg-white px-3 py-2.5 text-plum placeholder:text-plum-soft/50 focus:outline-hidden focus:border-berry";
@@ -68,6 +69,7 @@ function OpcionRadio({ name, valor, actual, onChange, children }) {
 }
 
 export default function LibroReclamaciones() {
+  useMetadatos({ titulo: "Libro de Reclamaciones" });
   const { usuario } = useAuth();
   const [info, setInfo] = useState(null);
   const [form, setForm] = useState(FORM_INICIAL);

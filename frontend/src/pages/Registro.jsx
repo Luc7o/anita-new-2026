@@ -11,6 +11,7 @@ import registroHero from "../assets/auth/registro-hero.webp";
 import { claseInputAuth as claseInput, claseLabel } from "../estilos.js";
 import { useToast } from "../context/ToastContext.jsx";
 import CasillaTerminos from "../components/CasillaTerminos.jsx";
+import { useMetadatos } from "../hooks/useMetadatos";
 
 // Registro mínimo: solo el correo. La cuenta se crea al instante con un nombre
 // y una contraseña aleatorios y la persona queda con sesión iniciada para
@@ -18,6 +19,7 @@ import CasillaTerminos from "../components/CasillaTerminos.jsx";
 // Checkout) y le llega un enlace por correo para elegir su contraseña cuando
 // quiera.
 export default function Registro() {
+  useMetadatos({ titulo: "Crear cuenta", noIndexar: true });
   const navigate = useNavigate();
   const toast = useToast();
   const location = useLocation();

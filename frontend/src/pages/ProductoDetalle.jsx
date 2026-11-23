@@ -23,6 +23,7 @@ import {
 import { nombreColorAHex } from "../utils/colores.js";
 import { METODOS_PAGO_TIENDA } from "../metodosPago.js";
 import { AnimateIcon } from "@animate-ui/react/icons";
+import { useMetadatos, jsonLdProducto } from "../hooks/useMetadatos";
 
 export default function ProductoDetalle() {
   const toast = useToast();
@@ -52,6 +53,18 @@ export default function ProductoDetalle() {
   const [cargandoRelacionados, setCargandoRelacionados] = useState(true);
   const [errorProducto, setErrorProducto] = useState(false);
   const refCarrusel = useRef(null);
+
+  useMetadatos({
+    titulo: producto?.nombre || (errorProducto ? "Producto no disponible" : "Producto"),
+    descripcion: producto
+      ? producto.descripcion ||
+        `${producto.nombre}${producto.categoria_nombre ? ` · ${producto.categoria_nombre}` : ""} a S/ ${Number(producto.precio_final ?? producto.precio).toFixed(2)}. Recojo en tienda o envío en Huancayo.`
+      : undefined,
+    imagen: producto?.imagenes?.[0]?.url || producto?.imagen_url,
+    tipo: "product",
+    noIndexar: errorProducto,
+    jsonLd: jsonLdProducto(producto),
+  });
 
   const cargarResenas = () =>
     api

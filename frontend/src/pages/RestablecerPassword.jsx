@@ -13,10 +13,12 @@ import {
 import registroHero from "../assets/auth/registro-hero.webp";
 import { claseInputAuth, claseLabel } from "../estilos.js";
 import { useToast } from "../context/ToastContext.jsx";
+import { useMetadatos } from "../hooks/useMetadatos";
 
 const claseInput = `${claseInputAuth} pr-11`;
 
 export default function RestablecerPassword() {
+  useMetadatos({ titulo: "Nueva contraseña", noIndexar: true });
   const [searchParams] = useSearchParams();
   const token = searchParams.get("token") || "";
   const navigate = useNavigate();

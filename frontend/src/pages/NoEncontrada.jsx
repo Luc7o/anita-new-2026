@@ -1,8 +1,10 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { useMetadatos } from "../hooks/useMetadatos";
 
 // Se muestra cuando la dirección no existe (antes quedaba la pantalla vacía).
 export default function NoEncontrada() {
+  useMetadatos({ titulo: "Página no encontrada", noIndexar: true });
   return (
     <div className="mx-auto max-w-xl px-4 py-20 text-center">
       <p className="text-5xl font-semibold text-berry">404</p>

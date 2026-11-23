@@ -30,6 +30,7 @@ import { armarLinkWhatsApp } from "../whatsapp.js";
 import heroDefecto1 from "../assets/auth/login-hero.webp";
 import heroDefecto2 from "../assets/auth/registro-hero.webp";
 import { AnimateIcon } from "@animate-ui/react/icons";
+import { useMetadatos } from "../hooks/useMetadatos";
 
 const IMAGENES_POR_DEFECTO = [heroDefecto1, heroDefecto2];
 // Color de respaldo de cada bloque de categoría mientras no tenga foto.
@@ -455,6 +456,7 @@ function Campana({ categorias }) {
 }
 
 export default function Home() {
+  useMetadatos();
   const [categorias, setCategorias] = useState([]);
   const [promociones, setPromociones] = useState([]);
   const [ofertas, setOfertas] = useState([]);

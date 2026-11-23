@@ -1,8 +1,10 @@
 import React from "react";
 import PaginaInfo from "./PaginaInfo.jsx";
 import { METODOS_PAGO_TIENDA } from "../metodosPago.js";
+import { useMetadatos } from "../hooks/useMetadatos";
 
 export default function FormasPago() {
+  useMetadatos({ titulo: "Formas de pago", descripcion: "Paga con tarjeta de crédito o débito, Yape o en efectivo al recoger en la tienda." });
   return (
     <PaginaInfo
       titulo="Formas de Pago"

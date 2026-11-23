@@ -6,6 +6,7 @@ import { Skeleton, SkeletonProductGrid } from "../components/Skeleton.jsx";
 import FiltroPrecio from "../components/FiltroPrecio.jsx";
 import { nombreColorAHex } from "../utils/colores.js";
 import { IconCheck, IconChevronLeft, IconChevronRight, IconStar, IconClose } from "../components/Icons.jsx";
+import { useMetadatos } from "../hooks/useMetadatos";
 
 const TALLAS_PRENDA = ["XS", "S", "M", "L", "XL"];
 const TALLAS_CALZADO = ["35", "36", "37", "38", "39", "40", "41", "42"];
@@ -70,6 +71,7 @@ function Estrellas({ cantidad }) {
 }
 
 export default function Tienda() {
+  useMetadatos({ titulo: "Tienda", descripcion: "Ropa, calzado y accesorios para mujer, hombre y niños. Filtra por talla, color y precio." });
   const [searchParams, setSearchParams] = useSearchParams();
   const busqueda = searchParams.get("q") || "";
   const categoriasActivas = (searchParams.get("categoria") || "").split(",").filter(Boolean);

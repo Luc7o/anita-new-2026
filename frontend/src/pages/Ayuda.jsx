@@ -3,8 +3,10 @@ import CuentaLayout from "../components/CuentaLayout.jsx";
 import { IconWhatsApp, IconMail } from "../components/Icons.jsx";
 import { armarLinkWhatsApp } from "../whatsapp.js";
 import useConfigTienda, { linkWhatsApp as linkWaConfig } from "../hooks/useConfigTienda.js";
+import { useMetadatos } from "../hooks/useMetadatos";
 
 export default function Ayuda() {
+  useMetadatos({ titulo: "Ayuda", noIndexar: true });
   const c = useConfigTienda();
   const mensaje = "Hola, tengo una consulta sobre mi cuenta en Anita New Style";
   // Primero el WhatsApp de Configuración; si está vacío, el de soporte del entorno.

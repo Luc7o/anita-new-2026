@@ -179,6 +179,13 @@ class Config:
         for correo in os.getenv("CORREOS_AVISO_PEDIDOS", "").split(",")
         if correo.strip()
     ]
+    # Alertas de fallos graves (cobro incierto, Culqi caído, errores 500). Vacío =
+    # se usan los mismos correos de CORREOS_AVISO_PEDIDOS. Ver app/utils/alertas.py.
+    ALERTAS_EMAIL = [
+        correo.strip()
+        for correo in os.getenv("ALERTAS_EMAIL", "").split(",")
+        if correo.strip()
+    ]
     CORREO_ADJUNTAR_BOLETA = os.getenv("CORREO_ADJUNTAR_BOLETA", "true").strip().lower() in (
         "1", "true", "si", "sí", "yes",
     )
@@ -218,6 +225,9 @@ class Config:
 
     # Cuánto tiempo se reserva el stock de un checkout de pasarela sin pagar.
     MINUTOS_LIMITE_PAGO = int(os.getenv("MINUTOS_LIMITE_PAGO", "20"))
+    # Cada cuántos segundos como máximo el tráfico de la tienda libera el stock de
+    # pedidos vencidos (ver app/utils/pedidos_vencidos.py). 0 = en cada petición.
+    SEGUNDOS_ENTRE_BARRIDOS_VENCIDOS = int(os.getenv("SEGUNDOS_ENTRE_BARRIDOS_VENCIDOS", "60"))
 
     # Subida de imágenes (se guardan en Vercel Blob, no en disco)
     EXTENSIONES_PERMITIDAS = {"png", "jpg", "jpeg", "webp", "gif"}

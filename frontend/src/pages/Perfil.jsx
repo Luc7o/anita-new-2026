@@ -8,8 +8,10 @@ import CuentaLayout from "../components/CuentaLayout.jsx";
 import SelectorUbicacion from "../components/SelectorUbicacion.jsx";
 import FormularioContrasena from "../components/FormularioContrasena.jsx";
 import { soloTexto, soloNumeros } from "../validacion.js";
+import { useMetadatos } from "../hooks/useMetadatos";
 
 export default function Perfil() {
+  useMetadatos({ titulo: "Mi cuenta", noIndexar: true });
   const toast = useToast();
   const { usuario, setUsuario } = useAuth();
   const [form, setForm] = useState({

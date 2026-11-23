@@ -1,0 +1,10 @@
+User-agent: *
+Disallow: /carrito
+Disallow: /checkout
+Disallow: /pedidos
+Disallow: /perfil
+Disallow: /admin
+Disallow: /ingresar
+Disallow: /registro
+
+Sitemap: https://www.anita-new-style.xyz/sitemap.xml

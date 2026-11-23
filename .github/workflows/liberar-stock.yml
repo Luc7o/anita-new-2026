@@ -1,0 +1,33 @@
+# Red de seguridad para liberar el stock de pedidos de tarjeta/Yape que vencieron
+# sin pagarse. El backend ya lo hace solo con el tráfico de la tienda (como mucho
+# una vez por minuto); esto cubre las horas sin visitas, cuando nadie dispara ese
+# barrido. El cron de Vercel (una vez al día) sigue existiendo.
+#
+# Para activarlo, en GitHub → Settings → Secrets and variables → Actions:
+#   ANITA_API_URL  → p. ej. https://api.anita-new-style.xyz  (sin / final)
+#   CRON_SECRET    → el mismo valor que tiene el backend en Vercel
+# Sin esos dos secretos, el job termina sin hacer nada.
+name: Liberar stock de pedidos vencidos
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+
+jobs:
+  barrer:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Llamar al job del backend
+        env:
+          API: ${{ secrets.ANITA_API_URL }}
+          SECRETO: ${{ secrets.CRON_SECRET }}
+        run: |
+          if [ -z "$API" ] || [ -z "$SECRETO" ]; then
+            echo "Faltan ANITA_API_URL o CRON_SECRET; no se hace nada."
+            exit 0
+          fi
+          curl --fail --silent --show-error --max-time 60 -X POST \
+            -H "Authorization: Bearer $SECRETO" \
+            "$API/api/jobs/cancelar-pedidos-vencidos"

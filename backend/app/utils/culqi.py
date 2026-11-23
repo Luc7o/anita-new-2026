@@ -21,6 +21,22 @@ externa ni webhook que avisa después. El flujo completo es:
 import requests
 from flask import current_app
 
+from app.utils.alertas import alertar_equipo
+
+
+def _alertar(clave, titulo, pedido, detalle):
+    numero = getattr(pedido, "numero_pedido", None) or "?"
+    try:
+        total = f"S/ {float(pedido.total):.2f}"
+    except (TypeError, ValueError, AttributeError):
+        total = "?"
+    alertar_equipo(
+        clave,
+        titulo,
+        f"Pedido {numero} (id {getattr(pedido, 'id', '?')}), total {total}.\n{detalle}\n\n"
+        "Revisa el panel de Culqi antes de tocar el pedido: el cobro o reembolso pudo haberse hecho.",
+    )
+
 
 def culqi_configurado():
     return bool(current_app.config.get("CULQI_SECRET_KEY"))
@@ -91,11 +107,13 @@ def crear_cargo(pedido, usuario, token_id, email=None):
         # No se llegó a abrir la conexión: el cargo nunca salió de aquí, así que es seguro
         # decirle al cliente que reintente.
         current_app.logger.error(f"No se pudo conectar con Culqi para el pedido {pedido.id}: {e}")
+        _alertar("culqi-sin-conexion", "Culqi no responde", pedido, f"No se pudo abrir la conexión al cobrar: {e}")
         return False, None, "No se pudo contactar la pasarela de pago, intenta de nuevo"
     except requests.RequestException as e:
         # Cualquier otro corte (ReadTimeout, conexión cerrada a mitad de respuesta...) puede
         # ocurrir DESPUÉS de que Culqi recibió el cargo: pudo cobrarse.
         current_app.logger.error(f"Culqi no respondió bien para el pedido {pedido.id}: {e}")
+        _alertar("culqi-cobro-incierto", "Cobro con resultado incierto", pedido, f"La conexión se cortó a mitad del cobro: {e}")
         return INCIERTO, None, None
 
     data = _json_o_vacio(resp)
@@ -115,6 +133,7 @@ def crear_cargo(pedido, usuario, token_id, email=None):
 
     # Ni cargo ni error de Culqi (un 5xx, una página HTML, un JSON raro): no sabemos si cobró.
     current_app.logger.error(f"Respuesta inesperada de Culqi para pedido {pedido.id}: {resp.status_code} {data}")
+    _alertar("culqi-cobro-incierto", "Cobro con resultado incierto", pedido, f"Respuesta inesperada de Culqi: HTTP {resp.status_code}")
     return INCIERTO, None, None
 
 
@@ -147,10 +166,12 @@ def reembolsar_en_culqi(pedido, motivo="solicitud_comprador"):
         )
     except requests.ConnectTimeout as e:
         current_app.logger.error(f"No se pudo conectar con Culqi para reembolsar el pedido {pedido.id}: {e}")
+        _alertar("culqi-sin-conexion", "Culqi no responde", pedido, f"No se pudo abrir la conexión al reembolsar: {e}")
         return False, None, "No se pudo contactar la pasarela de pago para el reembolso, intenta de nuevo"
     except requests.RequestException as e:
         # Igual que al cobrar: el pedido de reembolso pudo llegar a Culqi.
         current_app.logger.error(f"Culqi no respondió bien al reembolsar el pedido {pedido.id}: {e}")
+        _alertar("culqi-reembolso-incierto", "Reembolso con resultado incierto", pedido, f"La conexión se cortó a mitad del reembolso: {e}")
         return INCIERTO, None, None
 
     data = _json_o_vacio(resp)
@@ -161,7 +182,9 @@ def reembolsar_en_culqi(pedido, motivo="solicitud_comprador"):
     if data.get("object") == "error":
         mensaje = data.get("user_message") or data.get("merchant_message") or "El reembolso no pudo procesarse"
         current_app.logger.error(f"Reembolso Culqi rechazado para pedido {pedido.id}: {data}")
+        _alertar("culqi-reembolso-rechazado", "Culqi rechazó un reembolso", pedido, f"Mensaje de Culqi: {mensaje}")
         return False, None, mensaje
 
     current_app.logger.error(f"Respuesta inesperada de Culqi (reembolso) para pedido {pedido.id}: {resp.status_code} {data}")
+    _alertar("culqi-reembolso-incierto", "Reembolso con resultado incierto", pedido, f"Respuesta inesperada de Culqi: HTTP {resp.status_code}")
     return INCIERTO, None, None

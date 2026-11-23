@@ -70,6 +70,7 @@ Corre en `http://localhost:5173`.
 | `MINUTOS_LIMITE_PAGO` | Minutos que tiene el cliente para pagar con tarjeta o Yape antes de que el pedido se cancele (por defecto 20) |
 | `GOOGLE_CLIENT_ID` | Inicio de sesión con Google |
 | `CRON_SECRET` | Clave que protege los endpoints de tareas programadas |
+| `ALERTAS_EMAIL` | Opcional. Correos (separados por coma) que reciben alertas de cobros/reembolsos de Culqi inciertos y errores 500. Vacío = se usan los de `CORREOS_AVISO_PEDIDOS` |
 | `CACHE_EDGE` | Opcional. En `true` permite que el CDN guarde en caché respuestas públicas |
 | `PROVEEDOR_RAZON_SOCIAL` / `PROVEEDOR_RUC` / `PROVEEDOR_DOMICILIO` / `RECLAMOS_EMAIL_DESTINO` | Datos de la Hoja de Reclamación (deben coincidir con lo registrado en Indecopi) |
 | `BOLETA_EMAIL` / `BOLETA_TELEFONO` / `BOLETA_POLITICA_CAMBIOS` | Textos que aparecen en la boleta en PDF |

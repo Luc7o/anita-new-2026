@@ -10,11 +10,13 @@ import ImagenOptimizada from "../components/ImagenOptimizada.jsx";
 import EstadoVacio from "../components/EstadoVacio.jsx";
 import { Skeleton, SkeletonRegion } from "../components/Skeleton.jsx";
 import { AnimateIcon } from "@animate-ui/react/icons";
+import { useMetadatos } from "../hooks/useMetadatos";
 
 // Carrito "a detalle": vista completa del carrito (foto grande, precio
 // unitario, cantidades y resumen del pedido). El drawer es el atajo rápido;
 // esta página es para revisar con calma antes de pagar.
 export default function Carrito() {
+  useMetadatos({ titulo: "Tu carrito", noIndexar: true });
   const { items, total, totalItems, cargando, actualizarCantidad, eliminar } = useCarrito();
   const { usuario } = useAuth();
   const [errorPorItem, setErrorPorItem] = useState({});
