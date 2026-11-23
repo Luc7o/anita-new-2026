@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { listarCategorias } from "@/lib/catalogo";
+import { MenuCuenta } from "./MenuCuenta";
 
-// Cabecera de la tienda. Ingresar y Carrito todavía viven en la SPA (mismo dominio):
-// son enlaces normales (<a>), no <Link>, para que carguen esa app.
+// Cabecera de la tienda. Carrito e Ingresar son de esta app; Mi cuenta todavía vive en
+// la SPA, por eso los enlaces de la derecha son <a> (recarga completa), no <Link>.
 export async function Cabecera() {
   const categorias = await listarCategorias();
   return (
@@ -31,7 +32,7 @@ export async function Cabecera() {
           />
         </form>
         <div className="ml-auto flex items-center gap-4 text-sm font-semibold sm:ml-0">
-          <a href="/ingresar" className="hover:text-berry">Ingresar</a>
+          <MenuCuenta />
           <a href="/carrito" className="rounded-xl bg-plum px-4 py-2 text-ivory hover:bg-black">Carrito</a>
         </div>
       </nav>

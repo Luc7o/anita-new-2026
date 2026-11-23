@@ -1,0 +1,101 @@
+"use client";
+
+import { useState } from "react";
+import { ErrorApi } from "@/lib/api";
+import { IconoAtras } from "@/componentes/Iconos";
+import { Girando } from "./Girando";
+
+// Segundo paso del ingreso: código de 6 dígitos de la app de autenticación, o un
+// código de respaldo (como frontend/src/components/PasoDosFactores.jsx).
+export function PasoDosFactores({ onVerificar, onCancelar }: {
+  onVerificar: (codigo: string, recordarDispositivo: boolean) => Promise<void>;
+  onCancelar: () => void;
+}) {
+  const [codigo, setCodigo] = useState("");
+  const [usarRespaldo, setUsarRespaldo] = useState(false);
+  const [error, setError] = useState("");
+  const [enviando, setEnviando] = useState(false);
+  const [recordarDispositivo, setRecordarDispositivo] = useState(false);
+
+  const enviar = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setEnviando(true);
+    try {
+      await onVerificar(codigo.trim(), recordarDispositivo);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "No se pudo verificar el código.");
+      // Pasaron los 5 minutos del pase: hay que volver a empezar.
+      if (err instanceof ErrorApi && (err.data as { code?: string } | null)?.code === "pase_expirado") onCancelar();
+      setEnviando(false);
+    }
+  };
+
+  return (
+    <form onSubmit={enviar} className="space-y-5" noValidate>
+      <div className="text-center">
+        <h2 className="text-3xl font-semibold text-plum sm:text-4xl">Verificación en dos pasos</h2>
+        <p className="mt-2 text-sm text-plum-soft">
+          {usarRespaldo
+            ? "Escribe uno de tus códigos de respaldo. Cada uno sirve una sola vez."
+            : "Abre tu app de autenticación y escribe el código de 6 dígitos de Anita New Style."}
+        </p>
+      </div>
+
+      <div>
+        <label htmlFor="codigo-2fa" className="mb-1.5 block text-sm font-semibold text-plum">
+          {usarRespaldo ? "Código de respaldo" : "Código de 6 dígitos"}
+        </label>
+        <input
+          id="codigo-2fa"
+          autoFocus
+          autoComplete="one-time-code"
+          inputMode={usarRespaldo ? "text" : "numeric"}
+          maxLength={usarRespaldo ? 12 : 7}
+          value={codigo}
+          onChange={(e) =>
+            setCodigo(usarRespaldo ? e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "") : e.target.value.replace(/[^\d ]/g, ""))
+          }
+          placeholder={usarRespaldo ? "xxxxx-xxxxx" : "000000"}
+          className="w-full rounded-md border border-plum/20 bg-white px-4 py-3 text-center text-xl tracking-[0.3em] text-plum placeholder:tracking-normal placeholder:text-plum-soft/40 focus:border-berry focus:outline-hidden"
+        />
+      </div>
+
+      <label className="flex cursor-pointer items-start gap-2 text-sm text-plum-soft">
+        <input
+          type="checkbox"
+          checked={recordarDispositivo}
+          onChange={(e) => setRecordarDispositivo(e.target.checked)}
+          className="mt-0.5 h-4 w-4 accent-berry"
+        />
+        <span>
+          Confiar en este dispositivo por 30 días
+          <span className="block text-xs text-plum-soft/80">No te pediremos el código aquí. Úsalo solo en tu propio equipo.</span>
+        </span>
+      </label>
+
+      {error && <p role="alert" className="text-sm text-berry-dark">{error}</p>}
+
+      <button
+        type="submit"
+        disabled={enviando || codigo.replace(/\s/g, "").length < (usarRespaldo ? 10 : 6)}
+        className="flex w-full items-center justify-center gap-2 rounded-lg bg-plum py-3.5 font-semibold text-white transition hover:bg-berry-dark disabled:opacity-60"
+      >
+        {enviando ? <><Girando />Verificando...</> : "Verificar e ingresar"}
+      </button>
+
+      <div className="flex flex-col items-center gap-2 text-sm">
+        <button
+          type="button"
+          onClick={() => { setUsarRespaldo((v) => !v); setCodigo(""); setError(""); }}
+          className="font-semibold text-berry hover:underline"
+        >
+          {usarRespaldo ? "Usar el código de mi app" : "No tengo mi celular: usar un código de respaldo"}
+        </button>
+        <button type="button" onClick={onCancelar} className="inline-flex items-center gap-1.5 text-plum-soft hover:text-berry">
+          <IconoAtras size={14} /> Volver
+        </button>
+      </div>
+    </form>
+  );
+}
