@@ -9,8 +9,6 @@ import "@fontsource/bodoni-moda/latin-700.css";
 import "@fontsource/spline-sans-mono/latin-500.css";
 import "@fontsource/spline-sans-mono/latin-600.css";
 import "./globals.css";
-import { Cabecera } from "@/componentes/Cabecera";
-import { Pie } from "@/componentes/Pie";
 import { DESCRIPCION, MARCA, URL_TIENDA } from "@/lib/sitio";
 
 export const metadata: Metadata = {
@@ -38,9 +36,8 @@ export default function Raiz({ children }: { children: React.ReactNode }) {
         <a href="#contenido" className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-50 focus:rounded-lg focus:bg-plum focus:px-4 focus:py-2 focus:text-ivory">
           Saltar al contenido
         </a>
-        <Cabecera />
-        <main id="contenido">{children}</main>
-        <Pie />
+        {/* Cabecera y pie los pone cada grupo: (tienda) los lleva, (acceso) no. */}
+        {children}
       </body>
     </html>
   );

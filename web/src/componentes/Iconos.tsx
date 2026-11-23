@@ -83,3 +83,67 @@ export const IconoFlecha = (p: Props) => (
     <path d="m12 5 7 7-7 7" />
   </Icono>
 );
+
+// ---- Pantallas de acceso (mismos trazos que frontend/src/components/Icons.jsx) ----
+
+export const IconoOjo = (p: Props) => (
+  <Icono {...p}>
+    <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" />
+    <circle cx="12" cy="12" r="3" />
+  </Icono>
+);
+
+export const IconoOjoTachado = (p: Props) => (
+  <Icono {...p}>
+    <path d="M3 3l18 18" />
+    <path d="M10.6 5.1A10.6 10.6 0 0 1 12 5c6.5 0 10 7 10 7a13.6 13.6 0 0 1-3.1 3.9M6.3 6.9C4 8.6 2 12 2 12s3.5 7 10 7a9.7 9.7 0 0 0 4.6-1.1" />
+    <path d="M9.5 9.8A3 3 0 0 0 12 15a3 3 0 0 0 2.2-1" />
+  </Icono>
+);
+
+export const IconoCorreo = (p: Props) => (
+  <Icono {...p}>
+    <rect x="3" y="5" width="18" height="14" rx="2" />
+    <path d="m4 7 8 6 8-6" />
+  </Icono>
+);
+
+export const IconoAtras = (p: Props) => (
+  <Icono {...p}>
+    <path d="M19 12H5" />
+    <path d="m11 18-6-6 6-6" />
+  </Icono>
+);
+
+export const IconoCirculoCheck = (p: Props) => (
+  <Icono {...p}>
+    <circle cx="12" cy="12" r="9" />
+    <path d="m8.5 12.5 2.5 2.5 4.5-5" />
+  </Icono>
+);
+
+export const IconoCheck = (p: Props) => (
+  <Icono {...p}>
+    <path d="M20 6 9 17l-5-5" />
+  </Icono>
+);
+
+export const IconoFacebook = (p: Props) => (
+  <Icono {...p}>
+    <path d="M14 9V6.5a1.5 1.5 0 0 1 1.5-1.5H17V2h-2.5A4.5 4.5 0 0 0 10 6.5V9H7v3h3v10h4V12h3l1-3h-4Z" />
+  </Icono>
+);
+
+export const IconoInstagram = (p: Props) => (
+  <Icono {...p}>
+    <rect x="3" y="3" width="18" height="18" rx="5" />
+    <circle cx="12" cy="12" r="4" />
+    <circle cx="17.2" cy="6.8" r="1" fill="currentColor" stroke="none" />
+  </Icono>
+);
+
+export const IconoTikTok = ({ size = 18, ...resto }: Props) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" {...resto}>
+    <path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z" />
+  </svg>
+);
