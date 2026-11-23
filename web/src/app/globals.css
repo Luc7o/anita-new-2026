@@ -1,3 +1,20 @@
 /* Mismo diseño «Anita, elegida» que la tienda actual (copiado de
    frontend/src/styles/theme.css; cuando la SPA se retire, este pasa a ser el único). */
 @import "./theme.css";
+
+/* Cada sección de la portada aparece con un fundido corto al entrar en pantalla, solo con
+   CSS (sin JavaScript). Navegadores sin animation-timeline y quien pidió reducir movimiento
+   la ven quieta desde el inicio. */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .revelar {
+      animation: revelar linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 40%;
+    }
+  }
+}
+@keyframes revelar {
+  from { opacity: 0; transform: translateY(28px); }
+  to { opacity: 1; transform: none; }
+}
