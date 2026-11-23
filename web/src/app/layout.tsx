@@ -9,6 +9,8 @@ import "@fontsource/bodoni-moda/latin-700.css";
 import "@fontsource/spline-sans-mono/latin-500.css";
 import "@fontsource/spline-sans-mono/latin-600.css";
 import "./globals.css";
+import { BannerPrivacidad } from "@/componentes/BannerPrivacidad";
+import { AvisoAlCargar } from "@/componentes/AvisoAlCargar";
 import { DESCRIPCION, MARCA, URL_TIENDA } from "@/lib/sitio";
 
 export const metadata: Metadata = {
@@ -38,6 +40,8 @@ export default function Raiz({ children }: { children: React.ReactNode }) {
         </a>
         {/* Cabecera y pie los pone cada grupo: (tienda) los lleva, (acceso) no. */}
         {children}
+        <BannerPrivacidad />
+        <AvisoAlCargar />
       </body>
     </html>
   );

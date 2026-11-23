@@ -1,3 +1,5 @@
+import { BotonPreferencias } from "./BotonPreferencias";
+
 const ENLACES = [
   ["Formas de pago", "/formas-de-pago"],
   ["Métodos de envío", "/metodos-de-envio"],
@@ -5,6 +7,8 @@ const ENLACES = [
   ["Preguntas frecuentes", "/faq"],
   ["Contáctanos", "/contacto"],
   ["Nuestras tiendas", "/tiendas"],
+  ["Quiénes somos", "/quienes-somos"],
+  ["Reviews de clientes", "/reviews"],
 ] as const;
 
 export function Pie() {
@@ -23,6 +27,12 @@ export function Pie() {
             <li key={ruta}><a href={ruta} className="hover:text-berry">{texto}</a></li>
           ))}
         </ul>
+      </div>
+      <div className="mx-auto flex max-w-7xl flex-wrap gap-x-5 gap-y-2 border-t border-plum/10 px-4 py-5 text-xs text-plum-soft">
+        <span>© {new Date().getFullYear()} Anita New Style</span>
+        <a href="/politica-de-privacidad" className="hover:text-berry">Política de privacidad</a>
+        <a href="/terminos-y-condiciones" className="hover:text-berry">Términos y condiciones</a>
+        <BotonPreferencias className="hover:text-berry" />
       </div>
     </footer>
   );

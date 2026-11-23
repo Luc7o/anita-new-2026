@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
+import { ListaAvisos, useAvisos, type TipoAviso } from "@/componentes/Avisos";
 import { guardarSesion, pedir, recuperarSesion } from "@/lib/api";
 import { guardarLineas, leerLineas, type Linea } from "@/lib/carritoInvitado";
 
@@ -23,8 +24,6 @@ export type ItemCarrito = {
 
 type Resumen = { items: ItemCarrito[]; total_items: number; total: number; descartados?: { key: string }[]; ajustes?: { mensaje: string }[] };
 
-type Aviso = { id: number; tipo: "success" | "error" | "info"; texto: string };
-
 type Compra = {
   usuario: Usuario | null;
   listo: boolean;
@@ -36,7 +35,7 @@ type Compra = {
   quitar: (itemId: ItemCarrito["id"]) => Promise<void>;
   vaciarLocal: () => void;
   continuarComoInvitado: (email: string) => Promise<Usuario>;
-  avisar: (tipo: Aviso["tipo"], texto: string) => void;
+  avisar: (tipo: TipoAviso, texto: string) => void;
 };
 
 const Contexto = createContext<Compra | null>(null);
@@ -53,16 +52,10 @@ export function ProveedorCompra({ children }: { children: React.ReactNode }) {
   const [usuario, setUsuario] = useState<Usuario | null>(null);
   const [listo, setListo] = useState(false);
   const [resumen, setResumen] = useState<Resumen>(VACIO);
-  const [avisos, setAvisos] = useState<Aviso[]>([]);
+  const { avisos, avisar } = useAvisos();
   const usuarioRef = useRef<Usuario | null>(null);
   usuarioRef.current = usuario;
   const refrescoEnCurso = useRef<Promise<Resumen> | null>(null);
-
-  const avisar = useCallback((tipo: Aviso["tipo"], texto: string) => {
-    const id = Date.now() + Math.random();
-    setAvisos((a) => [...a, { id, tipo, texto }]);
-    setTimeout(() => setAvisos((a) => a.filter((x) => x.id !== id)), tipo === "error" ? 6000 : 3500);
-  }, []);
 
   // Carrito real de la cuenta; si quedaron líneas de invitado, se fusionan primero.
   // Llamadas simultáneas comparten la misma petición (las líneas nunca se fusionan dos veces).
@@ -182,19 +175,7 @@ export function ProveedorCompra({ children }: { children: React.ReactNode }) {
       }}
     >
       {children}
-      <div aria-live="polite" className="fixed inset-x-0 bottom-4 z-50 flex flex-col items-center gap-2 px-4">
-        {avisos.map((a) => (
-          <p
-            key={a.id}
-            role={a.tipo === "error" ? "alert" : "status"}
-            className={`animate-fade-in-up rounded-xl px-4 py-3 text-sm font-semibold shadow-pop ${
-              a.tipo === "error" ? "bg-peligro-fuerte text-white" : a.tipo === "success" ? "bg-berry text-white" : "bg-plum text-ivory"
-            }`}
-          >
-            {a.texto}
-          </p>
-        ))}
-      </div>
+      <ListaAvisos avisos={avisos} />
     </Contexto.Provider>
   );
 }

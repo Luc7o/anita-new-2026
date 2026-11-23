@@ -4,7 +4,10 @@ import { URL_TIENDA } from "@/lib/sitio";
 
 export const revalidate = 3600;
 
-const FIJAS = ["/", "/tienda", "/reviews", "/tiendas", "/quienes-somos", "/contacto", "/faq", "/formas-de-pago", "/metodos-de-envio", "/cambios-devoluciones"];
+const FIJAS = [
+  "/", "/tienda", "/reviews", "/tiendas", "/quienes-somos", "/contacto", "/faq", "/formas-de-pago", "/metodos-de-envio",
+  "/cambios-devoluciones", "/libro-reclamaciones", "/terminos-y-condiciones", "/politica-de-privacidad",
+];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const [productos, categorias] = await Promise.all([productosParaSitemap(), listarCategorias()]);
