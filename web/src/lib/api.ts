@@ -1,12 +1,11 @@
 "use client";
 
 // Cliente de la API Flask para las páginas con sesión (carrito, checkout, cuenta).
-// Sigue EXACTAMENTE las reglas de frontend/src/api/client.js, porque las dos apps
-// comparten dominio y sesión mientras dure la migración:
+// Reglas de la sesión (las mismas que usa el panel de admin con la misma API):
 // - El access token vive solo en memoria (se pierde al recargar a propósito).
 // - Se recupera con /auth/refrescar-token: el navegador manda la cookie httpOnly de
 //   refresh y nosotros el token CSRF (cookie legible o, si no, localStorage), con la
-//   MISMA clave que la SPA, así una sesión abierta en una app vale en la otra.
+//   clave de siempre (ans_csrf_refresh), así no se pierden las sesiones abiertas.
 import { URL_API } from "./sitio";
 import { obtenerSesionAnalitica } from "./consentimiento";
 
@@ -167,7 +166,7 @@ export async function cerrarSesion() {
   }).catch(() => undefined);
 }
 
-/** Evento de analítica, SOLO si la persona aceptó estadísticas (mismo criterio que la SPA). */
+/** Evento de analítica, SOLO si la persona aceptó estadísticas . */
 export function registrarEvento(tipoEvento: string, metadata?: Record<string, unknown>) {
   const sesionId = obtenerSesionAnalitica();
   if (!sesionId) return;

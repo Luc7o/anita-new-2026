@@ -1,18 +1,16 @@
 {
-  "name": "anita-new-style-frontend",
+  "name": "anita-new-style-admin",
   "private": true,
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --mode admin --port 5174",
     "dev:admin": "vite --mode admin --port 5174",
     "build:admin": "vite build --mode admin",
-    "build": "vite build",
+    "build": "vite build --mode admin",
     "preview": "vite preview",
     "test": "node --test tests/*.test.mjs",
-    "iconos": "node scripts/agregar-iconos.mjs .",
-    "e2e": "playwright test",
-    "e2e:web": "node e2e/correr-web.mjs"
+    "iconos": "node scripts/agregar-iconos.mjs ."
   },
   "dependencies": {
     "@animate-ui/react": "^2.4.6",
@@ -21,14 +19,12 @@
     "@fontsource/manrope": "^5.3.0",
     "@fontsource/spline-sans-mono": "^5.3.0",
     "motion": "^14.14.0",
-    "qrcode": "^1.5.4",
     "radix-ui": "^1.8.1",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
     "react-router-dom": "^6.30.6"
   },
   "devDependencies": {
-    "@playwright/test": "^1.56.1",
     "@tailwindcss/postcss": "^4.3.5",
     "@vitejs/plugin-react": "^4.3.1",
     "postcss": "^8.4.41",

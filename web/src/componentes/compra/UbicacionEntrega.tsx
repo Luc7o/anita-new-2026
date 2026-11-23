@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { pedir } from "@/lib/api";
 
 // Delivery solo en Huancayo: departamento y provincia fijos, el cliente elige el distrito.
-// Se buscan por nombre (no por id) igual que frontend/src/components/UbicacionEntrega.jsx;
+// Se buscan por nombre (no por id);
 // el backend vuelve a validar la zona al crear el pedido.
 type Lugar = { id: number; nombre: string };
 export type Ubicacion = { envio_dpto: string; envio_provincia: string; envio_distrito: string; distrito_id: number | null };

@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-// Maqueta de las páginas informativas (como frontend/src/pages/PaginaInfo.jsx).
+// Maqueta de las páginas informativas.
 export function PaginaInfo({ titulo, volver = "/", children }: { titulo: string; volver?: string; children: React.ReactNode }) {
   return (
     <div className="mx-auto max-w-3xl px-4 py-10 sm:py-14">

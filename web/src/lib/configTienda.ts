@@ -5,8 +5,8 @@ import { configuracionTienda } from "@/db/schema";
 import { URL_API } from "./sitio";
 
 // Datos de la tienda que edita el admin (tabla configuracion_tienda), con los mismos
-// nombres que GET /api/configuracion/tienda para que las páginas portadas de la SPA
-// lean igual. Un dato vacío no se publica (no se inventa nada).
+// nombres que GET /api/configuracion/tienda (snake_case).
+// Un dato vacío no se publica (no se inventa nada).
 export type ConfigTienda = {
   nombre_comercial: string;
   correo_contacto: string;

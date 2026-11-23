@@ -31,7 +31,7 @@ export function Comprar({ productoId, tallas, colores, variantes, sinStock }: {
       return;
     }
     setEnviando(true);
-    // Mismo carrito de invitado que la SPA; al tener sesión se fusiona con la cuenta.
+    // Carrito de invitado en el navegador; al tener sesión se fusiona con la cuenta.
     const lineas = leerLineas();
     const igual = lineas.find((l) => mismaLinea(l, { producto_id: productoId, talla, color }));
     const key = igual?.key ?? crypto.randomUUID();
@@ -39,7 +39,7 @@ export function Comprar({ productoId, tallas, colores, variantes, sinStock }: {
       ? lineas.map((l) => (l === igual ? { ...l, cantidad: l.cantidad + cantidad } : l))
       : [...lineas, { key, producto_id: productoId, cantidad, talla, color }];
     try {
-      // El servidor confirma stock y opciones antes de guardar nada (mismo endpoint que usa la SPA).
+      // El servidor confirma stock y opciones antes de guardar nada.
       const r = await fetch(`${URL_API}/carrito/invitado/validar`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },

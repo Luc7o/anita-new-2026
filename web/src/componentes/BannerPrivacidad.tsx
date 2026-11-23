@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useConsentimiento, type ResultadoDecision } from "@/lib/consentimiento";
 import { ListaAvisos, useAvisos } from "@/componentes/Avisos";
 
-// Aviso de privacidad para las estadísticas de uso (como frontend/src/components/BannerPrivacidad.jsx).
+// Aviso de privacidad para las estadísticas de uso.
 // Se muestra hasta que la persona decide y se reabre desde el pie de página o Mi cuenta >
 // Configuración. Nada viene activado y la tienda funciona igual con cualquier elección.
 

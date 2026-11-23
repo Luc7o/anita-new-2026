@@ -3,7 +3,7 @@ import React from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext.jsx";
 import { ROLES_ADMIN } from "../../roles.js";
-import { IS_ADMIN_APP, TIENDA_URL } from "../../lib/appMode.js";
+import { TIENDA_URL } from "../../lib/appMode.js";
 
 export default function RutaAdmin({ children }) {
   const { usuario, cargando, logout } = useAuth();
@@ -12,11 +12,9 @@ export default function RutaAdmin({ children }) {
     return <CargandoPagina />;
   }
   if (!usuario) {
-    // En el subdominio del admin el login vive en "/login"; en la tienda, en "/ingresar".
-    return <Navigate to={IS_ADMIN_APP ? "/login" : "/ingresar"} replace />;
+    return <Navigate to="/login" replace />;
   }
   if (!ROLES_ADMIN.includes(usuario.rol)) {
-    if (!IS_ADMIN_APP) return <Navigate to="/" replace />;
     // Una cuenta de cliente que llega al panel no tiene a dónde volver dentro de
     // esta app (aquí no hay tienda), así que se le explica y se le deja salir.
     return (

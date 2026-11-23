@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { ingresarConGoogle, type ResultadoIngreso } from "@/lib/acceso";
 
-// Botón oficial "Continuar con Google" (como frontend/src/components/GoogleButton.jsx).
+// Botón oficial "Continuar con Google".
 // Si falta NEXT_PUBLIC_GOOGLE_CLIENT_ID no se muestra nada.
 export const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
 const GSI_SRC = "https://accounts.google.com/gsi/client";

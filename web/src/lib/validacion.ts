@@ -1,4 +1,4 @@
-// Filtros para inputs (iguales a frontend/src/validacion.js): impiden escribir
+// Filtros para inputs: impiden escribir
 // caracteres que no corresponden al campo.
 export const soloTexto = (v: string) => v.replace(/[^A-Za-zÀ-ÿ\u00f1\u00d1\s'-]/g, "");
 export const soloNumeros = (v: string, max = 9) => v.replace(/\D/g, "").slice(0, max);

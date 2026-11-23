@@ -5,7 +5,7 @@ import { ListaAvisos, useAvisos, type TipoAviso } from "@/componentes/Avisos";
 import { guardarSesion, pedir, recuperarSesion } from "@/lib/api";
 import { guardarLineas, leerLineas, type Linea } from "@/lib/carritoInvitado";
 
-// Sesión + carrito para /carrito y /checkout. Mismas reglas que la SPA
+// Sesión + carrito para /carrito y /checkout.
 // (AuthContext + CarritoContext): sin sesión el carrito vive en el navegador y el
 // servidor solo lo valida; con sesión, las líneas del navegador se fusionan a la
 // cuenta y se limpian.

@@ -1,8 +1,6 @@
-// Mi cuenta, páginas informativas y aviso de privacidad de la app nueva (web/).
+// Mi cuenta, páginas informativas y aviso de privacidad.
 import { test, expect } from "@playwright/test";
 import { prepararBase, ingresar, rechazarCookies } from "./ayudas.mjs";
-
-test.skip(process.env.E2E_APP !== "web", "Estas páginas se prueban en la app nueva");
 
 let datos;
 test.beforeEach(() => {
@@ -36,7 +34,7 @@ test("Mi cuenta: perfil, pedidos vacíos y cerrar sesión", async ({ page }) => 
   await expect(page.getByRole("link", { name: "Ingresar" })).toBeVisible();
 });
 
-test("páginas informativas y legales se sirven desde la app nueva", async ({ page }) => {
+test("páginas informativas y legales", async ({ page }) => {
   await rechazarCookies(page);
   for (const [ruta, titulo] of [
     ["/faq", "Preguntas Frecuentes"],

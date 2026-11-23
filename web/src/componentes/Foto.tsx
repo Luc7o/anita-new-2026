@@ -1,7 +1,7 @@
 import Image from "next/image";
 
 // Foto de producto optimizada por Next (AVIF/WebP al tamaño justo para cada pantalla).
-// Sin foto, se muestra la inicial del producto como en la tienda actual.
+// Sin foto, se muestra la inicial del producto .
 export function Foto({ url, alt, sizes, prioridad = false, className = "" }: { url: string | null; alt: string; sizes: string; prioridad?: boolean; className?: string }) {
   if (!url) {
     return (

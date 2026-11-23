@@ -1,5 +1,5 @@
 // Aceptación de Términos y Política de Privacidad. SIEMPRE empieza sin marcar y los
-// enlaces abren en otra pestaña para no perder lo escrito (como la SPA).
+// enlaces abren en otra pestaña para no perder lo escrito.
 export function CasillaTerminos({ id, checked, onChange, className = "" }: {
   id: string;
   checked: boolean;

@@ -1,5 +1,4 @@
-// Carrito de invitado en el navegador: misma clave y formato que la SPA
-// (frontend/src/context/CarritoContext.jsx). Nunca guarda precios: el servidor
+// Carrito de invitado en el navegador (clave de siempre, ans_carrito_invitado). Nunca guarda precios: el servidor
 // valida las líneas cada vez.
 export type Linea = { key: string; producto_id: number; cantidad: number; talla: string | null; color: string | null };
 

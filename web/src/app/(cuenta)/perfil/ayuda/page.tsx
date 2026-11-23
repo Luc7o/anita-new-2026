@@ -9,7 +9,7 @@ export const revalidate = 300;
 
 const MENSAJE = "Hola, tengo una consulta sobre mi cuenta en Anita New Style";
 
-// Igual que la SPA: primero el WhatsApp de Configuración; si está vacío, el de soporte.
+// Primero el WhatsApp de Configuración; si está vacío, el de soporte.
 function linkWhatsApp(numero: string | null) {
   const digitos = (numero || "").replace(/\D/g, "");
   const base = digitos.length === 9 ? `https://wa.me/51${digitos}` : digitos.length >= 11 ? `https://wa.me/${digitos}` : null;

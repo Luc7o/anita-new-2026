@@ -3,8 +3,8 @@
 import { useEffect, useState } from "react";
 import { pedir } from "@/lib/api";
 
-// Departamento -> provincia -> distrito (catálogo de /ubicaciones, zona Huancayo, igual
-// que la SPA). Solo se guarda el distrito: onChange manda ese id hacia arriba.
+// Departamento -> provincia -> distrito (catálogo de /ubicaciones, zona Huancayo).
+// Solo se guarda el distrito: onChange manda ese id hacia arriba.
 type Opcion = { id: number; nombre: string };
 type Id = number | string | null | undefined;
 

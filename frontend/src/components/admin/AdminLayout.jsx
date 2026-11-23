@@ -1,4 +1,4 @@
-import { rutaAdmin, IS_ADMIN_APP, TIENDA_URL } from "../../lib/appMode.js";
+import { rutaAdmin, TIENDA_URL } from "../../lib/appMode.js";
 import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { flushSync } from "react-dom";
 import { NavLink, Outlet, Link, useLocation, useNavigate } from "react-router-dom";
@@ -62,14 +62,10 @@ function TiendaLink() {
       <span className="hidden sm:inline">Ver tienda</span>
     </>
   );
-  return IS_ADMIN_APP ? (
+  return (
     <a href={TIENDA_URL} target="_blank" rel="noopener noreferrer" className={clases} title="Abrir la tienda">
       {contenido}
     </a>
-  ) : (
-    <Link to="/" className={clases} title="Volver a la tienda">
-      {contenido}
-    </Link>
   );
 }
 
@@ -82,7 +78,7 @@ export default function AdminLayout() {
   // Cambiar de cuenta = cerrar la sesión actual y quedar en el login para entrar con otra.
   const cambiarDeCuenta = () => {
     logout();
-    navigate(IS_ADMIN_APP ? "/login" : "/ingresar", { replace: true });
+    navigate("/login", { replace: true });
   };
   const items = TODOS_LOS_ITEMS.filter((item) => !item.roles || item.roles.includes(usuario?.rol));
   const activo = indiceActivo(items, location.pathname);
@@ -171,7 +167,7 @@ export default function AdminLayout() {
             >
               {tema === "oscuro" ? <IconSun size={16} /> : <IconMoon size={16} />}
             </button>
-            {(!IS_ADMIN_APP || TIENDA_URL) && (
+            {TIENDA_URL && (
               <TiendaLink />
             )}
             <button

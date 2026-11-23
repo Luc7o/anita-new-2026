@@ -11,7 +11,7 @@ import { tomarAvisosPendientes } from "@/componentes/Avisos";
 import { useSesion } from "@/componentes/cuenta/Sesion";
 import { IconoCheck, IconoCirculoCheck, IconoCopiar, IconoReloj, IconoWhatsApp } from "@/componentes/Iconos";
 
-// Detalle del pedido (como frontend/src/pages/PedidoDetalle.jsx). Es la página a la que
+// Detalle del pedido. Es la página a la que
 // llega el checkout después de pagar.
 
 type Detalle = { id: number; cantidad: number; producto_nombre: string; subtotal: number };

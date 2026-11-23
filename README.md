@@ -5,30 +5,29 @@ carrito, checkout con pago real, pedidos con seguimiento, panel de
 administración y venta presencial.
 
 - **Backend**: Flask + SQLAlchemy + PostgreSQL, autenticación con JWT
-- **Frontend**: React + Vite + Tailwind
+- **Tienda**: Next.js + TypeScript + Drizzle + Tailwind (`web/`)
+- **Panel de administración**: React + Vite + Tailwind (`frontend/`)
 - **Pagos**: Culqi (tarjeta y Yape)
 - **Correos**: Resend
 - **Imágenes**: Vercel Blob (se convierten a WebP con miniaturas)
-- **Hosting**: Vercel (frontend y backend por separado) + Neon (PostgreSQL) + un Redis compartido para el rate limiter
+- **Hosting**: Vercel (tienda, panel y backend por separado) + Neon (PostgreSQL) + un Redis compartido para el rate limiter
 
 ```
 anita-new-2026/
   backend/   → API Flask
-  frontend/  → React + Vite + Tailwind (tienda y panel actuales)
-  web/       → App nueva en Next.js + TypeScript + Drizzle (en migración)
+  web/       → Tienda (www.anita-new-style.xyz): Next.js + TypeScript + Drizzle
+  frontend/  → Panel de administración (admin.anita-new-style.xyz): React + Vite
 ```
 
-### App nueva (`web/`)
+### Tienda (`web/`)
 
-Reemplaza la tienda por partes, sobre la **misma base de datos**, y ya atiende
-`www.anita-new-style.xyz`. Tiene la portada, `/tienda` y `/producto/[id]` renderizadas en
-el servidor (SEO y vistas previas de WhatsApp/Facebook), `sitemap.xml`, `robots.txt`, y
-además `/carrito` y `/checkout` (con Culqi), que siguen usando la API Flask para todo lo que
-toca dinero o stock. Lo demás (ingresar, cuenta, detalle del pedido, panel) lo sirve la
-tienda actual en el mismo dominio gracias a `SPA_ORIGEN` (ver `web/next.config.ts`); las dos
-apps comparten la sesión y el carrito de invitado.
+Atiende `www.anita-new-style.xyz` y lee el catálogo directo de la **misma base de datos**:
+portada, tienda, producto y páginas informativas se renderizan en el servidor (SEO y vistas
+previas de WhatsApp/Facebook), con `sitemap.xml` y `robots.txt`. Carrito, checkout (Culqi),
+ingreso, Mi cuenta y pedidos usan la API Flask para todo lo que toca dinero, stock o la
+cuenta. `/admin/...` redirige al panel (ver `web/next.config.ts`).
 
-Pruebas E2E contra la app nueva (desde `frontend/`): `npm run e2e:web`.
+Pruebas E2E (desde `web/`): `npm run e2e` (ver `web/playwright.config.mjs`).
 
 ```bash
 cd web
@@ -64,7 +63,7 @@ Para cargar productos de ejemplo (sin imágenes; las subes después desde el
 panel) puedes usar `python seed_productos_reales.py`. Requiere que las
 categorías ya existan.
 
-### Frontend
+### Panel de administración (`frontend/`)
 
 ```bash
 cd frontend
@@ -73,7 +72,7 @@ npm install
 npm run dev
 ```
 
-Corre en `http://localhost:5173`.
+Corre en `http://localhost:5174`.
 
 ### Variables de entorno — backend (`.env`)
 
@@ -102,17 +101,12 @@ Corre en `http://localhost:5173`.
 El token de Vercel Blob para subir imágenes lo configura la propia
 integración de Blob en el proyecto de Vercel.
 
-### Variables de entorno — frontend (`.env`)
+### Variables de entorno — panel (`frontend/.env`)
 
 | Variable | Para qué |
 |---|---|
 | `VITE_API_URL` | URL del backend (`http://localhost:5000/api` en local) |
-| `VITE_CULQI_PUBLIC_KEY` | Llave pública de Culqi, para tokenizar la tarjeta en el navegador |
-| `VITE_GOOGLE_CLIENT_ID` | Inicio de sesión con Google |
-| `VITE_WHATSAPP_SOPORTE` | Número de WhatsApp de soporte (con código de país) |
-| `VITE_ADMIN_URL` | Solo tienda, opcional: URL del panel si está en su propio dominio |
-| `VITE_APP_MODE` | Solo proyecto del panel: `admin` |
-| `VITE_TIENDA_URL` | Solo proyecto del panel, opcional: botón "Ver tienda" |
+| `VITE_TIENDA_URL` | Opcional: botón "Ver tienda" |
 
 ### Redis en producción (rate limiter)
 
@@ -124,15 +118,11 @@ backend arranca igual pero avisa por logs que quedó en modo memoria.
 
 ## Tienda y panel en dominios separados
 
-El mismo código del frontend se despliega como dos proyectos de Vercel:
+- **Tienda** (`www.anita-new-style.xyz`): proyecto `anita-new-web`, carpeta `web/`.
+- **Panel** (`admin.anita-new-style.xyz`): proyecto `anita-new-2026-vcom`, carpeta `frontend/`.
 
-- **Tienda** (`anita-new-style.xyz`): sin variables especiales. Si defines
-  `VITE_ADMIN_URL`, el enlace "Panel admin" apunta al otro dominio y el build
-  de la tienda no incluye el código del panel.
-- **Panel** (`admin.anita-new-style.xyz`): con `VITE_APP_MODE=admin`. Este
-  build no incluye la tienda (carrito, favoritos, checkout).
-
-Para que la sesión funcione entre los dos subdominios, el backend usa
+El backend separa las sesiones: el panel manda el header `X-Panel: admin` y usa sus propias
+cookies. Para que la sesión funcione entre subdominios, el backend usa
 `COOKIE_DOMAIN=.anita-new-style.xyz`.
 
 ## Autenticación y seguridad
@@ -307,7 +297,9 @@ Sin `TEST_DATABASE_URL` solo corren las unitarias y las demás aparecen como sal
 Las pruebas marcadas `xfail` documentan errores conocidos que todavía no se corrigen:
 cuando se arregle uno, su prueba pasará y pytest pedirá quitarle la marca.
 
-**Frontend** (desde `frontend/`): `npm test` (usa el ejecutor de pruebas que trae Node).
+**Panel** (desde `frontend/`): `npm test` (usa el ejecutor de pruebas que trae Node).
+
+**Tienda** (desde `web/`): `npm run typecheck` y `npm run e2e`.
 
 ## Scripts útiles (carpeta `backend/`)
 
@@ -327,7 +319,7 @@ cuando se arregle uno, su prueba pasará y pytest pedirá quitarle la marca.
 - Paleta: ciruela oscuro (`#2C0107`) para fondos y texto, y berry (`#C42759`)
   como color de acento.
 - El logo y el nombre "Anita New Style" son la marca del cliente y no deben
-  reemplazarse: el logo oficial está en `frontend/public/` (junto con los
+  reemplazarse: el logo oficial está en `web/public/` y `frontend/public/` (junto con los
   favicons) y se muestra junto al nombre en el encabezado y el pie.
 
 ## Flujo de trabajo con Git

@@ -1,8 +1,7 @@
 "use client";
 
 // Ingreso, registro y recuperación de contraseña contra la API Flask.
-// Mismas llamadas que frontend/src/context/AuthContext.jsx: la sesión que abren
-// (cookie httpOnly de refresh + CSRF) vale igual en la SPA y en esta app.
+// La sesión que abren es una cookie httpOnly de refresh + token CSRF (ver lib/api.ts).
 import { guardarSesion, pedir } from "./api";
 
 export type UsuarioSesion = { id: number; nombre: string | null; email: string; rol?: string | null; es_invitado?: boolean };
@@ -58,7 +57,7 @@ export function restablecerPassword(token: string, passwordNueva: string) {
 
 /**
  * A dónde ir después de ingresar: ?volver=/ruta (solo rutas internas, igual que la
- * SPA), o el inicio. Se navega con recarga completa porque la ruta puede ser de la SPA.
+ * de siempre), o el inicio. Se navega con recarga completa para arrancar con la sesión.
  */
 export function destinoTrasIngresar() {
   const volver = new URLSearchParams(window.location.search).get("volver");

@@ -1,7 +1,7 @@
 "use client";
 
-// Consentimiento para las ESTADÍSTICAS DE USO (misma lógica, claves y versión que
-// frontend/src/consentimiento.js, así una decisión tomada en una app vale en la otra).
+// Consentimiento para las ESTADÍSTICAS DE USO (claves de siempre en el navegador, así se
+// conservan las decisiones ya tomadas).
 //
 //  - ans_consentimiento  : la decisión (aceptó / rechazó), su fecha y la versión del aviso.
 //                          Estrictamente necesario: sin él habría que preguntar en cada visita.
@@ -14,7 +14,7 @@ import { hayToken, pedir } from "./api";
 
 const CLAVE_CONSENTIMIENTO = "ans_consentimiento";
 const CLAVE_SESION_ANALITICA = "ans_sesion_analitica";
-export const VERSION_CONSENTIMIENTO = "2026-11"; // = frontend/src/legal.js y backend/app/utils/legal.py
+export const VERSION_CONSENTIMIENTO = "2026-11"; // = VERSION_CONSENTIMIENTO de backend/app/utils/legal.py
 const VIGENCIA_MS = 365 * 24 * 60 * 60 * 1000;
 
 export type EstadoConsentimiento = "pendiente" | "aceptado" | "rechazado";
@@ -133,7 +133,7 @@ export function cerrarPreferencias() {
 }
 
 if (typeof window !== "undefined") {
-  // Cambios hechos en otra pestaña (o en la SPA) también se reflejan aquí.
+  // Cambios hechos en otra pestaña también se reflejan aquí.
   window.addEventListener("storage", (e) => {
     if (e.key === null || e.key === CLAVE_CONSENTIMIENTO || e.key === CLAVE_SESION_ANALITICA) avisarCambio();
   });
@@ -142,7 +142,7 @@ if (typeof window !== "undefined") {
 }
 
 /**
- * Estado y acciones del consentimiento (como frontend/src/hooks/useConsentimiento.js):
+ * Estado y acciones del consentimiento:
  *  aceptar()  -> crea el identificador, deja constancia en el servidor y recién entonces activa.
  *  rechazar() -> no crea nada. Si antes había aceptado, equivale a retirar.
  *  retirar()  -> detiene y borra el identificador al instante y pide al servidor borrar lo recogido.

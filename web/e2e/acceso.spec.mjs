@@ -1,8 +1,6 @@
-// Ingreso y registro (en modo web los sirve la app nueva; en modo SPA, la tienda actual).
+// Ingreso y registro.
 import { test, expect } from "@playwright/test";
 import { prepararBase, rechazarCookies } from "./ayudas.mjs";
-
-const APP_NUEVA = process.env.E2E_APP === "web";
 
 let datos;
 test.beforeEach(async ({ page }) => {
@@ -29,7 +27,6 @@ test("después de ingresar vuelve a la página de ?volver=", async ({ page }) =>
 });
 
 test("registro solo con el correo: abre sesión y la cabecera la reconoce", async ({ page }) => {
-  test.skip(!APP_NUEVA, "La cabecera con la sesión es de la app nueva");
   await page.goto("/registro");
   const crear = page.getByRole("button", { name: "Crear Cuenta" });
   await expect(crear).toBeDisabled(); // sin aceptar los términos no se crea nada
