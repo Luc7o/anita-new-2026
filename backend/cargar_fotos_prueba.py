@@ -38,6 +38,7 @@ import uuid
 from io import BytesIO
 
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
+from sqlalchemy.exc import OperationalError
 
 from app import create_app
 from app.extensions import db
@@ -413,23 +414,36 @@ def main():
         if not os.getenv("BLOB_READ_WRITE_TOKEN"):
             raise SystemExit("Falta BLOB_READ_WRITE_TOKEN en el entorno (el mismo del backend).")
 
+        # Se arma todo lo necesario y se SUELTA la conexión antes de subir: las subidas
+        # tardan y Neon corta las conexiones que quedan abiertas sin usarse.
+        trabajos = [(p.id, p.nombre, tipo_de(p), plan_de_fotos(p)) for p in pendientes]
+        db.session.commit()
+        db.session.remove()
+
         hechos = 0
-        for producto in pendientes:
-            plan = plan_de_fotos(producto)
-            tipo = tipo_de(producto)
+        for producto_id, nombre, tipo, plan in trabajos:
             nuevas = []
             for vista, color, rgb in plan:
-                nuevas.append((subir(dibujar_foto(tipo, rgb, vista, producto.id)), color))
-            # Recién con todo subido se tocan las filas: si falla una subida,
-            # el producto queda como estaba.
-            ImagenProducto.query.filter_by(producto_id=producto.id).delete()
-            for orden, (url, color) in enumerate(nuevas):
-                img = ImagenProducto(producto_id=producto.id, url=url, orden=orden)
-                img.color = color
-                db.session.add(img)
-            db.session.commit()
+                nuevas.append((subir(dibujar_foto(tipo, rgb, vista, producto_id)), color))
+            # Recién con todo subido se tocan las filas (conexión nueva, transacción
+            # corta): si falla una subida, el producto queda como estaba.
+            for intento in (1, 2):
+                try:
+                    ImagenProducto.query.filter_by(producto_id=producto_id).delete()
+                    for orden, (url, color) in enumerate(nuevas):
+                        img = ImagenProducto(producto_id=producto_id, url=url, orden=orden)
+                        img.color = color
+                        db.session.add(img)
+                    db.session.commit()
+                    break
+                except OperationalError:
+                    db.session.rollback()
+                    db.session.remove()
+                    if intento == 2:
+                        raise
+            db.session.remove()
             hechos += 1
-            print(f"  ✓ #{producto.id} {producto.nombre}: {len(nuevas)} fotos")
+            print(f"  OK #{producto_id} {nombre}: {len(nuevas)} fotos")
 
         from app.utils.cache import invalidar_cache_publico
         invalidar_cache_publico()
