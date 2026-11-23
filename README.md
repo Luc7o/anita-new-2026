@@ -20,12 +20,15 @@ anita-new-2026/
 
 ### App nueva (`web/`)
 
-Reemplaza la tienda por partes, sobre la **misma base de datos**. Ya tiene la portada,
-`/tienda` y `/producto/[id]` renderizadas en el servidor (SEO y vistas previas de
-WhatsApp/Facebook), más `sitemap.xml` y `robots.txt`. Todo lo demás (carrito, checkout,
-cuenta, panel) lo sigue sirviendo la tienda actual en el mismo dominio gracias a
-`SPA_ORIGEN` (ver `web/next.config.ts`). "Agregar al carrito" guarda la línea en el carrito
-de invitado de la SPA, que la valida y la fusiona con la cuenta al iniciar sesión.
+Reemplaza la tienda por partes, sobre la **misma base de datos**, y ya atiende
+`www.anita-new-style.xyz`. Tiene la portada, `/tienda` y `/producto/[id]` renderizadas en
+el servidor (SEO y vistas previas de WhatsApp/Facebook), `sitemap.xml`, `robots.txt`, y
+además `/carrito` y `/checkout` (con Culqi), que siguen usando la API Flask para todo lo que
+toca dinero o stock. Lo demás (ingresar, cuenta, detalle del pedido, panel) lo sirve la
+tienda actual en el mismo dominio gracias a `SPA_ORIGEN` (ver `web/next.config.ts`); las dos
+apps comparten la sesión y el carrito de invitado.
+
+Pruebas E2E contra la app nueva (desde `frontend/`): `npm run e2e:web`.
 
 ```bash
 cd web

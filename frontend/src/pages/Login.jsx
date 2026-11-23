@@ -27,7 +27,12 @@ export default function Login() {
   const [error, setError] = useState("");
   const [enviando, setEnviando] = useState(false);
 
-  const destino = location.state?.from || "/";
+  // A dónde volver después de ingresar. La app nueva (Next) llega con una recarga
+  // completa y no puede pasar `state`, así que también se acepta ?volver=/ruta
+  // (solo rutas internas: empieza con "/" y no con "//").
+  const volverQuery = new URLSearchParams(location.search).get("volver");
+  const volverSeguro = volverQuery && volverQuery.startsWith("/") && !volverQuery.startsWith("//") ? volverQuery : null;
+  const destino = location.state?.from || volverSeguro || "/";
 
   const handleSubmit = async (e) => {
     e.preventDefault();

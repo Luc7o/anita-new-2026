@@ -2,23 +2,9 @@
 
 import { useState } from "react";
 import { URL_API } from "@/lib/sitio";
+import { guardarLineas, leerLineas, mismaLinea } from "@/lib/carritoInvitado";
 
 type Variante = { talla: string | null; color: string | null; colorHex: string | null; stock: number };
-type Linea = { key: string; producto_id: number; cantidad: number; talla: string | null; color: string | null };
-
-// Misma clave y formato que el carrito de invitado de la tienda actual
-// (frontend/src/context/CarritoContext.jsx). Al abrir /carrito, la SPA lo valida y, si la
-// persona tiene sesión, lo fusiona con el carrito de su cuenta.
-const CLAVE_CARRITO = "ans_carrito_invitado";
-
-function leer(): Linea[] {
-  try {
-    const lineas = JSON.parse(localStorage.getItem(CLAVE_CARRITO) ?? "[]");
-    return Array.isArray(lineas) ? lineas : [];
-  } catch {
-    return [];
-  }
-}
 
 export function Comprar({ productoId, tallas, colores, variantes, sinStock }: {
   productoId: number;
@@ -45,10 +31,9 @@ export function Comprar({ productoId, tallas, colores, variantes, sinStock }: {
       return;
     }
     setEnviando(true);
-    const lineas = leer();
-    const igual = lineas.find(
-      (l) => l.producto_id === productoId && (l.talla ?? null) === talla && (l.color ?? null) === color
-    );
+    // Mismo carrito de invitado que la SPA; al tener sesión se fusiona con la cuenta.
+    const lineas = leerLineas();
+    const igual = lineas.find((l) => mismaLinea(l, { producto_id: productoId, talla, color }));
     const key = igual?.key ?? crypto.randomUUID();
     const candidatas = igual
       ? lineas.map((l) => (l === igual ? { ...l, cantidad: l.cantidad + cantidad } : l))
@@ -66,7 +51,7 @@ export function Comprar({ productoId, tallas, colores, variantes, sinStock }: {
       if (mia?.problema) {
         throw new Error(igual ? `Ya tienes ${igual.cantidad} en tu carrito. ${mia.problema}` : mia.problema);
       }
-      localStorage.setItem(CLAVE_CARRITO, JSON.stringify(candidatas));
+      guardarLineas(candidatas);
       window.location.href = irAlCheckout ? "/checkout" : "/carrito";
     } catch (e) {
       setError(e instanceof Error ? e.message : "No se pudo agregar al carrito");

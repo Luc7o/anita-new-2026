@@ -69,6 +69,23 @@ export default function PedidoDetalle() {
     cargar();
   }, [id]);
 
+  // Aviso que deja el checkout de la app nueva (Next) antes de traer aquí con una
+  // recarga completa: "compra realizada", el motivo de un rechazo, etc.
+  useEffect(() => {
+    try {
+      const crudo = sessionStorage.getItem("ans_aviso_pedido");
+      if (!crudo) return;
+      sessionStorage.removeItem("ans_aviso_pedido");
+      const avisos = JSON.parse(crudo);
+      for (const { tipo, texto } of Array.isArray(avisos) ? avisos : []) {
+        if (texto && typeof toast[tipo] === "function") toast[tipo](texto);
+      }
+    } catch {
+      // sessionStorage bloqueado o aviso dañado: no se muestra nada
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const pagar = async () => {
     setPagando(true);
     setErrorPago("");

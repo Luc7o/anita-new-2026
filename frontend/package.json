@@ -11,7 +11,8 @@
     "preview": "vite preview",
     "test": "node --test tests/*.test.mjs",
     "iconos": "node scripts/agregar-iconos.mjs .",
-    "e2e": "playwright test"
+    "e2e": "playwright test",
+    "e2e:web": "node e2e/correr-web.mjs"
   },
   "dependencies": {
     "@animate-ui/react": "^2.4.6",

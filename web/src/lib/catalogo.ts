@@ -1,7 +1,7 @@
 import "server-only";
 import { and, asc, avg, count, desc, eq, ilike, inArray, isNotNull, or, sql, type SQL } from "drizzle-orm";
 import { db } from "@/db";
-import { categorias, colores, imagenesProducto, productos, resenas, tallas, variantesProducto } from "@/db/schema";
+import { categorias, colores, detallesPedido, imagenesProducto, pedidos, productos, resenas, tallas, variantesProducto } from "@/db/schema";
 import { calcularPrecios, type Precios } from "./precio";
 
 export type Variante = { id: number; talla: string | null; color: string | null; colorHex: string | null; stock: number };
@@ -42,14 +42,46 @@ async function resumenResenas(ids: number[]) {
   return new Map(filas.map((f) => [f.productoId, { total: f.total, promedio: Math.round(Number(f.promedio) * 10) / 10 }]));
 }
 
+/**
+ * Unidades reservadas por pedidos de tarjeta/Yape que vencieron sin pagarse, por variante.
+ * El backend las devuelve al stock en cuanto alguien toca el carrito o el checkout
+ * (backend/app/utils/pedidos_vencidos.py), pero este catálogo lee la base directo y no
+ * dispara ese barrido: sin esto, la última unidad de un pago abandonado se vería
+ * "Agotada" hasta la próxima pasada. Mismos filtros que _query_vencidos del backend.
+ */
+async function reservasVencidas(productoIds: number[]) {
+  if (!productoIds.length) return new Map<number, number>();
+  const filas = await db
+    .select({ varianteId: detallesPedido.varianteId, cantidad: sql<number>`sum(${detallesPedido.cantidad})::int` })
+    .from(detallesPedido)
+    .innerJoin(pedidos, eq(pedidos.id, detallesPedido.pedidoId))
+    .where(
+      and(
+        inArray(detallesPedido.productoId, productoIds),
+        isNotNull(detallesPedido.varianteId),
+        eq(pedidos.estado, "pendiente"),
+        eq(pedidos.estadoPago, "pendiente"),
+        inArray(pedidos.metodoPago, ["tarjeta", "yape"]),
+        isNotNull(pedidos.fechaLimitePago),
+        sql`${pedidos.fechaLimitePago} < (now() at time zone 'utc')`
+      )
+    )
+    .groupBy(detallesPedido.varianteId);
+  return new Map(filas.map((f) => [f.varianteId!, f.cantidad]));
+}
+
 async function stockPorProducto(ids: number[]) {
   if (!ids.length) return new Map<number, number>();
-  const filas = await db
-    .select({ productoId: variantesProducto.productoId, stock: sql<number>`coalesce(sum(${variantesProducto.stock}), 0)::int` })
-    .from(variantesProducto)
-    .where(inArray(variantesProducto.productoId, ids))
-    .groupBy(variantesProducto.productoId);
-  return new Map(filas.map((f) => [f.productoId, f.stock]));
+  const [variantes, vencidas] = await Promise.all([
+    db
+      .select({ id: variantesProducto.id, productoId: variantesProducto.productoId, stock: variantesProducto.stock })
+      .from(variantesProducto)
+      .where(inArray(variantesProducto.productoId, ids)),
+    reservasVencidas(ids),
+  ]);
+  const total = new Map<number, number>();
+  for (const v of variantes) total.set(v.productoId, (total.get(v.productoId) ?? 0) + v.stock + (vencidas.get(v.id) ?? 0));
+  return total;
 }
 
 async function primeraImagen(ids: number[]) {
@@ -115,7 +147,7 @@ export async function obtenerProducto(id: number): Promise<ProductoDetalle | nul
     .limit(1);
   if (!fila) return null;
 
-  const [resumen, imagenes, variantes] = await Promise.all([
+  const [resumen, imagenes, variantesBase, vencidas] = await Promise.all([
     armarResumenes([fila]),
     db
       .select({ id: imagenesProducto.id, url: imagenesProducto.url, color: colores.nombre })
@@ -137,7 +169,9 @@ export async function obtenerProducto(id: number): Promise<ProductoDetalle | nul
       .leftJoin(colores, eq(colores.id, variantesProducto.colorId))
       .where(eq(variantesProducto.productoId, id))
       .orderBy(asc(variantesProducto.tallaId), asc(variantesProducto.colorId)),
+    reservasVencidas([id]),
   ]);
+  const variantes = variantesBase.map((v) => ({ ...v, stock: v.stock + (vencidas.get(v.id) ?? 0) }));
 
   const usaVariantes = variantes.some((v) => v.talla !== null || v.color !== null);
   const tallasOrdenadas = [
