@@ -21,6 +21,7 @@ import { obtenerPagoIdempotencyKey, limpiarPagoIdempotencyKey } from "../pagoIde
 import { useToast } from "../context/ToastContext.jsx";
 import EstadoVacio from "../components/EstadoVacio.jsx";
 import { IconCart } from "../components/Icons.jsx";
+import { useMetadatos } from "../hooks/useMetadatos";
 
 const METODOS = [
   { id: "yape", label: "Yape" },
@@ -49,6 +50,7 @@ const TIPOS_DOCUMENTO = [
 const DOC_SIN_VALIDAR = { estado: "idle", mensaje: "" };
 
 export default function Checkout() {
+  useMetadatos({ titulo: "Finalizar compra", noIndexar: true });
   const { items, total, totalItems, vaciarLocal, eliminar, refrescar } = useCarrito();
   const { usuario, continuarComoInvitado } = useAuth();
   const navigate = useNavigate();

@@ -8,8 +8,10 @@ import {
 } from "../components/Icons.jsx";
 import loginHero from "../assets/auth/login-hero.webp";
 import { useToast } from "../context/ToastContext.jsx";
+import { useMetadatos } from "../hooks/useMetadatos";
 
 export default function OlvidePassword() {
+  useMetadatos({ titulo: "Recuperar contraseña", noIndexar: true });
   const toast = useToast();
   const [email, setEmail] = useState("");
   const [enviado, setEnviado] = useState(false);

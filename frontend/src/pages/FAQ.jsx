@@ -1,8 +1,10 @@
 import React from "react";
 import PaginaInfo from "./PaginaInfo.jsx";
 import BotonesContacto from "../components/BotonesContacto.jsx";
+import { useMetadatos } from "../hooks/useMetadatos";
 
 export default function FAQ() {
+  useMetadatos({ titulo: "Preguntas frecuentes" });
   return (
     <PaginaInfo
       titulo="Preguntas Frecuentes"

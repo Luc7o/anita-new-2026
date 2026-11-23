@@ -1,8 +1,10 @@
 import React from "react";
 import PaginaInfo from "./PaginaInfo.jsx";
 import BotonesContacto from "../components/BotonesContacto.jsx";
+import { useMetadatos } from "../hooks/useMetadatos";
 
 export default function CambiosDevoluciones() {
+  useMetadatos({ titulo: "Cambios y devoluciones", descripcion: "Cómo cambiar o devolver una prenda, plazos y condiciones." });
   return (
     <PaginaInfo
       titulo="Cambios y Devoluciones"

@@ -13,6 +13,7 @@ import { armarLinkWhatsApp } from "../whatsapp.js";
 import SeguimientoPedido from "../components/SeguimientoPedido.jsx";
 import { IconCheckCircle, IconCopy, IconCheck, IconClock, IconWhatsApp } from "../components/Icons.jsx";
 import { LineasPedido, TotalesPedido } from "../components/ResumenPedido.jsx";
+import { useMetadatos } from "../hooks/useMetadatos";
 
 const ESTADO_PAGO_ESTILOS = {
   pendiente: "bg-aviso/15 text-aviso",
@@ -30,6 +31,7 @@ const ESTADO_PAGO_ESTILOS = {
 const METODOS_PASARELA = new Set(["tarjeta", "yape"]);
 
 export default function PedidoDetalle() {
+  useMetadatos({ titulo: "Detalle del pedido", noIndexar: true });
   const toast = useToast();
   const confirmar = useConfirm();
   const { id } = useParams();

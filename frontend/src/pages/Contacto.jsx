@@ -3,6 +3,7 @@ import PaginaInfo from "./PaginaInfo.jsx";
 import useConfigTienda, { linkWhatsApp } from "../hooks/useConfigTienda.js";
 import MapaTienda from "../components/MapaTienda.jsx";
 import { urlMapaEnlace } from "../utils/mapa.js";
+import { useMetadatos } from "../hooks/useMetadatos";
 
 function Tarjeta({ titulo, children, nota }) {
   return (
@@ -15,6 +16,7 @@ function Tarjeta({ titulo, children, nota }) {
 }
 
 export default function Contacto() {
+  useMetadatos({ titulo: "Contacto", descripcion: "Escríbenos por WhatsApp, correo o visítanos en nuestra tienda de Huancayo." });
   const c = useConfigTienda();
   const wa = linkWhatsApp(c.whatsapp);
   const hayAlgo = c.correo_contacto || c.whatsapp || c.direccion || c.telefono;

@@ -7,6 +7,7 @@ import { useAuth } from "../context/AuthContext.jsx";
 import CuentaLayout from "../components/CuentaLayout.jsx";
 import { IconLogout, IconCheck } from "../components/Icons.jsx";
 import { useConsentimiento } from "../hooks/useConsentimiento.js";
+import { useMetadatos } from "../hooks/useMetadatos";
 
 const tarjeta = "glass rounded-2xl p-5 shadow-glass sm:p-6";
 const campoTexto =
@@ -28,6 +29,7 @@ function descargarArchivo(nombre, contenido, tipo) {
 }
 
 export default function Configuracion() {
+  useMetadatos({ titulo: "Configuración", noIndexar: true });
   const { logout } = useAuth();
   const navigate = useNavigate();
   const toast = useToast();

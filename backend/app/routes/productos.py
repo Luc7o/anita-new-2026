@@ -8,6 +8,7 @@ from app.models.producto import GENEROS, precargar_resumen_resenas
 from app.utils.decorators import requiere_activo
 from app.utils.cache import cache_publico
 from app.utils.busqueda import contiene
+from app.utils.pedidos_vencidos import con_barrido_de_vencidos
 
 bp = Blueprint("productos", __name__, url_prefix="/api")
 
@@ -99,6 +100,7 @@ def listar_categorias():
 
 
 @bp.get("/productos")
+@con_barrido_de_vencidos
 @cache_publico(ttl=60, navegador=30, swr=900)
 def listar_productos():
     # Las reseñas NO se cargan completas: el listado solo necesita cantidad y
@@ -186,6 +188,7 @@ def listar_productos():
 
 
 @bp.get("/productos/<int:producto_id>")
+@con_barrido_de_vencidos
 @cache_publico(ttl=60, navegador=30)
 def detalle_producto(producto_id):
     producto = Producto.query.filter_by(id=producto_id, activo=True).first_or_404()
@@ -355,3 +358,40 @@ def eliminar_resena(producto_id):
     db.session.delete(resena)
     db.session.commit()
     return jsonify({"mensaje": "Reseña eliminada"})
+
+
+# ------------------------------------------------------------------- sitemap
+# Lista para buscadores con las páginas públicas y cada producto activo. La
+# tienda la sirve en /sitemap.xml (rewrite de frontend/vercel.json hacia acá).
+_PAGINAS_FIJAS = (
+    "/", "/tienda", "/reviews", "/tiendas", "/quienes-somos", "/contacto", "/faq",
+    "/formas-de-pago", "/metodos-de-envio", "/cambios-devoluciones",
+)
+
+
+@bp.get("/sitemap.xml")
+@limiter.limit("30 per minute")
+def sitemap():
+    from xml.sax.saxutils import escape
+    from flask import Response, current_app
+
+    base = current_app.config["FRONTEND_TIENDA_URL"].rstrip("/")
+    filas = (
+        db.session.query(Producto.id, Producto.fecha_actualizacion)
+        .filter(Producto.activo.is_(True))
+        .order_by(Producto.id)
+        .all()
+    )
+    urls = [f"<url><loc>{escape(base + ruta)}</loc></url>" for ruta in _PAGINAS_FIJAS]
+    for producto_id, actualizado in filas:
+        lastmod = f"<lastmod>{actualizado.date().isoformat()}</lastmod>" if actualizado else ""
+        urls.append(f"<url><loc>{escape(f'{base}/producto/{producto_id}')}</loc>{lastmod}</url>")
+    cuerpo = (
+        '<?xml version="1.0" encoding="UTF-8"?>\n'
+        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
+        + "".join(urls)
+        + "</urlset>"
+    )
+    resp = Response(cuerpo, mimetype="application/xml")
+    resp.headers["Cache-Control"] = "public, max-age=3600"
+    return resp
