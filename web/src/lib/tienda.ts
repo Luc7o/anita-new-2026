@@ -8,3 +8,14 @@ export function enlaceWhatsApp(mensaje: string): string | null {
   const numero = process.env.NEXT_PUBLIC_WHATSAPP_SOPORTE;
   return numero ? `https://wa.me/${numero}?text=${encodeURIComponent(mensaje)}` : null;
 }
+
+// Medios de pago que la tienda acepta HOY (= frontend/src/metodosPago.js y
+// Pedido.METODOS_PAGO_DISPONIBLES del backend): ficha, "Formas de pago" y checkout dicen lo mismo.
+export const METODOS_PAGO_TIENDA = [
+  {
+    id: "tarjeta",
+    titulo: "Tarjetas de crédito/débito",
+    detalle: `${MARCAS_TARJETA.join(" o ")}. El pago se procesa con Culqi: nunca guardamos tu número de tarjeta ni el CVV.`,
+  },
+  { id: "yape", titulo: "Yape", detalle: "Pago inmediato desde tu celular con tu código de aprobación de Yape." },
+];

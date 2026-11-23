@@ -5,7 +5,7 @@ import { pedir, recuperarSesion } from "@/lib/api";
 
 // "Ingresar" o "Mi cuenta" en la cabecera. Solo consulta al servidor si el navegador
 // tiene señal de una sesión (el token CSRF del refresh): a quien nunca ingresó no le
-// cuesta ninguna petición. Mi cuenta (/perfil) todavía vive en la SPA.
+// cuesta ninguna petición.
 function haySenalDeSesion() {
   if (/(?:^|; )csrf_refresh_token=/.test(document.cookie)) return true;
   try {

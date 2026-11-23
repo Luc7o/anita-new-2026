@@ -1,6 +1,6 @@
 "use client";
 
-// Cliente de la API Flask para las páginas con sesión (carrito, checkout).
+// Cliente de la API Flask para las páginas con sesión (carrito, checkout, cuenta).
 // Sigue EXACTAMENTE las reglas de frontend/src/api/client.js, porque las dos apps
 // comparten dominio y sesión mientras dure la migración:
 // - El access token vive solo en memoria (se pierde al recargar a propósito).
@@ -84,7 +84,11 @@ export async function recuperarSesion() {
 
 type Opciones = { method?: string; body?: unknown; auth?: boolean };
 
-export async function pedir<T = unknown>(ruta: string, { method = "GET", body, auth = false }: Opciones = {}): Promise<T> {
+/**
+ * fetch a la API con la sesión: si falta el token lo recupera, y si el servidor dice
+ * que venció, lo refresca y reintenta UNA vez. Devuelve la respuesta tal cual.
+ */
+async function fetchConSesion(ruta: string, { method = "GET", body, auth = false }: Opciones = {}) {
   const init = (token: string | null): RequestInit => ({
     method,
     credentials: "include",
@@ -112,13 +116,55 @@ export async function pedir<T = unknown>(ruta: string, { method = "GET", body, a
       }
     }
   }
+  return r;
+}
 
+export async function pedir<T = unknown>(ruta: string, opciones: Opciones = {}): Promise<T> {
+  const r = await fetchConSesion(ruta, opciones);
   const datos = await r.json().catch(() => null);
   if (!r.ok) {
     const mensaje = (datos as { error?: string } | null)?.error || "Ocurrió un error, intenta de nuevo.";
     throw new ErrorApi(mensaje, r.status, datos);
   }
   return datos as T;
+}
+
+/** Descarga un archivo de la API con la sesión (p. ej. la boleta en PDF). */
+export async function descargarArchivo(ruta: string, nombreArchivo: string) {
+  const r = await fetchConSesion(ruta, { auth: true });
+  if (!r.ok) {
+    const datos = (await r.json().catch(() => null)) as { error?: string } | null;
+    throw new ErrorApi(datos?.error || "No se pudo descargar el archivo", r.status, datos);
+  }
+  guardarComoArchivo(nombreArchivo, await r.blob());
+}
+
+/** Ofrece un contenido para guardar como archivo en el equipo. */
+export function guardarComoArchivo(nombre: string, contenido: Blob) {
+  const url = URL.createObjectURL(contenido);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = nombre;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+/** Cierra la sesión en el servidor (borra la cookie de refresh) y en este navegador. */
+export async function cerrarSesion() {
+  const csrf = leerCsrf();
+  accessToken = null;
+  try {
+    localStorage.removeItem(CLAVE_CSRF);
+  } catch {
+    // sin localStorage no hay nada que limpiar
+  }
+  await fetch(`${URL_API}/auth/logout`, {
+    method: "POST",
+    credentials: "include",
+    headers: { "X-CSRF-Token": csrf },
+  }).catch(() => undefined);
 }
 
 /** Evento de analítica, SOLO si la persona aceptó estadísticas (mismo criterio que la SPA). */

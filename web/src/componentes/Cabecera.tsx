@@ -2,8 +2,8 @@ import Link from "next/link";
 import { listarCategorias } from "@/lib/catalogo";
 import { MenuCuenta } from "./MenuCuenta";
 
-// Cabecera de la tienda. Carrito e Ingresar son de esta app; Mi cuenta todavía vive en
-// la SPA, por eso los enlaces de la derecha son <a> (recarga completa), no <Link>.
+// Cabecera de la tienda. Los enlaces de la derecha (cuenta y carrito) son <a> con recarga
+// completa: así cada página arranca con la sesión recién recuperada.
 export async function Cabecera() {
   const categorias = await listarCategorias();
   return (

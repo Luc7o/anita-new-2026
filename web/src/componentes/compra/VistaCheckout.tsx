@@ -39,7 +39,7 @@ const esProvisional = (u: Usuario | null) =>
 
 const CLAVE_IDEMPOTENCIA = "ans_checkout_idempotency_key";
 
-/** Deja el aviso para que el detalle del pedido (SPA) lo muestre tras la recarga. */
+/** Deja el aviso para que el detalle del pedido lo muestre tras la recarga completa. */
 function dejarAviso(avisos: { tipo: "success" | "error" | "info"; texto: string }[]) {
   try {
     sessionStorage.setItem("ans_aviso_pedido", JSON.stringify(avisos));
