@@ -39,6 +39,7 @@ os.environ.update({
     "CORREO_ADJUNTAR_BOLETA": "false",
     "KPI_LATENCIA_SAMPLE_RATE": "0",
     "SEGUNDOS_ENTRE_BARRIDOS_VENCIDOS": "0",
-    "FRONTEND_ORIGIN": f"http://127.0.0.1:{PUERTO_TIENDA}",
+    # La app nueva (web/, puerto 3000) también llama a esta API mientras dure la migración.
+    "FRONTEND_ORIGIN": f"http://127.0.0.1:{PUERTO_TIENDA},http://127.0.0.1:3000",
     "FRONTEND_TIENDA_URL": f"http://127.0.0.1:{PUERTO_TIENDA}",
 })

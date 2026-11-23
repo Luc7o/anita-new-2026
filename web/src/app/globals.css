@@ -1,0 +1,3 @@
+/* Mismo diseño «Anita, elegida» que la tienda actual (copiado de
+   frontend/src/styles/theme.css; cuando la SPA se retire, este pasa a ser el único). */
+@import "./theme.css";

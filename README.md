@@ -14,8 +14,28 @@ administración y venta presencial.
 ```
 anita-new-2026/
   backend/   → API Flask
-  frontend/  → React + Vite + Tailwind
+  frontend/  → React + Vite + Tailwind (tienda y panel actuales)
+  web/       → App nueva en Next.js + TypeScript + Drizzle (en migración)
 ```
+
+### App nueva (`web/`)
+
+Reemplaza la tienda por partes, sobre la **misma base de datos**. Ya tiene la portada,
+`/tienda` y `/producto/[id]` renderizadas en el servidor (SEO y vistas previas de
+WhatsApp/Facebook), más `sitemap.xml` y `robots.txt`. Todo lo demás (carrito, checkout,
+cuenta, panel) lo sigue sirviendo la tienda actual en el mismo dominio gracias a
+`SPA_ORIGEN` (ver `web/next.config.ts`). "Agregar al carrito" guarda la línea en el carrito
+de invitado de la SPA, que la valida y la fusiona con la cuenta al iniciar sesión.
+
+```bash
+cd web
+npm install
+cp .env.example .env.local   # y completa DATABASE_URL, etc.
+npm run dev                  # http://localhost:3000
+```
+
+El esquema de Drizzle (`web/src/db/schema.ts`) se genera desde una base local ya migrada
+con `npm run db:pull`; las tablas las siguen creando las migraciones SQL del backend.
 
 La tienda vive en `anita-new-style.xyz` y el panel de administración puede
 publicarse aparte en `admin.anita-new-style.xyz` (ver
