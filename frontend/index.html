@@ -3,27 +3,12 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Anita New Style</title>
+    <title>Panel · Anita New Style</title>
+    <meta name="robots" content="noindex, nofollow" />
     <link rel="icon" href="/favicon.ico" sizes="any" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
     <link rel="icon" type="image/png" sizes="192x192" href="/favicon-192.png" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-    <meta property="og:site_name" content="Anita New Style" />
-    <meta property="og:title" content="Anita New Style" />
-    <meta property="og:image" content="/logo-anita-new-style.png" />
-    <!-- Modo oscuro de la tienda: se aplica ANTES de pintar para que la página no se vea
-         clara un instante y luego cambie. Mismo criterio que src/hooks/useTemaTienda.js.
-         No aplica al panel admin, que tiene su propio modo oscuro. -->
-    <script>
-      (function () {
-        try {
-          if (location.hostname.indexOf("admin.") === 0 || location.pathname.indexOf("/admin") === 0) return;
-          var t = localStorage.getItem("anita-tema");
-          var oscuro = t === "dark" || ((!t || t === "system") && window.matchMedia("(prefers-color-scheme: dark)").matches);
-          if (oscuro) document.documentElement.classList.add("dark");
-        } catch (e) {}
-      })();
-    </script>
   </head>
   <body>
     <div id="root"></div>

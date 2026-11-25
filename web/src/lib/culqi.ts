@@ -1,6 +1,6 @@
 "use client";
 
-// Culqi Checkout (tarjeta y Yape): misma integración que frontend/src/culqi.js.
+// Culqi Checkout (tarjeta y Yape).
 // Culqi tokeniza los datos sensibles en el navegador (nunca pasan por nuestro backend)
 // y nos entrega un token que se manda a POST /pedidos/:id/pagar para el cobro real.
 // Doc: https://docs.culqi.com/es/documentacion/checkout/checkout-custom

@@ -34,9 +34,9 @@ frontend/env
 .DS_Store
 Thumbs.db
 # ---------- Pruebas E2E (Playwright) ----------
-frontend/test-results/
-frontend/playwright-report/
-frontend/e2e/servidor/__pycache__/
+web/test-results/
+web/playwright-report/
+web/e2e/servidor/__pycache__/
 
 # ---------- App nueva (web/, Next.js) ----------
 web/node_modules/

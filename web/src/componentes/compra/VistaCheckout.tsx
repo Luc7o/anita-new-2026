@@ -11,7 +11,7 @@ import { IconoCarrito } from "../Iconos";
 import { useCompra, type Usuario } from "./Compra";
 import { UbicacionEntrega } from "./UbicacionEntrega";
 
-// Port fiel de frontend/src/pages/Checkout.jsx: cualquier regla de negocio nueva va en
+// Checkout: cualquier regla de negocio nueva va en
 // las dos versiones mientras convivan.
 
 const METODOS = [
@@ -302,7 +302,7 @@ export function VistaCheckout() {
               : "¡Pedido registrado! Completa el pago para confirmarlo",
         },
       ]);
-      // El detalle del pedido todavía vive en la tienda actual (SPA): recarga completa.
+      // Recarga completa: el detalle del pedido arranca con la sesión recién recuperada.
       navegando = true;
       window.location.assign(`/pedidos/${pedido.id}`);
     } catch (err) {

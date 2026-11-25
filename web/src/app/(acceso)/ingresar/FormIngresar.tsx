@@ -7,7 +7,7 @@ import { PasoDosFactores } from "@/componentes/acceso/PasoDosFactores";
 import { Girando } from "@/componentes/acceso/Girando";
 import { IconoOjo, IconoOjoTachado } from "@/componentes/Iconos";
 
-const CLAVE_RECORDAR = "ans_recordar_email"; // misma clave que la SPA
+const CLAVE_RECORDAR = "ans_recordar_email"; // clave histórica: conserva el correo ya recordado
 
 function leerRecordado() {
   try {

@@ -5,7 +5,7 @@ import { cerrarSesion, pedir, recuperarSesion } from "@/lib/api";
 import { ListaAvisos, useAvisos, type TipoAviso } from "@/componentes/Avisos";
 
 // Sesión para las páginas de la cuenta (perfil, pedidos, configuración…). Sin sesión
-// manda a /ingresar?volver=<esta página>, así al ingresar vuelve aquí (como la SPA).
+// manda a /ingresar?volver=<esta página>, así al ingresar vuelve aquí.
 
 export type UsuarioCuenta = {
   id: number;

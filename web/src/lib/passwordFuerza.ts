@@ -1,4 +1,3 @@
-// Copia de frontend/src/utils/passwordFuerza.js (misma ayuda visual en las dos apps).
 // Evalúa qué tan segura es una contraseña y qué le falta. Solo es una ayuda
 // visual: la regla real (que el servidor exige) es el largo mínimo.
 

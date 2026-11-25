@@ -9,8 +9,8 @@ export function enlaceWhatsApp(mensaje: string): string | null {
   return numero ? `https://wa.me/${numero}?text=${encodeURIComponent(mensaje)}` : null;
 }
 
-// Medios de pago que la tienda acepta HOY (= frontend/src/metodosPago.js y
-// Pedido.METODOS_PAGO_DISPONIBLES del backend): ficha, "Formas de pago" y checkout dicen lo mismo.
+// Medios de pago que la tienda acepta HOY (= Pedido.METODOS_PAGO_DISPONIBLES del
+// backend): ficha, "Formas de pago" y checkout dicen lo mismo.
 export const METODOS_PAGO_TIENDA = [
   {
     id: "tarjeta",

@@ -6,7 +6,7 @@ import { guardarComoArchivo, pedir, recuperarSesion } from "@/lib/api";
 import { soloDni, soloNumeros, soloTexto } from "@/lib/validacion";
 import { Girando } from "@/componentes/acceso/Girando";
 
-// Hoja de reclamación (como frontend/src/pages/LibroReclamaciones.jsx). La envía
+// Hoja de reclamación. La envía
 // POST /api/reclamaciones, que devuelve el código, la fecha límite y la hoja en PDF.
 
 const claseInput =

@@ -24,7 +24,7 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = { width: "device-width", initialScale: 1 };
 
-// Modo oscuro elegido con el botón de la tienda (misma clave que la SPA): se aplica antes
+// Modo oscuro elegido con el botón de la tienda (clave anita-tema): se aplica antes
 // de pintar para que no parpadee.
 const temaAntesDePintar = `(function(){try{var t=localStorage.getItem("anita-tema");var o=t==="dark"||((!t||t==="system")&&matchMedia("(prefers-color-scheme: dark)").matches);if(o)document.documentElement.classList.add("dark")}catch(e){}})()`;
 

@@ -4,7 +4,7 @@ import { configuracionTienda } from "@/db/schema";
 import { IconoAtras, IconoFacebook, IconoInstagram, IconoTikTok, IconoWhatsApp } from "@/componentes/Iconos";
 
 // Maqueta de las pantallas de acceso (ingresar, registro, recuperar y restablecer
-// contraseña), igual que frontend/src/components/AuthLayout.jsx: columna de marca con
+// contraseña): columna de marca con
 // foto a un lado y el formulario al otro.
 
 const ALTO_MARCA = { 280: "min-h-[280px]", 320: "min-h-[320px]" } as const;

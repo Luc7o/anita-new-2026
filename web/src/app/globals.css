@@ -1,5 +1,5 @@
-/* Mismo diseño «Anita, elegida» que la tienda actual (copiado de
-   frontend/src/styles/theme.css; cuando la SPA se retire, este pasa a ser el único). */
+/* Diseño «Anita, elegida» de la tienda (theme.css). El panel de admin (frontend/) tiene
+   su propia copia en frontend/src/styles/theme.css. */
 @import "./theme.css";
 
 /* Cada sección de la portada aparece con un fundido corto al entrar en pantalla, solo con

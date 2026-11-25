@@ -12,7 +12,7 @@ import {
   IconoUsuario,
 } from "@/componentes/Iconos";
 
-// Maqueta de Mi cuenta (como frontend/src/components/CuentaLayout.jsx): menú a la
+// Maqueta de Mi cuenta: menú a la
 // izquierda y la sección a la derecha.
 const ITEMS = [
   { href: "/perfil", texto: "Perfil", Icono: IconoUsuario, exacto: true },

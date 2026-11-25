@@ -6,7 +6,7 @@ import { IconoAtras } from "@/componentes/Iconos";
 import { Girando } from "./Girando";
 
 // Segundo paso del ingreso: código de 6 dígitos de la app de autenticación, o un
-// código de respaldo (como frontend/src/components/PasoDosFactores.jsx).
+// código de respaldo.
 export function PasoDosFactores({ onVerificar, onCancelar }: {
   onVerificar: (codigo: string, recordarDispositivo: boolean) => Promise<void>;
   onCancelar: () => void;

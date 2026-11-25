@@ -1,4 +1,4 @@
-// Íconos de línea (trazos de Lucide, los mismos que usa la tienda actual), sin librería.
+// Íconos de línea (trazos de Lucide), sin librería.
 import type { SVGProps } from "react";
 
 type Props = SVGProps<SVGSVGElement> & { size?: number };
@@ -84,7 +84,7 @@ export const IconoFlecha = (p: Props) => (
   </Icono>
 );
 
-// ---- Pantallas de acceso (mismos trazos que frontend/src/components/Icons.jsx) ----
+// ---- Pantallas de acceso ----
 
 export const IconoOjo = (p: Props) => (
   <Icono {...p}>

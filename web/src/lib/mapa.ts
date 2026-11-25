@@ -1,5 +1,4 @@
 // Mapa de Google a partir de la dirección del admin (sin API key: modo output=embed).
-// Igual que frontend/src/utils/mapa.js.
 type Lugar = { direccion?: string; ciudad?: string; maps_url?: string };
 
 const texto = (direccion?: string, ciudad?: string) => [direccion, ciudad, "Perú"].filter(Boolean).join(", ");

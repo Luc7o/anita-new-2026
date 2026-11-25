@@ -1,4 +1,3 @@
-import { IS_ADMIN_APP } from "../lib/appMode.js";
 import { obtenerSesionAnalitica } from "../consentimiento.js";
 
 const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
@@ -12,9 +11,8 @@ const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 let accessToken = null;
 
 // Tienda y panel admin usan cookies distintas en el backend (cuentas
-// separadas). El header X-Panel le dice al backend cuáles usar.
-const esPanelAdmin = () => IS_ADMIN_APP || window.location.pathname.startsWith("/admin");
-const headerPanel = () => (esPanelAdmin() ? { "X-Panel": "admin" } : {});
+// separadas). El header X-Panel le dice al backend que use las del panel.
+const headerPanel = () => ({ "X-Panel": "admin" });
 
 function getToken() {
   return accessToken;
@@ -45,7 +43,7 @@ function leerCookie(nombre) {
 // y para que todas las pestañas usen siempre el valor más reciente (el
 // refresh rota el token). No es un secreto: solo sirve junto con la cookie
 // httpOnly de refresh, que JavaScript nunca ve.
-const claveCsrf = () => (esPanelAdmin() ? "ans_csrf_refresh_admin" : "ans_csrf_refresh");
+const claveCsrf = () => "ans_csrf_refresh_admin";
 
 function guardarCsrf(valor) {
   try {
@@ -58,7 +56,7 @@ function guardarCsrf(valor) {
 
 function leerCsrf() {
   // Si la cookie es legible (mismo sitio), es siempre la fuente más fiable.
-  const deCookie = leerCookie(esPanelAdmin() ? "csrf_admin_refresh_token" : "csrf_refresh_token");
+  const deCookie = leerCookie("csrf_admin_refresh_token");
   if (deCookie) return deCookie;
   try {
     return localStorage.getItem(claveCsrf()) || "";

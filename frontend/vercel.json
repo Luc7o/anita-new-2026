@@ -1,10 +1,6 @@
 {
   "rewrites": [
     {
-      "source": "/sitemap.xml",
-      "destination": "https://api.anita-new-style.xyz/api/sitemap.xml"
-    },
-    {
       "source": "/((?!assets/|robots\\.txt$).*)",
       "destination": "/index.html"
     }

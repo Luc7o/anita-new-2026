@@ -7,7 +7,7 @@ import { Girando } from "@/componentes/acceso/Girando";
 import { IconoCheck, IconoSalir } from "@/componentes/Iconos";
 import { avisoParaDespues, useSesion } from "@/componentes/cuenta/Sesion";
 
-// Mi cuenta > Configuración (como frontend/src/pages/Configuracion.jsx).
+// Mi cuenta > Configuración.
 
 type Estado = {
   acepta_promociones: boolean;

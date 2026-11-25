@@ -29,7 +29,7 @@ window.addEventListener("vite:preloadError", (evento) => {
   if (recargarUnaVez()) evento.preventDefault();
 });
 
-// Si aun así la tienda no puede arrancar, en vez de dejar la página en blanco se muestra un
+// Si aun así el panel no puede arrancar, en vez de dejar la página en blanco se muestra un
 // aviso con un botón para recargar (sin React: es justo lo que pudo fallar al cargar).
 function mostrarErrorDeCarga(error) {
   console.error(error);
@@ -57,15 +57,10 @@ function mostrarErrorDeCarga(error) {
   raiz.append(caja);
 }
 
-// La comparación se hace directo con import.meta.env para que Vite la resuelva al
-// construir y descarte la rama que no se usa: el build del admin NO incluye la
-// tienda (carrito, favoritos, checkout…) y el build de la tienda con VITE_ADMIN_URL
-// NO incluye el panel.
+// Esta app es solo el panel de administración (admin.anita-new-style.xyz). La tienda
+// pública vive en web/ (Next.js).
 async function arrancar() {
-  const raiz =
-    import.meta.env.VITE_APP_MODE === "admin"
-      ? await arrancarAdmin()
-      : await arrancarTienda();
+  const { default: AdminRaiz } = await importarConReintento(() => import("./AdminRaiz.jsx"));
 
   ReactDOM.createRoot(document.getElementById("root")).render(
     <React.StrictMode>
@@ -74,34 +69,14 @@ async function arrancar() {
       <BrowserRouter>
         <ToastProvider>
           <ConfirmProvider>
-            <AuthProvider>{raiz}</AuthProvider>
+            <AuthProvider>
+              <AdminRaiz />
+            </AuthProvider>
           </ConfirmProvider>
         </ToastProvider>
       </BrowserRouter>
       </AnimateUIProvider>
     </React.StrictMode>
-  );
-}
-
-async function arrancarAdmin() {
-  const { default: AdminRaiz } = await importarConReintento(() => import("./AdminRaiz.jsx"));
-  return <AdminRaiz />;
-}
-
-async function arrancarTienda() {
-  const [{ default: App }, { default: BannerPrivacidad }, { FavoritosProvider }, { CarritoProvider }] = await Promise.all([
-    importarConReintento(() => import("./App.jsx")),
-    importarConReintento(() => import("./components/BannerPrivacidad.jsx")),
-    importarConReintento(() => import("./context/FavoritosContext.jsx")),
-    importarConReintento(() => import("./context/CarritoContext.jsx")),
-  ]);
-  return (
-    <FavoritosProvider>
-      <CarritoProvider>
-        <App />
-        <BannerPrivacidad />
-      </CarritoProvider>
-    </FavoritosProvider>
   );
 }
 
