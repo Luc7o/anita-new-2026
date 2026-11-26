@@ -25,31 +25,44 @@ export default async function PaginaAyuda() {
   const mailto = c?.correo ? `mailto:${c.correo}?subject=${encodeURIComponent("Consulta sobre mi cuenta")}` : null;
 
   return (
-    <div className="glass space-y-5 rounded-3xl p-6 shadow-glass sm:p-8">
-      <h2 className="text-xl font-semibold text-plum">¿Necesitas ayuda?</h2>
-      <p className="text-sm text-plum-soft">Si tienes dudas sobre un pedido, un pago o tu cuenta, puedes escribirnos por estos medios.</p>
-      <div className="flex flex-col gap-3 sm:flex-row">
+    <div>
+      <h2 className="font-display text-3xl text-plum">¿Necesitas ayuda?</h2>
+      <p className="mt-2 text-sm text-plum-soft">Si tienes dudas sobre un pedido, un pago o tu cuenta, escríbenos por cualquiera de estos medios.</p>
+      <ul className="mt-6 border-t border-plum">
         {whatsapp && (
-          <a
-            href={whatsapp}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex flex-1 items-center gap-3 rounded-2xl bg-white/70 px-4 py-3.5 text-sm font-medium text-plum shadow-glass transition hover:bg-white"
-          >
-            <IconoWhatsApp size={18} className="text-berry" />
-            Escribir por WhatsApp
-          </a>
+          <li className="border-b border-plum/10">
+            <a href={whatsapp} target="_blank" rel="noopener noreferrer" className="group flex items-center gap-4 py-4">
+              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-plum/15 text-plum"><IconoWhatsApp size={18} /></span>
+              <span className="flex-1">
+                <span className="block font-semibold text-plum group-hover:underline group-hover:underline-offset-4">Escribir por WhatsApp</span>
+                <span className="block text-sm text-plum-soft">La forma más rápida de resolver tu duda.</span>
+              </span>
+              <span aria-hidden="true" className="text-plum-soft transition-transform group-hover:translate-x-0.5">→</span>
+            </a>
+          </li>
         )}
         {mailto && (
-          <a
-            href={mailto}
-            className="flex flex-1 items-center gap-3 rounded-2xl bg-white/70 px-4 py-3.5 text-sm font-medium text-plum shadow-glass transition hover:bg-white"
-          >
-            <IconoCorreo size={18} className="text-berry" />
-            Escribir un correo
-          </a>
+          <li className="border-b border-plum/10">
+            <a href={mailto} className="group flex items-center gap-4 py-4">
+              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-plum/15 text-plum"><IconoCorreo size={18} /></span>
+              <span className="flex-1">
+                <span className="block font-semibold text-plum group-hover:underline group-hover:underline-offset-4">Escribir un correo</span>
+                <span className="block text-sm text-plum-soft">Para consultas con más detalle o con archivos.</span>
+              </span>
+              <span aria-hidden="true" className="text-plum-soft transition-transform group-hover:translate-x-0.5">→</span>
+            </a>
+          </li>
         )}
-      </div>
+        {/* Sin WhatsApp ni correo configurados: al menos la página de contacto. */}
+        {!whatsapp && !mailto && (
+          <li className="border-b border-plum/10">
+            <a href="/contacto" className="group flex items-center gap-4 py-4">
+              <span className="flex-1 font-semibold text-plum group-hover:underline group-hover:underline-offset-4">Ver cómo contactarnos</span>
+              <span aria-hidden="true" className="text-plum-soft transition-transform group-hover:translate-x-0.5">→</span>
+            </a>
+          </li>
+        )}
+      </ul>
     </div>
   );
 }

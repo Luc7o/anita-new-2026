@@ -16,13 +16,15 @@ type Estado = {
   requiere_password: boolean;
 };
 
-const tarjeta = "glass rounded-2xl p-5 shadow-glass sm:p-6";
-const campoTexto =
-  "w-full rounded-xl bg-white px-4 py-2.5 text-sm text-plum ring-1 ring-plum/15 placeholder:text-plum-soft/60 focus:outline-hidden focus:ring-2 focus:ring-berry/40";
-const botonPrimario =
-  "inline-flex items-center gap-2 rounded-full bg-berry px-5 py-2.5 text-sm font-semibold text-white shadow-glass transition hover:bg-berry-dark disabled:opacity-60";
+// Mismo lenguaje que el perfil: secciones sin tarjeta, con el título en mayúsculas sobre una
+// línea, campos .campo-texto y botones de la tienda.
+const tarjeta = "compacto space-y-3";
+const tituloBase = "border-b pb-2 font-sans text-xs font-bold uppercase tracking-[0.16em]";
+const titulo = `${tituloBase} border-plum text-plum`;
+const campoTexto = "campo-texto";
+const botonPrimario = "btn-primary min-h-11! px-5 disabled:opacity-60";
 const botonSecundario =
-  "inline-flex items-center gap-2 rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-plum ring-1 ring-plum/15 transition hover:bg-berry/5 disabled:opacity-60";
+  "inline-flex min-h-11 items-center gap-2 rounded-full border border-plum/20 px-5 text-sm font-semibold text-plum transition-colors hover:border-plum disabled:opacity-60";
 
 const mensaje = (e: unknown, porDefecto: string) => (e instanceof Error ? e.message : porDefecto);
 
@@ -38,7 +40,7 @@ export function VistaConfiguracion() {
   }, []);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-10">
       {errorCarga && <p role="alert" className="text-sm text-berry-dark">{errorCarga}</p>}
       {!estado && !errorCarga && <p className="text-sm text-plum-soft">Cargando tu configuración…</p>}
 
@@ -55,7 +57,7 @@ export function VistaConfiguracion() {
       <button
         type="button"
         onClick={() => salir()}
-        className="flex items-center gap-2 rounded-full border border-berry/40 px-6 py-2.5 text-sm font-semibold text-berry-dark transition hover:bg-berry/10"
+        className="flex min-h-11 items-center gap-2 rounded-full border border-plum/20 px-6 text-sm font-semibold text-plum transition-colors hover:border-plum"
       >
         <IconoSalir size={16} />
         Cerrar sesión
@@ -78,7 +80,7 @@ function PrivacidadEstadisticas() {
       : null;
   return (
     <section className={tarjeta} aria-labelledby="cfg-privacidad">
-      <h2 id="cfg-privacidad" className="text-lg font-semibold text-plum">Privacidad y estadísticas</h2>
+      <h2 id="cfg-privacidad" className={titulo}>Privacidad y estadísticas</h2>
       <p className="mt-1 text-xs text-plum-soft">
         Estadísticas de uso: {texto}
         {fecha ? ` (elegido el ${fecha})` : ""} Puedes cambiarlo o retirarlo cuando quieras. Esta elección se guarda en este
@@ -88,7 +90,7 @@ function PrivacidadEstadisticas() {
         <button
           type="button"
           onClick={abrirPreferencias}
-          className="rounded-full bg-plum/10 px-5 py-2.5 text-sm font-semibold text-plum transition hover:bg-plum/20"
+          className={botonSecundario}
         >
           Cambiar mis preferencias de privacidad
         </button>
@@ -119,7 +121,7 @@ function Notificaciones({ estado, setEstado }: { estado: Estado; setEstado: (e: 
 
   return (
     <section className={tarjeta} aria-labelledby="cfg-notificaciones">
-      <h2 id="cfg-notificaciones" className="text-lg font-semibold text-plum">Notificaciones por correo</h2>
+      <h2 id="cfg-notificaciones" className={titulo}>Notificaciones por correo</h2>
       <div className="mt-4 flex items-start justify-between gap-4">
         <div>
           <p className="text-sm font-medium text-plum">Promociones y novedades</p>
@@ -244,7 +246,7 @@ function DosPasos({ estado, setEstado }: { estado: Estado; setEstado: (e: Estado
   return (
     <section className={tarjeta} aria-labelledby="cfg-2fa">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h2 id="cfg-2fa" className="text-lg font-semibold text-plum">Verificación en dos pasos</h2>
+        <h2 id="cfg-2fa" className={titulo}>Verificación en dos pasos</h2>
         <span className={`rounded-full px-3 py-1 text-[11px] font-semibold ${estado.totp_activo ? "bg-exito/15 text-exito" : "bg-plum/10 text-plum-soft"}`}>
           {estado.totp_activo ? "Activada" : "Desactivada"}
         </span>
@@ -399,7 +401,7 @@ function TusDatos() {
 
   return (
     <section className={tarjeta} aria-labelledby="cfg-datos">
-      <h2 id="cfg-datos" className="text-lg font-semibold text-plum">Descargar mis datos</h2>
+      <h2 id="cfg-datos" className={titulo}>Descargar mis datos</h2>
       <p className="mt-1 text-xs text-plum-soft">Un archivo con tu información de cuenta, dirección, pedidos, favoritos y reseñas.</p>
       <div className="mt-4">
         <button type="button" onClick={descargar} disabled={descargando} className={botonSecundario}>
@@ -448,8 +450,8 @@ function EliminarCuenta({ estado }: { estado: Estado }) {
   };
 
   return (
-    <section className={`${tarjeta} border border-berry/20`} aria-labelledby="cfg-eliminar">
-      <h2 id="cfg-eliminar" className="text-lg font-semibold text-berry-dark">Eliminar mi cuenta</h2>
+    <section className={tarjeta} aria-labelledby="cfg-eliminar">
+      <h2 id="cfg-eliminar" className={`${tituloBase} border-peligro text-peligro`}>Eliminar mi cuenta</h2>
       <p className="mt-1 text-xs text-plum-soft">
         Se borran tus datos personales, tu carrito y tus favoritos, y ya no podrás iniciar sesión. No se puede deshacer.
       </p>
@@ -459,7 +461,7 @@ function EliminarCuenta({ estado }: { estado: Estado }) {
           <button
             type="button"
             onClick={() => setAbierto(true)}
-            className="rounded-full bg-berry/10 px-5 py-2.5 text-sm font-semibold text-berry-dark transition hover:bg-berry/20"
+            className="inline-flex min-h-11 items-center rounded-full border border-peligro/40 px-5 text-sm font-semibold text-peligro transition-colors hover:border-peligro"
           >
             Quiero eliminar mi cuenta
           </button>

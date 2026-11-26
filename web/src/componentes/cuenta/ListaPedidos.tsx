@@ -24,7 +24,7 @@ export function ListaPedidos() {
 
   if (error) {
     return (
-      <div role="alert" className="glass flex flex-col items-center gap-3 rounded-2xl p-8 text-center">
+      <div role="alert" className="flex flex-col items-start gap-3 border-t border-plum/10 py-6">
         <p className="text-plum-soft">{error}</p>
         <button
           type="button"
@@ -44,7 +44,7 @@ export function ListaPedidos() {
     return (
       <div role="status" aria-label="Cargando pedidos" className="space-y-3">
         {[0, 1, 2].map((i) => (
-          <div key={i} aria-hidden="true" className="skeleton h-18 rounded-2xl" />
+          <div key={i} aria-hidden="true" className="skeleton h-16 rounded-lg" />
         ))}
       </div>
     );
@@ -52,9 +52,9 @@ export function ListaPedidos() {
 
   if (pedidos.length === 0) {
     return (
-      <div className="glass rounded-2xl p-8 text-center">
+      <div className="border-t border-plum/10 py-6">
         <p className="text-plum-soft">Todavía no tienes pedidos.</p>
-        <Link href="/tienda" className="btn btn-primary mt-4 px-6!">
+        <Link href="/tienda" className="btn btn-primary mt-4 inline-flex px-6!">
           Ir a la tienda
         </Link>
       </div>
@@ -62,22 +62,26 @@ export function ListaPedidos() {
   }
 
   return (
-    <div className="space-y-3">
+    // Lista con líneas finas: número y fecha a la izquierda, estado y total a la derecha.
+    <ul className="border-t border-plum">
       {pedidos.map((p) => (
-        <Link
-          key={p.id}
-          href={`/pedidos/${p.id}`}
-          className="glass flex items-center justify-between rounded-2xl p-4 shadow-glass transition hover:-translate-y-0.5"
-        >
-          <div>
-            <p className="font-medium text-plum">{p.numero_pedido}</p>
-            <p className="text-sm text-plum-soft">
-              {new Date(p.fecha_creacion).toLocaleDateString("es-PE")} · {p.estado_label}
-            </p>
-          </div>
-          <span className="font-semibold text-berry-dark">{soles(p.total)}</span>
-        </Link>
+        <li key={p.id} className="border-b border-plum/10">
+          <Link href={`/pedidos/${p.id}`} className="group flex items-center justify-between gap-4 py-4">
+            <div className="min-w-0">
+              <p className="font-semibold text-plum group-hover:underline group-hover:underline-offset-4">{p.numero_pedido}</p>
+              <p className="text-sm text-plum-soft">
+                {new Date(p.fecha_creacion).toLocaleDateString("es-PE", { day: "numeric", month: "long", year: "numeric" })}
+                <span className="sm:hidden"> · {p.estado_label}</span>
+              </p>
+            </div>
+            <div className="flex shrink-0 items-center gap-4">
+              <span className="aviso-fino hidden sm:inline-flex">{p.estado_label}</span>
+              <span className="precio text-plum">{soles(p.total)}</span>
+              <span aria-hidden="true" className="text-plum-soft transition-transform group-hover:translate-x-0.5">→</span>
+            </div>
+          </Link>
+        </li>
       ))}
-    </div>
+    </ul>
   );
 }
