@@ -2,10 +2,12 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { IconoAjustes, IconoAyuda, IconoCorazon, IconoPaquete, IconoUsuario } from "@/componentes/Iconos";
+import { IconoAjustes, IconoAyuda, IconoCorazon, IconoPaquete, IconoSalir, IconoUsuario } from "@/componentes/Iconos";
+import { useSesion } from "./Sesion";
 
 // Maqueta de Mi cuenta: menú fino a la izquierda (en celular, una fila que se desliza) y la
-// sección a la derecha. La sección activa se marca con una línea.
+// sección a la derecha. La sección activa se marca con una línea. «Cerrar sesión» va al final
+// del menú, separado de las secciones.
 const ITEMS = [
   { href: "/perfil", texto: "Perfil", Icono: IconoUsuario, exacto: true },
   { href: "/perfil/pedidos", texto: "Pedidos", Icono: IconoPaquete },
@@ -16,6 +18,7 @@ const ITEMS = [
 
 export function MaquetaCuenta({ children }: { children: React.ReactNode }) {
   const ruta = usePathname();
+  const { salir } = useSesion();
   return (
     <div className="mx-auto max-w-5xl px-4 py-8 sm:py-10">
       <h1 className="mb-6 font-display text-4xl font-bold text-plum">Mi cuenta</h1>
@@ -41,6 +44,14 @@ export function MaquetaCuenta({ children }: { children: React.ReactNode }) {
               </Link>
             );
           })}
+          <button
+            type="button"
+            onClick={() => salir()}
+            className="-mb-px ml-2 flex min-h-11 shrink-0 items-center gap-2.5 border-b-2 border-transparent px-3 text-sm font-semibold text-plum-soft transition-colors hover:text-peligro lg:-mb-0 lg:-ml-px lg:mt-4 lg:ml-0 lg:border-b-0 lg:border-l-2 lg:border-t lg:border-t-plum/10 lg:px-4 lg:pt-4"
+          >
+            <IconoSalir size={17} />
+            Cerrar sesión
+          </button>
         </nav>
 
         <div className="min-w-0 flex-1">{children}</div>
