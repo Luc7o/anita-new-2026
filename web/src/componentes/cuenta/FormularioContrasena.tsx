@@ -30,12 +30,12 @@ function CampoPassword({ id, placeholder, value, onChange, visible, onToggle, au
         autoComplete={autoComplete}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full rounded-2xl bg-white/70 px-4 py-2.5 pr-11 text-plum shadow-glass focus:outline-hidden"
+        className="campo-texto pr-11!"
       />
       <button
         type="button"
         onClick={onToggle}
-        className="absolute inset-y-0 right-3 flex items-center text-plum-soft hover:text-berry"
+        className="absolute inset-y-0 right-0 flex w-11 items-center justify-center text-plum-soft hover:text-plum"
         aria-label={visible ? "Ocultar contraseña" : "Mostrar contraseña"}
       >
         {visible ? <IconoOjoTachado /> : <IconoOjo />}
@@ -44,8 +44,9 @@ function CampoPassword({ id, placeholder, value, onChange, visible, onToggle, au
   );
 }
 
-// Cambiar contraseña (Mi cuenta > Perfil), con la barra de seguridad.
-export function FormularioContrasena() {
+// Cambiar contraseña (Mi cuenta > Perfil), con la barra de seguridad. onListo se llama al
+// cambiarla (el perfil la vuelve a plegar) y onCancelar muestra el botón «Cancelar».
+export function FormularioContrasena({ onListo, onCancelar }: { onListo?: () => void; onCancelar?: () => void } = {}) {
   const { avisar } = useSesion();
   const [form, setForm] = useState(VACIO);
   const [verActual, setVerActual] = useState(false);
@@ -72,6 +73,7 @@ export function FormularioContrasena() {
       guardarSesion(r.token, r.csrf);
       avisar("success", "Contraseña actualizada correctamente");
       setForm(VACIO);
+      onListo?.();
     } catch (err) {
       setError(err instanceof Error ? err.message : "No se pudo cambiar la contraseña");
     } finally {
@@ -80,8 +82,7 @@ export function FormularioContrasena() {
   };
 
   return (
-    <form onSubmit={enviar} className="glass mt-3 space-y-4 rounded-2xl p-5 shadow-glass sm:p-6">
-      <h3 className="text-base font-semibold text-plum">Cambiar contraseña</h3>
+    <form onSubmit={enviar} className="compacto space-y-3">
       <CampoPassword
         id="config-password-actual"
         placeholder="Contraseña actual"
@@ -125,13 +126,16 @@ export function FormularioContrasena() {
 
       {error && <p className="text-sm text-berry-dark" role="alert">{error}</p>}
 
-      <button
-        type="submit"
-        disabled={guardando}
-        className="inline-flex items-center gap-2 rounded-full bg-berry px-6 py-2.5 text-sm font-semibold text-white shadow-glass transition hover:bg-berry-dark disabled:opacity-60"
-      >
-        {guardando ? <><Girando />Actualizando...</> : "Actualizar contraseña"}
-      </button>
+      <div className="flex items-center gap-4 pt-1">
+        <button type="submit" disabled={guardando} className="btn-primary min-h-11! px-6 disabled:opacity-60">
+          {guardando ? <><Girando />Actualizando...</> : "Actualizar contraseña"}
+        </button>
+        {onCancelar && (
+          <button type="button" onClick={onCancelar} className="text-sm font-semibold text-plum-soft hover:text-plum">
+            Cancelar
+          </button>
+        )}
+      </div>
     </form>
   );
 }

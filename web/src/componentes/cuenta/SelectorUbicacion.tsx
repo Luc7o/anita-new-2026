@@ -20,7 +20,7 @@ function Campo({ id, etiqueta, valor, onChange, opciones, disabled = false }: {
 }) {
   return (
     <div>
-      <label htmlFor={id} className="sr-only">{etiqueta}</label>
+      <label htmlFor={id} className="mb-1 block text-xs font-semibold">{etiqueta}</label>
       <select
         id={id}
         required
@@ -29,7 +29,7 @@ function Campo({ id, etiqueta, valor, onChange, opciones, disabled = false }: {
         onChange={(e) => onChange(e.target.value)}
         className="campo-texto disabled:opacity-60"
       >
-        <option value="">{etiqueta}</option>
+        <option value="">Elegir</option>
         {opciones.map((o) => (
           <option key={o.id} value={o.id}>{o.nombre}</option>
         ))}
@@ -79,7 +79,7 @@ export function SelectorUbicacion({ departamentoId, provinciaId, distritoId, onC
   };
 
   return (
-    <div className="grid grid-cols-3 gap-3">
+    <div className="grid gap-3 sm:grid-cols-3">
       <Campo id="ubic-departamento" etiqueta="Departamento" valor={dep} onChange={elegirDepartamento} opciones={departamentos} />
       <Campo id="ubic-provincia" etiqueta="Provincia" valor={prov} onChange={elegirProvincia} opciones={provincias} disabled={!dep} />
       <Campo

@@ -76,10 +76,10 @@ export function VistaFavoritos() {
 
   return (
     <>
-      <h2 className="mb-5 text-xl font-semibold text-plum">Mis favoritos</h2>
+      <h2 className="mb-4 font-display text-3xl text-plum">Mis favoritos</h2>
 
       {error ? (
-        <div role="alert" className="glass flex flex-col items-center gap-3 rounded-2xl p-8 text-center">
+        <div role="alert" className="flex flex-col items-start gap-3 border-t border-plum/10 py-6">
           <h3 className="text-lg font-semibold text-plum">No pudimos cargar tus favoritos</h3>
           <p className="max-w-sm text-sm text-plum-soft">{error}</p>
           <button
@@ -100,11 +100,11 @@ export function VistaFavoritos() {
           ))}
         </div>
       ) : productos.length === 0 ? (
-        <div className="panel flex animate-fade-in flex-col items-center gap-3 p-10 text-center">
-          <span className="flex h-16 w-16 items-center justify-center rounded-full bg-lilac text-berry">
-            <IconoCorazon size={28} />
+        <div className="flex animate-fade-in flex-col items-start gap-3 border-t border-plum/10 py-6">
+          <span className="flex h-12 w-12 items-center justify-center rounded-full border border-plum/15 text-plum">
+            <IconoCorazon size={22} />
           </span>
-          <h3 className="text-xl text-plum">Aún no tienes favoritos</h3>
+          <h3 className="font-display text-2xl text-plum">Aún no tienes favoritos</h3>
           <p className="max-w-sm text-sm text-plum-soft">Toca el corazón en un producto para guardarlo aquí y encontrarlo después.</p>
           <Link href="/tienda" className="btn btn-primary mt-2 px-6!">
             Explorar tienda
@@ -119,7 +119,7 @@ export function VistaFavoritos() {
                 type="button"
                 onClick={() => quitar(p)}
                 aria-label={`Quitar ${p.nombre} de favoritos`}
-                className="absolute right-2 top-2 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-white/90 text-berry shadow-glass transition hover:bg-white"
+                className="absolute right-2 top-2 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-white text-berry shadow-[0_2px_8px_-2px_rgb(0_0_0/0.25)] transition hover:scale-105"
               >
                 <IconoCorazon size={18} relleno />
               </button>
