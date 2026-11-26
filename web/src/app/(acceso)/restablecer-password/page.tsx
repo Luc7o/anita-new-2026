@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import { Maqueta } from "@/componentes/acceso/Maqueta";
 import { IconoAtras } from "@/componentes/Iconos";
+import { BOTON_PANEL, MarcoAcceso, PanelTexto } from "@/componentes/acceso/MarcoAcceso";
 import { FormRestablecer } from "./FormRestablecer";
 
 export const metadata: Metadata = {
@@ -13,31 +13,22 @@ export const revalidate = 300;
 
 export default function PaginaRestablecer() {
   return (
-    <Maqueta
-      imagen="registro"
-      altoMarca={280}
-      anchoForm={420}
-      padY={16}
-      titulo={
-        <>
-          Crea tu Nueva
-          <br />
-          Contraseña
-        </>
-      }
-      marca={
-        <p className="mt-4 max-w-sm text-sm text-plum-soft sm:text-base">
-          Elige una contraseña segura para proteger tu cuenta de Anita New Style.
-        </p>
+    <MarcoAcceso
+      titulo="Nueva contraseña"
+      panel={
+        <PanelTexto
+          antetitulo="Último paso"
+          titulo={<>Ya casi <em>terminas</em></>}
+          texto="Elige una contraseña que no uses en otros sitios. Después entras con ella y tu correo."
+          accion={
+            <a href="/ingresar" className={BOTON_PANEL}>
+              <IconoAtras size={15} /> Volver a iniciar sesión
+            </a>
+          }
+        />
       }
     >
       <FormRestablecer />
-      <p className="mt-6 flex items-center justify-center gap-1.5 text-center text-sm text-plum-soft">
-        <IconoAtras size={14} />
-        <a href="/ingresar" className="font-bold text-berry hover:underline">
-          Volver a Iniciar Sesión
-        </a>
-      </p>
-    </Maqueta>
+    </MarcoAcceso>
   );
 }

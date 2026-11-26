@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { restablecerPassword } from "@/lib/acceso";
 import { MedidorPassword } from "@/componentes/acceso/MedidorPassword";
 import { Girando } from "@/componentes/acceso/Girando";
-import { IconoCirculoCheck, IconoOjo, IconoOjoTachado } from "@/componentes/Iconos";
+import { IconoCandado, IconoCheck, IconoOjo, IconoOjoTachado } from "@/componentes/Iconos";
 
 export function FormRestablecer() {
   // El token llega en ?token=… (enlace del correo). Se lee al montar: la página es estática.
@@ -40,14 +40,20 @@ export function FormRestablecer() {
 
   if (token === null) return <div className="skeleton h-80 rounded-[20px]" aria-hidden="true" />;
 
+  const CANDADO = (
+    <span className="pointer-events-none absolute inset-y-0 left-0.5 flex items-center text-plum-soft">
+      <IconoCandado size={17} />
+    </span>
+  );
+
   if (exito) {
     return (
       <div className="text-center" role="status">
-        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-lilac text-berry">
-          <IconoCirculoCheck size={32} />
-        </div>
-        <h2 className="mt-6 text-3xl font-semibold text-plum sm:text-4xl">¡Contraseña Actualizada!</h2>
-        <p className="mt-2 text-sm text-plum-soft">Tu contraseña se actualizó correctamente. Te llevamos a la página de ingreso...</p>
+        <span className="exito-aparece mx-auto grid h-20 w-20 place-items-center rounded-full bg-plum text-ivory">
+          <IconoCheck size={36} />
+        </span>
+        <h2 className="mt-6 font-display text-4xl text-plum">Contraseña actualizada</h2>
+        <p className="mt-3 text-sm text-plum-soft">Tu contraseña se actualizó correctamente. Te llevamos a la página de ingreso...</p>
       </div>
     );
   }
@@ -55,15 +61,12 @@ export function FormRestablecer() {
   if (!token) {
     return (
       <div className="text-center">
-        <h2 className="text-3xl font-semibold text-plum sm:text-4xl">Enlace no Válido</h2>
-        <p className="mt-2 text-sm text-plum-soft">
+        <h2 className="font-display text-4xl text-plum">Enlace no válido</h2>
+        <p className="mt-3 text-sm leading-relaxed text-plum-soft">
           Este enlace de recuperación no es válido o ya expiró. Solicita uno nuevo para continuar.
         </p>
-        <a
-          href="/olvide-password"
-          className="mt-8 inline-flex w-full items-center justify-center rounded-lg bg-plum py-3.5 font-semibold text-white transition hover:bg-berry-dark"
-        >
-          Solicitar Nuevo Enlace
+        <a href="/olvide-password" className="btn-pildora mt-8 w-full">
+          Pedir un enlace nuevo
         </a>
       </div>
     );
@@ -73,7 +76,7 @@ export function FormRestablecer() {
     <button
       type="button"
       onClick={() => setVerPassword((v) => !v)}
-      className="absolute inset-y-0 right-3 flex items-center text-plum-soft hover:text-berry"
+      className="absolute inset-y-0 right-0 flex w-10 items-center justify-center text-plum-soft hover:text-plum"
       aria-label={verPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
     >
       {verPassword ? <IconoOjoTachado /> : <IconoOjo />}
@@ -82,17 +85,18 @@ export function FormRestablecer() {
 
   return (
     <>
-      <div className="mb-8 text-center">
-        <h2 className="text-3xl font-semibold text-plum sm:text-4xl">Nueva Contraseña</h2>
+      <div className="mb-8">
+        <h2 className="font-display text-4xl text-plum">Nueva contraseña</h2>
         <p className="mt-2 text-sm text-plum-soft">Crea una contraseña nueva y segura para tu cuenta.</p>
       </div>
 
       <form onSubmit={enviar} className="space-y-6">
         <div>
-          <label htmlFor="restablecer-password" className="mb-1.5 block text-sm font-semibold text-plum">
-            Contraseña Nueva
+          <label htmlFor="restablecer-password" className="text-xs font-bold uppercase tracking-[0.14em] text-plum-soft">
+            Contraseña nueva
           </label>
           <div className="relative">
+            {CANDADO}
             <input
               id="restablecer-password"
               type={verPassword ? "text" : "password"}
@@ -102,7 +106,7 @@ export function FormRestablecer() {
               maxLength={72}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="campo-texto pr-11"
+              className="campo-linea pr-10!"
             />
             {botonVer}
           </div>
@@ -110,10 +114,11 @@ export function FormRestablecer() {
         </div>
 
         <div>
-          <label htmlFor="restablecer-confirmar" className="mb-1.5 block text-sm font-semibold text-plum">
-            Confirmar Contraseña
+          <label htmlFor="restablecer-confirmar" className="text-xs font-bold uppercase tracking-[0.14em] text-plum-soft">
+            Confirmar contraseña
           </label>
           <div className="relative">
+            {CANDADO}
             <input
               id="restablecer-confirmar"
               type={verPassword ? "text" : "password"}
@@ -122,29 +127,25 @@ export function FormRestablecer() {
               maxLength={72}
               value={confirmar}
               onChange={(e) => setConfirmar(e.target.value)}
-              className="campo-texto pr-11"
+              className="campo-linea pr-10!"
             />
             {botonVer}
           </div>
           {confirmar && (
-            <p className={`mt-1.5 text-xs ${confirmar === password ? "font-medium text-exito" : "text-berry-dark"}`} aria-live="polite">
+            <p className={`mt-1.5 text-xs ${confirmar === password ? "font-medium text-exito" : "text-peligro"}`} aria-live="polite">
               {confirmar === password ? "✓ Las contraseñas coinciden." : "Las contraseñas aún no coinciden."}
             </p>
           )}
         </div>
 
         {error && (
-          <p className="text-sm text-berry-dark" role="alert">
+          <p className="text-sm text-peligro" role="alert">
             {error}
           </p>
         )}
 
-        <button
-          type="submit"
-          disabled={enviando}
-          className="flex w-full items-center justify-center gap-2 rounded-lg bg-plum py-3.5 font-semibold text-white transition hover:bg-berry-dark disabled:opacity-60"
-        >
-          {enviando ? <><Girando />Guardando...</> : "Restablecer Contraseña"}
+        <button type="submit" disabled={enviando} className="btn-pildora w-full">
+          {enviando ? <><Girando />Guardando...</> : "Guardar contraseña"}
         </button>
       </form>
     </>
