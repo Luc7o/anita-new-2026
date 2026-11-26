@@ -64,11 +64,68 @@
 .btn-pildora:disabled { opacity: 0.45; cursor: not-allowed; }
 
 /* Código de verificación en casillas: un dígito por casilla. */
-.casilla-codigo {
-  /* Se reparten el ancho (en celular angosto se encogen) sin pasar de 3rem cada una. */
+/* Marco de cada casilla: se reparten el ancho (en celular angosto se encogen) sin pasar de
+   3rem, y en su ::before va la luz que recorre el borde al verificar. */
+.casilla-marco {
+  position: relative;
+  display: block;
   flex: 1 1 0;
   min-width: 0;
   max-width: 3rem;
+  border-radius: 0.875rem;
+  transition: transform 0.5s cubic-bezier(0.65, 0, 0.35, 1), opacity 0.3s ease;
+}
+.casilla-marco::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 2px;
+  background: conic-gradient(from var(--angulo-luz), transparent 0 52%, rgb(165 54 148 / 0.95) 76%, #fff 86%, transparent 95%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+@property --angulo-luz { syntax: "<angle>"; inherits: false; initial-value: 0deg; }
+@keyframes girar-luz { to { --angulo-luz: 360deg; } }
+.casillas[data-fase="verificando"] .casilla-marco::before {
+  opacity: 1;
+  animation: girar-luz 0.9s linear var(--retraso, 0ms) infinite;
+}
+.casillas[data-fase="verificando"] .casilla-codigo { border-color: rgb(165 54 148 / 0.35); }
+/* Al juntarse: los dígitos se apagan y las casillas se apilan con borde encendido. */
+.casillas[data-fase="juntando"] .casilla-codigo {
+  color: transparent;
+  border-color: rgb(165 54 148 / 0.8);
+  box-shadow: 0 0 14px -2px rgb(165 54 148 / 0.5);
+  background: rgb(var(--c-ivory));
+}
+
+/* La casilla que queda: borde verde con brillo y el check que se dibuja. */
+.casilla-verificada {
+  display: grid;
+  place-items: center;
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: 0.875rem;
+  border: 2px solid #22c55e;
+  color: #16a34a;
+  box-shadow: 0 0 0 4px rgb(34 197 94 / 0.14), 0 0 24px -4px rgb(34 197 94 / 0.7);
+}
+.trazo-check { stroke-dasharray: 24; stroke-dashoffset: 0; }
+@media (prefers-reduced-motion: no-preference) {
+  .casilla-verificada { animation: verde-aparece 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+  .trazo-check { stroke-dashoffset: 24; animation: dibujar-check 0.45s ease-out 0.2s forwards; }
+}
+@keyframes verde-aparece { from { transform: scale(0.85); border-color: rgb(165 54 148 / 0.8); box-shadow: none; } }
+@keyframes dibujar-check { to { stroke-dashoffset: 0; } }
+
+.casilla-codigo {
+  display: block;
+  width: 100%;
   height: 3.5rem;
   border-radius: 0.875rem;
   border: 1px solid rgb(var(--c-plum) / 0.18);

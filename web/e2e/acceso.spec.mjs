@@ -10,10 +10,8 @@ test.beforeEach(async ({ page }) => {
 
 test("contraseña incorrecta: avisa y no abre sesión", async ({ page }) => {
   await page.goto("/ingresar");
-  await expect(page.getByRole("button", { name: "Ingresar" })).toBeDisabled(); // sin aceptar los términos no se ingresa
   await page.getByLabel("Correo electrónico").fill(datos.clientes[0]);
   await page.getByRole("textbox", { name: "Contraseña" }).fill("no-es-la-clave");
-  await page.getByLabel(/He leído y acepto/).check();
   await page.getByRole("button", { name: "Ingresar" }).click();
   // (Next agrega su propio role=alert vacío para anunciar rutas: se filtra por texto.)
   await expect(page.getByRole("alert").filter({ hasText: "Email o contraseña incorrectos" })).toBeVisible();
@@ -24,7 +22,6 @@ test("después de ingresar vuelve a la página de ?volver=", async ({ page }) =>
   await page.goto("/ingresar?volver=/carrito");
   await page.getByLabel("Correo electrónico").fill(datos.clientes[0]);
   await page.getByRole("textbox", { name: "Contraseña" }).fill(datos.clave);
-  await page.getByLabel(/He leído y acepto/).check();
   await page.getByRole("button", { name: "Ingresar" }).click();
   await expect(page).toHaveURL(/\/carrito$/);
 });

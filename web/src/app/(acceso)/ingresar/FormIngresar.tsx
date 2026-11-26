@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { destinoTrasIngresar, ingresar, verificarSegundoPaso, type ResultadoIngreso } from "@/lib/acceso";
 import { BotonGoogle, HAY_GOOGLE } from "@/componentes/acceso/BotonGoogle";
-import { CasillaTerminos } from "@/componentes/acceso/CasillaTerminos";
 import { PasoDosFactores } from "@/componentes/acceso/PasoDosFactores";
 import { Girando } from "@/componentes/acceso/Girando";
 import { IconoCandado, IconoCorreo, IconoOjo, IconoOjoTachado } from "@/componentes/Iconos";
@@ -33,8 +32,6 @@ export function FormIngresar({ onOlvide }: { onOlvide?: () => void } = {}) {
   const [password, setPassword] = useState("");
   const [recordar, setRecordar] = useState(false);
   const [verPassword, setVerPassword] = useState(false);
-  // Empieza SIEMPRE sin marcar: sin aceptar no se ingresa (ni con correo ni con Google).
-  const [aceptaTerminos, setAceptaTerminos] = useState(false);
   const [error, setError] = useState("");
   const [enviando, setEnviando] = useState(false);
   const [pase2fa, setPase2fa] = useState<string | null>(null);
@@ -65,10 +62,6 @@ export function FormIngresar({ onOlvide }: { onOlvide?: () => void } = {}) {
   const enviar = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    if (!aceptaTerminos) {
-      setError("Marca la casilla de Términos y Política de Privacidad para ingresar.");
-      return;
-    }
     setEnviando(true);
     try {
       alIngresar(await ingresar(email.trim(), password));
@@ -81,10 +74,8 @@ export function FormIngresar({ onOlvide }: { onOlvide?: () => void } = {}) {
   if (pase2fa) {
     return (
       <PasoDosFactores
-        onVerificar={async (codigo, recordarDispositivo) => {
-          await verificarSegundoPaso(pase2fa, codigo, recordarDispositivo);
-          terminar();
-        }}
+        onVerificar={(codigo, recordarDispositivo) => verificarSegundoPaso(pase2fa, codigo, recordarDispositivo)}
+        onListo={terminar}
         onCancelar={() => setPase2fa(null)}
       />
     );
@@ -173,15 +164,13 @@ export function FormIngresar({ onOlvide }: { onOlvide?: () => void } = {}) {
           </a>
         </div>
 
-        <CasillaTerminos id="login-acepta-terminos" checked={aceptaTerminos} onChange={setAceptaTerminos} />
-
         {error && (
           <p className="text-sm text-berry-dark" role="alert">
             {error}
           </p>
         )}
 
-        <button type="submit" disabled={enviando || !aceptaTerminos} className="btn-pildora w-full">
+        <button type="submit" disabled={enviando} className="btn-pildora w-full">
           {enviando ? <><Girando />Ingresando...</> : "Ingresar"}
         </button>
       </form>
@@ -191,13 +180,8 @@ export function FormIngresar({ onOlvide }: { onOlvide?: () => void } = {}) {
           <div className="my-6 flex items-center gap-3 bajo:my-3 text-xs font-medium uppercase tracking-wide text-plum-soft">
             <span className="h-px flex-1 bg-plum/10" />o<span className="h-px flex-1 bg-plum/10" />
           </div>
-          <BotonGoogle
-            texto="signin_with"
-            aceptaTerminos={aceptaTerminos}
-            bloqueado={!aceptaTerminos}
-            onResultado={alIngresar}
-            onError={setError}
-          />
+          {/* Sin casilla de Términos: aquí Google solo sirve para cuentas que ya existen (las nuevas se crean en Crear cuenta). */}
+          <BotonGoogle texto="signin_with" onResultado={alIngresar} onError={setError} />
         </>
       )}
 
