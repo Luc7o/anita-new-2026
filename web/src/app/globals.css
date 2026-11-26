@@ -154,3 +154,52 @@
   40%, 80% { transform: translateX(6px); }
 }
 @keyframes exito-pop { from { opacity: 0; transform: scale(0.6); } to { opacity: 1; transform: scale(1); } }
+
+/* Barra de precio de la tienda: dos <input type="range"> superpuestos. El riel lo dibuja el
+   componente; los inputs son transparentes y solo sus tiradores reciben el puntero. */
+.barra-precio input[type="range"] {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  appearance: none;
+  -webkit-appearance: none;
+  background: transparent;
+  pointer-events: none;
+}
+.barra-precio input[type="range"]::-webkit-slider-runnable-track { background: transparent; height: 100%; }
+.barra-precio input[type="range"]::-moz-range-track { background: transparent; }
+.barra-precio input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  pointer-events: auto;
+  width: 22px;
+  height: 22px;
+  margin-top: 1px;
+  border-radius: 9999px;
+  border: 2px solid rgb(var(--c-plum));
+  background: rgb(var(--c-ivory));
+  box-shadow: 0 2px 6px -1px rgb(0 0 0 / 0.3);
+  cursor: grab;
+  transition: transform 0.15s ease, box-shadow 0.2s ease;
+}
+.barra-precio input[type="range"]::-moz-range-thumb {
+  pointer-events: auto;
+  width: 18px;
+  height: 18px;
+  border-radius: 9999px;
+  border: 2px solid rgb(var(--c-plum));
+  background: rgb(var(--c-ivory));
+  box-shadow: 0 2px 6px -1px rgb(0 0 0 / 0.3);
+  cursor: grab;
+}
+.barra-precio input[type="range"]:active::-webkit-slider-thumb { cursor: grabbing; transform: scale(1.12); }
+.barra-precio input[type="range"]:focus-visible { outline: none; }
+.barra-precio input[type="range"]:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 4px rgb(var(--c-focus) / 0.35); }
+.barra-precio input[type="range"]:focus-visible::-moz-range-thumb { box-shadow: 0 0 0 4px rgb(var(--c-focus) / 0.35); }
+
+/* Formularios compactos (checkout): campos y opciones algo más bajos para que la página entre
+   en la pantalla. Siguen siendo cómodos de tocar (42 px). */
+.compacto .campo-texto { min-height: 42px; padding: 0.5rem 0.85rem; }
+.compacto textarea.campo-texto { min-height: 0; }
+.compacto .opcion { min-height: 42px; padding: 0.45rem 0.95rem; }

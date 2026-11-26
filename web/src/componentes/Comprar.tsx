@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { EVENTO_COLOR } from "@/lib/eventos";
 import { URL_API } from "@/lib/sitio";
 import { guardarLineas, leerLineas, mismaLinea } from "@/lib/carritoInvitado";
 
@@ -98,7 +99,11 @@ export function Comprar({ productoId, tallas, colores, variantes, sinStock }: {
                 aria-label={c}
                 aria-pressed={color === c}
                 disabled={!hayStock(talla, c)}
-                onClick={() => setColor(c)}
+                onClick={() => {
+                  setColor(c);
+                  // La galería salta a la foto de este color.
+                  dispatchEvent(new CustomEvent(EVENTO_COLOR, { detail: c }));
+                }}
                 className={`h-11 w-11 rounded-full border-2 disabled:cursor-not-allowed disabled:opacity-30 ${
                   color === c ? "border-plum ring-2 ring-plum ring-offset-2 ring-offset-ivory" : "border-plum/15"
                 }`}

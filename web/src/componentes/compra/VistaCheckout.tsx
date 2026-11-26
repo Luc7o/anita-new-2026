@@ -96,6 +96,7 @@ export function VistaCheckout() {
   const [sinStock, setSinStock] = useState<ItemSinStock[]>([]);
   const [quitando, setQuitando] = useState<number | string | null>(null);
   const [resumenAbierto, setResumenAbierto] = useState(false);
+  const [notaAbierta, setNotaAbierta] = useState(false); // la nota es opcional: plegada hasta que se pide
 
   // Una clave por intento de compra: reintentos (doble clic, red, recarga) devuelven el
   // mismo pedido en vez de crear otro. Se limpia cuando el pedido se crea.
@@ -379,7 +380,7 @@ export function VistaCheckout() {
   const bloqueado = "cursor-not-allowed bg-ivory text-plum-soft";
 
   return (
-    <div className="mx-auto grid max-w-5xl gap-8 px-4 py-8 pb-28 md:grid-cols-[1.4fr_1fr] md:pb-16">
+    <div className="mx-auto grid max-w-6xl gap-8 px-4 py-6 pb-28 md:grid-cols-[1.7fr_1fr] md:pb-10">
       {enviando && (
         <div role="status" aria-live="polite" className="fixed bottom-24 left-1/2 z-40 flex -translate-x-1/2 animate-fade-in-up items-center gap-3 rounded-full bg-plum px-5 py-3 text-sm font-semibold text-ivory shadow-pop md:bottom-8">
           <span aria-hidden="true" className="h-4 w-4 animate-spin rounded-full border-2 border-ivory border-t-transparent" />
@@ -387,173 +388,184 @@ export function VistaCheckout() {
         </div>
       )}
 
-      <form onSubmit={enviar} className="space-y-5 rounded-[20px] bg-white p-6 sm:p-8 dark:bg-white/5">
-        {!usuario && (
-          <section className="space-y-3 rounded-2xl border border-plum/10 p-4">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <h2 className="text-lg font-semibold">Compra sin cuenta</h2>
-                <p className="mt-0.5 text-xs text-plum-soft">
-                  No necesitas crear una cuenta para comprar. Al correo que escribas abajo te enviaremos la confirmación y un enlace para crear tu contraseña cuando quieras.
-                </p>
-              </div>
-              <a href="/ingresar?volver=/checkout" className="shrink-0 text-xs font-semibold text-berry hover:underline">¿Ya tienes cuenta? Ingresa</a>
-            </div>
-            <label htmlFor="checkout-acepta-terminos" className="flex cursor-pointer items-start gap-2.5 text-xs text-plum-soft">
-              <input
-                id="checkout-acepta-terminos"
-                type="checkbox"
-                required
-                checked={aceptaTerminos}
-                onChange={(e) => setAceptaTerminos(e.target.checked)}
-                className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer accent-berry"
-              />
-              <span>
-                He leído y acepto los{" "}
-                <a href="/terminos-y-condiciones" target="_blank" rel="noopener noreferrer" className="font-semibold text-berry hover:underline">Términos y Condiciones</a>{" "}
-                y la{" "}
-                <a href="/politica-de-privacidad" target="_blank" rel="noopener noreferrer" className="font-semibold text-berry hover:underline">Política de Privacidad</a>.
-              </span>
-            </label>
-            {cuentaExistente && <a href="/ingresar?volver=/checkout" className="btn-dark">Iniciar sesión para continuar</a>}
-          </section>
-        )}
-
-        <h1 className="font-display text-3xl font-bold">Datos de entrega</h1>
-
-        <div role="radiogroup" aria-label="Tipo de entrega" className="grid grid-cols-2 gap-3">
-          <button type="button" role="radio" aria-checked={form.tipo_entrega === "delivery"} onClick={() => set("tipo_entrega", "delivery")} className={opcion(form.tipo_entrega === "delivery")}>
-            Delivery ({soles(COSTO_DELIVERY)})
-          </button>
-          <button type="button" role="radio" aria-checked={form.tipo_entrega === "recojo"} onClick={() => set("tipo_entrega", "recojo")} className={opcion(form.tipo_entrega === "recojo")}>
-            Recojo en tienda
-          </button>
+      {/* Formulario compacto: dos columnas en computadora y campos un poco más bajos (.compacto)
+          para que entre en la pantalla sin desplazarse. */}
+      <form onSubmit={enviar} className="compacto space-y-4 rounded-[20px] bg-white p-5 sm:p-6 dark:bg-white/5">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h1 className="font-display text-3xl font-bold">Datos de entrega</h1>
+          <div role="radiogroup" aria-label="Tipo de entrega" className="grid w-full grid-cols-2 gap-2 whitespace-nowrap max-sm:[&>button]:px-2 max-sm:[&>button]:text-[13px] sm:w-auto">
+            <button type="button" role="radio" aria-checked={form.tipo_entrega === "delivery"} onClick={() => set("tipo_entrega", "delivery")} className={opcion(form.tipo_entrega === "delivery")}>
+              Delivery ({soles(COSTO_DELIVERY)})
+            </button>
+            <button type="button" role="radio" aria-checked={form.tipo_entrega === "recojo"} onClick={() => set("tipo_entrega", "recojo")} className={opcion(form.tipo_entrega === "recojo")}>
+              Recojo en tienda
+            </button>
+          </div>
         </div>
 
-        <div>
-          <div role="radiogroup" aria-label="Tipo de documento" className="mb-2 flex flex-wrap gap-2">
-            {(Object.keys(DOCUMENTOS) as TipoDoc[]).map((t) => (
-              <button
-                key={t}
-                type="button"
-                role="radio"
-                aria-checked={tipoDoc === t}
-                onClick={() => {
-                  setForm((f) => ({ ...f, ...limpiarNombresSiValido(), envio_tipo_documento: t, envio_numero_documento: "" }));
-                  setDoc({ estado: "idle" });
-                }}
-                className={opcion(tipoDoc === t)}
-              >
-                {DOCUMENTOS[t].label}
-              </button>
-            ))}
-          </div>
-          <label htmlFor="chk-documento" className="mb-1 block text-xs font-semibold">Número de {docConfig.label}</label>
-          <input
-            id="chk-documento"
-            placeholder={docConfig.placeholder}
-            required
-            inputMode="numeric"
-            maxLength={docConfig.max}
-            pattern={docConfig.pattern}
-            title={docConfig.ayuda}
-            autoComplete="off"
-            value={numeroDoc}
-            onChange={(e) => {
-              const nuevo = docConfig.filtro(e.target.value);
-              if (nuevo !== numeroDoc) setForm((f) => ({ ...f, ...limpiarNombresSiValido(), envio_numero_documento: nuevo }));
-            }}
-            className="campo-texto"
-          />
-          {avisoDoc && (
-            <p className={`mt-1.5 px-2 text-xs ${avisoDoc.clase}`} role={doc.estado === "invalido" ? "alert" : "status"} aria-live="polite">
-              {avisoDoc.texto}
+        {!usuario && (
+          <div className="space-y-2">
+            <p className="text-xs text-plum-soft">
+              <b className="text-plum">Compra sin cuenta:</b> te enviaremos la confirmación al correo y un enlace para crear tu contraseña cuando quieras.{" "}
+              <a href="/ingresar?volver=/checkout" className="font-semibold text-berry hover:underline">¿Ya tienes cuenta? Ingresa</a>
             </p>
+            {cuentaExistente && <a href="/ingresar?volver=/checkout" className="btn-dark">Iniciar sesión para continuar</a>}
+          </div>
+        )}
+
+        <div className="grid gap-x-3 gap-y-3 sm:grid-cols-2">
+          <div>
+            <div className="mb-1 flex items-center justify-between gap-2">
+              <label htmlFor="chk-documento" className="block text-xs font-semibold">Número de {docConfig.label}</label>
+              <div role="radiogroup" aria-label="Tipo de documento" className="flex rounded-full border border-plum/15 p-0.5">
+                {(Object.keys(DOCUMENTOS) as TipoDoc[]).map((t) => (
+                  <button
+                    key={t}
+                    type="button"
+                    role="radio"
+                    aria-checked={tipoDoc === t}
+                    onClick={() => {
+                      setForm((f) => ({ ...f, ...limpiarNombresSiValido(), envio_tipo_documento: t, envio_numero_documento: "" }));
+                      setDoc({ estado: "idle" });
+                    }}
+                    className={`min-h-7 rounded-full px-2.5 text-[11px] font-bold transition-colors ${tipoDoc === t ? "bg-plum text-ivory" : "text-plum-soft hover:text-plum"}`}
+                  >
+                    {DOCUMENTOS[t].label}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <input
+              id="chk-documento"
+              placeholder={docConfig.placeholder}
+              required
+              inputMode="numeric"
+              maxLength={docConfig.max}
+              pattern={docConfig.pattern}
+              title={docConfig.ayuda}
+              autoComplete="off"
+              value={numeroDoc}
+              onChange={(e) => {
+                const nuevo = docConfig.filtro(e.target.value);
+                if (nuevo !== numeroDoc) setForm((f) => ({ ...f, ...limpiarNombresSiValido(), envio_numero_documento: nuevo }));
+              }}
+              className="campo-texto"
+            />
+            {avisoDoc && (
+              <p className={`mt-1 px-1 text-xs ${avisoDoc.clase}`} role={doc.estado === "invalido" ? "alert" : "status"} aria-live="polite">
+                {avisoDoc.texto}
+              </p>
+            )}
+          </div>
+
+          <div>
+            <label htmlFor="chk-telefono" className="mb-1 block text-xs font-semibold leading-7">Teléfono</label>
+            <input id="chk-telefono" placeholder="9 dígitos" required inputMode="numeric" maxLength={9} pattern="9[0-9]{8}" title="El teléfono debe tener 9 dígitos y empezar con 9" value={form.envio_telefono} onChange={(e) => set("envio_telefono", soloNumeros(e.target.value))} className="campo-texto" />
+          </div>
+
+          {tipoDoc === "ruc" ? (
+            <div className="sm:col-span-2">
+              <label htmlFor="chk-razon-social" className="mb-1 block text-xs font-semibold">Razón social</label>
+              <input id="chk-razon-social" placeholder="Nombre de la empresa" required maxLength={160} value={form.razon_social} onChange={(e) => set("razon_social", e.target.value)} readOnly={nombreBloqueado && !!form.razon_social} className={`campo-texto ${nombreBloqueado && form.razon_social ? bloqueado : ""}`} />
+            </div>
+          ) : (
+            <>
+              <div>
+                <label htmlFor="chk-nombres" className="mb-1 block text-xs font-semibold">Nombres</label>
+                <input id="chk-nombres" placeholder="Nombres" required maxLength={80} value={form.nombres} onChange={(e) => set("nombres", soloTexto(e.target.value))} readOnly={nombreBloqueado && !!form.nombres} className={`campo-texto ${nombreBloqueado && form.nombres ? bloqueado : ""}`} />
+              </div>
+              <div>
+                <label htmlFor="chk-apellidos" className="mb-1 block text-xs font-semibold">Apellidos</label>
+                <input id="chk-apellidos" placeholder="Apellidos" required maxLength={80} value={form.apellidos} onChange={(e) => set("apellidos", soloTexto(e.target.value))} readOnly={nombreBloqueado && !!form.apellidos} className={`campo-texto ${nombreBloqueado && form.apellidos ? bloqueado : ""}`} />
+              </div>
+            </>
+          )}
+
+          <div className={form.tipo_entrega === "delivery" ? "" : "sm:col-span-2"}>
+            <label htmlFor="chk-email" className="mb-1 block text-xs font-semibold">Correo electrónico</label>
+            <input
+              id="chk-email"
+              type="email"
+              inputMode="email"
+              autoComplete="email"
+              placeholder="Para la confirmación"
+              required
+              maxLength={120}
+              value={form.envio_email}
+              onChange={(e) => {
+                set("envio_email", e.target.value);
+                setCuentaExistente(false);
+              }}
+              className="campo-texto"
+            />
+          </div>
+
+          {form.tipo_entrega === "delivery" && (
+            <>
+              <UbicacionEntrega onChange={(u) => setForm((f) => ({ ...f, ...u }))} />
+              <div>
+                <label htmlFor="chk-direccion" className="mb-1 block text-xs font-semibold">Dirección</label>
+                <input id="chk-direccion" placeholder="Calle, número, piso" required maxLength={200} title="Solo letras, números y los símbolos . * ° #" value={form.envio_direccion} onChange={(e) => set("envio_direccion", soloDireccion(e.target.value))} className="campo-texto" />
+              </div>
+              <div>
+                <label htmlFor="chk-referencia" className="mb-1 block text-xs font-semibold">Referencia</label>
+                <input id="chk-referencia" placeholder="Ej. frente al parque, casa azul" required maxLength={200} value={form.envio_referencia} onChange={(e) => set("envio_referencia", e.target.value)} className="campo-texto" />
+              </div>
+            </>
           )}
         </div>
 
-        {tipoDoc === "ruc" ? (
+        <div>
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+            <span id="metodo-pago-label" className="text-xs font-semibold">Método de pago</span>
+            <div role="radiogroup" aria-labelledby="metodo-pago-label" className="flex gap-2">
+              {METODOS.map((m) => (
+                <button key={m.id} type="button" role="radio" aria-checked={form.metodo_pago === m.id} onClick={() => set("metodo_pago", m.id)} className={opcion(form.metodo_pago === m.id)}>
+                  {m.label}
+                </button>
+              ))}
+            </div>
+          </div>
+          <p className="mt-2 text-xs text-plum-soft" aria-live="polite">
+            {form.metodo_pago === "yape"
+              ? "Al confirmar se abre una ventana para tu número de Yape y el código de aprobación de 6 dígitos."
+              : `Al confirmar se abre un formulario seguro para pagar con ${MARCAS_TARJETA.join(" o ")}. No guardamos tu tarjeta.`}
+          </p>
+        </div>
+
+        {notaAbierta || form.nota ? (
           <div>
-            <label htmlFor="chk-razon-social" className="mb-1 block text-xs font-semibold">Razón social</label>
-            <input id="chk-razon-social" placeholder="Razón social (nombre de la empresa)" required maxLength={160} value={form.razon_social} onChange={(e) => set("razon_social", e.target.value)} readOnly={nombreBloqueado && !!form.razon_social} className={`campo-texto ${nombreBloqueado && form.razon_social ? bloqueado : ""}`} />
+            <label htmlFor="chk-nota" className="mb-1 block text-xs font-semibold">Nota para tu pedido (opcional)</label>
+            <textarea id="chk-nota" autoFocus={notaAbierta && !form.nota} placeholder="Algo que debamos saber" maxLength={500} rows={2} value={form.nota} onChange={(e) => set("nota", e.target.value)} className="campo-texto" />
           </div>
         ) : (
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label htmlFor="chk-nombres" className="mb-1 block text-xs font-semibold">Nombres</label>
-              <input id="chk-nombres" placeholder="Nombres" required maxLength={80} value={form.nombres} onChange={(e) => set("nombres", soloTexto(e.target.value))} readOnly={nombreBloqueado && !!form.nombres} className={`campo-texto ${nombreBloqueado && form.nombres ? bloqueado : ""}`} />
-            </div>
-            <div>
-              <label htmlFor="chk-apellidos" className="mb-1 block text-xs font-semibold">Apellidos</label>
-              <input id="chk-apellidos" placeholder="Apellidos" required maxLength={80} value={form.apellidos} onChange={(e) => set("apellidos", soloTexto(e.target.value))} readOnly={nombreBloqueado && !!form.apellidos} className={`campo-texto ${nombreBloqueado && form.apellidos ? bloqueado : ""}`} />
-            </div>
-          </div>
+          <button type="button" onClick={() => setNotaAbierta(true)} className="text-sm font-semibold text-plum-soft underline underline-offset-4 hover:text-plum">
+            + Agregar una nota para tu pedido
+          </button>
         )}
 
-        <div>
-          <label htmlFor="chk-telefono" className="mb-1 block text-xs font-semibold">Teléfono</label>
-          <input id="chk-telefono" placeholder="Teléfono (9 dígitos)" required inputMode="numeric" maxLength={9} pattern="9[0-9]{8}" title="El teléfono debe tener 9 dígitos y empezar con 9" value={form.envio_telefono} onChange={(e) => set("envio_telefono", soloNumeros(e.target.value))} className="campo-texto" />
-        </div>
-
-        <div>
-          <label htmlFor="chk-email" className="mb-1 block text-xs font-semibold">Correo electrónico</label>
-          <input
-            id="chk-email"
-            type="email"
-            inputMode="email"
-            autoComplete="email"
-            placeholder="Correo electrónico"
-            required
-            maxLength={120}
-            value={form.envio_email}
-            onChange={(e) => {
-              set("envio_email", e.target.value);
-              setCuentaExistente(false);
-            }}
-            className="campo-texto"
-          />
-        </div>
-
-        {form.tipo_entrega === "delivery" && (
-          <>
-            <div>
-              <label htmlFor="chk-direccion" className="mb-1 block text-xs font-semibold">Dirección</label>
-              <input id="chk-direccion" placeholder="Dirección" required maxLength={200} title="Solo letras, números y los símbolos . * ° #" value={form.envio_direccion} onChange={(e) => set("envio_direccion", soloDireccion(e.target.value))} className="campo-texto" />
-            </div>
-            <UbicacionEntrega onChange={(u) => setForm((f) => ({ ...f, ...u }))} />
-            <div>
-              <label htmlFor="chk-referencia" className="mb-1 block text-xs font-semibold">Referencia</label>
-              <input id="chk-referencia" placeholder="Referencia (ej. frente al parque, casa azul)" required maxLength={200} value={form.envio_referencia} onChange={(e) => set("envio_referencia", e.target.value)} className="campo-texto" />
-            </div>
-          </>
+        {!usuario && (
+          <label htmlFor="checkout-acepta-terminos" className="flex cursor-pointer items-start gap-2.5 text-xs text-plum-soft">
+            <input
+              id="checkout-acepta-terminos"
+              type="checkbox"
+              required
+              checked={aceptaTerminos}
+              onChange={(e) => setAceptaTerminos(e.target.checked)}
+              className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer accent-berry"
+            />
+            <span>
+              He leído y acepto los{" "}
+              <a href="/terminos-y-condiciones" target="_blank" rel="noopener noreferrer" className="font-semibold text-berry hover:underline">Términos y Condiciones</a>{" "}
+              y la{" "}
+              <a href="/politica-de-privacidad" target="_blank" rel="noopener noreferrer" className="font-semibold text-berry hover:underline">Política de Privacidad</a>.
+            </span>
+          </label>
         )}
-
-        <div>
-          <span id="metodo-pago-label" className="mb-2 block text-sm font-medium">Método de pago</span>
-          <div role="radiogroup" aria-labelledby="metodo-pago-label" className="flex gap-2">
-            {METODOS.map((m) => (
-              <button key={m.id} type="button" role="radio" aria-checked={form.metodo_pago === m.id} onClick={() => set("metodo_pago", m.id)} className={opcion(form.metodo_pago === m.id)}>
-                {m.label}
-              </button>
-            ))}
-          </div>
-          <div className="mt-3 rounded-2xl bg-ivory p-4 text-sm text-plum-soft" aria-live="polite">
-            {form.metodo_pago === "yape" ? (
-              <p>Al confirmar tu pedido se abrirá una ventana para que ingreses tu número de Yape y el código de aprobación de 6 dígitos que te llega en la app. El pago se verifica al instante.</p>
-            ) : (
-              <p>Al confirmar tu pedido se abrirá un formulario seguro para pagar con tarjeta {MARCAS_TARJETA.join(" o ")}. Nunca guardamos tu número de tarjeta ni el CVV.</p>
-            )}
-          </div>
-        </div>
-
-        <div>
-          <label htmlFor="chk-nota" className="mb-1 block text-xs font-semibold">Nota para tu pedido (opcional)</label>
-          <textarea id="chk-nota" placeholder="Nota para tu pedido (opcional)" maxLength={500} rows={2} value={form.nota} onChange={(e) => set("nota", e.target.value)} className="campo-texto" />
-        </div>
 
         {error && <p className="text-sm text-berry-dark" role="alert">{error}</p>}
 
-        <button type="submit" disabled={enviando} className="btn-primary min-h-13! w-full text-base! disabled:cursor-not-allowed disabled:opacity-50">
+        <button type="submit" disabled={enviando} className="btn-primary min-h-12! w-full text-base! disabled:cursor-not-allowed disabled:opacity-50">
           {enviando ? "Confirmando pedido..." : "Confirmar y pagar"}
         </button>
       </form>

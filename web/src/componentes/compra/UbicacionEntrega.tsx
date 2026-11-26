@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import { pedir } from "@/lib/api";
 
-// Delivery solo en Huancayo: departamento y provincia fijos, el cliente elige el distrito.
+// Delivery solo en Huancayo: departamento y provincia fijos (no se muestran), el cliente
+// elige el distrito.
 // Se buscan por nombre (no por id);
 // el backend vuelve a validar la zona al crear el pedido.
 type Lugar = { id: number; nombre: string };
@@ -44,50 +45,34 @@ export function UbicacionEntrega({ onChange }: { onChange: (u: Ubicacion) => voi
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Departamento y provincia son fijos (Junín, Huancayo): solo se elige el distrito.
   return (
     <div>
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-        <div>
-          <label htmlFor="chk-dpto" className="sr-only">Departamento</label>
-          <select id="chk-dpto" disabled value={dep?.id ?? ""} className="campo-texto disabled:opacity-60">
-            <option value={dep?.id ?? ""}>{dep ? "Junín" : "Cargando..."}</option>
-          </select>
-        </div>
-        <div>
-          <label htmlFor="chk-provincia" className="sr-only">Provincia</label>
-          <select id="chk-provincia" disabled value={prov?.id ?? ""} className="campo-texto disabled:opacity-60">
-            <option value={prov?.id ?? ""}>{prov ? "Huancayo" : "Cargando..."}</option>
-          </select>
-        </div>
-        <div>
-          <label htmlFor="chk-distrito" className="sr-only">Distrito</label>
-          <select
-            id="chk-distrito"
-            required
-            disabled={!distritos.length}
-            value={distritoId}
-            onChange={(e) => {
-              const id = e.target.value;
-              setDistritoId(id);
-              const elegido = distritos.find((x) => String(x.id) === id);
-              onChange({
-                envio_dpto: dep?.nombre ?? "",
-                envio_provincia: prov?.nombre ?? "",
-                envio_distrito: elegido?.nombre ?? "",
-                distrito_id: id ? Number(id) : null,
-              });
-            }}
-            className="campo-texto disabled:opacity-60"
-          >
-            <option value="">Distrito</option>
-            {distritos.map((x) => (
-              <option key={x.id} value={x.id}>{x.nombre}</option>
-            ))}
-          </select>
-        </div>
-      </div>
-      <p className="mt-2 text-xs text-plum-soft">Delivery disponible solo en Huancayo.</p>
-      {errorCarga && <p className="mt-1 text-xs text-berry-dark">No pudimos cargar las ubicaciones. Recarga la página e inténtalo de nuevo.</p>}
+      <label htmlFor="chk-distrito" className="mb-1 block text-xs font-semibold">Distrito <span className="font-normal text-plum-soft">(solo Huancayo)</span></label>
+      <select
+        id="chk-distrito"
+        required
+        disabled={!distritos.length}
+        value={distritoId}
+        onChange={(e) => {
+          const id = e.target.value;
+          setDistritoId(id);
+          const elegido = distritos.find((x) => String(x.id) === id);
+          onChange({
+            envio_dpto: dep?.nombre ?? "",
+            envio_provincia: prov?.nombre ?? "",
+            envio_distrito: elegido?.nombre ?? "",
+            distrito_id: id ? Number(id) : null,
+          });
+        }}
+        className="campo-texto disabled:opacity-60"
+      >
+        <option value="">{distritos.length ? "Elige tu distrito" : "Cargando..."}</option>
+        {distritos.map((x) => (
+          <option key={x.id} value={x.id}>{x.nombre}</option>
+        ))}
+      </select>
+      {errorCarga && <p className="mt-1 text-xs text-berry-dark">No pudimos cargar los distritos. Recarga la página e inténtalo de nuevo.</p>}
     </div>
   );
 }
