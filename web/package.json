@@ -9,7 +9,9 @@
     "start": "next start",
     "typecheck": "tsc --noEmit",
     "db:pull": "drizzle-kit pull",
-    "e2e": "playwright test"
+    "e2e": "playwright test",
+    "diseno": "node scripts/diseno.mjs",
+    "diseno:preparar": "..\\backend\\venv\\Scripts\\python.exe scripts/diseno_preparar.py"
   },
   "dependencies": {
     "@fontsource/bodoni-moda": "5.3.0",

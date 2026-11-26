@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "diseno",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["web/scripts/diseno.mjs"],
+      "port": 3000
+    }
+  ]
+}

@@ -39,6 +39,7 @@ os.environ.update({
     "CORREO_ADJUNTAR_BOLETA": "false",
     "KPI_LATENCIA_SAMPLE_RATE": "0",
     "SEGUNDOS_ENTRE_BARRIDOS_VENCIDOS": "0",
-    "FRONTEND_ORIGIN": f"http://127.0.0.1:{PUERTO_TIENDA}",
+    # 127.0.0.1 para las pruebas; localhost para el entorno de diseño (npm run diseno).
+    "FRONTEND_ORIGIN": f"http://127.0.0.1:{PUERTO_TIENDA},http://localhost:{PUERTO_TIENDA}",
     "FRONTEND_TIENDA_URL": f"http://127.0.0.1:{PUERTO_TIENDA}",
 })

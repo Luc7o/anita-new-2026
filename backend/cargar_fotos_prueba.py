@@ -25,6 +25,10 @@ Uso (desde la carpeta backend, con el .env cargado, como aplicar_migraciones.py)
     python cargar_fotos_prueba.py                               # dibuja, sube y registra
     python cargar_fotos_prueba.py --reemplazar-prueba           # rehace las fotos de prueba
 
+Para una base LOCAL (entorno de diseño, sin Vercel Blob): las fotos se guardan en una
+carpeta servida por la tienda y en la base queda su ruta, p. ej. /fotos-prueba/xxx.webp:
+    python cargar_fotos_prueba.py --guardar-en ../web/public/fotos-prueba --url-base /fotos-prueba
+
 Requiere BLOB_READ_WRITE_TOKEN en el entorno (el mismo que usa el backend),
 salvo con --vista-previa o --simular.
 """
@@ -332,6 +336,21 @@ def dibujar_foto(tipo, color, vista, semilla):
     return salida.getvalue()
 
 
+def dibujar_recorte(tipo, color):
+    """El producto solo, sobre fondo TRANSPARENTE (PNG), para el carrusel de la portada.
+    Imita una foto de producto sin fondo; no lleva marca ni sombra (la pone la tienda)."""
+    lado = 1400 * SS
+    capa = Image.new("RGBA", (lado, lado), (0, 0, 0, 0))
+    DIBUJOS[tipo](ImageDraw.Draw(capa), lado / 2, lado / 2, lado / 10, color)
+    caja = capa.getbbox()
+    if caja:
+        capa = capa.crop(caja)
+    capa = capa.resize((max(1, capa.width // SS), max(1, capa.height // SS)), Image.Resampling.LANCZOS)
+    salida = BytesIO()
+    capa.save(salida, format="PNG")
+    return salida.getvalue()
+
+
 # ---------- plan por producto ----------
 
 def plan_de_fotos(producto):
@@ -358,7 +377,17 @@ def plan_de_fotos(producto):
 
 
 def _es_de_prueba(url):
-    return f"/{CARPETA_BLOB}/" in (url or "")
+    return f"/{CARPETA_BLOB}/" in (url or "") or "/fotos-prueba/" in (url or "")
+
+
+def guardar_local(png, carpeta, url_base):
+    """Versión local de subir(): la foto principal en WebP, en una carpeta servida por la tienda."""
+    from app.utils.imagenes import generar_variantes
+
+    nombre = f"{uuid.uuid4().hex}.webp"
+    with open(os.path.join(carpeta, nombre), "wb") as f:
+        f.write(generar_variantes(png)[""])
+    return f"{url_base.rstrip('/')}/{nombre}"
 
 
 def subir(png):
@@ -377,6 +406,8 @@ def main():
     p.add_argument("--simular", action="store_true", help="lista los productos que tocaría y sale")
     p.add_argument("--reemplazar-prueba", action="store_true", help="rehace también los productos que solo tienen fotos de prueba")
     p.add_argument("--producto", type=int, help="solo este id de producto")
+    p.add_argument("--guardar-en", metavar="CARPETA", help="base local: guarda las fotos en esta carpeta en vez de subirlas a Blob")
+    p.add_argument("--url-base", default="/fotos-prueba", help="con --guardar-en: ruta pública de esa carpeta (por defecto /fotos-prueba)")
     args = p.parse_args()
 
     app = create_app()
@@ -411,8 +442,13 @@ def main():
             print(f"Listo: fotos dibujadas en {os.path.abspath(args.vista_previa)}")
             return
 
-        if not os.getenv("BLOB_READ_WRITE_TOKEN"):
-            raise SystemExit("Falta BLOB_READ_WRITE_TOKEN en el entorno (el mismo del backend).")
+        if args.guardar_en:
+            os.makedirs(args.guardar_en, exist_ok=True)
+            publicar = lambda png: guardar_local(png, args.guardar_en, args.url_base)  # noqa: E731
+        elif os.getenv("BLOB_READ_WRITE_TOKEN"):
+            publicar = subir
+        else:
+            raise SystemExit("Falta BLOB_READ_WRITE_TOKEN en el entorno (el mismo del backend), o usa --guardar-en.")
 
         # Se arma todo lo necesario y se SUELTA la conexión antes de subir: las subidas
         # tardan y Neon corta las conexiones que quedan abiertas sin usarse.
@@ -424,7 +460,7 @@ def main():
         for producto_id, nombre, tipo, plan in trabajos:
             nuevas = []
             for vista, color, rgb in plan:
-                nuevas.append((subir(dibujar_foto(tipo, rgb, vista, producto_id)), color))
+                nuevas.append((publicar(dibujar_foto(tipo, rgb, vista, producto_id)), color))
             # Recién con todo subido se tocan las filas (conexión nueva, transacción
             # corta): si falla una subida, el producto queda como estaba.
             for intento in (1, 2):

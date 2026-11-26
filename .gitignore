@@ -44,3 +44,6 @@ web/.next/
 web/next-env.d.ts
 web/tsconfig.tsbuildinfo
 web/AGENTS.md
+
+# Fotos de prueba del entorno de diseño (web/scripts/diseno_preparar.py)
+web/public/fotos-prueba/
