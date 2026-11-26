@@ -1,5 +1,5 @@
 import "server-only";
-import { and, asc, avg, count, desc, eq, ilike, inArray, isNotNull, or, sql, type SQL } from "drizzle-orm";
+import { and, asc, avg, count, desc, eq, exists, gte, ilike, inArray, isNotNull, lte, or, sql, type SQL } from "drizzle-orm";
 import { db } from "@/db";
 import { categorias, colores, detallesPedido, imagenesProducto, pedidos, productos, resenas, tallas, variantesProducto } from "@/db/schema";
 import { calcularPrecios, type Precios } from "./precio";
@@ -200,9 +200,33 @@ export async function obtenerProducto(id: number): Promise<ProductoDetalle | nul
 }
 
 export type Orden = "nuevos" | "precio_asc" | "precio_desc";
-export type FiltrosTienda = { categoria?: string; q?: string; oferta?: boolean; orden?: Orden; pagina?: number };
+export type Genero = "mujer" | "hombre" | "unisex" | "nina" | "nino";
+export const GENEROS: { valor: Genero; texto: string }[] = [
+  { valor: "mujer", texto: "Mujer" },
+  { valor: "hombre", texto: "Hombre" },
+  { valor: "unisex", texto: "Unisex" },
+  { valor: "nina", texto: "Niña" },
+  { valor: "nino", texto: "Niño" },
+];
 
-export async function listarProductos(filtros: FiltrosTienda) {
+export type FiltrosTienda = {
+  categoria?: string;
+  q?: string;
+  oferta?: boolean;
+  orden?: Orden;
+  pagina?: number;
+  colores?: string[];
+  tallas?: string[];
+  generos?: Genero[];
+  /** Precio final (con oferta) en soles, ambos incluidos. */
+  precioMin?: number;
+  precioMax?: number;
+};
+
+const precioFinal = sql`coalesce(nullif(${productos.precioOferta}, 0), ${productos.precio})`;
+
+/** Condiciones de categoría, oferta y búsqueda: definen "dónde" se está mirando. */
+function condicionesBase(filtros: FiltrosTienda): SQL[] {
   const condiciones: SQL[] = [eq(productos.activo, true)];
   if (filtros.categoria) condiciones.push(eq(categorias.slug, filtros.categoria));
   if (filtros.oferta) condiciones.push(isNotNull(productos.precioOferta), sql`${productos.precioOferta} < ${productos.precio}`);
@@ -212,8 +236,44 @@ export async function listarProductos(filtros: FiltrosTienda) {
     // unaccent no está instalada: se compara sin distinguir mayúsculas (ILIKE).
     condiciones.push(or(ilike(productos.nombre, patron), ilike(productos.descripcion, patron))!);
   }
+  return condiciones;
+}
+
+export async function listarProductos(filtros: FiltrosTienda) {
+  const condiciones = condicionesBase(filtros);
+  // Color y talla: el producto tiene alguna variante de ese color / esa talla (citext: sin
+  // distinguir mayúsculas).
+  if (filtros.colores?.length) {
+    condiciones.push(
+      exists(
+        db
+          .select({ uno: sql`1` })
+          .from(variantesProducto)
+          .innerJoin(colores, eq(colores.id, variantesProducto.colorId))
+          .where(and(eq(variantesProducto.productoId, productos.id), inArray(colores.nombre, filtros.colores))),
+      ),
+    );
+  }
+  if (filtros.tallas?.length) {
+    condiciones.push(
+      exists(
+        db
+          .select({ uno: sql`1` })
+          .from(variantesProducto)
+          .innerJoin(tallas, eq(tallas.id, variantesProducto.tallaId))
+          .where(and(eq(variantesProducto.productoId, productos.id), inArray(tallas.nombre, filtros.tallas))),
+      ),
+    );
+  }
+  if (filtros.generos?.length) {
+    // Lo unisex también sirve a quien busca para mujer o para hombre.
+    const lista = new Set<string>(filtros.generos);
+    if (lista.has("mujer") || lista.has("hombre")) lista.add("unisex");
+    condiciones.push(inArray(productos.genero, [...lista]));
+  }
+  if (filtros.precioMin !== undefined) condiciones.push(gte(precioFinal, String(filtros.precioMin)));
+  if (filtros.precioMax !== undefined) condiciones.push(lte(precioFinal, String(filtros.precioMax)));
   const donde = and(...condiciones);
-  const precioFinal = sql`coalesce(nullif(${productos.precioOferta}, 0), ${productos.precio})`;
   const orden =
     filtros.orden === "precio_asc"
       ? [asc(precioFinal), asc(productos.id)]
@@ -240,6 +300,51 @@ export async function listarProductos(filtros: FiltrosTienda) {
     total: totalProductos,
     pagina,
     paginas: Math.max(1, Math.ceil(totalProductos / POR_PAGINA)),
+  };
+}
+
+/** Qué colores, tallas y géneros hay entre los productos que se están mirando (categoría,
+ *  oferta o búsqueda), y entre qué precios: el filtro solo ofrece opciones que devuelven algo. */
+export async function opcionesFiltros(filtros: FiltrosTienda) {
+  const donde = and(...condicionesBase(filtros));
+  const [cols, tals, gens, [precios]] = await Promise.all([
+    db
+      .selectDistinct({ nombre: colores.nombre, hex: colores.codigoHex })
+      .from(productos)
+      .leftJoin(categorias, eq(categorias.id, productos.categoriaId))
+      .innerJoin(variantesProducto, eq(variantesProducto.productoId, productos.id))
+      .innerJoin(colores, eq(colores.id, variantesProducto.colorId))
+      .where(donde)
+      .orderBy(asc(colores.nombre)),
+    db
+      .selectDistinct({ nombre: tallas.nombre, orden: tallas.orden })
+      .from(productos)
+      .leftJoin(categorias, eq(categorias.id, productos.categoriaId))
+      .innerJoin(variantesProducto, eq(variantesProducto.productoId, productos.id))
+      .innerJoin(tallas, eq(tallas.id, variantesProducto.tallaId))
+      .where(donde)
+      .orderBy(asc(tallas.orden), asc(tallas.nombre)),
+    db
+      .selectDistinct({ genero: productos.genero })
+      .from(productos)
+      .leftJoin(categorias, eq(categorias.id, productos.categoriaId))
+      .where(and(donde, isNotNull(productos.genero))),
+    db
+      .select({ min: sql<string | null>`min(${precioFinal})`, max: sql<string | null>`max(${precioFinal})` })
+      .from(productos)
+      .leftJoin(categorias, eq(categorias.id, productos.categoriaId))
+      .where(donde),
+  ]);
+  const hay = new Set(gens.map((g) => g.genero));
+  return {
+    colores: cols.map((c) => ({ nombre: c.nombre, hex: c.hex })),
+    tallas: tals.map((t) => t.nombre),
+    generos: GENEROS.filter((g) => hay.has(g.valor)),
+    // Soles enteros: la barra va de sol en sol.
+    precio:
+      precios?.min != null && precios.max != null
+        ? { min: Math.floor(Number(precios.min)), max: Math.ceil(Number(precios.max)) }
+        : null,
   };
 }
 

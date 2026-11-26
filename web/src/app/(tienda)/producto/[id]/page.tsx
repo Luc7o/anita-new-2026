@@ -4,8 +4,8 @@ import { notFound } from "next/navigation";
 import { cache } from "react";
 import { Comprar } from "@/componentes/Comprar";
 import { EtiquetaOferta } from "@/componentes/EtiquetaOferta";
-import { Foto } from "@/componentes/Foto";
 import { TarjetaProducto } from "@/componentes/TarjetaProducto";
+import { GaleriaProducto } from "@/componentes/producto/GaleriaProducto";
 import { obtenerProducto, relacionados, type ProductoDetalle } from "@/lib/catalogo";
 import { soles } from "@/lib/precio";
 import { MARCA, URL_TIENDA } from "@/lib/sitio";
@@ -97,21 +97,7 @@ export default async function PaginaProducto({ params }: PageProps<"/producto/[i
       </nav>
 
       <div className="grid gap-10 lg:grid-cols-[1.2fr_1fr]">
-        <div className="flex snap-x snap-mandatory gap-3 overflow-x-auto lg:grid lg:grid-cols-2 lg:overflow-visible">
-          {fotos.map((f, i) => (
-            <div
-              key={f.id}
-              className={`relative aspect-4/5 w-[85%] shrink-0 snap-center overflow-hidden rounded-md bg-[#ecebee] lg:w-auto ${i === 0 ? "lg:col-span-2" : ""}`}
-            >
-              <Foto
-                url={f.url || null}
-                alt={i === 0 ? producto.nombre : `${producto.nombre}, foto ${i + 1}`}
-                prioridad={i === 0}
-                sizes="(min-width: 1024px) 55vw, 85vw"
-              />
-            </div>
-          ))}
-        </div>
+        <GaleriaProducto fotos={fotos} nombre={producto.nombre} />
 
         <div className="lg:sticky lg:top-24 lg:self-start">
           {producto.categoria && (

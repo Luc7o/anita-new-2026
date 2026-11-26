@@ -1,11 +1,14 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import type { ProductoResumen } from "@/lib/catalogo";
+import { IconoFlecha } from "../Iconos";
 import { TarjetaProducto } from "../TarjetaProducto";
 
 // «Lo nuevo de la semana» con pestañas por categoría. Las listas llegan ya armadas desde el
-// servidor, así que cambiar de pestaña es instantáneo y no hay pantallas de carga.
+// servidor, así que cambiar de pestaña es instantáneo y no hay pantallas de carga. Al final,
+// «Ver más» lleva a la tienda completa (o a la categoría de la pestaña elegida).
 export function LoNuevo({ pestanas, listas }: { pestanas: { slug: string; nombre: string }[]; listas: Record<string, ProductoResumen[]> }) {
   const [activa, setActiva] = useState("todo");
   const productos = listas[activa] ?? [];
@@ -57,6 +60,11 @@ export function LoNuevo({ pestanas, listas }: { pestanas: { slug: string; nombre
             ))}
           </div>
         )}
+      </div>
+      <div className="mt-12 flex justify-center">
+        <Link href={activa === "todo" ? "/tienda" : `/tienda?categoria=${encodeURIComponent(activa)}`} className="btn-secondary">
+          Ver más <IconoFlecha size={16} />
+        </Link>
       </div>
     </section>
   );
