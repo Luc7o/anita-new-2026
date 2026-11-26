@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { cerrarSesion, guardarComoArchivo, pedir } from "@/lib/api";
 import { useConsentimiento } from "@/lib/consentimiento";
 import { Girando } from "@/componentes/acceso/Girando";
-import { IconoCheck, IconoSalir } from "@/componentes/Iconos";
+import { IconoCheck } from "@/componentes/Iconos";
 import { avisoParaDespues, useSesion } from "@/componentes/cuenta/Sesion";
 
 // Mi cuenta > Configuración.
@@ -29,7 +29,6 @@ const botonSecundario =
 const mensaje = (e: unknown, porDefecto: string) => (e instanceof Error ? e.message : porDefecto);
 
 export function VistaConfiguracion() {
-  const { salir } = useSesion();
   const [estado, setEstado] = useState<Estado | null>(null);
   const [errorCarga, setErrorCarga] = useState("");
 
@@ -54,14 +53,6 @@ export function VistaConfiguracion() {
         </>
       )}
 
-      <button
-        type="button"
-        onClick={() => salir()}
-        className="flex min-h-11 items-center gap-2 rounded-full border border-plum/20 px-6 text-sm font-semibold text-plum transition-colors hover:border-plum"
-      >
-        <IconoSalir size={16} />
-        Cerrar sesión
-      </button>
     </div>
   );
 }
