@@ -2,10 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { destinoTrasIngresar, ingresar, verificarSegundoPaso, type ResultadoIngreso } from "@/lib/acceso";
-import { BotonGoogle, GOOGLE_CLIENT_ID } from "@/componentes/acceso/BotonGoogle";
+import { BotonGoogle, HAY_GOOGLE } from "@/componentes/acceso/BotonGoogle";
+import { CasillaTerminos } from "@/componentes/acceso/CasillaTerminos";
 import { PasoDosFactores } from "@/componentes/acceso/PasoDosFactores";
 import { Girando } from "@/componentes/acceso/Girando";
-import { IconoOjo, IconoOjoTachado } from "@/componentes/Iconos";
+import { IconoCandado, IconoCorreo, IconoOjo, IconoOjoTachado } from "@/componentes/Iconos";
 
 const CLAVE_RECORDAR = "ans_recordar_email"; // clave histórica: conserva el correo ya recordado
 
@@ -26,11 +27,14 @@ function guardarRecordado(recordar: boolean, email: string) {
   }
 }
 
-export function FormIngresar() {
+/** onOlvide: dentro de la tarjeta de acceso, cambia a "recuperar contraseña" deslizando el panel. */
+export function FormIngresar({ onOlvide }: { onOlvide?: () => void } = {}) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [recordar, setRecordar] = useState(false);
   const [verPassword, setVerPassword] = useState(false);
+  // Empieza SIEMPRE sin marcar: sin aceptar no se ingresa (ni con correo ni con Google).
+  const [aceptaTerminos, setAceptaTerminos] = useState(false);
   const [error, setError] = useState("");
   const [enviando, setEnviando] = useState(false);
   const [pase2fa, setPase2fa] = useState<string | null>(null);
@@ -61,6 +65,10 @@ export function FormIngresar() {
   const enviar = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    if (!aceptaTerminos) {
+      setError("Marca la casilla de Términos y Política de Privacidad para ingresar.");
+      return;
+    }
     setEnviando(true);
     try {
       alIngresar(await ingresar(email.trim(), password));
@@ -84,44 +92,42 @@ export function FormIngresar() {
 
   return (
     <>
-      <div className="mb-8 text-center">
-        <h2 className="text-3xl font-semibold text-plum sm:text-4xl">Iniciar Sesión</h2>
-        <p className="mt-3 text-sm text-plum-soft">
-          ¿Aún no tienes cuenta?{" "}
-          <a href="/registro" className="font-semibold text-berry hover:underline">
-            Crea una cuenta solo con tu correo
-          </a>
-        </p>
+      <div className="mb-8 bajo:mb-5">
+        <h2 className="font-display text-4xl text-plum bajo:text-[2rem]">Iniciar sesión</h2>
+        <p className="mt-2 text-sm text-plum-soft">Con el correo y la contraseña de tu cuenta.</p>
       </div>
 
-      <form onSubmit={enviar} className="space-y-6">
+      <form onSubmit={enviar} className="space-y-6 bajo:space-y-4">
         <div>
-          <label htmlFor="login-email" className="mb-1.5 block text-sm font-semibold text-plum">
+          <label htmlFor="login-email" className="text-xs font-bold uppercase tracking-[0.14em] text-plum-soft">
             Correo electrónico
           </label>
-          <input
-            id="login-email"
-            type="email"
-            required
-            autoComplete="email"
-            maxLength={120}
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="ejemplo@correo.com"
-            className="w-full rounded-md border border-plum/20 bg-white px-4 py-3 text-plum placeholder:text-plum-soft/50 focus:outline-hidden"
-          />
+          <div className="relative">
+            <span className="pointer-events-none absolute inset-y-0 left-0.5 flex items-center text-plum-soft">
+              <IconoCorreo size={17} />
+            </span>
+            <input
+              id="login-email"
+              type="email"
+              required
+              autoComplete="email"
+              maxLength={120}
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="ejemplo@correo.com"
+              className="campo-linea"
+            />
+          </div>
         </div>
 
         <div>
-          <div className="mb-1.5 flex items-center justify-between gap-2">
-            <label htmlFor="login-password" className="block text-sm font-semibold text-plum">
-              Contraseña
-            </label>
-            <a href="/olvide-password" className="text-xs font-medium text-berry hover:underline">
-              ¿Olvidaste tu contraseña?
-            </a>
-          </div>
+          <label htmlFor="login-password" className="text-xs font-bold uppercase tracking-[0.14em] text-plum-soft">
+            Contraseña
+          </label>
           <div className="relative">
+            <span className="pointer-events-none absolute inset-y-0 left-0.5 flex items-center text-plum-soft">
+              <IconoCandado size={17} />
+            </span>
             <input
               id="login-password"
               type={verPassword ? "text" : "password"}
@@ -130,12 +136,13 @@ export function FormIngresar() {
               maxLength={128}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full rounded-md border border-plum/20 bg-white px-4 py-3 pr-11 text-plum focus:outline-hidden"
+              placeholder="Tu contraseña"
+              className="campo-linea pr-10!"
             />
             <button
               type="button"
               onClick={() => setVerPassword((v) => !v)}
-              className="absolute inset-y-0 right-3 flex items-center text-plum-soft hover:text-berry"
+              className="absolute inset-y-0 right-0 flex w-10 items-center justify-center text-plum-soft hover:text-plum"
               aria-label={verPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
             >
               {verPassword ? <IconoOjoTachado /> : <IconoOjo />}
@@ -143,15 +150,30 @@ export function FormIngresar() {
           </div>
         </div>
 
-        <label className="flex cursor-pointer items-center gap-2 text-sm text-plum transition-colors hover:text-berry">
-          <input
-            type="checkbox"
-            checked={recordar}
-            onChange={(e) => setRecordar(e.target.checked)}
-            className="h-4 w-4 rounded-sm border-plum/20 accent-berry"
-          />
-          Recordarme en este dispositivo
-        </label>
+        <div className="flex flex-wrap items-center justify-between gap-3 text-sm">
+          <label className="flex cursor-pointer items-center gap-2 text-plum-soft transition-colors hover:text-plum">
+            <input
+              type="checkbox"
+              checked={recordar}
+              onChange={(e) => setRecordar(e.target.checked)}
+              className="h-4 w-4 rounded-sm accent-berry"
+            />
+            Recordarme
+          </label>
+          <a
+            href="/olvide-password"
+            onClick={(e) => {
+              if (!onOlvide) return;
+              e.preventDefault();
+              onOlvide();
+            }}
+            className="font-semibold text-berry hover:underline"
+          >
+            ¿Olvidaste tu contraseña?
+          </a>
+        </div>
+
+        <CasillaTerminos id="login-acepta-terminos" checked={aceptaTerminos} onChange={setAceptaTerminos} />
 
         {error && (
           <p className="text-sm text-berry-dark" role="alert">
@@ -159,26 +181,28 @@ export function FormIngresar() {
           </p>
         )}
 
-        <button
-          type="submit"
-          disabled={enviando}
-          className="flex w-full items-center justify-center gap-2 rounded-lg bg-plum py-3.5 font-semibold text-white transition hover:bg-berry-dark disabled:opacity-60"
-        >
+        <button type="submit" disabled={enviando || !aceptaTerminos} className="btn-pildora w-full">
           {enviando ? <><Girando />Ingresando...</> : "Ingresar"}
         </button>
       </form>
 
-      {GOOGLE_CLIENT_ID && (
+      {HAY_GOOGLE && (
         <>
-          <div className="my-6 flex items-center gap-3 text-xs font-medium uppercase tracking-wide text-plum-soft/70">
+          <div className="my-6 flex items-center gap-3 bajo:my-3 text-xs font-medium uppercase tracking-wide text-plum-soft">
             <span className="h-px flex-1 bg-plum/10" />o<span className="h-px flex-1 bg-plum/10" />
           </div>
-          <BotonGoogle texto="signin_with" onResultado={alIngresar} onError={setError} />
+          <BotonGoogle
+            texto="signin_with"
+            aceptaTerminos={aceptaTerminos}
+            bloqueado={!aceptaTerminos}
+            onResultado={alIngresar}
+            onError={setError}
+          />
         </>
       )}
 
-      <p className="mt-8 text-center text-sm">
-        <a href="/tienda" className="font-medium text-plum-soft transition hover:text-berry hover:underline">
+      <p className="mt-7 text-center text-sm bajo:mt-4">
+        <a href="/tienda" className="font-medium text-plum-soft transition hover:text-plum hover:underline">
           Seguir comprando sin cuenta
         </a>
       </p>

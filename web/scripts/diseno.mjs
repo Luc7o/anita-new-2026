@@ -94,5 +94,7 @@ lanzar("tienda", process.platform === "win32" ? "npx.cmd" : "npx", ["next", "dev
     NEXT_PUBLIC_API_URL: `http://localhost:${API}/api`,
     NEXT_PUBLIC_TIENDA_URL: "http://localhost:3000",
     NEXT_PUBLIC_CULQI_PUBLIC_KEY: "pk_test_diseno",
+    // Sin ID de Google en local: se dibuja una muestra del botón (ver BotonGoogle.tsx).
+    NEXT_PUBLIC_MUESTRA_GOOGLE: "1",
   },
 });

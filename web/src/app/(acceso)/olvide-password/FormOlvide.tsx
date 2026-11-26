@@ -3,9 +3,10 @@
 import { useState } from "react";
 import { pedirEnlaceRecuperacion } from "@/lib/acceso";
 import { Girando } from "@/componentes/acceso/Girando";
-import { IconoCirculoCheck, IconoCorreo } from "@/componentes/Iconos";
+import { IconoCheck, IconoCorreo } from "@/componentes/Iconos";
 
-export function FormOlvide() {
+/** onVolver: dentro de la tarjeta de acceso, vuelve a "iniciar sesión" deslizando el panel. */
+export function FormOlvide({ onVolver }: { onVolver?: () => void } = {}) {
   const [email, setEmail] = useState("");
   const [enviado, setEnviado] = useState(false);
   const [enviando, setEnviando] = useState(false);
@@ -28,19 +29,24 @@ export function FormOlvide() {
   if (enviado) {
     return (
       <div className="text-center" role="status">
-        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-lilac text-berry">
-          <IconoCirculoCheck size={32} />
-        </div>
-        <h2 className="mt-6 text-3xl font-semibold text-plum sm:text-4xl">Revisa tu Correo</h2>
-        <p className="mt-2 text-sm text-plum-soft">
-          Si el correo <strong className="text-plum">{email}</strong> está registrado, te enviamos un enlace para restablecer
-          tu contraseña. Revisa tu bandeja de entrada y la carpeta de spam.
+        <span className="exito-aparece mx-auto grid h-20 w-20 place-items-center rounded-full bg-plum text-ivory">
+          <IconoCheck size={36} />
+        </span>
+        <h2 className="mt-6 font-display text-4xl text-plum">Revisa tu correo</h2>
+        <p className="mt-3 text-sm leading-relaxed text-plum-soft">
+          Si <strong className="text-plum">{email}</strong> está registrado, te enviamos un enlace para elegir una
+          contraseña nueva. Mira también la carpeta de spam.
         </p>
         <a
           href="/ingresar"
-          className="mt-8 inline-flex w-full items-center justify-center rounded-lg bg-plum py-3.5 font-semibold text-white transition hover:bg-berry-dark"
+          onClick={(e) => {
+            if (!onVolver) return;
+            e.preventDefault();
+            onVolver();
+          }}
+          className="btn-pildora mt-8 w-full"
         >
-          Volver a Iniciar Sesión
+          Volver a iniciar sesión
         </a>
       </div>
     );
@@ -48,21 +54,21 @@ export function FormOlvide() {
 
   return (
     <>
-      <div className="mb-8 text-center">
-        <h2 className="text-3xl font-semibold text-plum sm:text-4xl">¿Olvidaste tu Contraseña?</h2>
-        <p className="mt-2 text-sm text-plum-soft">
-          No te preocupes, ingresa tu correo y te enviaremos un enlace para recuperarla.
+      <div className="mb-8 bajo:mb-5">
+        <h2 className="font-display text-4xl text-plum bajo:text-[2rem]">¿Olvidaste tu contraseña?</h2>
+        <p className="mt-2 text-sm leading-relaxed text-plum-soft">
+          Escribe tu correo y te enviaremos un enlace para recuperarla.
         </p>
       </div>
 
       <form onSubmit={enviar} className="space-y-6">
         <div>
-          <label htmlFor="olvide-email" className="mb-1.5 block text-sm font-semibold text-plum">
+          <label htmlFor="olvide-email" className="text-xs font-bold uppercase tracking-[0.14em] text-plum-soft">
             Correo electrónico
           </label>
           <div className="relative">
-            <span className="pointer-events-none absolute inset-y-0 left-3.5 flex items-center text-plum-soft">
-              <IconoCorreo size={18} />
+            <span className="pointer-events-none absolute inset-y-0 left-0.5 flex items-center text-plum-soft">
+              <IconoCorreo size={17} />
             </span>
             <input
               id="olvide-email"
@@ -73,32 +79,21 @@ export function FormOlvide() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="ejemplo@correo.com"
-              className="w-full rounded-md border border-plum/20 bg-white py-3 pl-11 pr-4 text-plum placeholder:text-plum-soft/50 focus:border-berry focus:outline-hidden"
+              className="campo-linea"
             />
           </div>
         </div>
 
         {error && (
-          <p className="text-sm text-berry-dark" role="alert">
+          <p className="text-sm text-peligro" role="alert">
             {error}
           </p>
         )}
 
-        <button
-          type="submit"
-          disabled={enviando}
-          className="flex w-full items-center justify-center gap-2 rounded-lg bg-plum py-3.5 font-semibold text-white transition hover:bg-berry-dark disabled:opacity-60"
-        >
-          {enviando ? <><Girando />Enviando...</> : "Enviar Enlace de Recuperación"}
+        <button type="submit" disabled={enviando} className="btn-pildora w-full">
+          {enviando ? <><Girando />Enviando...</> : "Enviar enlace"}
         </button>
       </form>
-
-      <p className="mt-6 text-center text-sm text-plum-soft">
-        ¿Recordaste tu contraseña?{" "}
-        <a href="/ingresar" className="font-bold text-berry hover:underline">
-          Inicia sesión.
-        </a>
-      </p>
     </>
   );
 }

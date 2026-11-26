@@ -108,6 +108,13 @@ export const IconoCorreo = (p: Props) => (
   </Icono>
 );
 
+export const IconoCandado = (p: Props) => (
+  <Icono {...p}>
+    <rect x="4" y="11" width="16" height="10" rx="2" />
+    <path d="M8 11V7a4 4 0 0 1 8 0v4" />
+  </Icono>
+);
+
 export const IconoAtras = (p: Props) => (
   <Icono {...p}>
     <path d="M19 12H5" />

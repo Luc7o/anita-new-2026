@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { destinoTrasIngresar, registrarConCorreo, verificarSegundoPaso, type ResultadoIngreso } from "@/lib/acceso";
-import { BotonGoogle, GOOGLE_CLIENT_ID } from "@/componentes/acceso/BotonGoogle";
+import { BotonGoogle, HAY_GOOGLE } from "@/componentes/acceso/BotonGoogle";
 import { CasillaTerminos } from "@/componentes/acceso/CasillaTerminos";
 import { PasoDosFactores } from "@/componentes/acceso/PasoDosFactores";
 import { Girando } from "@/componentes/acceso/Girando";
@@ -55,16 +55,16 @@ export function FormRegistro() {
 
   return (
     <>
-      <div className="mb-8 text-center">
-        <h2 className="text-3xl font-semibold text-plum sm:text-4xl">Crear una Cuenta</h2>
-        <p className="mt-2 text-sm text-plum-soft">
+      <div className="mb-7 bajo:mb-5">
+        <h2 className="font-display text-4xl text-plum bajo:text-[2rem]">Crear cuenta</h2>
+        <p className="mt-2 text-sm leading-relaxed text-plum-soft">
           Solo necesitas tu correo. Podrás seguir comprando de inmediato y elegir tu contraseña cuando quieras.
         </p>
       </div>
 
       <CasillaTerminos id="reg-acepta-terminos" checked={aceptaTerminos} onChange={setAceptaTerminos} className="mb-5" />
 
-      {GOOGLE_CLIENT_ID && (
+      {HAY_GOOGLE && (
         <>
           <BotonGoogle
             texto="signup_with"
@@ -73,9 +73,9 @@ export function FormRegistro() {
             onResultado={alGoogle}
             onError={setError}
           />
-          <div className="my-6 flex items-center gap-3 text-xs font-medium uppercase tracking-wide text-plum-soft/70">
+          <div className="my-6 flex items-center gap-3 bajo:my-4 text-xs font-medium uppercase tracking-wide text-plum-soft">
             <span className="h-px flex-1 bg-plum/10" />
-            o regístrate con tu correo
+            o con tu correo
             <span className="h-px flex-1 bg-plum/10" />
           </div>
         </>
@@ -83,7 +83,7 @@ export function FormRegistro() {
 
       <form onSubmit={enviar} className="space-y-5">
         <div>
-          <label htmlFor="reg-email" className="mb-1.5 block text-sm font-semibold text-plum">
+          <label htmlFor="reg-email" className="text-xs font-bold uppercase tracking-[0.14em] text-plum-soft">
             Correo electrónico
           </label>
           <div className="relative">
@@ -97,10 +97,10 @@ export function FormRegistro() {
               maxLength={120}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="campo-texto pr-11"
+              className="campo-linea"
             />
-            <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-plum-soft">
-              <IconoCorreo size={18} />
+            <span className="pointer-events-none absolute inset-y-0 left-0.5 flex items-center text-plum-soft">
+              <IconoCorreo size={17} />
             </span>
           </div>
         </div>
@@ -110,18 +110,12 @@ export function FormRegistro() {
         <button
           type="submit"
           disabled={enviando || !aceptaTerminos}
-          className="flex w-full items-center justify-center gap-2 rounded-lg bg-plum py-3.5 font-semibold text-white transition hover:bg-berry-dark disabled:opacity-60"
+          className="btn-pildora w-full"
         >
-          {enviando ? <><Girando />Creando cuenta...</> : "Crear Cuenta"}
+          {enviando ? <><Girando />Creando cuenta...</> : "Crear cuenta"}
         </button>
       </form>
 
-      <p className="mt-6 text-center text-sm text-plum-soft">
-        ¿Ya tienes cuenta?{" "}
-        <a href="/ingresar" className="font-bold text-berry hover:underline">
-          Ingresa.
-        </a>
-      </p>
     </>
   );
 }

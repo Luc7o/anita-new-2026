@@ -58,6 +58,7 @@ export async function ingresar(page, email, clave) {
   await page.goto("/ingresar");
   await page.getByLabel("Correo electrónico").fill(email);
   await page.getByRole("textbox", { name: "Contraseña" }).fill(clave);
+  await page.getByLabel(/He leído y acepto/).check();
   await page.getByRole("button", { name: "Ingresar" }).click();
   await expect(page).not.toHaveURL(/\/ingresar/);
 }

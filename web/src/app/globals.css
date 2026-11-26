@@ -2,6 +2,10 @@
    su propia copia en frontend/src/styles/theme.css. */
 @import "./theme.css";
 
+/* Pantallas de poca altura (laptops con la barra del navegador): las de acceso compactan sus
+   espacios para entrar completas sin desplazarse. */
+@custom-variant bajo (@media (max-height: 760px));
+
 /* Cada sección de la portada aparece con un fundido corto al entrar en pantalla, solo con
    CSS (sin JavaScript). Navegadores sin animation-timeline y quien pidió reducir movimiento
    la ven quieta desde el inicio. */
@@ -25,3 +29,71 @@
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-10px); }
 }
+
+/* Acceso (ingresar / crear cuenta): campo solo subrayado con ícono a la izquierda (el ícono
+   va en un span absoluto) y botón principal en forma de píldora. */
+.campo-linea {
+  width: 100%;
+  min-height: 2.75rem;
+  border: 0;
+  border-bottom: 1px solid rgb(var(--c-plum) / 0.2);
+  background: transparent;
+  padding: 0.6rem 0.25rem 0.6rem 2rem;
+  font-size: 1rem; /* 16px: iOS no hace zoom al enfocar */
+  color: rgb(var(--c-plum));
+  transition: border-color 0.3s ease;
+}
+.campo-linea::placeholder { color: rgb(var(--c-plum-soft) / 0.75); }
+.campo-linea:hover { border-bottom-color: rgb(var(--c-plum) / 0.4); }
+.campo-linea:focus { outline: none; border-bottom-color: var(--color-berry); }
+
+.btn-pildora {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 2.9rem;
+  border-radius: 9999px;
+  background: rgb(var(--c-plum));
+  color: rgb(var(--c-ivory));
+  font-weight: 700;
+  transition: background-color 0.3s ease, transform 0.15s ease;
+}
+.btn-pildora:hover:not(:disabled) { background: var(--color-berry); color: #fff; }
+.btn-pildora:active:not(:disabled) { transform: scale(0.98); }
+.btn-pildora:disabled { opacity: 0.45; cursor: not-allowed; }
+
+/* Código de verificación en casillas: un dígito por casilla. */
+.casilla-codigo {
+  /* Se reparten el ancho (en celular angosto se encogen) sin pasar de 3rem cada una. */
+  flex: 1 1 0;
+  min-width: 0;
+  max-width: 3rem;
+  height: 3.5rem;
+  border-radius: 0.875rem;
+  border: 1px solid rgb(var(--c-plum) / 0.18);
+  background: transparent;
+  text-align: center;
+  font-family: var(--font-cifra);
+  font-size: 1.5rem;
+  color: rgb(var(--c-plum));
+  caret-color: var(--color-berry);
+  transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.2s ease;
+}
+.casilla-codigo[data-lleno="true"] { border-color: rgb(var(--c-plum) / 0.55); }
+.casilla-codigo:focus {
+  outline: none;
+  border-color: var(--color-berry);
+  box-shadow: 0 0 0 4px rgb(165 54 148 / 0.16), 0 8px 22px -10px rgb(165 54 148 / 0.55);
+  transform: translateY(-2px);
+}
+.casillas-error .casilla-codigo { border-color: rgb(var(--c-peligro)); }
+@media (prefers-reduced-motion: no-preference) {
+  .casillas-error { animation: temblar 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97); }
+  .exito-aparece { animation: exito-pop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+}
+@keyframes temblar {
+  20%, 60% { transform: translateX(-6px); }
+  40%, 80% { transform: translateX(6px); }
+}
+@keyframes exito-pop { from { opacity: 0; transform: scale(0.6); } to { opacity: 1; transform: scale(1); } }

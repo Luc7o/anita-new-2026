@@ -13,6 +13,7 @@ test("Mi cuenta: sin sesión manda a ingresar y vuelve a la misma página", asyn
   await expect(page).toHaveURL(/\/ingresar\?volver=%2Fperfil%2Fconfiguracion/);
   await page.getByLabel("Correo electrónico").fill(datos.clientes[0]);
   await page.getByRole("textbox", { name: "Contraseña" }).fill(datos.clave);
+  await page.getByLabel(/He leído y acepto/).check();
   await page.getByRole("button", { name: "Ingresar" }).click();
   await expect(page).toHaveURL(/\/perfil\/configuracion$/);
   await expect(page.getByRole("heading", { name: "Verificación en dos pasos" })).toBeVisible();
