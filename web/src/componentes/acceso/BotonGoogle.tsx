@@ -66,7 +66,7 @@ function cargarScriptGoogle() {
 
 export function BotonGoogle({ texto = "continue_with", aceptaTerminos, bloqueado = false, onResultado, onError }: {
   texto?: "signin_with" | "signup_with" | "continue_with";
-  /** Si la persona marcó la casilla de Términos (ingreso y registro la muestran). Sin ella, Google solo sirve para cuentas que ya existen. */
+  /** Solo en registro (donde se muestra la casilla). En el ingreso sirve para cuentas que ya existen. */
   aceptaTerminos?: boolean;
   bloqueado?: boolean;
   onResultado: (r: ResultadoIngreso) => void;

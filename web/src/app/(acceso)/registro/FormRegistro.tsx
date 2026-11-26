@@ -44,10 +44,8 @@ export function FormRegistro() {
   if (pase2fa) {
     return (
       <PasoDosFactores
-        onVerificar={async (codigo, recordarDispositivo) => {
-          await verificarSegundoPaso(pase2fa, codigo, recordarDispositivo);
-          irAlDestino();
-        }}
+        onVerificar={(codigo, recordarDispositivo) => verificarSegundoPaso(pase2fa, codigo, recordarDispositivo)}
+        onListo={irAlDestino}
         onCancelar={() => setPase2fa(null)}
       />
     );
